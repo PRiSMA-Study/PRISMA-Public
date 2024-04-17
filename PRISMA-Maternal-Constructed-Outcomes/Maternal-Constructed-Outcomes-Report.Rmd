@@ -1,0 +1,2745 @@
+---
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 April 10)"
+output:
+  pdf_document:
+    toc: no
+    toc_depth: 6
+    latex_engine: xelatex
+    keep_tex: false
+include-in-header:
+- \usepackage{booktabs,longtable}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%") 
+knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+#*****************************************************************************
+#* PRISMA Maternal Outcomes -- TABLES 
+#* Drafted: 02 April 2024, Stacie Loisate
+#* Last updated: 02 April 2024
+#*****************************************************************************
+library(knitr)
+library(tidyverse)
+library(reshape2)
+library(lubridate)
+library(kableExtra)
+library(emo)
+library(naniar)
+library(RColorBrewer)
+library(gt) ## for table gen
+library(webshot2)  ## for table gen
+library(haven)
+
+# set path to save 
+path_to_data <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
+path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
+
+
+mortality <- read_dta(paste0(path_to_data, "mortality_MaternalOutcomes.dta")) %>% rename_all(toupper) 
+hemorrhage <- read.csv(paste0(path_to_data, "hemorrhage.csv")) %>% rename_all(toupper) 
+depression <- read_dta(paste0(path_to_data, "mnh25_MaternalOutcomes.dta")) %>% rename_all(toupper) 
+anemia <- read_dta(paste0(path_to_data, "ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+preterm_indication <- read_dta(paste0(path_to_data, "maternal_outcomes_MNH09.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+
+
+# maternal infection 
+# Table 1 Data: 
+mnh04_constructed_completeness <- read.csv(paste0(path_to_data, "mnh04_constructed_completeness", ".csv"))
+mnh06_constructed_completeness <- read.csv(paste0(path_to_data, "mnh06_constructed_completeness", ".csv"))
+mnh08_constructed_completeness <- read.csv(paste0(path_to_data, "mnh08_constructed_completeness", ".csv"))
+# Table 2 Data: 
+mat_infection_sti <- read.csv(paste0(path_to_data, "mat_infection_sti", ".csv"))
+mat_infection_sti_any_visit <- read.csv(paste0(path_to_data, "mat_infection_sti_any_visit", ".csv"))
+# Table 3 Data: 
+mat_infection_other <- read.csv(paste0(path_to_data, "mat_infection_other", ".csv"))
+# Table 4 Data: 
+mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combined", ".csv"))
+
+tb_theme1 <- function(matrix){
+  tb <- matrix %>%
+    gt(
+      rownames_to_stub = TRUE
+    ) %>%
+    opt_align_table_header(align = "left") %>%
+    tab_spanner(
+      label = "Sites"
+    ) %>%
+    opt_stylize(style = 6, color = 'gray') %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#800c0c"),
+        cell_text(weight = "bold"),
+        cell_text(v_align = "middle"),
+        cell_text(color = "white", size = px(18))
+      ),
+      locations = list(
+        cells_title()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#fad5d2"), # #f0b7b3,#f7cbc8, 
+        cell_text(color = "black", size = px(18)),
+        cell_text(v_align = "middle")
+      ),
+      locations = list(
+        cells_stubhead(),
+        cells_column_spanners(),
+        cells_column_labels()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#F0F0F0"),
+        cell_text(v_align = "middle", size = px(18))
+      ),
+      locations = list(
+        cells_stub()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_column_labels(columns = everything())
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_body(columns = everything())
+      )
+    ) %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_options(table.width = pct(100)) %>%
+    cols_width(1 ~ px(300))
+}
+ 
+
+# Function to extract and format legend horizontally
+g_legend <- function(p) {
+  tmp <- ggplot_gtable(ggplot_build(p))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend_gtable <- tmp$grobs[[leg]]
+  
+  # Arrange legend components horizontally
+  legend_gtable$widths <- unit(rep(1, ncol(legend_gtable)), "null")
+  legend_gtable$grobs <- legend_gtable$grobs[order(legend_gtable$layout$l)]
+  
+  return(legend_gtable)
+}
+
+```
+
+**Includes data from synapse last updated:** 2024 April 5
+
+\setcounter{tocdepth}{6}
+\tableofcontents
+
+\newpage
+
+## 1. Maternal mortality
+
+**Definitions:**
+
+-   Maternal mortality: Death from any cause **related to or aggravated by pregnancy or its management** (excluding accidental or incidental causes) during pregnancy and childbirth or within 42 days of termination of pregnancy, irrespective of the duration and site of the pregnancy.
+
+-   Late maternal mortality:  Death from any cause **related to or aggravated by pregnancy or its management** (excluding accidental or incidental causes), irrespective of the duration and site of the pregnancy, from 42 days postpartum up to one year.
+
+-   Pregnancy-related death: death **from any cause** during pregnancy and childbirth or within 42 days of termination of pregnancy, irrespective of the duration and site of the pregnancy.
+
+-   Late pregnancy-related death: death from any cause, irrespective of the duration and site of the pregnancy, from 42 days postpartum up to one year. 
+
+-   Any death: any death that occurs at any point during the study, from any cause. 
+
+**Denominator:** TBD
+
+**To be included as "non-missing" for this outcome, a participant must have:**
+
+**1.** Completed closeout form [MNH23] reporting that the woman died (varname [form]: `CLOSE_DSDECOD`==3 [MNH23]), AND/OR
+
+**2.** Form indicates that maternal status is reported as died (varname [form]: `MAT_VITAL_MNHxx`==2 [MNH04, MNH10, MNH12]), AND/OR
+
+**3.** Form indicates that visit not completed because the woman died (varname [form]: `MAT_VITAL_MNHxx`==8 [MNH04, MNH10, MNH12]).
+
+**4.** *For maternal and late maternal mortality:*  Cause of death is not due to accidental or incidental causes  (`ACC_DDORRES` [MNH23, MNH04]) but is due to pregnancy or management of pregnancy [MNH27].
+
+**Common causes for a participant to be marked as "Missing":**
+
+**-** Cause of death is unknown: (`ACC_DDORRES` [MNH23, MNH04]) is 77, Not applicable; and analysis of verbal autopsy data [MNH27] is forthcoming.
+
+**-** Missing date of maternal death.
+
+### Table 1. Maternal mortality
+```{r}
+
+## with percents -- to add denominators when available
+ # mortality_tab <- depression_mortality %>%
+ #   rowwise() %>%
+ #   group_by(SITE) %>%
+ #   summarise(
+ #
+ #     "Missing cause of death information, n" = paste0(
+ #       format(sum(MAT_DEATH_MISSCAUSE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+ #       " (",
+ #       format(round(sum(MAT_DEATH_MISSCAUSE == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+ #       ")"),
+ #
+ #     "Missing date of death information, n" = paste0(
+ #       format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+ #       " (",
+ #       format(round(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+ #       ")"),
+ #
+ #     # "Any death ^a^, n" = paste0(
+ #     #   format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+ #     #   " (",
+ #     #   format(round(sum(MAT_DEATH == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+ #     #   ")"),
+ #
+ #     "Pregnancy-related death, n" = paste0(
+ #       format(sum(MAT_DEATH_42 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+ #       " (",
+ #       format(round(sum(MAT_DEATH_42 == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+ #       ")"),
+ #
+ #     #  "Late pregnancy-related death, n" = paste0(
+ #     #   format(sum(MAT_DEATH_42 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+ #     #   " (",
+ #     #   format(round(sum(MAT_DEATH_42 == 2, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+ #     #   ")"),
+ #     #
+ #     # "Maternal mortality, n" = paste0(
+ #     #   format(sum(MAT_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+ #     #   " (",
+ #     #   format(round(sum(MAT_MORTALITY == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+ #     #   ")"),
+ #     #
+ #     #  "Later maternal mortality, n" = paste0(
+ #     #   format(sum(MAT_LATE_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+ #     #   " (",
+ #     #   format(round(sum(MAT_LATE_MORTALITY == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+ #     #   ")")
+ #
+ #   ) %>%
+ #   t() %>% as.data.frame() %>%
+ #   `colnames<-`(c(.[1,])) %>%
+ #   slice(-1)  %>%
+ #   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+ #   mutate_all(funs(str_replace(., "NA", "0")))
+ #
+
+# ## without percents
+ mortality_tab <- mortality %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+    "Missing cause of death information, n" = paste0(
+       format(sum(MAT_DEATH_MISSCAUSE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Missing date of death information, n" = paste0(
+       format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Any death ^a^, n" = paste0(
+       format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Pregnancy-related death, n" = paste0(
+       format(sum(MAT_DEATH_42 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Late pregnancy-related death, n" = paste0(
+       format(sum(MAT_DEATH_42 == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Maternal mortality ^b^, n" = paste0(
+       format(sum(MAT_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Later maternal mortality ^b^, n" = paste0(
+       format(sum(MAT_LATE_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2))
+
+   ) %>%
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+ mortality_tab[is.na(mortality_tab)] <- paste0("0")
+
+ mortality_output <- tb_theme1(mortality_tab) %>%
+   tab_header(
+     title = md("**Table 1**")) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Data completeness</span>"),
+     rows = 1:2
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Maternal death</span>"),
+     rows = 3:3
+   ) %>%
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes.</span>")
+  ) %>% 
+
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup> Maternal mortality and late maternal mortality require information on cause of death which is currently unavailable.</span>")
+  ) %>% 
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>Note</sup> Currently all entries are missing information for cause of death, and a few entries are missing date of death information.</span>")
+  )
+
+```
+
+```{r, out.width = '100%'}
+gtsave(mortality_output, file = "mortality_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "mortality_output.png"))
+```
+
+
+\newpage
+
+## 2. Maternal anemia
+
+### 2a. Maternal anemia in pregnancy
+
+**Definition:** Low hemoglobin levels in pregnancy, as based on results from complete blood count (CBC) measures or point-of-care hemoglobin tests. Levels of anemia in pregnancy are defined as: no anemia (>=11 g/dL); mild anemia (>=10 & <11 g/dL); moderate anemia (>=7 & <10 g/dL); severe anemia (< 7 g/dL)
+
+**Denominator:** All participants with completed pregnancies including:
+
+-   Valid gestational age information provided at enrollment visit in MNH01 including: (varname: `US_GA_WKS_AGE_FTS1-4`,`US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`)
+
+-   Confirmed enrollment in form MNH02.
+
+-   Confirmed pregnancy end date in MNH09.
+
+#### Table 2a. Maternal anemia in pregnancy
+```{r}
+
+anemia_tab <- anemia %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+    "Missing both US and LMP GA or ultrasound date [MNH01]" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_MISS == 1 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_MISS == 1 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing BOTH CBC result and POC result with a sample date in pregnancy" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_MISS ==2 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_MISS ==2 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "No anemia (>=11 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC == 0 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC == 0 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mild anemia (>=10 & <11 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC == 1 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC == 1 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=7 & <10 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC == 2 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC == 2 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (< 7 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC == 3 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC == 3 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing (no hemoglobin data with test date in pregnancy)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC == 55 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC == 55 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+anemia_tab[is.na(anemia_tab)] <- paste0("0 (0)")
+
+anemia_output <- tb_theme1(anemia_tab) %>% 
+  tab_header(
+    title = md("**Table 2a**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 1:2
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>All completed pregnancies (with MNH09 filled)</span>"),
+    rows = 3:7
+  ) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                  "<span style='font-size: 18px'>All completed pregnancies (with MNH09 filled)</span>")) %>% 
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on whole blood/CBC measures of hemoglobin first, filling in point-of-care measures of hemoglobin only when no CBC result exists for the window of interest. For each participant, this table presents the worst anemia status observed during the window of interest.</span>")
+ ) 
+```
+
+```{r, out.width = '100%'}
+
+gtsave(anemia_output, file = "anemia_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "anemia_output.png"))
+
+```
+
+\newpage
+
+### 2b. Maternal anemia in pregnancy by trimester
+
+**Definition:** Low hemoglobin levels in each trimester, as based on results from complete blood count (CBC) measures or point-of-care hemoglobin tests. Levels of anemia in pregnancy are defined as: no anemia (>=11 g/dL); mild anemia (>=10 & <11 g/dL); moderate anemia (>=7 & <10 g/dL); severe anemia (< 7 g/dL).
+
+**Denominator:** All participants that completed the trimester of interest including:
+
+-   Valid gestational age information provided at enrollment visit in MNH01 including: (varname: `US_GA_WKS_AGE_FTS1-4`,`US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`)
+
+-   The participant is confirmed to be enrolled in the study based on form MNH02.
+
+-   The participant has completed the trimester of interest based on the Best Obstetric Estimate of the participant’s due date collected at enrollment and the date of the most recent data upload to Synapse.
+
+-   For Trimester 1, participant was recruited during the first trimester (prior to 14 weeks gestation based on Best Obstetric Estimate of gestational age at enrollment).
+
+***Note:** This table contains pregnancies that are not yet completed; therefore, the denominator for each outcome varies by the trimester window of interest. * 
+
+#### Table 2b. Maternal anemia prevalence by trimester of pregnancy, ongoing data collection
+```{r}
+## this is a long table; will need to split into 3 separate tables (anemia_tab_b1 & anemia_tab_b2)
+
+## fisrt set of anemia tables: 
+
+anemia_tab_tri1 <- anemia %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+  ## trimester 1
+
+    "Missing both US and LMP GA or ultrasound date [MNH01]" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T1_MISS== 1 & ENROLL_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T1_MISS == 1 & ENROLL_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing BOTH CBC result and POC result with a sample date in Trimester 1" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T1_MISS  ==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T1_MISS ==2 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "No anemia (>=11 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T1 == 0 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T1 == 0 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mild anemia (>=10 & <11 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T1 == 1 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T1 == 1 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=7 & <10 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T1 == 2 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T1 == 2 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (< 7 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T1 == 3 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T1 == 3 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing (no hemoglobin data with test date in pregnancy)" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T1 == 55 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T1 == 55 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+## trimester 2
+anemia_tab_tri2 <- anemia %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## trimester 2
+
+    "Missing both US and LMP GA or ultrasound date [MNH01] " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T2_MISS== 1 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T2_MISS== 1 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing BOTH CBC result and POC result with a sample date in Trimester 2" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T2_MISS==2 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T2_MISS==2 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "No anemia (>=11 g/dL) " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T2 == 0 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T2 == 0 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mild anemia (>=10 & <11 g/dL) " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T2 == 1 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T2 == 1 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=7 & <10 g/dL) " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T2 == 2 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T2 == 2 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (< 7 g/dL) " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T2 == 3 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T2 == 3 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing (no hemoglobin data with test date in pregnancy) " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T2 == 55 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T2 == 55 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+## trimester 3
+anemia_tab_tri3 <- anemia %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+    ## trimester 3
+    "Missing both US and LMP GA or ultrasound date [MNH01]  " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T3_MISS == 1 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T3_MISS == 1 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing BOTH CBC result and POC result with a sample date in Trimester 3" = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T3_MISS ==2 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T3_MISS ==2 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "No anemia (>=11 g/dL)  " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T3 == 0 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T3 == 0 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mild anemia (>=10 & <11 g/dL)  " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T3 == 1 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T3 == 1 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=7 & <10 g/dL)  " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T3 == 2 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T3 == 2 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (< 7 g/dL)  " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T3 == 3 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T3 == 3 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing (no hemoglobin data with test date in pregnancy)  " = paste0(
+      format(sum(MAT_ANEMIA_M_ANC_T3 == 55 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_ANC_T3 == 55 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+anemia_tab_tri1[is.na(anemia_tab_tri1)] <- paste0("0 (0)")
+anemia_tab_tri2[is.na(anemia_tab_tri2)] <- paste0("0 (0)")
+anemia_tab_tri3[is.na(anemia_tab_tri3)] <- paste0("0 (0)")
+
+# TRIMESTER 1
+anemia_tab_tri1_output <- tb_theme1(anemia_tab_tri1) %>% 
+  tab_header(
+    title = md("**Table 2b**")) %>% 
+tab_spanner(
+    label = html("<span style='font-size: 18px'>Trimester 1</span>"),
+    columns = 1:7
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:7
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>All pregnancies recruited in Trimester 1 & completed Trimester 1 by data upload date</span>"),
+    rows = 3:7
+  ) %>%
+
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>All pregnancies recruited in Trimester 1 & completed Trimester 1 by data upload date</span>"))
+
+# TRIMESTER 2
+anemia_tab_tri2_output <- tb_theme1(anemia_tab_tri2) %>% 
+  tab_header(
+    title = md("**Table 2b continued**")) %>% 
+tab_spanner(
+    label = html("<span style='font-size: 18px'>Trimester 2</span>"),
+    columns = 1:7
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:7
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>All pregnancies that completed Trimester 2 by data upload date</span>"),
+    rows = 3:7
+  ) %>%
+
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>All pregnancies that completed Trimester 2 by data upload date</span>"))
+
+# TRIMESTER 3
+anemia_tab_tri3_output <- tb_theme1(anemia_tab_tri3) %>% 
+  tab_header(
+    title = md("**Table 2b continued**")) %>% 
+tab_spanner(
+    label = html("<span style='font-size: 18px'>Trimester 3</span>"),
+    columns = 1:7
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:7
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>All pregnancies that completed Trimester 3 by data upload date</span>"),
+    rows = 3:7
+  ) %>%
+
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>All pregnancies that completed Trimester 3 by data upload date</span>")) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note</sup>**This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on whole blood/CBC measures of hemoglobin first, filling in point-of-care measures of hemoglobin only when no CBC result exists for the window of interest. For each participant, this table presents the worst anemia status observed during the window of interest if multiple tests are provided. </span>")
+ ) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(anemia_tab_tri1_output, file = "anemia_tab_tri1_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri1_output.png"))
+
+```
+
+\newpage
+
+
+```{r, out.width = '100%'}
+
+gtsave(anemia_tab_tri2_output, file = "anemia_tab_tri2_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri2_output.png"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(anemia_tab_tri3_output, file = "anemia_tab_tri3_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri3_output.png"))
+
+```
+
+\newpage
+
+#### Figure 1. Anemia status by trimester
+
+```{r, out.width = '100%', fig.align='center'}
+
+knitr::include_graphics(paste0(path_to_data, "anemia-fig.png"))
+
+```
+
+\newpage
+
+
+### 2c. Maternal anemia in the postpartum period
+
+**Definition:** Low hemoglobin levels in the postpartum period, as based on results from complete blood count (CBC) measures or point-of-care hemoglobin tests. Levels of anemia in the postpartum period are defined as: no anemia (>=12 g/dL); mild anemia (>=11 & <12 g/dL); moderate anemia (>=8 & <11 g/dL); severe anemia (< 8 g/dL).
+
+**Denominator:** All participants with completed pregnancies including:
+
+-   Confirmed enrollment in form MNH02.
+
+-   Confirmed pregnancy end date in MNH09.
+
+-   The participant has completed the postpartum window of interest based on the pregnancy end date reported in MNH09 and the date of the most recent data upload to Synapse.
+
+***Note:** This table contains participants still progressing through postpartum follow-up; therefore, the denominator for each outcome varies by the postpartum window of interest.* 
+
+\newpage 
+
+#### Table 2c. Maternal anemia prevalence postpartum, ongoing data collection
+```{r}
+
+anemia_pph_tab <- anemia %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+  ## pnc6
+
+    "Missing pregnancy end date [MNH09]" = paste0(
+      format(sum(MAT_ANEMIA_M_PNC6L_MISS== 1 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC6L_MISS== 1 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing BOTH CBC result and POC result with a sample date in PNC-6 window" = paste0(
+      format(sum(MAT_ANEMIA_M_PNC6L_MISS==2 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC6L_MISS==2 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "No anemia (>=12 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_PNC6L== 0 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC6L == 0 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mild anemia (>=11 & <12 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_PNC6L == 1 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC6L == 1 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=8 & <11 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_PNC6L == 2 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC6L == 2 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (< 8 g/dL)" = paste0(
+      format(sum(MAT_ANEMIA_M_PNC6L== 3 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC6L== 3 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing" = paste0(
+      format(sum(MAT_ANEMIA_M_PNC6L == 55 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC6L == 55 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+  ## pnc26
+  
+    "Missing pregnancy end date [MNH09] " = paste0(
+      format(sum(MAT_ANEMIA_M_PNC26L_MISS == 1 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC26L_MISS == 1 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing BOTH CBC result and POC result with a sample date in PNC26 window" = paste0(
+      format(sum(MAT_ANEMIA_M_PNC26L_MISS ==2 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC26L_MISS ==2 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "No anemia (>=12 g/dL) " = paste0(
+      format(sum(MAT_ANEMIA_M_PNC26L== 0 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC26L== 0 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mild anemia (>=11 & <12 g/dL) " = paste0(
+      format(sum(MAT_ANEMIA_M_PNC26L== 1 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC26L== 1 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=8 & <11 g/dL) " = paste0(
+      format(sum(MAT_ANEMIA_M_PNC26L== 2 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC26L== 2 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (< 8 g/dL) " = paste0(
+      format(sum(MAT_ANEMIA_M_PNC26L== 3 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC26L== 3 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing " = paste0(
+      format(sum(MAT_ANEMIA_M_PNC26L== 55 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_ANEMIA_M_PNC26L== 55 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+
+    
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+anemia_pph_tab[is.na(anemia_pph_tab)] <- paste0("0 (0)")
+
+anemia_pph_output <- tb_theme1(anemia_pph_tab) %>% 
+  tab_header(
+    title = md("**Table 2c**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness at PNC-6 <sup>a</sup></span>"),
+        rows = 1:2
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal anemia prevalence at PNC-6 <sup>a</sup></span>"),
+    rows = 3:7
+  ) %>%
+ tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness at PNC-26 <sup>b</sup></span>"),
+        rows = 8:9
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal anemia prevalence at PNC-26 <sup>b</sup></span>"),
+    rows = 10:14
+  ) %>%
+
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness at PNC-6 <sup>a</sup></span>",
+                            "<span style='font-size: 18px'>Maternal anemia prevalence at PNC-6 <sup>a</sup></span>",
+                            "<span style='font-size: 18px'>Data completeness at PNC-26 <sup>b</sup></span>",
+                            "<span style='font-size: 18px'>Maternal anemia prevalence at PNC-26 <sup>b</sup></span>")) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Prevalence is based on tests during the PNC-6 late visit window (6-12 weeks postpartum).</span>")) %>% 
+  
+    tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Prevalence is based on tests during the PNC-26 late visit window (26-39 weeks postpartum).</span>")) %>% 
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on whole blood/CBC measures of hemoglobin first, filling in point-of-care measures of hemoglobin only when no CBC result exists for the postpartum window of interest. For each participant, this table presents the worst anemia status observed during the postpartum window of interest if multiple tests are provided.</span>")) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(anemia_pph_output, file = "anemia_pph_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "anemia_pph_output.png"))
+
+```
+
+\newpage 
+
+
+## 3. Preterm delivery classification
+
+### 3a. Preterm delivery
+
+**Definition:** Preterm delivery prior to 37 completed weeks of gestation at birth, excluding pregnancy losses prior to 20 weeks gestation.
+
+**Denominator:** All participants with recorded delivery (including livebirth OR stillbirth) after 20 weeks with:
+
+-   Valid gestational age information provided at enrollment visit in MNH01 including: (varname: `US_GA_WKS_AGE_FTS1-4`, `US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`)
+
+-   MNH09 form filled and date of delivery for first fetus/infant provided (varname [form]: `DELIV_DSSTDAT_INF1` [MNH09]).
+
+***Note:** Gestational age information collected in MNH01 is used to generate best obstetric estimates for EDD. These constructed variables are then used to calculate GA at time of birth.*
+
+### 3b. Provider-initiated preterm delivery
+
+**Definition:** Provider-initiated early delivery via induction of labor, artificial rupture of membranes, or cesarean delivery prior to (or without) spontaneous labor or spontaneous rupture of membranes.
+
+**Denominator:** All preterm deliveries as defined above.
+
+### 3c. Spontaneous preterm delivery
+
+**Definition:** Preterm delivery occurring spontaneously, with spontaneous onset of labor and/or spontaneous rupture of membranes initiating the delivery.
+
+**Denominator:** All preterm deliveries as defined above.
+
+### Table 3a. Preterm delivery & preterm classification
+```{r}
+
+preterm_tab <- preterm_indication %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Missing both US and LMP GA or ultrasound date [MNH01]" = paste0(
+      format(sum(PRETERM_PROV_MISS== 1 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_MISS== 1 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE)/sum(PREG_END== 1 & PREG_LOSS== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing date of pregnancy endpoint [MNH09]" = paste0(
+      format(sum(PRETERM_PROV_MISS==2 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_MISS==2 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE)/sum(PREG_END== 1 & PREG_LOSS== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Missing information on labor onset or rupture of membranes [MNH09]" = paste0(
+      format(sum(PRETERM_PROV_MISS== 4 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_MISS== 4 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE)/sum(PREG_END== 1 & PREG_LOSS== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Preterm delivery (20 to <37 weeks)" = paste0(
+      format(sum(PRETERM_ANY == 1 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_ANY == 1 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE)/sum(PREG_END== 1 & PREG_LOSS== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Term delivery (>=37 weeks)" = paste0(
+      format(sum(PRETERM_ANY== 0 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_ANY== 0 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE)/sum(PREG_END== 1 & PREG_LOSS== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing" = paste0(
+      format(sum(PRETERM_ANY==55 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_ANY==55 & PREG_END== 1 & PREG_LOSS== 0, na.rm = TRUE)/sum(PREG_END== 1 & PREG_LOSS== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Provider-initiated preterm" = paste0(
+      format(sum(PRETERM_PROV ==1 & PRETERM_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV==1 & PRETERM_ANY==1, na.rm = TRUE)/sum(PRETERM_ANY==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Spontaneous preterm" = paste0(
+      format(sum(PRETERM_PROV ==0 & PRETERM_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV ==0 & PRETERM_ANY==1, na.rm = TRUE)/sum(PRETERM_ANY==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing " = paste0(
+      format(sum(PRETERM_PROV ==55 & PRETERM_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV ==55 & PRETERM_ANY==1, na.rm = TRUE)/sum(PRETERM_ANY==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+preterm_tab[is.na(preterm_tab)] <- paste0("0 (0)")
+
+preterm_tab_output <- tb_theme1(preterm_tab) %>% 
+  tab_header(
+    title = md("**Table 3a**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness (among all completed pregnancies with MNH01 and MNH09, excluding pregnancy loss <20 weeks)</span>"),
+        rows = 1:3
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Preterm delivery (among all completed pregnancies with MNH01 and MNH09, excluding pregnancy loss <20 weeks)</span>"),
+    rows = 4:6
+  ) %>%
+ tab_row_group(
+    label = html("<span style='font-size: 18px'>Preterm classification (among all preterm deliveries)</span>"),
+        rows = 7:9
+    ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data Completeness (among all completed pregnancies with MNH01 and MNH09, excluding pregnancy loss <20 weeks)</span>",
+                            "<span style='font-size: 18px'>Preterm delivery (among all completed pregnancies with MNH01 and MNH09, excluding pregnancy loss <20 weeks)</span>",
+                            "<span style='font-size: 18px'>Preterm classification (among all preterm deliveries)</span>")) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(preterm_tab_output, file = "preterm_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "preterm_tab_output.png"))
+
+```
+
+### Table 3b. Provider-initiated preterm delivery by indication
+```{r}
+
+prov_preterm_tab <- preterm_indication %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Diabetes(chronic or gestational)" = paste0(
+      format(sum(PRETERM_PROV_IND==8 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==8 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Cardiac disease" = paste0(
+      format(sum(PRETERM_PROV_IND==9 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==9 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Hypertension (chronic or gestational)" = paste0(
+      format(sum(PRETERM_PROV_IND== 7 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND== 7 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Preeclampsia/ eclampsia" = paste0(
+      format(sum(PRETERM_PROV_IND == 32 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND == 32 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Herpes" = paste0(
+      format(sum(PRETERM_PROV_IND== 34 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND== 34 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "PMTCT" = paste0(
+      format(sum(PRETERM_PROV_IND==35 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==35 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Previous cesarean" = paste0(
+      format(sum(PRETERM_PROV_IND ==22 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==22 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Prior stillbirth" = paste0(
+      format(sum(PRETERM_PROV_IND ==3 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND ==3 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    # Pregnancy & fetal conditions 
+    
+    "Non-reassuring fetal heart rate " = paste0(
+      format(sum(PRETERM_PROV_IND ==2 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND ==2 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Oligohydramnios" = paste0(
+      format(sum(PRETERM_PROV_IND== 5 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND== 5 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "IUGR" = paste0(
+      format(sum(PRETERM_PROV_IND==6 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==6 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Macrosomia" = paste0(
+      format(sum(PRETERM_PROV_IND== 4 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND== 4 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Post-term^*^" = paste0(
+      format(sum(PRETERM_PROV_IND == 1 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND == 1 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Fetal anomaly" = paste0(
+      format(sum(PRETERM_PROV_IND== 33 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND== 33 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Abruption/bleeding" = paste0(
+      format(sum(PRETERM_PROV_IND==26 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==26 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Cord prolapse" = paste0(
+      format(sum(PRETERM_PROV_IND ==28 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==28 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Breech presentation" = paste0(
+      format(sum(PRETERM_PROV_IND ==29 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND ==29 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Rupture of membranes^*^" = paste0(
+      format(sum(PRETERM_PROV_IND ==11 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND ==11 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    ## elective
+    "Elective induction" = paste0(
+      format(sum(PRETERM_PROV_IND== 10 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND== 10 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Elective cesarean" = paste0(
+      format(sum(PRETERM_PROV_IND==36 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==36 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  ## other
+    "Other indication" = paste0(
+      format(sum(PRETERM_PROV_IND ==88 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND==88 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Multiple indications" = paste0(
+      format(sum(PRETERM_PROV_IND ==89 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND ==89 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+  ## missing information
+
+    "No indication provided" = paste0(
+      format(sum(PRETERM_PROV_IND ==555 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_PROV_IND ==555 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+prov_preterm_tab[is.na(prov_preterm_tab)] <- paste0("0 (0)")
+
+## table is too long - split into 2 
+prov_preterm_tab1 <- prov_preterm_tab[1:18,]
+prov_preterm_tab2 <- prov_preterm_tab[19:23,]
+
+prov_preterm_tab_output1 <- tb_theme1(prov_preterm_tab1) %>% 
+  tab_header(
+    title = md("**Table 3b**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal conditions & pregnancy history</span>"),
+        rows = 1:8
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Pregnancy & fetal conditions</span>"),
+    rows = 9:18
+  ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Maternal conditions & pregnancy history</span>",
+                            "<span style='font-size: 18px'>Pregnancy & fetal conditions</span>")) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'>* Outcomes indicated with an asterisk (*) are inconsistent with provider-initiated delivery and require further review.</span>")
+ ) 
+
+prov_preterm_tab_output2 <- tb_theme1(prov_preterm_tab2) %>% 
+  tab_header(
+    title = md("**Table 3b continued**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Elective</span>"),
+        rows = 1:2
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Other</span>"),
+    rows = 3:4
+  ) %>%
+tab_row_group(
+    label = html("<span style='font-size: 18px'>Missing information</span>"),
+    rows = 5:5
+  ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Elective</span>",
+                            "<span style='font-size: 18px'>Other</span>",
+                            "<span style='font-size: 18px'>Missing information</span>")) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> The indications presented in this table are drawn from the variable `INDUCED_PRINDC` for provider-initiated deliveries where labor was induced OR from the variable `CES_PRINDC_INF1` for pregnancies where cesarean delivery occurred without prior labor or rupture of membranes.</span>")
+ ) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(prov_preterm_tab_output1, file = "prov_preterm_tab_output1.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "prov_preterm_tab_output1.png"))
+
+```
+
+\newpage
+
+```{r, out.width = '100%'}
+
+gtsave(prov_preterm_tab_output2, file = "prov_preterm_tab_output2.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "prov_preterm_tab_output2.png"))
+
+```
+
+### Table 3c. Spontaneous preterm delivery by indication
+```{r}
+
+spon_preterm_tab <- preterm_indication %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Preterm labor" = paste0(
+      format(sum(PRETERM_SPON_IND==1 & PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_SPON_IND==1 & PRETERM_SPON==1, na.rm = TRUE)/sum(PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "PPROM" = paste0(
+      format(sum(PRETERM_SPON_IND==2 & PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_SPON_IND==2 & PRETERM_SPON==1, na.rm = TRUE)/sum(PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Unknown order of events" = paste0(
+      format(sum(PRETERM_SPON_IND== 55 & PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_SPON_IND== 55 & PRETERM_SPON==1, na.rm = TRUE)/sum(PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+spon_preterm_tab[is.na(spon_preterm_tab)] <- paste0("0 (0)")
+
+spon_preterm_tab_output <- tb_theme1(spon_preterm_tab) %>% 
+  tab_header(
+    title = md("**Table 3c**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Spontaneous preterm delivery by indication</span>"),
+        rows = 1:3
+    ) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Spontaneous preterm delivery by indication</span>"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(spon_preterm_tab_output, file = "spon_preterm_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "spon_preterm_tab_output.png"))
+
+```
+
+**To be included as "non-missing" for this outcome, a participant must have:**
+
+*For all outcomes:*
+
+**1.** Reported gestational age by either LMP or Ultrasound (varnames [form]: `US_GA_WKS_AGE_FTS1-4` [MNH01], `US_GA_DAYS_AGE_FTS1-4` [MNH01], `GA_LMP_WEEKS_SCORRES` [MNH01]).
+
+**2.** Valid enrollment ultrasound visit date (varname [form]: `US_OHOSTDAT` [MNH01]).
+
+**3.** Valid date of birth for first fetus/infant in the pregnancy (varname [form]: `DELIV_DSSTDAT_INF1` [MNH09]).
+
+*For 3b. Provider-initiated preterm & 3c. Spontaneous preterm:*
+
+**4.** Valid responses for variables on labor including:
+
+a.  if the woman experienced labor (varname [form]: `LABOR_MHOCCUR` [MNH09]);
+
+b.  date and time of labor onset if she experienced labor (`LABOR_MHSTDAT`, `LABOR_MHSTTIM` [MNH09]);
+
+c.  if labor was induced (varname [form]: `INDUCED_PROCCUR` [MNH09])
+
+**5.** Valid responses for variables on type of membrane rupture including:
+
+a.  type of membrane rupture (varname [form]: `MEMBRANE_RUPT_MHTERM` [MNH09]);
+
+b.  date and time of membrane rupture (if occurred) (varnames [form]: `MEMBRANE_RUPT_MHSTDAT`, `MEMBRANE_RUPT_MHSTTIM` [MH09])
+
+**6.** Delivery mode for all fetuses/infants (varname: DELIV_PRROUTE_INF1-4, MNH09])
+
+\newpage
+
+## 4. Preterm premature rupture of membranes (PPROM)
+
+**Definition:** Spontaneous rupture of membranes occurs prior to 37 weeks GA and before onset of labor.
+
+**Denominator:** All completed pregnancies with:
+
+-   Valid gestational age information provided at enrollment visit in MNH01 including: (varnames [form]: `US_GA_WKS_AGE_FTS1-4` [MNH01], `US_GA_DAYS_AGE_FTS1-4` [MNH01], `GA_LMP_WEEKS_SCORRES` [MNH01], `US_OHOSTDAT` [MNH01]).
+
+-   MNH09 form filled and date/time of rupture of membranes and onset of labor provided, if applicable (varnames [form]: `MEMBRANE_RUPT_MHSTDAT`, `MEMBRANE_RUPT_MHSTTIM`, `LABOR_MHSTDAT`, `LABOR_MHSTTIM` [MNH09])
+
+***Note:** Gestational age information collected in MNH01 is used to generate best obstetric estimates for GA, EDD, and estimated conception date. These constructed variables are then used to calculate GA at time of rupture of membranes.*
+
+**To be included as "non-missing" for this outcome, a participant must have:**
+
+**1.** Reported gestational age by either LMP or Ultrasound (varnames [form]: `US_GA_WKS_AGE_FTS1-4` [MNH01], `US_GA_DAYS_AGE_FTS1-4` [MNH01], `GA_LMP_WEEKS_SCORRES` [MNH01]).
+
+**2.** Valid enrollment ultrasound visit date (varname [form]: `US_OHOSTDAT` [MNH01]). 
+
+**3.** Valid responses for variables on labor including: 
+
+a.  if the woman experienced labor (varname [form]: `LABOR_MHOCCUR` [MNH09]); and
+
+b.  date and time of labor onset if she experienced labor (varname [form]: `LABOR_MHSTDAT`, `LABOR_MHSTTIM` [MNH09]).
+
+**4.** Valid responses for variables on type of membrane rupture including:
+
+a.  type of membrane rupture (varname [form]: `MEMBRANE_RUPT_MHTERM` [MNH09]); and
+
+b.  date and time of membrane rupture (if occurred) (varname [form]: `MEMBRANE_RUPT_MHSTDAT`, `MEMBRANE_RUPT_MHSTTIM` [MH09])
+
+### Table 4. Preterm premature rupture of membranes (PPROM)
+```{r}
+
+pprom_tab <- preterm_indication %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Missing both US and LMP GA or ultrasound date [MNH01]" = paste0(
+      format(sum(PPROM_PREGEND_MISS== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_PREGEND_MISS== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing information on type of rupture of membranes (spontaneous or artificial) [MNH09]" = paste0(
+      format(sum(PPROM_PREGEND_MISS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_PREGEND_MISS==2, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Missing information on timing of spontaneous rupture of membranes [MNH09]" = paste0(
+      format(sum(PPROM_PREGEND_MISS==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_PREGEND_MISS== 3, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing information on timing of labor [MNH09]" = paste0(
+      format(sum(PPROM_PREGEND_MISS == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_PREGEND_MISS == 4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "PPROM" = paste0(
+      format(sum(PPROM_PREGEND == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_PREGEND == 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No PPROM" = paste0(
+      format(sum(PPROM_PREGEND==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_PREGEND==0, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing" = paste0(
+      format(sum(PPROM_PREGEND==55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_PREGEND==55, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+pprom_tab[is.na(pprom_tab)] <- paste0("0 (0)")
+
+pprom_tab_output <- tb_theme1(pprom_tab) %>% 
+  tab_header(
+    title = md("**Table 4**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness (among all completed pregnancies with MNH01 and MNH09)</span>"),
+        rows = 1:4
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>PPROM (among all completed pregnancies with MNH01 and MNH09)</span>"),
+    rows = 5:7
+  ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data Completeness (among all completed pregnancies with MNH01 and MNH09)</span>",
+                            "<span style='font-size: 18px'>PPROM (among all completed pregnancies with MNH01 and MNH09)</span>")) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(pprom_tab_output, file = "pprom_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "pprom_tab_output.png"))
+
+```
+
+\newpage
+
+## 5. Perinatal depression
+
+**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a standard cutoff across sites (score >= 11) (Table 5b) or site-specific cutoff (Table 5c).
+
+**To be included as "non-missing" for this outcome, a participant must have:**
+
+**1.** Visit was completed either in person or by telephone.
+
+**2.** Visit type recorded as enrollment, ANC-20, ANC-32, ANC-36, or PNC-6.
+
+a.  ***NOTE:* we are not considering missed visit windows or if non-schedule routine visit is indicated*
+
+**3.** Valid responses are calculated from EPDS variables (varname [form]: `EPDS0101` – `EPDS0110` [MNH25])
+
+**Common causes of missingness by visit type:**
+
+**-** Form was filled but visit not completed (varname [form]: `MAT_VISIT_MNHXX` [MNH25] > 2).
+
+**-** Visit was completed but unable to calculate depression score (variables `EPDS0101` – `EPDS0110` [MNH25] unable to calculate because all relevant variables are reported as 77, Not applicable).   
+
+### Table 5a. Data completeness (MNH25)
+```{r}
+## to update denominators as needed!!
+depression_complete_tab <- depression %>%
+  rowwise() %>%
+  group_by(SITE) %>%
+  summarise(
+
+    ## ANC20
+    "Visit not completed^a^, n (%)" = paste0(
+      format(sum(DEPR_ANC20_MISS== -2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC20_MISS== 1, na.rm = TRUE)/sum(DEPR_ANC20_D == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Visit completed but no summary score, n (%)" = paste0(
+      format(sum(DEPR_ANC20_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC20_MISS==-2, na.rm = TRUE)/sum(DEPR_ANC20_D == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator^b^" = paste0(
+      format(sum(DEPR_ANC20_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    ## ANC32
+    "Visit not completed^a^, n (%) " = paste0(
+      format(sum(DEPR_ANC32_MISS== -2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC32_MISS== -2, na.rm = TRUE)/sum(DEPR_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Visit completed but no summary score, n (%) " = paste0(
+      format(sum(DEPR_ANC32_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC32_MISS==-1, na.rm = TRUE)/sum(DEPR_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator^b^ " = paste0(
+      format(sum(DEPR_ANC32_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    ## PNC6
+    "Visit not completed^a^, n (%)  " = paste0(
+      format(sum(DEPR_PNC6_MISS==-2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_PNC6_MISS== -2, na.rm = TRUE)/sum(DEPR_PNC6_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Visit completed but no summary score, n (%)  " = paste0(
+      format(sum(DEPR_PNC6_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_PNC6_MISS==-1, na.rm = TRUE)/sum(DEPR_PNC6_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator^b^  " = paste0(
+      format(sum(DEPR_PNC6_D==1, na.rm = TRUE), nsmall = 0, digits = 2))
+
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)  %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+depression_complete_tab[is.na(depression_complete_tab)] <- paste0("0 (0)")
+
+depression_complete_output <- tb_theme1(depression_complete_tab) %>%
+  tab_header(
+    title = md("**Table 5a**")) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness at ANC-20</span>"),
+        rows = 1:3
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness at ANC-32</span>"),
+        rows = 4:6
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness at PNC-6</span>"),
+        rows = 7:9
+    ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data Completeness at ANC-20</span>",
+                            "<span style='font-size: 18px'>Data Completeness at ANC-32</span>",
+                            "<span style='font-size: 18px'>Data Completeness at PNC-6</span>")) %>%
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Visit not completed indicates that the MNH25 form was filled out for that visit type, but the visit was not completed (MAT_VISIT >=3).</span>")
+ )  %>%
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is number of those who have MNH25 filled out for that visit type.</span>")
+ )
+
+```
+
+```{r, out.width = '100%'}
+gtsave(depression_complete_output, file = "depression_complete_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "depression_complete_output.png"))
+```
+
+\newpage
+
+### 5b. Maternal depression, using standard cutoff score (>=11)
+
+**Numerator:** Valid depression score  11 (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
+
+**Denominator:** MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
+
+#### Table 5b. Maternal depression, using standard cutoff score
+```{r}
+## to update denominators as needed!! 
+
+depression_standard_tab <- depression %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Depression ever^a^, n (%)" = paste0(
+      format(sum(DEPR_EVER_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_EVER_STND_N==1, na.rm = TRUE)/sum(DEPR_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator, n" = paste0(
+      format(sum(DEPR_EVER_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "ANC, ever^b^, n (%)" = paste0(
+      format(sum(DEPR_ANC_EVER_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC_EVER_STND_N==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator, n " = paste0(
+      format(sum(DEPR_ANC_EVER_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "ANC-20^c^, n (%)" = paste0(
+      format(sum(DEPR_ANC20_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC20_STND_N==1, na.rm = TRUE)/sum(DEPR_ANC20_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator, n  " = paste0(
+      format(sum(DEPR_ANC20_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "ANC-32^d^, n (%)" = paste0(
+      format(sum(DEPR_ANC32_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC32_STND_N==1, na.rm = TRUE)/sum(DEPR_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator, n   " = paste0(
+      format(sum(DEPR_ANC32_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+        
+    "PNC-6, n (%)" = paste0(
+      format(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE)/sum(DEPR_PNC6_D==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator, n    " = paste0(
+      format(sum(DEPR_PNC6_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+depression_standard_tab[is.na(depression_standard_tab)] <- paste0("0 (0)")
+
+depression_standard_output <- tb_theme1(depression_standard_tab) %>% 
+  tab_header(
+    title = md("**Table 5b**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Depression assessment (MNH25)</span>"),
+        rows = 1:10
+    ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Depression assessment (MNH25)</span>")) %>% 
+tab_style(
+      style = list(
+        cell_text(indent = px(0))
+        ),
+      locations = cells_stub(rows = c('Depression ever^a^, n (%)',
+                 "ANC, ever^b^, n (%)",
+                 "ANC-20^c^, n (%)", 
+                 "ANC-32^d^, n (%)", 
+                 "PNC-6, n (%)")) 
+) %>% 
+  tab_style(
+      style = list(
+        cell_text(indent = px(40))
+        ),
+      locations = cells_stub(rows = c('Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))
+      ) %>% 
+
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Depression, ever (among any woman who has at least one assessment at enrollment, ANC-20, ANC-32, ANC-36, or PNC-6).</span>")
+ )  %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> ANC, ever (among any woman who has been assessed at enrollment, ANC-20, ANC-32, or ANC-36).</span>")
+ )  %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> ANC-20 includes depression assessments conducted at enrollment visit per protocol.</span>")
+ )  %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> ANC-32 includes depression assessments conducted at ANC-36 per protocol.</span>")
+ ) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(depression_standard_output, file = "depression_standard_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "depression_standard_output.png"))
+
+```
+
+\newpage
+
+### 5c. Maternal Depression, using site-specific cutoff score
+**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a site-specific cutoff: (Ghana >= 11; India - CMC >= 8; India - SAS >= 10; Kenya >= 13; Pakistan >= 14; Zambia >= 10). 
+
+**Numerator:** Valid depression score >= site-specific cutoff (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25])
+
+**Denominator:**  MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25])
+
+#### Table 5c. Maternal Depression, using site-specific cutoff score
+```{r}
+depression_site_tab <- depression %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Depression ever^a^, n (%)" = paste0(
+      format(sum(DEPR_EVER_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_EVER_SITE_N==1, na.rm = TRUE)/sum(DEPR_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator, n" = paste0(
+      format(sum(DEPR_EVER_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "ANC, ever^b^, n (%)" = paste0(
+      format(sum(DEPR_ANC_EVER_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC_EVER_SITE_N==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator, n " = paste0(
+      format(sum(DEPR_ANC_EVER_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "ANC-20^c^, n (%)" = paste0(
+      format(sum(DEPR_ANC20_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC20_SITE_N==1, na.rm = TRUE)/sum(DEPR_ANC20_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator, n  " = paste0(
+      format(sum(DEPR_ANC20_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "ANC-32^d^, n (%)" = paste0(
+      format(sum(DEPR_ANC32_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC32_SITE_N==1, na.rm = TRUE)/sum(DEPR_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator, n   " = paste0(
+      format(sum(DEPR_ANC32_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+        
+    "PNC-6, n (%)" = paste0(
+      format(sum(DEPR_PNC6_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_PNC6_SITE_N==1, na.rm = TRUE)/sum(DEPR_PNC6_D==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator, n    " = paste0(
+      format(sum(DEPR_PNC6_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+depression_site_tab[is.na(depression_site_tab)] <- paste0("0 (0)")
+
+depression_site_output <- tb_theme1(depression_site_tab) %>% 
+  tab_header(
+    title = md("**Table 5c**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Depression assessment (MNH25)</span>"),
+        rows = 1:10
+    ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Depression assessment (MNH25)</span>")) %>% 
+tab_style(
+      style = list(
+        cell_text(indent = px(0))
+        ),
+      locations = cells_stub(rows = c('Depression ever^a^, n (%)',
+                 "ANC, ever^b^, n (%)",
+                 "ANC-20^c^, n (%)", 
+                 "ANC-32^d^, n (%)", 
+                 "PNC-6, n (%)")) 
+) %>% 
+  tab_style(
+      style = list(
+        cell_text(indent = px(40))
+        ),
+      locations = cells_stub(rows = c('Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))
+      ) %>% 
+
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Depression, ever (among any woman who has at least one assessment at enrollment, ANC-20, ANC-32, ANC-36, or PNC-6).</span>")
+ )  %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> ANC, ever (among any woman who has been assessed at enrollment, ANC-20, ANC-32, or ANC-36).</span>")
+ )  %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> ANC-20 includes depression assessments conducted at enrollment visit per protocol.</span>")
+ )  %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> ANC-32 includes depression assessments conducted at ANC-36 per protocol.</span>")
+ )  
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(depression_site_output, file = "depression_site_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "depression_site_output.png"))
+
+```
+
+\newpage
+
+#### Figure 2. Depressive symptoms at ANC-20
+```{r, out.width = '100%', fig.align='center'}
+
+dep_anc20 <- ggplot(depression, aes(x = DEPR_ANC20_SCORE, fill = ..x..)) +
+                geom_histogram(alpha=1, position="identity", binwidth = 1) +
+                facet_grid(rows = vars(SITE), scales = "free_y") + 
+                scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
+                ggtitle(paste0("Maternal Depression at ANC-20"))  +
+                labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
+                xlab("") +
+                ylab("Frequency") +
+                theme_bw() +
+                theme(strip.background=element_rect(fill="white"),
+                      legend.position="right",
+                      legend.title = element_blank(),
+                      panel.grid.minor = element_blank(),
+                      # strip.text = element_text(size = 6.5), 
+                      plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
+                      plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
+                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
+                    # axis.text = element_text(size = 8)) + 
+                      # axis.title = element_text(size = 9),
+                      # legend.text = element_text(size = 6),
+                      # legend.key.size = unit(0.236,"cm"),
+                      # plot.margin = unit(c(0,0,0,0), "pt"),
+                      # axis.ticks.x = element_blank()
+                geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
+                scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                                     values = c(0, 11/30, (11/30+1)/2, 1))
+
+ggsave(paste0("dep_anc20", ".pdf"), path = path_to_data,
+       width = 8, height = 6)
+
+knitr::include_graphics(paste0(path_to_data, "dep_anc20.pdf"))
+
+```
+
+\newpage
+
+#### Figure 3. Depressive symptoms at ANC-32
+```{r, out.width = '100%', fig.align='center'}
+
+dep_anc32<- ggplot(depression, aes(x = DEPR_ANC32_SCORE, fill = ..x..)) +
+              geom_histogram(alpha=1, position="identity", binwidth = 1) +
+              facet_grid(rows = vars(SITE), scales = "free_y") + 
+              scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
+              ggtitle(paste0("Maternal Depression at ANC-32"))  +
+              labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
+              xlab("") +
+              ylab("Frequency") +
+              theme_bw() +
+              theme(strip.background=element_rect(fill="white"),
+                    legend.position="right",
+                    legend.title = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    # strip.text = element_text(size = 6.5), 
+                    plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
+                    plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
+                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
+                    # axis.text = element_text(size = 8)) + 
+                    # axis.text = element_text(size = 8),
+                    # axis.title = element_text(size = 9),
+                    # legend.text = element_text(size = 6),
+                    # legend.key.size = unit(0.236,"cm"),
+                    # plot.margin = unit(c(0,0,0,0), "pt"),
+                    # axis.ticks.x = element_blank()
+              geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
+              scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                                   values = c(0, 11/30, (11/30+1)/2, 1))
+
+ggsave(paste0("dep_anc32", ".pdf"), path = path_to_data,
+       width = 8, height = 6)
+
+knitr::include_graphics(paste0(path_to_data, "dep_anc32.pdf"))
+```
+
+\newpage
+
+#### Figure 4. Depressive symptoms at PNC-6
+```{r, out.width = '100%', fig.align='center'}
+
+dep_pnc6 <- ggplot(depression, aes(x = DEPR_PNC6_SCORE, fill = ..x..)) +
+              geom_histogram(alpha=1, position="identity", binwidth = 1) +
+              facet_grid(rows = vars(SITE), scales = "free_y") + 
+              scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
+              ggtitle(paste0("Maternal Depression at PNC-6"))  +
+              labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
+              xlab("") +
+              ylab("Frequency") +
+              theme_bw() +
+              theme(strip.background=element_rect(fill="white"),
+                    legend.position="right",
+                    legend.title = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    # strip.text = element_text(size = 6.5), 
+                    plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
+                    plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
+                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
+                    # axis.text = element_text(size = 8)) + 
+                    # axis.text = element_text(size = 8),
+                    # axis.title = element_text(size = 9),
+                    # legend.text = element_text(size = 6),
+                    # legend.key.size = unit(0.236,"cm"),
+                    # plot.margin = unit(c(0,0,0,0), "pt"),
+                    # axis.ticks.x = element_blank()
+              geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
+              scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                                   values = c(0, 11/30, (11/30+1)/2, 1))
+
+ggsave(paste0("dep_pnc6", ".pdf"), path = path_to_data,
+       width = 8, height = 6)
+
+knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
+```
+
+\newpage
+
+## 6. Hemorrhage
+
+**Definition:** Received at least one procedure for postpartum hemorrhage or excessive bleeding (>=500mL) from or into the genital track, either during pregnancy, prior to delivery, or following the birth of a baby.*Severe hemorrhage* defined as received at least one procedure for postpartum hemorrhage or excessive bleeding (>=1000mL) from or into the genital track, either during pregnancy, prior to delivery, or following the birth of a baby.
+
+**Denominators:**
+
+*For Antepartum hemorrhage: All participants with at least one ANC visit (at least one MNH04 filled).*
+
+*For Postpartum hemorrhage: All participants with an IPC visit (MNH09 filled).*
+
+&nbsp;
+
+**To be included as "non-Missing" for this outcome, a participant must have:**
+
+**1.** *For Antepartum hemorrhage:* At least one MNH04 form filled out. 
+
+**2.** *For Postpartum hemorrhage:* Valid MNH09 form filled out.  
+
+### Table 6. Hemorrhage
+```{r}
+
+Hemorrhage_tab <- hemorrhage %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+  ## hemorrhage outcome 
+    "Antepartum hemorrhage^a^" = paste0(
+      format(sum(HEM_APH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_APH == 1, na.rm = TRUE)/sum(HEM_APH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Postpartum hemorrhage^b^" = paste0(
+      format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_PPH == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Severe postpartum hemorrhage^b^" = paste0(
+      format(sum(HEM_PPH_SEV == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_PPH_SEV == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Estimated blood loss >= 1000mL^b^" = paste0(
+      format(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 1000, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 1000, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Any hemorrhage at any time point^b^" = paste0(
+      format(sum(HEM_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_ANY == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  ## procedures for PPH (among participants with PPH)
+    "Balloon/condom tamponade" = paste0(
+      format(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Surgical interventions" = paste0(
+      format(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Brace sutures" = paste0(
+      format(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Vessel ligation" = paste0(
+      format(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Hysterectomy" = paste0(
+      format(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Blood transfusion" = paste0(
+      format(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Other" = paste0(
+      format(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+  ## Medications given to prevent/treat PPH (among all participants with an ipc)
+    "Oxytocin" = paste0(
+      format(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Misoprostol" = paste0(
+      format(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Tranexaminic acid" = paste0(
+      format(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Carbetocin" = paste0(
+      format(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Methylergonovine" = paste0(
+      format(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Carboprost (PGF2-alpha)" = paste0(
+      format(sum(M09_PPH_CMOCCUR_6_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_6_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Other" = paste0(
+      format(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "No medications given" = paste0(
+      format(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Don’t know" = paste0(
+      format(sum(M09_PPH_CMOCCUR_99_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_99_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+  ## Methods of blood loss measurements (among participants with a valid blood loss measurement)
+      "Calibrated delivery drapes" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 1 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 == 1 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Noncalibrated delivery drapes" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 2 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 == 2 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Visual estimation" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 3 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 == 3 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     	
+    "Gravimetric technique (weight of blood-soaked materials)" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 4 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 == 4 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Method unknown" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 99 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 == 99 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+Hemorrhage_tab[is.na(Hemorrhage_tab)] <- paste0("0 (0)")
+
+## the table is too long -- split into 2 
+Hemorrhage_tab1 <- Hemorrhage_tab[1:12,]
+Hemorrhage_tab2 <- Hemorrhage_tab[13:25,]
+
+hemorrhage_output1 <- tb_theme1(Hemorrhage_tab1) %>% 
+  tab_header(
+    title = md("**Table 6**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Hemorrhage</span>"),
+    rows = 1:5
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Procedures for postpartum hemorrhage <sup>c</sup></span>"),
+    rows = 6:11
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Hemorrhage</span>",
+                           "<span style='font-size: 18px'>Procedures for postpartum hemorrhage <sup>c</sup></span>")) %>% 
+  tab_style(
+      style = list(
+        cell_text(indent = px(40), size = 24)
+        ),
+      locations = cells_stub(rows = c('Estimated blood loss >= 1000mL^b^')) ## use on time windows
+) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with at least one ANC visit (at least one MNH04 filled).</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all participants with an IPC visit (MNH09 filled).</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all participants with postpartum hemorrhage.</span>")
+ )
+
+hemorrhage_output2 <- tb_theme1(Hemorrhage_tab2) %>% 
+      tab_header(
+        title = md("**Table 6 continued**")) %>% 
+      tab_row_group(
+        label = html("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage<sup>b</sup></span>"),
+        rows = 1:8
+      ) %>%
+    
+      tab_row_group(
+        label = html("<span style='font-size: 18px'>Methods of blood loss measurements<sup>d</sup></span>"),
+        rows = 9:13
+      ) %>%
+      row_group_order(groups = c("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage<sup>b</sup></span>",
+                                 "<span style='font-size: 18px'>Methods of blood loss measurements<sup>d</sup></span>")) %>% 
+      tab_footnote(
+        footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all participants with an IPC visit (MNH09 filled).</span>")
+     ) %>% 
+      tab_footnote(
+        footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all participants with a valid blood loss at IPC measurement (varname [form]: `PPH_ESTIMATE_FAORRES` [MNH09]). </span>")
+     )
+```
+
+```{r, out.width = '100%'}
+
+gtsave(hemorrhage_output1, file = "hemorrhage_output1.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "hemorrhage_output1.png"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(hemorrhage_output2, file = "hemorrhage_output2.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "hemorrhage_output2.png"))
+```
+
+### Figure 2. Estimated blood loss during labor and delivery
+```{r, out.width = '100%', fig.align='center'}
+
+knitr::include_graphics(paste0(path_to_data, "hemorrhage_fig.pdf"))
+
+```
+
+
+\newpage
+
+## 7. Maternal infection at enrollment
+
+**Definition:** Any infection identified during enrollment ANC. 
+
+**Denominators:**
+
+*For Antepartum hemorrhage: All participants with at least one ANC visit (at least one MNH04 filled).*
+
+*For Postpartum hemorrhage: All participants with an IPC visit (MNH09 filled).*
+
+&nbsp;
+
+**To be included as "non-Missing" for this outcome, a participant must have:**
+
+**1.** Completed MNH04 Maternal Clinical Status for enrollment visit varnames [form]: `TYPE_VISIT=1 [MNH04]`),
+
+**2.** Completed MNH06 Point of Care for enrollment visit varnames [form]: `TYPE_VISIT=1 [MNH06]`).
+
+**Common causes for a participant to be marked as "Missing":**
+
+**-** Missing MNH04, MNH06, or MNH08
+
+**-**  Missing diagnosed or measured data (see list of variables in footnotes in Tables 7a and 7b below). 
+
+### Table 7a. STIs
+```{r}
+
+
+## reorder to be output vars and then missing vars 
+sti_enroll_tab <- mat_infection_sti %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+  ## HIV
+    "HIV RDT Positive^a^ [MNH06]" = paste0(
+      format(sum(M06_HIV_POC_LBORRES == 1 & M06_TYPE_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M06_HIV_POC_LBORRES == 1 & M06_TYPE_VISIT == 1, na.rm = TRUE)/sum(HIV_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "HIV Diagnosed Positive^b^ [MNH04]" = paste0(
+      format(sum(M04_HIV_EVER_MHOCCUR == 1 & M04_TYPE_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M04_HIV_EVER_MHOCCUR == 1 & M04_TYPE_VISIT == 1, na.rm = TRUE)/sum(HIV_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "HIV Prevalence at Enrollment (Positive RDT or Diagnosed)^c^" = paste0(
+      format(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(STI_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "HIV RDT Missing^d^ [MNH06]" = paste0(
+      format(sum(HIV_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIV_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "HIV Diagnosis Missing^e^ [MNH04]" = paste0(
+      format(sum(HIV_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIV_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  # Syphilis
+    "Syphilis RDT Positive^a^ [MNH06]" = paste0(
+      format(sum(M06_SYPH_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M06_SYPH_POC_LBORRES == 1, na.rm = TRUE)/sum(SYPH_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Syphilis Diagnosed Positive^b^ [MNH04]" = paste0(
+      format(sum(M04_SYPH_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M04_SYPH_MHOCCUR == 1, na.rm = TRUE)/sum(SYPH_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Syphilis Prevalence, Enrollment (Positive RDT or Diagnosed)^c^" = paste0(
+      format(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(STI_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    
+    "Syphilis Prevalence, Any Visit (Positive RDT or Diagnosed)^e^" = paste0(
+      format(sum(SYPH_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SYPH_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(STI_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Syphilis RDT Missing^d^ [MNH06]" = paste0(
+      format(sum(SYPH_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SYPH_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Syphilis Diagnosis Missing^e^ [MNH04]" = paste0(
+      format(sum(SYPH_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SYPH_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  # Gonorrhea
+    "Gonorrhea Diagnosed Positive^f^ [MNH04]" = paste0(
+      format(sum(M04_GONORRHEA_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M04_GONORRHEA_MHOCCUR == 1, na.rm = TRUE)/sum(GON_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Gonorrhea Diagnosis Missing^e^ [MNH04]" = paste0(
+      format(sum(GON_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GON_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  
+  # Chlamydia
+    "Chlamydia Diagnosed Positive^f^ [MNH04]" = paste0(
+      format(sum(M04_CHLAMYDIA_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M04_CHLAMYDIA_MHOCCUR == 1, na.rm = TRUE)/sum(CHL_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Chlamydia Diagnosis Missing^e^ [MNH04]" = paste0(
+      format(sum(CHL_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHL_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    # Genital Ulcers
+      "Genital Ulcers Diagnosed Positive^f^ [MNH04]" = paste0(
+      format(sum(M04_GENULCER_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M04_GENULCER_MHOCCUR == 1, na.rm = TRUE)/sum(GENU_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Genital Ulcers Diagnosis Missing^e^ [MNH04]" = paste0(
+      format(sum(GENU_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GENU_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  # Other STIs
+    "Other STIs Diagnosed Positive^f^ [MNH04]" = paste0(
+      format(sum(M04_OTHR_STI_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M04_OTHR_STI_MHOCCUR == 1, na.rm = TRUE)/sum(OTHR_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Other STIs Diagnosis Missing^e^ [MNH04]" = paste0(
+      format(sum(OTHR_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(OTHR_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    # Any stis 
+      "Any Measured STI Positive^d^ [MNH06]" = paste0(
+      format(sum(ANY_MEAS_STI == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANY_MEAS_STI == 1, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Any Diagnosed STI Positive^e^ [MNH06]" = paste0(
+      format(sum(ANY_DIAG_STI == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANY_DIAG_STI == 1, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Any STI (either diagnosed or measured)^c^ [MNH06]" = paste0(
+      format(sum(STI_ANY_METHOD == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STI_ANY_METHOD == 1, na.rm = TRUE)/sum(STI_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+sti_enroll_tab[is.na(sti_enroll_tab)] <- paste0("0 (0)")
+
+## the table is too long -- split into 2 
+sti_enroll_tab1 <- sti_enroll_tab[1:11,]
+sti_enroll_tab2 <- sti_enroll_tab[12:22,]
+
+## first half of table 
+sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>% 
+  tab_header(
+    title = md("**Table 7a**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>HIV, n (%)</span>"),
+    rows = 1:5
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Syphilis, n (%)</span>"),
+    rows = 6:11
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>HIV, n (%)</span>",
+                           "<span style='font-size: 18px'>Syphilis, n (%)</span>")) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a valid test result `(TEST_VAR=1 or 0)`. RDT measured variables used in this table from MNH06: `HIV_POC_LBORRES` & `SYPH_POC_LBORRES`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a valid diagnosis `(DIAGNOSIS_VAR=1 or 0)`. Diagnosed variables used in this table from MNH04: `HIV_EVER_MHOCCUR`, `SYPH_MHOCCUR`, `GONORRHEA_MHOCCUR`, `CHLAMYDIA_MHOCCUR`, `GENULCER_MHOCCUR`, `STI_OTHR_MHOCCUR`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with a MNH04 OR MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with a MNH04 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ )
+
+## second half of table
+sti_enroll_output2 <- tb_theme1(sti_enroll_tab2) %>% 
+  tab_header(
+    title = md("**Table 7a continued**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Gonorrhea, n (%)</span>"),
+    rows = 1:2
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Chlamydia, n (%)</span>"),
+    rows = 3:4
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Genital Ulcers, n (%)</span>"),
+    rows = 5:6
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Other STIs, n (%)</span>"),
+    rows = 7:8
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>STIs by Method, n (%)</span>"),
+    rows = 9:11
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Gonorrhea, n (%)</span>",
+                             "<span style='font-size: 18px'>Chlamydia, n (%)</span>",
+                             "<span style='font-size: 18px'>Genital Ulcers, n (%)</span>",
+                             "<span style='font-size: 18px'>Other STIs, n (%)</span>",
+                             "<span style='font-size: 18px'>STIs by Method, n (%)</span>"
+                             )) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with a MNH04 OR MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with a MNH04 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>f</sup> Denominator is total participants who reported having an 'other' STI (`OTHR_STI_MHOCCUR=1)` AND a valid test `(TEST_VAR=1 or 0)` OR who reported not having an 'other' STI (`OTHR_STI_MHOCCUR=0)`.</span>")
+ )
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(sti_enroll_output1, file = "sti_enroll_output1.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "sti_enroll_output1.png"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(sti_enroll_output2, file = "sti_enroll_output2.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "sti_enroll_output2.png"))
+
+```
+
+
+### Table 7b. Other infections
+```{r}
+## reorder to be output vars and then missing vars 
+infection_other_tab <- mat_infection_other %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  ## Malaria
+    "Malaria RDT Positive^1^ [MNH06]" = paste0(
+      format(sum(M06_MALARIA_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M06_MALARIA_POC_LBORRES == 1, na.rm = TRUE)/sum(MAL_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Malaria Diagnosed Positive^2^ [MNH04]" = paste0(
+      format(sum(M04_MALARIA_EVER_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M04_MALARIA_EVER_MHOCCUR == 1, na.rm = TRUE)/sum(MAL_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Malaria RDT Missing^a^ [MNH06]" = paste0(
+      format(sum(MAL_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAL_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Malaria Diagnosis Missing^b^ [MNH04]" = paste0(
+      format(sum(MAL_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAL_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  # Hepatitis B
+    "Hep B RDT Positive^1^ [MNH06]" = paste0(
+      format(sum(M06_HBV_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M06_HBV_POC_LBORRES == 1, na.rm = TRUE)/sum(HBV_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Hep B RDT Missing^a^ [MNH06]" = paste0(
+      format(sum(HBV_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBV_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  # Hepatitis C
+    "Hep C RDT Positive^1^ [MNH06]" = paste0(
+      format(sum(M06_HCV_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M06_HCV_POC_LBORRES == 1, na.rm = TRUE)/sum(HCV_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Hep C RDT Missing^a^ [MNH06]" = paste0(
+      format(sum(HCV_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HCV_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+  # COVID
+    "Covid RDT Positive^1^ [MNH06]" = paste0(
+      format(sum(M06_COVID_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M06_COVID_POC_LBORRES == 1, na.rm = TRUE)/sum(COVID_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Covid Diagnosed Positive^2^ [MNH04]" = paste0(
+      format(sum(M04_COVID_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M04_COVID_LBORRES == 1, na.rm = TRUE)/sum(COVID_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Covid RDT Missing^a^ [MNH06]" = paste0(
+      format(sum(COVID_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COVID_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Covid Diagnosis Missing^b^ [MNH04]" = paste0(
+      format(sum(COVID_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COVID_DIAG_MISSING== 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    # TB 
+    "TB Symptoms Positive^c^ [MNH04]" = paste0(
+      format(sum(W4SS_SYMPTOMS_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(W4SS_SYMPTOMS_ANY == 1, na.rm = TRUE)/sum(W4SS_RESPONSE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Missing All TB Symptoms^b^ [MNH04]" = paste0(
+      format(sum(W4SS_MISSING_SYMP == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(W4SS_MISSING_SYMP == 1, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "TB Sputum Test Positive^d^ [MNH08]" = paste0(
+      format(sum(M08_TB_CNFRM_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M08_TB_CNFRM_LBORRES == 1, na.rm = TRUE)/sum(TB_LAB_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+infection_other_tab[is.na(infection_other_tab)] <- paste0("0 (0)")
+
+## the table is too long -- split into 2 
+# sti_enroll_tab1 <- infection_other_tab[1:11,]
+# sti_enroll_tab2 <- infection_other_tab[12:22,]
+
+infection_other_output <- tb_theme1(infection_other_tab) %>% 
+  tab_header(
+    title = md("**Table 7b**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Malaria, n (%)</span>"),
+    rows = 1:4
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Hep B, n (%)</span>"),
+    rows = 5:6
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Hep C, n (%)</span>"),
+    rows = 7:8
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Covid, n (%)</span>"),
+    rows = 9:12
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>TB, n (%)</span>"),
+    rows = 13:15
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Malaria, n (%)</span>",
+                           "<span style='font-size: 18px'>Hep B, n (%)</span>",
+                           "<span style='font-size: 18px'>Hep C, n (%)</span>",
+                           "<span style='font-size: 18px'>Covid, n (%)</span>",
+                           "<span style='font-size: 18px'>TB, n (%)</span>"
+                           )) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a valid test result `(TEST_VAR=1 or 0)`. RDT measured variables used in this table from MNH06: `HIV_POC_LBPERF`, `HBV_POC_LBORRES`, `HCV_POC_LBORRES`, `COVID_POC_LBORRES`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a valid diagnosis `(DIAGNOSIS_VAR=1 or 0)`. Diagnosed variables used in this table from MNH04: `MALARIA_EVER_MHOCCUR`, `TB_CETERM_1-4`, `COVID_LBORRES`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with a MNH04 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with valid response to the TB symptom screen in MNH04 `(VAR==1 OR VAR==0)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>f</sup> Denominator is total participants with who reported having at least one TB symptom in MNH04 `(VAR==1 OR VAR==0)`.</span>")
+ )
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(infection_other_output, file = "infection_other_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "infection_other_output.png"))
+
+```
+
+\newpage
+
+
+### Table 7c. All infections combined 
+```{r}
+
+## reorder to be output vars and then missing vars 
+all_infection_tab <- mat_infections_combined %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Any Measured Infection Positive^a^" = paste0(
+      format(sum(ANY_INFECTION_MEASURED == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANY_INFECTION_MEASURED == 1, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Any Diagnosed Infection Positive^b^" = paste0(
+      format(sum(ANY_INFECTION_DIAGNOSED == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANY_INFECTION_DIAGNOSED == 1, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Any Infection Positive by Either Method^c^" = paste0(
+      format(sum(INFECTION_ANY_METHOD == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INFECTION_ANY_METHOD == 1, na.rm = TRUE)/sum(INFECTION_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+all_infection_tab[is.na(all_infection_tab)] <- paste0("0 (0)")
+
+all_infection_output <- tb_theme1(all_infection_tab) %>% 
+  tab_header(
+    title = md("**Table 7c**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Any infection at enrollment, n (%)</span>"),
+    rows = 1:3
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Any infection at enrollment, n (%)</span>")) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a MNH04 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with MNH04 OR MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ )
+```
+
+```{r, out.width = '100%'}
+
+gtsave(all_infection_output, file = "all_infection_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "all_infection_output.png"))
+
+```
+
