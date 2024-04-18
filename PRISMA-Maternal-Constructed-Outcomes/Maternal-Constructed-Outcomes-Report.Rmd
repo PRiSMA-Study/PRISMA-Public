@@ -42,6 +42,7 @@ hemorrhage <- read.csv(paste0(path_to_data, "hemorrhage.csv")) %>% rename_all(to
 depression <- read_dta(paste0(path_to_data, "mnh25_MaternalOutcomes.dta")) %>% rename_all(toupper) 
 anemia <- read_dta(paste0(path_to_data, "ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 preterm_indication <- read_dta(paste0(path_to_data, "maternal_outcomes_MNH09.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+gdm <- read_dta(paste0(path_to_data, "GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 
 # maternal infection 
@@ -2239,11 +2240,10 @@ knitr::include_graphics(paste0(path_to_data, "hemorrhage_fig.pdf"))
 
 **-** Missing MNH04, MNH06, or MNH08
 
-**-**  Missing diagnosed or measured data (see list of variables in footnotes in Tables 7a and 7b below). 
+**-** Missing diagnosed or measured data (see list of variables in footnotes in Tables 7a and 7b below). 
 
 ### Table 7a. STIs
 ```{r}
-
 
 ## reorder to be output vars and then missing vars 
 sti_enroll_tab <- mat_infection_sti %>% 
@@ -2743,3 +2743,332 @@ knitr::include_graphics(paste0(path_to_save, "all_infection_output.png"))
 
 ```
 
+## 8. Overt & Gestational Diabetes 
+
+**Definition:** Diabetes outcomes are assessed as follows:
+-   *Overt diabetes* is measured by HbA1c level as assessed at enrollment. If this datapoint is missing at enrollment, we rely on HbA1c level as reported in a subsequent visit (unscheduled or ANC-20), if the result is taken at <20 weeks GA. Overt diabetes is defined as HbA1c >6.5%. 
+
+-   *Gestational diabetes* is measured by three blood glucose tests as assessed at ANC-28 visit. If this datapoint is missing at ANC-28, we rely on the test result reported at subsequent visits. Gestational diabetes is defined as pretest fasting glucose >=5.1 mmol/L or oral glucose-tolerance test (OGTT) 1-hour result >=10.0 mmol/L or OGTT 2-hour result >=8.5 mmol/L. Gestational diabetes outcomes exclude any participants with Overt Diabetes at enrollment.
+
+
+**Denominators:** All participants who have passed the ANC-28 visit window (26-30 weeks) based on the following variables:
+
+-   Valid gestational age information provided at enrollment visit in MNH01 including: (varname: `US_GA_WKS_AGE_FTS1-4`, `US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`).
+
+-   Confirmed enrollment in form MNH02.
+
+-   For Gestational Diabetes, those with Overt Diabetes at/near enrollment are excluded from the denominator.
+
+***Note:** Gestational age information collected in MNH01 is used to generate best obstetric estimates for GA, EDD, and estimated conception date. These constructed variables are then used to determine which observations have passed the ANC-28 visit window.*
+
+### Table 8a. Overt diabetes 
+```{r}
+
+## reorder to be output vars and then missing vars 
+overt_diabetes <- gdm %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Missing enrollment lab form (MNH08) or other lab at <20 weeks GA" = paste0(
+      format(sum(DIAB_OVERT_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing HbA1c test result in enrollment lab form (MNH08) or other lab at <20 weeks GA" = paste0(
+      format(sum(DIAB_OVERT_MISS==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT_MISS==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No overt diabetes (<=6.5% HbA1c)" = paste0(
+      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Overt diabetes (>6.5% HbA1c)" = paste0(
+      format(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing" = paste0(
+      format(sum(DIAB_OVERT==55 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT==55 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+overt_diabetes[is.na(overt_diabetes)] <- paste0("0 (0)")
+
+overt_diabetes_output <- tb_theme1(overt_diabetes) %>% 
+  tab_header(
+    title = md("**Table 8a**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
+    rows = 1:2
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Overt Diabetes: All pregnancies >= 30 weeks by data upload date</span>"),
+    rows = 3:5
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
+                             "<span style='font-size: 18px'>Overt Diabetes: All pregnancies >= 30 weeks by data upload date</span>"
+                             ))  
+ #  tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ # ) 
+```
+
+```{r, out.width = '100%'}
+
+gtsave(overt_diabetes_output, file = "overt_diabetes_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "overt_diabetes_output.png"))
+
+```
+
+### Table 8b. Gestational diabetes by pretest fasting glucose only
+```{r}
+
+## reorder to be output vars and then missing vars 
+pretest_fast_diabetes <- gdm %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
+      format(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing pretest fasting glucose test result at ANC-28 (and not provided in any other visit)" = paste0(
+      format(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No gestational diabetes(<5.1 mmol/L)" = paste0(
+      format(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Gestational diabetes (>=5.1 mmol/L)" = paste0(
+      format(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing" = paste0(
+      format(sum(DIAB_GEST_FASTING==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_FASTING==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+pretest_fast_diabetes[is.na(pretest_fast_diabetes)] <- paste0("0 (0)")
+
+pretest_fast_diabetes_output <- tb_theme1(pretest_fast_diabetes) %>% 
+  tab_header(
+    title = md("**Table 8b**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
+    rows = 1:2
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Gestational Diabetes by Pretest Fasting Glucose: All pregnancies >= 30 weeks by data upload date</span>"),
+    rows = 3:5
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
+                             "<span style='font-size: 18px'>Gestational Diabetes by Pretest Fasting Glucose: All pregnancies >= 30 weeks by data upload date</span>"
+                             ))  
+ #  tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ # ) 
+```
+
+```{r, out.width = '100%'}
+
+gtsave(pretest_fast_diabetes_output, file = "pretest_fast_diabetes_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "pretest_fast_diabetes_output.png"))
+
+```
+
+### Table 8c. Gestational diabetes by 1-hr OGTT
+```{r}
+
+## reorder to be output vars and then missing vars 
+ogtt_diabetes <- gdm %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
+      format(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing 1-hr OGTT result at ANC-28 (and not provided in any other visit)" = paste0(
+      format(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No gestational diabetes (<10.0 mmol/L)" = paste0(
+      format(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Gestational diabetes (>=10.0 mmol/L)" = paste0(
+      format(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing" = paste0(
+      format(sum(DIAB_GEST_1HR==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_1HR==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+ogtt_diabetes[is.na(ogtt_diabetes)] <- paste0("0 (0)")
+
+ogtt_diabetes_output <- tb_theme1(ogtt_diabetes) %>% 
+  tab_header(
+    title = md("**Table 8c**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
+    rows = 1:2
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Gestational Diabetes by 2-hr OGTT: All pregnancies >= 30 weeks by data upload date</span>"),
+    rows = 3:5
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
+                             "<span style='font-size: 18px'>Gestational Diabetes by 2-hr OGTT: All pregnancies >= 30 weeks by data upload date</span>"
+                             ))  
+ #  tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+ # ) 
+```
+
+```{r, out.width = '100%'}
+
+gtsave(ogtt_diabetes_output, file = "ogtt_diabetes_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "ogtt_diabetes_output.png"))
+
+```
+
+### Table 8d. Gestational diabetes by any test
+```{r}
+
+## reorder to be output vars and then missing vars 
+any_test_diabetes <- gdm %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
+      format(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing test result(s) at ANC-28 (and not provided in any other visit)" = paste0(
+      format(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No gestational diabetes (across all three tests)" = paste0(
+      format(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Gestational diabetes (by any test)" = paste0(
+      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing" = paste0(
+      format(sum(DIAB_GEST_ANY==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_ANY==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+any_test_diabetes[is.na(any_test_diabetes)] <- paste0("0 (0)")
+
+any_test_diabetes_output <- tb_theme1(any_test_diabetes) %>% 
+  tab_header(
+    title = md("**Table 8d**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
+    rows = 1:2
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Gestational Diabetes by any test:  All pregnancies >= 30 weeks by data upload date</span>"),
+    rows = 3:5
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
+                             "<span style='font-size: 18px'>Gestational Diabetes by any test:  All pregnancies >= 30 weeks by data upload date</span>"
+                             ))  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>This table presents Overt Diabetes based on HbA1c test result at enrollment or as provided in another visit at less than 20 weeks gestation. The table presents rates of Gestational Diabetes based on blood glucose tests conducted at or near 28 weeks gestation; we exclude all women with Overt Diabetes from the denominator for Gestational Diabetes, while we include women without Overt Diabetes or with missing HbA1c test results. For the final outcome (Gestational Diabetes by any test), only observations with all three (negative) blood-glucose tests are considered negative for Gestational Diabetes, while women with any positive test are considered positive for Gestational Diabetes regardless of whether other tests results are missing.</span>")
+ )
+```
+
+```{r, out.width = '100%'}
+
+gtsave(any_test_diabetes_output, file = "any_test_diabetes_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "any_test_diabetes_output.png"))
+
+```
