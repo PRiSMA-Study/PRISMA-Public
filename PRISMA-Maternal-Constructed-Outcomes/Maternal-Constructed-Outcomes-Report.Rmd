@@ -39,17 +39,13 @@ path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Matern
 
 mortality <- read_dta(paste0(path_to_data, "mortality_MaternalOutcomes.dta")) %>% rename_all(toupper) 
 hemorrhage <- read.csv(paste0(path_to_data, "hemorrhage.csv")) %>% rename_all(toupper) 
-depression <- read_dta(paste0(path_to_data, "mnh25_MaternalOutcomes.dta")) %>% rename_all(toupper) 
+depression <- read_dta(paste0(path_to_data, "mnh25_MaternalOutcomes.dta"))
 anemia <- read_dta(paste0(path_to_data, "ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 preterm_indication <- read_dta(paste0(path_to_data, "maternal_outcomes_MNH09.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 
 # maternal infection 
-# Table 1 Data: 
-mnh04_constructed_completeness <- read.csv(paste0(path_to_data, "mnh04_constructed_completeness", ".csv"))
-mnh06_constructed_completeness <- read.csv(paste0(path_to_data, "mnh06_constructed_completeness", ".csv"))
-mnh08_constructed_completeness <- read.csv(paste0(path_to_data, "mnh08_constructed_completeness", ".csv"))
 # Table 2 Data: 
 mat_infection_sti <- read.csv(paste0(path_to_data, "mat_infection_sti", ".csv"))
 mat_infection_sti_any_visit <- read.csv(paste0(path_to_data, "mat_infection_sti_any_visit", ".csv"))
@@ -1948,7 +1944,7 @@ knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
 
 *For Antepartum hemorrhage: All participants with at least one ANC visit (at least one MNH04 filled).*
 
-*For Postpartum hemorrhage: All participants with an IPC visit (MNH09 filled).*
+*For Postpartum hemorrhage: All participants with an IPC visit (MNH09 filled).* 
 
 &nbsp;
 
@@ -2211,8 +2207,33 @@ knitr::include_graphics(paste0(path_to_save, "hemorrhage_output2.png"))
 ### Figure 2. Estimated blood loss during labor and delivery
 ```{r, out.width = '100%', fig.align='center'}
 
-knitr::include_graphics(paste0(path_to_data, "hemorrhage_fig.pdf"))
+# knitr::include_graphics(paste0(path_to_data, "hemorrhage_fig.pdf"))
 
+hemorrhage_figs <- hemorrhage %>% 
+  select(SITE, MOMID, PREGID, M09_PPH_ESTIMATE_FAORRES_6,HEM_PPH, HEM_PPH_SEV) %>% 
+  filter(M09_PPH_ESTIMATE_FAORRES_6 > 0) %>% 
+  mutate(CUTOFF = case_when(M09_PPH_ESTIMATE_FAORRES_6 >= 1000~ "Severe Hemorrhage(>=1000mL)",
+                            M09_PPH_ESTIMATE_FAORRES_6 >= 500 & M09_PPH_ESTIMATE_FAORRES_6 < 1000~ "Hemorrhage (>=500mL)",
+                            TRUE ~ "No hemorrhage (<500mL)"))
+
+# Define the order of legend labels
+hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL)", 
+                                                                    "Severe Hemorrhage(>=1000mL)"))
+ggplot() + 
+  geom_histogram(data = hemorrhage_figs, aes(x = M09_PPH_ESTIMATE_FAORRES_6, fill = CUTOFF),  color = "gray", binwidth = 50) +   scale_fill_manual(values = c("darkgreen", "darkorange","darkred"), name = "") + 
+  facet_grid(rows = vars(SITE), scales = "free_y") + 
+  xlab("Estimated blood loss (mL)") + 
+  ylab("Frequency") +
+  scale_x_continuous(breaks = seq(0,2000,100), limits = c(0, 2000)) +
+  geom_vline(xintercept = 500, linetype = "dashed") +
+  geom_vline(xintercept = 1000, linetype = "dashed") + 
+  theme_bw() + 
+  theme(strip.background=element_rect(fill="white"),
+        axis.text.x = element_text(vjust = 1, hjust=1),
+        legend.position="bottom",
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank()) 
+  
 ```
 
 
@@ -2221,14 +2242,6 @@ knitr::include_graphics(paste0(path_to_data, "hemorrhage_fig.pdf"))
 ## 7. Maternal infection at enrollment
 
 **Definition:** Any infection identified during enrollment ANC. 
-
-**Denominators:**
-
-*For Antepartum hemorrhage: All participants with at least one ANC visit (at least one MNH04 filled).*
-
-*For Postpartum hemorrhage: All participants with an IPC visit (MNH09 filled).*
-
-&nbsp;
 
 **To be included as "non-Missing" for this outcome, a participant must have:**
 
