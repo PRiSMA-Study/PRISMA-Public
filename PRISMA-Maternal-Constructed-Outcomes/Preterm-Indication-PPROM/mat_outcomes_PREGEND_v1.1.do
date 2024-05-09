@@ -5,6 +5,7 @@
 *Original Version: March 6, 2024 by E Oakley (emoakley@gwu.edu)
 *Update: March 25, 2024 by E Oakley (incorporate feedback from Dr. Wiley)
 *Update: April 1, 2024 by E Oakley (incorporate feedback from Dr. Wiley)
+*Update: April 8, 2024 by E Oakley (incorporate feedback from PRISMA sites)
 
 clear
 set more off
@@ -19,33 +20,33 @@ global do "$dir/do"
 global output "$dir/output"
 
 	// Stacked Data Folders (TNT Drive)
-global da "Z:/Stacked Data/2024-03-22" // update date as needed
+global da "Z:/Stacked Data/2024-04-19" // update date as needed
 
 	// Working Files Folder (TNT-Drive)
 global wrk "Z:/Erin_working_files/data" // set pathway here for where you want to save output data files (i.e., constructed analysis variables)
 
-global date "240401" // today's date
+global date "240422" // today's date
 
-log using "$log/mat_outcome_construct_$date", replace
+log using "$log/mat_outcome_construct_preg_end_$date", replace
 
 /*************************************************************************
 	*Variables constructed in this do file:
 					
-	*Preterm birth indication (PRETERM_ANY)
+	*Preterm delivery (PRETERM_ANY)
 		Delivery prior to 37 completed weeks of gestation of a birth (live or
 			stillbirth). 
 		denominator: Completed pregnancies (PREG_END==1), excluding those with 
 			pregnancy loss at <20 weeks GA (PREG_LOSS==0)
 		format: 1, Yes; 0, No; 55, Missing
 				
-	*Preterm birth indication - spontaneous (PRETERM_SPON)
+	*Preterm birth classification - spontaneous (PRETERM_SPON)
 		Spontaneous preterm: Defined as delivery <37 weeks that occurs either 
 			secondary to preterm labor or preterm premature rupture of membranes.	
 		denominator: Among all preterm births (PRETERM_ANY ==1), excluding those with 
 			pregnancy loss at <20 weeks GA (PREG_LOSS==0)
 		format: 1, Yes; 0, No; 55, Missing
 				
-	*Preterm birth indication - provider-initiated (PRETERM_PROV)	
+	*Preterm birth classification - provider-initiated (PRETERM_PROV)	
 		Provider-initiated preterm: Medical or obstetric complication or other 
 			reason that the health care provider initiates delivery at <37 
 			completed weeks gestation.	
@@ -53,12 +54,20 @@ log using "$log/mat_outcome_construct_$date", replace
 			pregnancy loss at <20 weeks GA (PREG_LOSS==0)
 		format: 1, Yes; 0, No; 55, Missing
 		
+	*New variables added on 4-08-2024 based on PRISMA site feedback:
+	
+		*Provider-initiated preterm indication 
+			
+		
+		*Spontaneous preterm indication 
+			
+		
 	*Preterm premature rupture of membranes - PPROM_PREGEND 	
 		Rupture of membranes before the onset of labor, occurring before <37 
 			weeks of gestation OR clinical diagnosis of premature rupture of
 			membranes.			
 		denominator: Among all completed pregnancies (PREG_END==1)
-		format: 1, Yes; 0, No; 55, Missing
+		format: 1, Yes; 0, No; 55, Missing	
 		
 */
 
@@ -76,10 +85,6 @@ log using "$log/mat_outcome_construct_$date", replace
 		
 	format momid %38s
 	recast str38 momid, force
-	
-	*CORRECTING AN ERROR: 3-25-2024 - need to destring this variable: 
-	replace m09_labor_mhoccur = "77" if m09_labor_mhoccur == "NA"
-	destring m09_labor_mhoccur, replace 
 	
 	*review of potential input variables:
 	tab m09_ptb_mhoccur m09_hdp_htn_mhoccur_3, m 
@@ -127,18 +132,18 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace CES_PLAN = 55 if CES_ANY == 55 // unknown mode of delivery
 	
 	replace CES_PLAN = 0 if CES_ANY == 1 & ( m09_ces_proccur_inf1 == 1 | ///
-		m09_ces_faorres_inf2 == "1" | m09_ces_faorres_inf3 == 1 | ///
+		m09_ces_faorres_inf2 == 1 | m09_ces_faorres_inf3 == 1 | ///
 		m09_ces_faorres_inf4 == 1) // cesarean-emergent (any fetus)
 		
 	replace CES_PLAN = 1 if CES_ANY == 1 & m09_ces_proccur_inf1 == 2 & ///
-		m09_ces_faorres_inf2 != "1" & m09_ces_faorres_inf3 != 1 & ///
+		m09_ces_faorres_inf2 != 1 & m09_ces_faorres_inf3 != 1 & ///
 		m09_ces_faorres_inf4 != 1 // cesarean-planned 
 		
 	replace CES_PLAN = 55 if CES_ANY == 1 & (m09_ces_proccur_inf1 == 77 | ///
-		m09_ces_proccur_inf1 == 99) & (m09_ces_faorres_inf2 != "1" & ///
-		m09_ces_faorres_inf2 != "2" & m09_ces_faorres_inf3 != 1 & ///
+		m09_ces_proccur_inf1 == 99) & (m09_ces_faorres_inf2 != 1 & ///
+		m09_ces_faorres_inf2 != 2 & m09_ces_faorres_inf3 != 1 & ///
 		m09_ces_faorres_inf3 != 2 & m09_ces_faorres_inf4 != 1 & ///
-		m09_ces_faorres_inf4 != 2) // missing information on indication
+		m09_ces_faorres_inf4 != 2) // missing information on classification
 		
 	label var CES_PLAN "=1 if planned cesarean delivery (all infants)"
 	
@@ -148,18 +153,18 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace CES_EMERGENT = 55 if CES_ANY == 55 // unknown mode of delivery 
 	
 	replace CES_EMERGENT = 1 if CES_ANY == 1 & ( m09_ces_proccur_inf1 == 1 | ///
-		m09_ces_faorres_inf2 == "1" | m09_ces_faorres_inf3 == 1 | ///
+		m09_ces_faorres_inf2 == 1 | m09_ces_faorres_inf3 == 1 | ///
 		m09_ces_faorres_inf4 == 1) // cesarean-emergent (any fetus)
 		
 	replace CES_EMERGENT = 0 if CES_ANY == 1 & m09_ces_proccur_inf1 == 2 & ///
-		m09_ces_faorres_inf2 != "1" & m09_ces_faorres_inf3 != 1 & ///
+		m09_ces_faorres_inf2 != 1 & m09_ces_faorres_inf3 != 1 & ///
 		m09_ces_faorres_inf4 != 1 // cesarean-planned 
 		
 	replace CES_EMERGENT = 55 if CES_ANY == 1 & (m09_ces_proccur_inf1 == 77 | ///
-		m09_ces_proccur_inf1 == 99) & (m09_ces_faorres_inf2 != "1" & ///
-		m09_ces_faorres_inf2 != "2" & m09_ces_faorres_inf3 != 1 & ///
+		m09_ces_proccur_inf1 == 99) & (m09_ces_faorres_inf2 != 1 & ///
+		m09_ces_faorres_inf2 != 2 & m09_ces_faorres_inf3 != 1 & ///
 		m09_ces_faorres_inf3 != 2 & m09_ces_faorres_inf4 != 1 & ///
-		m09_ces_faorres_inf4 != 2) // missing information on indication
+		m09_ces_faorres_inf4 != 2) // missing information on classification
 		
 	label var CES_EMERGENT "=1 if emergent cesarean delivery (any infant)"
 		
@@ -211,7 +216,7 @@ log using "$log/mat_outcome_construct_$date", replace
 	keep if _merge == 3
 	
 		
-*Preterm birth indication (PRETERM_ANY)
+*Preterm birth classification (PRETERM_ANY)
 	
 	gen PREG_END_GA = PREG_END_DATE - EST_CONCEP_DATE
 	label var PREG_END_GA "GA at pregnancy endpoint (days)"
@@ -226,7 +231,7 @@ log using "$log/mat_outcome_construct_$date", replace
 	
 	gen PREG_LOSS = 0 if PREG_END_GA >=140 & PREG_END_GA !=.
 	replace PREG_LOSS = 1 if PREG_END_GA < 140 & PREG_END_GA >=0
-	replace PREG_LOSS = 55 if PREG_END_GA == . 
+	replace PREG_LOSS = 0 if PREG_END_GA == . // we will consider this to be "0" for table output 
 	label var PREG_LOSS "Pregnancy endpoint <20 weeks GA"
 	
 	tab PREG_LOSS
@@ -235,7 +240,7 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace PRETERM_ANY = 1 if PREG_END_GA < 259 & PREG_END_GA >= 140
 	replace PRETERM_ANY = 0 if PREG_LOSS == 1 // remove pregnancies <20 weeks GA
 	replace PRETERM_ANY = 55 if PREG_END_GA == . | PREG_END_GA <0 
-	label var PRETERM_ANY "Preterm pregnancy endpoint (by any indication)"
+	label var PRETERM_ANY "Preterm pregnancy endpoint (by any classification)"
 	
 	*Check: 
 	tab PREG_END_GA PRETERM_ANY, m 
@@ -359,13 +364,13 @@ log using "$log/mat_outcome_construct_$date", replace
 */
 
 ///////////////////////////////////////////////////////
-*Preterm indication typologies variable:
+*Preterm classification typologies variable:
 	
-	gen PRETERM_IND = 0 if PRETERM_ANY == 1 
-	label var PRETERM_IND "Preterm indication typologies"
+	gen PRETERM_CLASS = 0 if PRETERM_ANY == 1 
+	label var PRETERM_CLASS "Preterm classification typologies"
 
 //////////////////////////////////////////////////////
-*Preterm birth indication - spontaneous (PRETERM_SPON)
+*Preterm birth classification - spontaneous (PRETERM_SPON)
 
 	gen PRETERM_SPON = 0 if PRETERM_ANY == 0 
 	replace PRETERM_SPON = 55 if PRETERM_ANY == 55 
@@ -376,38 +381,38 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace PRETERM_SPON = 1 if PRETERM_ANY == 1 & ///
 		MEM_SPON == 1 & MEM_FIRST == 1
 	
-	replace PRETERM_IND = 1 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 1 if PRETERM_ANY == 1 & ///
 		MEM_SPON == 1 & MEM_FIRST == 1 
 	
 	// preterm + spontaneous labor prior to ROM
 	replace PRETERM_SPON = 1 if PRETERM_ANY == 1 & ///
 		LABOR_SPON == 1 & LABOR_FIRST == 1
 		
-	replace PRETERM_IND = 2 if  PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 2 if  PRETERM_ANY == 1 & ///
 		LABOR_SPON == 1 & LABOR_FIRST == 1
 		
 	// preterm + spontaneous labor with ROM at C-section & Cesarean delivery
 	replace PRETERM_SPON = 1 if PRETERM_ANY == 1 & ///
 		LABOR_SPON == 1 & MEM_CES == 1 & MEM_FIRST == . & CES_ANY == 1
 		
-	replace PRETERM_IND = 3 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 3 if PRETERM_ANY == 1 & ///
 		LABOR_SPON == 1 & MEM_CES == 1 & MEM_FIRST == . & CES_ANY == 1	
 		
 	// preterm + Spontaneous ROM & no labor (c-section)
 	replace PRETERM_SPON = 1 if PRETERM_ANY == 1 & ///
 		MEM_SPON == 1 & LABOR_ANY == 0 & CES_ANY == 1 & MEM_FIRST == . 
 		
-	replace PRETERM_IND = 4 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 4 if PRETERM_ANY == 1 & ///
 		MEM_SPON == 1 & LABOR_ANY == 0 & CES_ANY == 1 & MEM_FIRST == . 
 		
 	// preterm + Spontaneous ROM & Spontaneous Labor (timing is missing)
 	replace PRETERM_SPON = 1 if PRETERM_ANY == 1 & ///
 		MEM_SPON == 1 & LABOR_ANY == 1 & LABOR_SPON == 1 & MEM_FIRST == . 
 		
-	replace PRETERM_IND = 5 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 5 if PRETERM_ANY == 1 & ///
 		MEM_SPON == 1 & LABOR_ANY == 1 & LABOR_SPON == 1 & MEM_FIRST == . 
 		
-	tab PRETERM_IND PRETERM_SPON, m 
+	tab PRETERM_CLASS PRETERM_SPON, m 
 	
 	///////////////////////
 	// PROVIDER-INITIATED: 
@@ -415,21 +420,21 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace PRETERM_SPON = 0 if PRETERM_ANY == 1 & ///
 		LABOR_INDUCED == 1 & LABOR_FIRST == 1 
 		
-	replace PRETERM_IND = 11 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 11 if PRETERM_ANY == 1 & ///
 		LABOR_INDUCED == 1 & LABOR_FIRST == 1 
 		
 	// 	preterm + artificial ROM prior to labor		
 	replace PRETERM_SPON = 0 if PRETERM_ANY == 1 & ///
 		MEM_ART == 1 & MEM_FIRST == 1 
 		
-	replace PRETERM_IND = 12 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 12 if PRETERM_ANY == 1 & ///
 		MEM_ART == 1 & MEM_FIRST == 1 
 		
 	// preterm + cesarean with no labor or spontaneous ROM 
 	replace PRETERM_SPON = 0 if PRETERM_ANY == 1 & ///
 		CES_ANY == 1 & LABOR_ANY== 0 & (MEM_CES == 1 | MEM_ART == 1)
 		
-	replace PRETERM_IND = 13 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 13 if PRETERM_ANY == 1 & ///
 		CES_ANY == 1 & LABOR_ANY== 0 & (MEM_CES == 1 | MEM_ART == 1)
 		
 	// preterm + cesarean with induced labor - cesarean-related ROM 
@@ -437,7 +442,7 @@ log using "$log/mat_outcome_construct_$date", replace
 		CES_ANY == 1 & LABOR_INDUCED == 1 & LABOR_ANY == 1 & ///
 		MEM_CES == 1 & LABOR_FIRST == . 
 		
-	replace PRETERM_IND = 14 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 14 if PRETERM_ANY == 1 & ///
 		CES_ANY == 1 & LABOR_INDUCED == 1 & LABOR_ANY == 1 & ///
 		MEM_CES == 1 & LABOR_FIRST == . 
 		
@@ -445,10 +450,10 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace PRETERM_SPON = 0 if PRETERM_ANY == 1 & ///
 		LABOR_INDUCED == 1 & MEM_ART == 1 & LABOR_ANY == 0 & CES_ANY == 0
 		
-	replace PRETERM_IND = 15 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 15 if PRETERM_ANY == 1 & ///
 		LABOR_INDUCED == 1 & MEM_ART == 1 & LABOR_ANY == 0 & CES_ANY == 0
 		
-	tab PRETERM_IND PRETERM_SPON, m
+	tab PRETERM_CLASS PRETERM_SPON, m
 
 	///////////////////////
 	// UNKNOWN: 
@@ -456,21 +461,21 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace PRETERM_SPON = 55 if PRETERM_ANY == 1 & ///
 		(LABOR_SPON == 55 & LABOR_FIRST==1 & CES_PLAN == 0)
 		
-	replace PRETERM_IND = 21 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 21 if PRETERM_ANY == 1 & ///
 		(LABOR_SPON == 55 & LABOR_FIRST==1 & CES_PLAN == 0)
 		 
 	// missing information - MEM_CES=1 but not a cesarean delivery: 
 	replace PRETERM_SPON = 55 if PRETERM_ANY == 1 & ///
 		MEM_CES == 1 & CES_ANY == 0 & LABOR_FIRST==.
 		
-	replace PRETERM_IND = 22 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 22 if PRETERM_ANY == 1 & ///
 		MEM_CES == 1 & CES_ANY == 0 & LABOR_FIRST==.
 		
 	// missing information - Spontaneous ROM - No labor - vaginal delivery 
 	replace PRETERM_SPON = 55 if PRETERM_ANY == 1 & ///
 		LABOR_ANY == 0 & CES_ANY == 0 & MEM_SPON == 1 & MEM_FIRST == . 
 		
-	replace PRETERM_IND = 23 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 23 if PRETERM_ANY == 1 & ///
 		LABOR_ANY == 0 & CES_ANY == 0 & MEM_SPON == 1 & MEM_FIRST == . 
 		
 	// missing information - Artificial ROM - No labor / no induction - vaginal delivery 
@@ -478,7 +483,7 @@ log using "$log/mat_outcome_construct_$date", replace
 		LABOR_ANY == 0 & LABOR_INDUCED == 0 & CES_ANY == 0 & ///
 		MEM_ART == 1 & MEM_FIRST == . 
 		
-	replace PRETERM_IND = 24 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 24 if PRETERM_ANY == 1 & ///
 		LABOR_ANY == 0 & LABOR_INDUCED == 0 & CES_ANY == 0 & ///
 		MEM_ART == 1 & MEM_FIRST == . 
 		
@@ -486,18 +491,18 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace PRETERM_SPON = 55 if PRETERM_ANY == 1 & ///
 		LABOR_ANY == 55 
 		
-	replace PRETERM_IND = 25 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 25 if PRETERM_ANY == 1 & ///
 		LABOR_ANY == 55 
 		
 	// missing information - Unknown rupture of membranes
 	replace PRETERM_SPON = 55 if PRETERM_ANY == 1 & ///
 		MEM_SPON == 55  & LABOR_ANY == 1 & CES_ANY == 0 
 		
-	replace PRETERM_IND = 26 if PRETERM_ANY == 1 & ///
+	replace PRETERM_CLASS = 26 if PRETERM_ANY == 1 & ///
 		MEM_SPON == 55  & LABOR_ANY == 1 & CES_ANY == 0 
 	
 	
-	tab PRETERM_IND PRETERM_SPON, m
+	tab PRETERM_CLASS PRETERM_SPON, m
 		
 	label define ptbtypes 1 "Spontaneous ROM prior to labor" ///
 		2 "Spontaneous labor prior to ROM" ///
@@ -516,11 +521,11 @@ log using "$log/mat_outcome_construct_$date", replace
 		25 "Missing info: Unknown if labor" ///
 		26 "Missing info: Unknown if spontaneous ROM"
 		
-	label values PRETERM_IND ptbtypes 
+	label values PRETERM_CLASS ptbtypes 
 	
-	label var PRETERM_SPON "Preterm birth indication - spontaneous"
+	label var PRETERM_SPON "Preterm birth classification - spontaneous"
 	
-	tab PRETERM_IND PRETERM_SPON, m 
+	tab PRETERM_CLASS PRETERM_SPON, m 
 		
 	*Check on missing data:
 	list MEM_SPON MEM_ART MEM_CES LABOR_SPON LABOR_INDUCED LABOR_ANY ///
@@ -528,7 +533,7 @@ log using "$log/mat_outcome_construct_$date", replace
 		if PRETERM_SPON == . 
 	
 
-*Preterm birth indication - provider-initiated (PRETERM_PROV)
+*Preterm birth classification - provider-initiated (PRETERM_PROV)
 
 	gen PRETERM_PROV = 0 if PRETERM_ANY == 0 
 	replace PRETERM_PROV = 55 if PRETERM_ANY == 55 | PRETERM_SPON == 55
@@ -536,20 +541,20 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace PRETERM_PROV = 0 if PRETERM_SPON == 1 
 	
 	replace PRETERM_PROV = 1 if PRETERM_SPON == 0 & ///
-		(PRETERM_IND == 11 | PRETERM_IND == 12 | PRETERM_IND == 13 | ///
-		 PRETERM_IND == 14 | PRETERM_IND == 15)
+		(PRETERM_CLASS == 11 | PRETERM_CLASS == 12 | PRETERM_CLASS == 13 | ///
+		 PRETERM_CLASS == 14 | PRETERM_CLASS == 15)
 		 
 		
-	label var PRETERM_PROV "Preterm birth indication - provider-initiated"
+	label var PRETERM_PROV "Preterm birth classification - provider-initiated"
 	
 
 	*CHECKS:
 	tab PRETERM_ANY if PREG_LOSS == 0, m 
 	tab PRETERM_PROV PRETERM_SPON, m 
-	tab PRETERM_IND PRETERM_PROV, m 
-	tab PRETERM_IND PRETERM_SPON, m 
+	tab PRETERM_CLASS PRETERM_PROV, m 
+	tab PRETERM_CLASS PRETERM_SPON, m 
 	
-	tab PRETERM_IND if PRETERM_ANY ==1, m 
+	tab PRETERM_CLASS if PRETERM_ANY ==1, m 
 	tab PRETERM_SPON if PRETERM_ANY == 1, m 
 	tab PRETERM_PROV if PRETERM_ANY == 1, m 
 	
@@ -560,8 +565,8 @@ log using "$log/mat_outcome_construct_$date", replace
 	replace PRETERM_PROV_MISS = 2 if PRETERM_PROV == 55 & PRETERM_ANY_MISS == 2
 	replace PRETERM_PROV_MISS = 3 if PRETERM_PROV == 55 & PRETERM_ANY_MISS == 3
 	*other missing beyond PRETERM_ANY_MISS:
-	replace PRETERM_PROV_MISS = 4 if PRETERM_PROV == 55 & PRETERM_IND >= 20 & ///
-		PRETERM_IND <29
+	replace PRETERM_PROV_MISS = 4 if PRETERM_PROV == 55 & PRETERM_CLASS >= 20 & ///
+		PRETERM_CLASS <29
 	
 	label define pt_prov_miss 0 "0-Non-missing" 1 "1=Missing BOE" ///
 		2 "2-Missing end date" 3 "3-Missing BOE and end date" ///
@@ -605,7 +610,7 @@ log using "$log/mat_outcome_construct_$date", replace
 	, over(site_num) bar format(%9.2f) ci n xlab($pct) ///
 	legend(c(4)) ysize(17) xsize(43)
 	
-	graph export "$output/PRETERM_ANY_$date.jpg"
+	graph export "$output/PRETERM_ANY_$date.jpg", replace 
 
 		
 	label var PRETERM_PROV "Provider-initiated Preterm (among all preterm)"
@@ -616,13 +621,158 @@ log using "$log/mat_outcome_construct_$date", replace
 	, over(site_num) bar format(%9.2f) n xlab($pct2) ///
 	legend(c(4)) ysize(17) xsize(45)
 	
-	graph export "$output/PRETERM_PROV_$date.jpg"
+	graph export "$output/PRETERM_PROV_$date.jpg", replace 
 	
 	
 	///////////////////////////////////////////////////////////////////////////
 	** END MAKE A BAR GRAPH **
 	///////////////////////////////////////////////////////////////////////////
 	
+*Addition of variables on Provider-Initiated and Spontaneous Indication (i.e., 
+	*underlying reason for preterm delivery classification): 
+	
+	*Provider initiated indication for induced labor: 
+		*review input variables:
+			// 1=post-term
+		tab PRETERM_PROV m09_induced_prindc_1, m 
+			// 2=non-reassuring fetal heart rate
+		tab PRETERM_PROV m09_induced_prindc_2, m 		
+			// 3=prior stillbirth
+		tab PRETERM_PROV m09_induced_prindc_3, m 
+			// 4=macrosomia
+		tab PRETERM_PROV m09_induced_prindc_4, m 
+			// 5=Oligohydramnios
+		tab PRETERM_PROV m09_induced_prindc_5, m 
+			// 6=IUGR
+		tab PRETERM_PROV m09_induced_prindc_6, m 
+			// 7=Hypertension
+		tab PRETERM_PROV m09_induced_prindc_7, m 
+			// 8=Diabetes
+		tab PRETERM_PROV m09_induced_prindc_8, m 
+			// 9=Cardiac disease
+		tab PRETERM_PROV m09_induced_prindc_9, m 
+			// 10=elective
+		tab PRETERM_PROV m09_induced_prindc_10, m 
+			// 11=ROM
+		tab PRETERM_PROV m09_induced_prindc_11, m 
+			// 88=Other
+		tab PRETERM_PROV m09_induced_prindc_88, m 
+			// 99=DK
+		tab PRETERM_PROV m09_induced_prindc_99, m 
+		
+		gen INDICATION_NUM = 0 if PRETERM_PROV == 1 & LABOR_INDUCED == 1 
+		
+		foreach num of numlist 1/11 88 {
+		
+		replace INDICATION_NUM = INDICATION_NUM +1 if ///
+			m09_induced_prindc_`num' == 1 & PRETERM_PROV == 1 & ///
+			LABOR_INDUCED == 1 
+		
+		}
+		
+		label var INDICATION_NUM "Number of indications given for induced labor (provider-initiated pt)"
+		tab INDICATION_NUM, m 
+		
+	gen PRETERM_PROV_IND = 55 if PRETERM_PROV == 1 
+	label var PRETERM_PROV_IND "Indication for provider-initiated preterm"
+	
+	foreach num of numlist 1/11 88 {
+	replace PRETERM_PROV_IND = `num' if m09_induced_prindc_`num' == 1 ///
+		& PRETERM_PROV == 1 & LABOR_INDUCED == 1 & INDICATION_NUM == 1
+	}
+	
+	replace PRETERM_PROV_IND = 89 if INDICATION_NUM >= 2 & INDICATION_NUM != . & ///
+		PRETERM_PROV == 1 & LABOR_INDUCED == 1 
+		
+	tab PRETERM_PROV_IND, m 
+		
+		
+	*Provider initiated indication for cesarean: 		
+		tab PRETERM_PROV m09_ces_prindc_inf1_1, m 
+		
+		gen INDCES_NUM = 0 if PRETERM_PROV == 1 & LABOR_ANY ==0 & ///
+			LABOR_INDUCED == 0 & CES_ANY == 1 
+		label var INDCES_NUM "Number of indications given for cesarean (provider-initiated pt)"
+		
+		foreach num of numlist 1/16 88 {
+		
+		replace INDCES_NUM = INDCES_NUM +1 if ///
+			m09_ces_prindc_inf1_`num' == 1 & PRETERM_PROV == 1 & ///
+			LABOR_INDUCED == 0 & LABOR_ANY == 0 & CES_ANY == 1  
+		
+		}
+		
+		*incorporate c-section indication into combined variable for 
+		*provider-initiated preterm indication: 
+		
+	foreach num of numlist 1/16 {
+	replace PRETERM_PROV_IND = (`num'+ 20) if m09_ces_prindc_inf1_`num' == 1 ///
+		& PRETERM_PROV == 1 & LABOR_INDUCED == 0 & LABOR_ANY == 0 & ///
+		CES_ANY == 1 & INDCES_NUM == 1 
+	}
+	
+	foreach num of numlist 88 {
+	replace PRETERM_PROV_IND = (`num') if m09_ces_prindc_inf1_`num' == 1 ///
+		& PRETERM_PROV == 1 & LABOR_INDUCED == 0 & LABOR_ANY == 0 & ///
+		CES_ANY == 1 & INDCES_NUM == 1 
+	}
+	
+	replace PRETERM_PROV_IND = 89 if INDCES_NUM >= 2 & INDCES_NUM != . & ///
+		PRETERM_PROV == 1 & LABOR_INDUCED == 0 & LABOR_ANY == 0 & ///
+		CES_ANY == 1  
+		
+	tab PRETERM_PROV_IND, m 
+	
+		*combine "Postterm"
+	replace PRETERM_PROV_IND = 1 if PRETERM_PROV_IND == 21
+		*combine non-reassuring fetal heart rate 
+	replace PRETERM_PROV_IND = 2 if PRETERM_PROV_IND == 27 
+		*combine Macrosomia
+	replace PRETERM_PROV_IND = 4 if PRETERM_PROV_IND == 31
+	
+		*set missing to 555 so that it will show up last:
+	replace PRETERM_PROV_IND = 555 if PRETERM_PROV_IND == 55 
+
+	label define indications 1 "Post-term" 2 "Non-reassuring fetal heartrate" ///
+		3 "Prior stillbirth" 4 "Macrosomia" 5 "Oligohydramnios" ///
+		6 "IUGR" 7 "Hypertension" 8 "Diabetes" 9 "Cardiac disease" ///
+		10 "Elective induction" 11 "Rupture of membranes" ///
+		22 "Previous cesarean" 23 "Failure to progress" 24 "Failed induction" ///
+		25 "Failed vacuum/forceps" 26 "Abruption/bleeding" ///
+		28 "Cord prolapse" 29 "Breech presentation" 30 "Shoulder Dystocia" ///
+		32 "Preeclampsia/eclampsia" 33 "Fetal anomaly" 34 "Herpes" ///
+		35 "PMTCT" 36 "Elective cesarean" 88 "Other indication" ///
+		89 "Multiple indications" 555 "No indication provided"
+	label values PRETERM_PROV_IND indications 
+	
+	tab PRETERM_PROV_IND if PRETERM_PROV == 1 
+	tab PRETERM_PROV_IND site if PRETERM_PROV == 1 
+	
+	tab PRETERM_PROV_IND PRETERM_CLASS 
+	
+	*Pull suspcious cases: 
+	tab PRETERM_CLASS, m 
+	
+	*Scenarios for PRETERM_SPON_IND 
+	gen PRETERM_SPON_IND = 55 if PRETERM_SPON == 1 
+	label var PRETERM_SPON_IND "Indication for spontaneous preterm delivery"
+	
+		// 1=Preterm Labor: 
+	replace PRETERM_SPON_IND = 1 if PRETERM_CLASS == 2
+	replace PRETERM_SPON_IND = 1 if PRETERM_CLASS == 3 
+	
+		// 2=ROM: 
+	replace PRETERM_SPON_IND = 2 if PRETERM_CLASS == 1 
+	replace PRETERM_SPON_IND = 2 if PRETERM_CLASS == 4 
+	
+		// 55=Unknown
+	replace PRETERM_SPON_IND = 55 if PRETERM_CLASS == 5
+	
+	label define sponind 1 "Preterm labor" 2 "PPROM" 55 "Unknown"
+	
+	label values PRETERM_SPON_IND sponind 
+		 
+	tab PRETERM_SPON_IND, m 
 		 
 *Preterm premature rupture of membranes - PPROM (PPROM_OCCUR)
 	
@@ -676,7 +826,7 @@ log using "$log/mat_outcome_construct_$date", replace
 	*spontaneous labor: 
 	sum LABOR_MEM_HOURS if PPROM == 1
 	histogram LABOR_MEM_HOURS if PPROM==1 & LABOR_SPON == 1, w(4) xline(24)
-	graph export "$output/PPROM_HOURS_$date.jpg"
+	graph export "$output/PPROM_HOURS_$date.jpg", replace
 		
 	tab PPROM_PREGEND PRETERM_ANY, m 
 	
@@ -732,7 +882,7 @@ log using "$log/mat_outcome_construct_$date", replace
 	*review cases with no labor: 
 	tab PREG_END_GA if PPROM_PREGEND_TIMING == 99
 	
-	tab PRETERM_IND PPROM_PREGEND, m 
+	tab PRETERM_CLASS PPROM_PREGEND, m 
 	
 	*Create missing reason indicator for maternal outcomes report: 
 	gen PPROM_PREGEND_MISS = 0 if PPROM_PREGEND != 55 
@@ -754,6 +904,10 @@ log using "$log/mat_outcome_construct_$date", replace
 	label values PPROM_PREGEND_MISS pprom_miss 
 	
 	tab PPROM_PREGEND_MISS PPROM_PREGEND, m 
+	
+	*review for consistency: 
+	tab PRETERM_SPON_IND PPROM_PREGEND, m 
+	tab PPROM_PREGEND_TIMING PRETERM_SPON_IND,m 
 
 	///////////////////////////////////////////////////////////////////////////
 	** MAKE A BAR GRAPH **
@@ -766,23 +920,100 @@ log using "$log/mat_outcome_construct_$date", replace
 	, over(site_num) bar format(%9.2f) n xlab($pct3) ///
 	legend(c(4)) ysize(17) xsize(40)
 	
-	graph export "$output/PPROM_PREGEND_$date.jpg"
+	graph export "$output/PPROM_PREGEND_$date.jpg", replace
 	
 	///////////////////////////////////////////////////////////////////////////
 	** END MAKE A BAR GRAPH **
 	///////////////////////////////////////////////////////////////////////////
 		
+	stop 
+	
+	*data checks for re-running the code on new data:
+	
+	tab PREG_END_GA PRETERM_ANY, m 
+	tab PRETERM_ANY site, m 
+	
+	tab PREG_END_GA PREG_LOSS, m 
+	tab PREG_LOSS site, m 	
+	
+	tab PRETERM_PROV PRETERM_SPON, m 
+	
+	tab PRETERM_PROV_IND PRETERM_PROV, m 
+	tab PRETERM_SPON_IND PRETERM_SPON, m 
+	
+	tab PRETERM_PROV_MISS PRETERM_ANY, m 
+	
+	
+	
+	//////////////////////////////////////////////////////////////////////////
+	** FINALIZE ANALYSIS DATASET **
+	//////////////////////////////////////////////////////////////////////////
+	
 	*export an analysis data set:
 	order site momid pregid PREG_LOSS PREG_END_DATE PREG_END_GA PREG_END ///
 		PRETERM_ANY PRETERM_ANY_MISS PRETERM_PROV PRETERM_PROV_MISS ///
-		PRETERM_SPON PRETERM_IND PPROM_PREGEND PPROM_PREGEND_MISS ///
-		PPROM_PREGEND_TIMING
+		PRETERM_SPON PRETERM_CLASS PPROM_PREGEND PPROM_PREGEND_MISS ///
+		PPROM_PREGEND_TIMING PRETERM_PROV_IND PRETERM_SPON_IND ///
+		LABOR_MEM_HOURS LABOR_ANY LABOR_INDUCED LABOR_SPON ///
+		MEM_SPON MEM_ART MEM_CES CES_ANY CES_EMERGENT CES_PLAN
 	
 	keep site momid pregid PREG_LOSS PREG_END_DATE PREG_END_GA PREG_END ///
 		PRETERM_ANY PRETERM_ANY_MISS PRETERM_PROV PRETERM_PROV_MISS ///
-		PRETERM_SPON PRETERM_IND PPROM_PREGEND PPROM_PREGEND_MISS ///
-		PPROM_PREGEND_TIMING
+		PRETERM_SPON PRETERM_CLASS PPROM_PREGEND PPROM_PREGEND_MISS ///
+		PPROM_PREGEND_TIMING PRETERM_PROV_IND PRETERM_SPON_IND ///
+		LABOR_MEM_HOURS LABOR_ANY LABOR_INDUCED LABOR_SPON ///
+		MEM_SPON MEM_ART MEM_CES CES_ANY CES_EMERGENT CES_PLAN
 		 
 	save "$wrk/maternal_outcomes_MNH09", replace 
 	
-
+	tab 
+	
+	
+	//////////////////////////////////////////////////////////////////////////
+	*Create output reports for suspcious cases: 
+	
+	*PPROM: 
+	tab PPROM_PREGEND_TIMING,m 
+	
+	gen comment = ""
+	
+	*cases with PPROM <20 weeks GA 
+	list site PPROM_PREGEND PREG_END_GA if PPROM_PREGEND == 1 & PREG_END_GA <(20*7) 
+	
+	replace comment= "PPROM with gestational age <20 weeks at pregnancy endpoint" ///
+		if PPROM_PREGEND == 1 & PREG_END_GA <(20*7) 
+		
+	*cases with PPROM >7 days before pregnancy endpoint 
+	list site PPROM_PREGEND LABOR_MEM_HOURS if PPROM_PREGEND == 1 & ///
+		LABOR_MEM_HOURS > 168 & LABOR_MEM_HOURS != . 
+	
+	replace comment= "PPROM where ROM occurred more than 7 days before pregnancy end date" ///
+		if PPROM_PREGEND == 1 & LABOR_MEM_HOURS > 168 & LABOR_MEM_HOURS !=. & comment == ""
+		
+	*cases with no labor that end in vaginal delivery 
+	list site PRETERM_PROV PRETERM_CLASS LABOR_ANY CES_ANY PPROM_PREGEND if PRETERM_CLASS == 23 | ///
+		PRETERM_CLASS == 24
+		
+	replace comment= "No labor but pregnancy ends in vaginal delivery" ///
+		if comment =="" & (PRETERM_CLASS == 23 | PRETERM_CLASS == 24)
+	
+	*cases where ROM is associated with cesarean, but ends in a vaginal delivery
+	list site PRETERM_PROV PRETERM_CLASS MEM_CES CES_ANY PPROM_PREGEND if ///
+		PRETERM_ANY ==1 & CES_ANY == 0 & MEM_CES == 1 
+		
+	replace comment= "ROM is cesarean-related but pregnancy ends in a vaginal delivery" if ///
+		comment=="" & PRETERM_ANY ==1 & CES_ANY == 0 & MEM_CES == 1 		
+		
+		
+	tab comment site
+	
+	keep site momid pregid PRETERM_ANY PRETERM_SPON PRETERM_PROV ///
+		PPROM_PREGEND comment 
+		
+	keep if comment != ""
+	sort comment 
+	
+	export excel "$output/review/PPROM_Preterm_Review_$date.xlsx", firstrow(variables)
+		
+		
+		
