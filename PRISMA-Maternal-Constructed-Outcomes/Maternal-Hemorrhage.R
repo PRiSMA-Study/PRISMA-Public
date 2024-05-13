@@ -319,6 +319,11 @@ table(hem$HEM_PPH_SEV)
 # PPH_TRNSFSN_PROCCUR==1 (Did the mother need a transfusion?) OR
 # (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2)
 
+## UPDATES 
+## ratio between hemorrhage and severe hemorrhage 
+## blood loss, transfusion, other to below the severe hemorrhage 
+## update the denominator for medications to be everyone with PPH 
+## update denominator to to everyone who has delivered for everything 
 
 ## Medications 
 # M09_PPH_CMOCCUR_1_6 (Were any of the following medications given to prevent/treat PPH?, Oxytocin)
