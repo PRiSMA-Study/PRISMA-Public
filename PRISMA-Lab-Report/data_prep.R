@@ -279,8 +279,8 @@ df_lab_06 <- df_lab %>%
     trimester = case_when(
       #at/after delivery data should be -5 for trimester
       ga_wks > 3 & ga_wks < 14 ~ 1,
-      ga_wks >= 14 & ga_wks < 27 ~ 2,
-      ga_wks >= 27 & ga_wks < 43 ~ 3, 
+      ga_wks >= 14 & ga_wks < 28 ~ 2,
+      ga_wks >= 28 & ga_wks < 43 ~ 3, 
       TRUE ~ NA_real_
     ), 
     time = case_when(
@@ -312,8 +312,8 @@ df_lab_08 <- df_lab %>%
     trimester = case_when(
       #at/after delivery data should be -5 for trimester
       ga_wks > 3 & ga_wks < 14 ~ 1,
-      ga_wks >= 14 & ga_wks < 27 ~ 2,
-      ga_wks >= 27 & ga_wks < 43 ~ 3, 
+      ga_wks >= 14 & ga_wks < 28 ~ 2,
+      ga_wks >= 28 & ga_wks < 43 ~ 3, 
       TRUE ~ NA_real_
     ), 
     time = case_when(
