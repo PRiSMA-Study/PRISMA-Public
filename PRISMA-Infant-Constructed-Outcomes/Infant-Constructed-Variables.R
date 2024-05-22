@@ -12,7 +12,7 @@
 # 6. Stillbirth 
 # 7. Fetal death 
 # 8. Birth asphyxia 
-# 9. Hyperbili & Jaundice
+# 9. Hyperbili & Jaundice 
 
 #The first section, CONSTRUCTED VARIABLES GENERATION, below, the code generates datasets for 
 #each form with additional variables that will be used for multiple outcomes. For example, mnh01_constructed 
