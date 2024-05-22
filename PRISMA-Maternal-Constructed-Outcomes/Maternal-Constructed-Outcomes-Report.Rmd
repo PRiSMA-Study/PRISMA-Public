@@ -37,31 +37,17 @@ library(haven)
 #path_to_data <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
 #path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
-#Erin's path: 
+# #Erin's path: 
 path_to_data <- "Z:/Outcome Data/2024-04-19/"
 path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
-mortality <- read_dta(paste0(path_to_data, "Mortality.dta")) %>% rename_all(toupper) 
-hemorrhage <- read.csv(paste0(path_to_data, "hemorrhage.csv")) %>% rename_all(toupper) 
+mortality <- read_dta(paste0(path_to_data, "Mortality.dta")) %>% rename_all(toupper)
+hemorrhage <- read.csv(paste0(path_to_data, "hemorrhage.csv")) %>% rename_all(toupper)
 depression <- read_dta(paste0(path_to_data, "Depression.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 anemia <- read_dta(paste0(path_to_data, "ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 preterm_indication <- read_dta(paste0(path_to_data, "maternal_outcomes_MNH09.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-
-
-# maternal infection 
-# Table 1 Data: 
-# remove these datasets per Stacie's feedback: 
-  #mnh04_constructed_completeness <- read.csv(paste0(path_to_data, "mnh04_constructed_completeness", ".csv"))
-  #mnh06_constructed_completeness <- read.csv(paste0(path_to_data, "mnh06_constructed_completeness", ".csv"))
-  #mnh08_constructed_completeness <- read.csv(paste0(path_to_data, "mnh08_constructed_completeness", ".csv"))
-# Table 2 Data: 
-mat_infection_sti <- read.csv(paste0(path_to_data, "mat_infection_sti", ".csv"))
-mat_infection_sti_any_visit <- read.csv(paste0(path_to_data, "mat_infection_sti_any_visit", ".csv"))
-# Table 3 Data: 
-mat_infection_other <- read.csv(paste0(path_to_data, "mat_infection_other", ".csv"))
-# Table 4 Data: 
 mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combined", ".csv"))
 
 tb_theme1 <- function(matrix){
@@ -441,7 +427,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_output.png"))
 ```{r}
 ## this is a long table; will need to split into 3 separate tables (anemia_tab_b1 & anemia_tab_b2)
 
-## fisrt set of anemia tables: 
+## first set of anemia tables: 
 
 anemia_tab_tri1 <- anemia %>% 
   rowwise() %>% 
@@ -1950,11 +1936,7 @@ knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
 
 **Definition:** Received at least one procedure for postpartum hemorrhage or excessive bleeding (>=500mL) from or into the genital track, either during pregnancy, prior to delivery, or following the birth of a baby. *Severe hemorrhage* defined as received at least one procedure for postpartum hemorrhage or excessive bleeding (>=1000mL) from or into the genital track, either during pregnancy, prior to delivery, or following the birth of a baby.
 
-**Denominators:**
-
-*For Antepartum hemorrhage: All participants with at least one ANC visit (at least one MNH04 filled).*
-
-*For Postpartum hemorrhage: All participants with an IPC visit (MNH09 filled).*
+**Denominator:** All participants with a reported birth outcome.
 
 &nbsp;
 
@@ -1973,65 +1955,138 @@ Hemorrhage_tab <- hemorrhage %>%
   summarise(
 
   ## hemorrhage outcome 
-    "Antepartum hemorrhage^a^" = paste0(
+    "Denominator" = paste0(
+      format(sum(HEM_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+    "Antepartum hemorrhage" = paste0(
       format(sum(HEM_APH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_APH == 1, na.rm = TRUE)/sum(HEM_APH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_APH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Postpartum hemorrhage^b^" = paste0(
+    "Postpartum hemorrhage" = paste0(
       format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_PPH == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_PPH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Severe postpartum hemorrhage^b^" = paste0(
+    "Severe postpartum hemorrhage" = paste0(
       format(sum(HEM_PPH_SEV == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_PPH_SEV == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_PPH_SEV == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Estimated blood loss >= 1000mL^b^" = paste0(
-      format(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 1000, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 1000, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      ## severe subcategories:
+         "Estimated blood loss >= 1000mL" = paste0(
+          format(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 1000, na.rm = TRUE), nsmall = 0, digits = 2),
+          " (",
+          format(round(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 1000, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
     
-    "Any hemorrhage at any time point^c^" = paste0(
+    
+         "Any procedure for PPH" = paste0(
+          format(sum(M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
+                       M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+          " (",
+          format(round(sum(M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
+                             M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+    
+         "Blood transfusion" = paste0(
+          format(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+          " (",
+          format(round(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+    
+         "PPH reported in MNH09/12/19" = paste0(
+          format(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) |
+                       M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
+                       M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE), nsmall = 0, digits = 2),
+          " (",
+          format(round(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) |
+                       M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
+                       M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+    
+    "Any hemorrhage at any time point" = paste0(
       format(sum(HEM_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_ANY == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1 | HEM_APH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_ANY == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-  ## procedures for PPH (among participants with PPH)
-    "Balloon/condom tamponade" = paste0(
-      format(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    
+## Methods of blood loss measurements 
+  "Denominator " = paste0(
+      format(sum(HEM_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+  "Calibrated delivery drapes" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_PEMETHOD_6 == 1 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  "Noncalibrated delivery drapes" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 2 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 == 2 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  "Visual estimation" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 3 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 == 3 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     	
+  "Gravimetric technique (weight of blood-soaked materials)" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 == 4 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 == 4 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  "Method unknown" = paste0(
+      format(sum(M09_PPH_PEMETHOD_6 %in% c(99, 55), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_PEMETHOD_6 %in% c(99, 55) , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  ## procedures for PPH (among participants with PPH)
+  "Denominator  " = paste0(
+      format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+    "Balloon/condom tamponade" = paste0(
+      format(sum(M09_PPH_FAORRES_1_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_FAORRES_1_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Surgical interventions" = paste0(
-      format(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(M09_PPH_FAORRES_2_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_FAORRES_2_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Brace sutures" = paste0(
-      format(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(M09_PPH_FAORRES_3_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_FAORRES_3_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Vessel ligation" = paste0(
-      format(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(M09_PPH_FAORRES_4_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_FAORRES_4_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Hysterectomy" = paste0(
-      format(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(M09_PPH_FAORRES_5_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_FAORRES_5_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Other" = paste0(
+      format(sum(M09_PPH_FAORRES_88_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_FAORRES_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Blood transfusion" = paste0(
@@ -2046,92 +2101,64 @@ Hemorrhage_tab <- hemorrhage %>%
       format(round(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-  ## Medications given to prevent/treat PPH (among all participants with an ipc)
+  ## Medications given to prevent/treat PPH (among all participants with an pph)
+  "Denominator   " = paste0(
+      format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+
     "Oxytocin" = paste0(
       format(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Misoprostol" = paste0(
       format(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Tranexaminic acid" = paste0(
       format(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Carbetocin" = paste0(
       format(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Methylergonovine" = paste0(
       format(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Carboprost (PGF2-alpha)" = paste0(
       format(sum(M09_PPH_CMOCCUR_6_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_6_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_6_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Other" = paste0(
       format(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "No medications given" = paste0(
       format(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Don’t know" = paste0(
       format(sum(M09_PPH_CMOCCUR_99_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_99_6 == 1, na.rm = TRUE)/sum(HEM_PPH_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-  ## Methods of blood loss measurements (among participants with a valid blood loss measurement)
-      "Calibrated delivery drapes" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 1 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 1 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Noncalibrated delivery drapes" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 2 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 2 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
-    "Visual estimation" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 3 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 3 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-     	
-    "Gravimetric technique (weight of blood-soaked materials)" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 4 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 4 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Method unknown" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 99 & BLOOD_LOSS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 99 & BLOOD_LOSS_DENOM==1, na.rm = TRUE)/sum(BLOOD_LOSS_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M09_PPH_CMOCCUR_99_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-    
+  
   ) %>% 
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
@@ -2147,61 +2174,86 @@ Hemorrhage_tab <- hemorrhage %>%
 Hemorrhage_tab[is.na(Hemorrhage_tab)] <- paste0("0 (0)")
 
 ## the table is too long -- split into 2 
-Hemorrhage_tab1 <- Hemorrhage_tab[1:12,]
-Hemorrhage_tab2 <- Hemorrhage_tab[13:25,]
+Hemorrhage_tab1 <- Hemorrhage_tab[1:15,]
+Hemorrhage_tab2 <- Hemorrhage_tab[16:31,]
 
 hemorrhage_output1 <- tb_theme1(Hemorrhage_tab1) %>% 
   tab_header(
     title = md("**Table 6**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Hemorrhage</span>"),
-    rows = 1:5
+    label = html("<span style='font-size: 18px'>Hemorrhage <sup>a</sup></span>"),
+    rows = 1:9
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Procedures for postpartum hemorrhage <sup>d</sup></span>"),
-    rows = 6:12
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Hemorrhage</span>",
-                           "<span style='font-size: 18px'>Procedures for postpartum hemorrhage <sup>d</sup></span>")) %>% 
+    label = html("<span style='font-size: 18px'>Methods of blood loss measurements<sup>a</sup></span>"),
+    rows = 10:15
+      ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Hemorrhage <sup>a</sup></span>",
+                           "<span style='font-size: 18px'>Methods of blood loss measurements<sup>a</sup></span>")) %>% 
+  ## indent severe categories 
   tab_style(
       style = list(
         cell_text(indent = px(40), size = 24)
         ),
-      locations = cells_stub(rows = c('Estimated blood loss >= 1000mL^b^')) ## use on time windows
-) %>% 
+      locations = cells_stub(rows = c("Estimated blood loss >= 1000mL",
+                                      "Any procedure for PPH",
+                                      "Blood transfusion",
+                                      "PPH reported in MNH09/12/19"
+                                      )) 
+) %>%
+  # bold denominator rows
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator",
+                 "Denominator "))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator",
+                 "Denominator "))) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with at least one ANC visit (at least one MNH04 filled).</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all participants with an IPC visit (MNH09 filled).</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all participants with an ANC or IPC visit (MNH09 filled).</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all participants with postpartum hemorrhage.</span>")
- )
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with a reported birth outcome.</span>")
+ ) 
 
 hemorrhage_output2 <- tb_theme1(Hemorrhage_tab2) %>% 
-      tab_header(
+    tab_header(
         title = md("**Table 6 continued**")) %>% 
-      tab_row_group(
-        label = html("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage<sup>b</sup></span>"),
-        rows = 1:8
+    tab_row_group(
+        label = html("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>b</sup></span>"),
+        rows = 1:7
+      ) %>% 
+    tab_row_group(
+        label = html("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>b</sup></span>"),
+        rows = 8:16
       ) %>%
-    
-      tab_row_group(
-        label = html("<span style='font-size: 18px'>Methods of blood loss measurements<sup>e</sup></span>"),
-        rows = 9:13
-      ) %>%
-      row_group_order(groups = c("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage<sup>b</sup></span>",
-                                 "<span style='font-size: 18px'>Methods of blood loss measurements<sup>e</sup></span>")) %>% 
-      tab_footnote(
-        footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all participants with an IPC visit (MNH09 filled).</span>")
-     ) %>% 
-      tab_footnote(
-        footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is all participants with a valid blood loss at IPC measurement (varname [form]: `PPH_ESTIMATE_FAORRES` [MNH09]). </span>")
-     )
+  
+    row_group_order(groups = c("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>b</sup></span>",
+                                 "<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>b</sup></span>")) %>% 
+    # bold denominator rows
+    tab_style(
+        style = list(
+          cell_text(weight = "bold")
+          ),
+        locations = cells_body(rows = c(
+                   "Denominator  ",
+                   "Denominator   "))) %>% 
+    tab_style(
+        style = list(
+          cell_text(weight = "bold")
+          ),
+        locations = cells_stub(rows = c(
+                   "Denominator  ",
+                   "Denominator   "))) %>% 
+
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all participants with postpartum hemorrhage.</span>")
+   )
+        
 ```
 
 ```{r, out.width = '100%'}
@@ -2259,164 +2311,129 @@ ggplot() +
 
 **To be included as "non-Missing" for this outcome, a participant must have:**
 
-**1.** Completed MNH04 Maternal Clinical Status for enrollment visit varnames [form]: `TYPE_VISIT=1 [MNH04]`),
-
-**2.** Completed MNH06 Point of Care for enrollment visit varnames [form]: `TYPE_VISIT=1 [MNH06]`).
+**1.** Reported test results (diagnosed or meassured) of 1 or 0 in MNH04 Maternal Clinical Status or MNH06 Point of Care for enrollment visit
 
 **Common causes for a participant to be marked as "Missing":**
 
 **-** Missing MNH04, MNH06, or MNH08
 
-**-** Missing diagnosed or measured data (see list of variables in footnotes in Tables 7a and 7b below). 
+**-** Missing diagnosed or measured data. 
 
 ### Table 7a. STIs
 ```{r}
 
 ## reorder to be output vars and then missing vars 
-sti_enroll_tab <- mat_infection_sti %>% 
+sti_enroll_tab <- mat_infections_combined %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
     
+    "N with enrollment visit" = paste0(
+      format(sum(INFECTION_ENROLL_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
   ## HIV
-    "HIV RDT Positive^a^ [MNH06]" = paste0(
-      format(sum(M06_HIV_POC_LBORRES == 1 & M06_TYPE_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M06_HIV_POC_LBORRES == 1 & M06_TYPE_VISIT == 1, na.rm = TRUE)/sum(HIV_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "HIV Diagnosed Positive^b^ [MNH04]" = paste0(
-      format(sum(M04_HIV_EVER_MHOCCUR == 1 & M04_TYPE_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M04_HIV_EVER_MHOCCUR == 1 & M04_TYPE_VISIT == 1, na.rm = TRUE)/sum(HIV_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "HIV Prevalence at Enrollment (Positive RDT or Diagnosed)^c^" = paste0(
+    "HIV prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
       format(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(STI_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HIV_MISSING == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "HIV diagnosis or RDT missing ^b^" = paste0(
+      format(sum(HIV_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIV_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "HIV RDT Missing^d^ [MNH06]" = paste0(
-      format(sum(HIV_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(HIV_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
-    "HIV Diagnosis Missing^e^ [MNH04]" = paste0(
-      format(sum(HIV_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(HIV_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
+    
   # Syphilis
-    "Syphilis RDT Positive^a^ [MNH06]" = paste0(
-      format(sum(M06_SYPH_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M06_SYPH_POC_LBORRES == 1, na.rm = TRUE)/sum(SYPH_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-    "Syphilis Diagnosed Positive^b^ [MNH04]" = paste0(
-      format(sum(M04_SYPH_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M04_SYPH_MHOCCUR == 1, na.rm = TRUE)/sum(SYPH_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-    "Syphilis Prevalence, Enrollment (Positive RDT or Diagnosed)^c^" = paste0(
+    "Syphilis prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
       format(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(STI_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & SYPH_MISSING == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    
-    "Syphilis Prevalence, Any Visit (Positive RDT or Diagnosed)^e^" = paste0(
+    "Syphilis incidence following enrollment (positive RDT or diagnosed) ^c^" = paste0(
       format(sum(SYPH_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SYPH_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(STI_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(SYPH_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Syphilis RDT Missing^d^ [MNH06]" = paste0(
-      format(sum(SYPH_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Syphilis diagnosis or RDT missing, enrollment ^b^" = paste0(
+      format(sum(SYPH_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SYPH_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-    "Syphilis Diagnosis Missing^e^ [MNH04]" = paste0(
-      format(sum(SYPH_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(SYPH_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(SYPH_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   # Gonorrhea
-    "Gonorrhea Diagnosed Positive^f^ [MNH04]" = paste0(
+    "Gonorrhea diagnosed positive ^d^" = paste0(
       format(sum(M04_GONORRHEA_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M04_GONORRHEA_MHOCCUR == 1, na.rm = TRUE)/sum(GON_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M04_GONORRHEA_MHOCCUR == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & GON_DIAG_MISSING==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Gonorrhea Diagnosis Missing^e^ [MNH04]" = paste0(
-      format(sum(GON_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Gonorrhea diagnosis missing ^b^" = paste0(
+      format(sum(GON_DIAG_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(GON_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(GON_DIAG_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
   
   # Chlamydia
-    "Chlamydia Diagnosed Positive^f^ [MNH04]" = paste0(
+    "Chlamydia diagnosed positive ^d^" = paste0(
       format(sum(M04_CHLAMYDIA_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M04_CHLAMYDIA_MHOCCUR == 1, na.rm = TRUE)/sum(CHL_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M04_CHLAMYDIA_MHOCCUR == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & CHL_DIAG_MISSING==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Chlamydia Diagnosis Missing^e^ [MNH04]" = paste0(
-      format(sum(CHL_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Chlamydia diagnosis missing ^b^" = paste0(
+      format(sum(CHL_DIAG_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(CHL_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(CHL_DIAG_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     # Genital Ulcers
-      "Genital Ulcers Diagnosed Positive^f^ [MNH04]" = paste0(
+      "Genital ulcers diagnosed positive ^d^" = paste0(
       format(sum(M04_GENULCER_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M04_GENULCER_MHOCCUR == 1, na.rm = TRUE)/sum(GENU_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M04_GENULCER_MHOCCUR == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & GENU_DIAG_MISSING==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Genital Ulcers Diagnosis Missing^e^ [MNH04]" = paste0(
-      format(sum(GENU_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Genital ulcers diagnosis missing ^b^" = paste0(
+      format(sum(GENU_DIAG_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(GENU_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(GENU_DIAG_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   # Other STIs
-    "Other STIs Diagnosed Positive^f^ [MNH04]" = paste0(
+    "Other STIs diagnosed positive ^d^" = paste0(
       format(sum(M04_OTHR_STI_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M04_OTHR_STI_MHOCCUR == 1, na.rm = TRUE)/sum(OTHR_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M04_OTHR_STI_MHOCCUR == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & OTHR_DIAG_MISSING==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Other STIs Diagnosis Missing^e^ [MNH04]" = paste0(
-      format(sum(OTHR_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Other STIs diagnosis missing ^b^" = paste0(
+      format(sum(OTHR_DIAG_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(OTHR_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(OTHR_DIAG_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     # Any stis 
-      "Any Measured STI Positive^d^ [MNH06]" = paste0(
+      "Any measured STI positive" = paste0(
       format(sum(ANY_MEAS_STI == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANY_MEAS_STI == 1, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANY_MEAS_STI == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Any Diagnosed STI Positive^e^ [MNH06]" = paste0(
+    "Any diagnosed STI positive" = paste0(
       format(sum(ANY_DIAG_STI == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANY_DIAG_STI == 1, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANY_DIAG_STI == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Any STI (either diagnosed or measured)^c^ [MNH06]" = paste0(
+    "Any STI (either diagnosed or measured)" = paste0(
       format(sum(STI_ANY_METHOD == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(STI_ANY_METHOD == 1, na.rm = TRUE)/sum(STI_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STI_ANY_METHOD == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   )  %>%
@@ -2432,38 +2449,49 @@ sti_enroll_tab <- mat_infection_sti %>%
 sti_enroll_tab[is.na(sti_enroll_tab)] <- paste0("0 (0)")
 
 ## the table is too long -- split into 2 
-sti_enroll_tab1 <- sti_enroll_tab[1:11,]
-sti_enroll_tab2 <- sti_enroll_tab[12:22,]
+sti_enroll_tab1 <- sti_enroll_tab[1:6,]
+sti_enroll_tab2 <- sti_enroll_tab[7:17,]
 
 ## first half of table 
 sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>% 
   tab_header(
     title = md("**Table 7a**")) %>% 
+
   tab_row_group(
     label = html("<span style='font-size: 18px'>HIV, n (%)</span>"),
-    rows = 1:5
+    rows = 2:3
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Syphilis, n (%)</span>"),
-    rows = 6:11
+    rows = 4:6
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>HIV, n (%)</span>",
-                           "<span style='font-size: 18px'>Syphilis, n (%)</span>")) %>% 
+  row_group_order(groups = c(NA,
+                            "<span style='font-size: 18px'>HIV, n (%)</span>",
+                            "<span style='font-size: 18px'>Syphilis, n (%)</span>")) %>% 
+  # bold denominator rows
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                  "N with enrollment visit"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                  "N with enrollment visit"))) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a valid test result `(TEST_VAR=1 or 0)`. RDT measured variables used in this table from MNH06: `HIV_POC_LBORRES` & `SYPH_POC_LBORRES`.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a valid diagnosis `(DIAGNOSIS_VAR=1 or 0)`. Diagnosed variables used in this table from MNH04: `HIV_EVER_MHOCCUR`, `SYPH_MHOCCUR`, `GONORRHEA_MHOCCUR`, `CHLAMYDIA_MHOCCUR`, `GENULCER_MHOCCUR`, `STI_OTHR_MHOCCUR`.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit.</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with a MNH04 OR MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with a MNH04 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- )
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with at least one MNH04 OR MNH06 during ANC. Excludes cases reported at enrollment.</span>")
+ ) 
+
+
 
 ## second half of table
 sti_enroll_output2 <- tb_theme1(sti_enroll_tab2) %>% 
@@ -2478,7 +2506,7 @@ sti_enroll_output2 <- tb_theme1(sti_enroll_tab2) %>%
     rows = 3:4
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Genital Ulcers, n (%)</span>"),
+    label = html("<span style='font-size: 18px'>Genital ulcers, n (%)</span>"),
     rows = 5:6
   ) %>%
   tab_row_group(
@@ -2486,26 +2514,23 @@ sti_enroll_output2 <- tb_theme1(sti_enroll_tab2) %>%
     rows = 7:8
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>STIs by Method, n (%)</span>"),
+    label = html("<span style='font-size: 18px'>STIs by method <sup>a</sup>, n (%)</span>"),
     rows = 9:11
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Gonorrhea, n (%)</span>",
                              "<span style='font-size: 18px'>Chlamydia, n (%)</span>",
-                             "<span style='font-size: 18px'>Genital Ulcers, n (%)</span>",
+                             "<span style='font-size: 18px'>Genital ulcers, n (%)</span>",
                              "<span style='font-size: 18px'>Other STIs, n (%)</span>",
-                             "<span style='font-size: 18px'>STIs by Method, n (%)</span>"
+                             "<span style='font-size: 18px'>STIs by method <sup>a</sup>, n (%)</span>"
                              )) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with a MNH04 OR MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit.</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with a MNH04 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>f</sup> Denominator is total participants who reported having an 'other' STI (`OTHR_STI_MHOCCUR=1)` AND a valid test `(TEST_VAR=1 or 0)` OR who reported not having an 'other' STI (`OTHR_STI_MHOCCUR=0)`.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants who reported having an 'other' STI (`OTHR_STI_MHOCCUR=1`) AND a valid test (`TEST_VAR=1 or 0`) OR who reported not having an 'other' STI (`OTHR_STI_MHOCCUR=0`).</span>")
  )
 
 ```
@@ -2525,103 +2550,198 @@ knitr::include_graphics(paste0(path_to_save, "sti_enroll_output2.png"))
 ```
 
 
-### Table 7b. Other infections
+### Table 7b. Malaria at enrollment
 ```{r}
-## reorder to be output vars and then missing vars 
-infection_other_tab <- mat_infection_other %>% 
+
+malaria_tab <- mat_infections_combined %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
+    
+    "N with enrollment visit" = paste0(
+      format(sum(INFECTION_ENROLL_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
   ## Malaria
-    "Malaria RDT Positive^1^ [MNH06]" = paste0(
-      format(sum(M06_MALARIA_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Malaria prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+      format(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M06_MALARIA_POC_LBORRES == 1, na.rm = TRUE)/sum(MAL_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Malaria Diagnosed Positive^2^ [MNH04]" = paste0(
-      format(sum(M04_MALARIA_EVER_MHOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M04_MALARIA_EVER_MHOCCUR == 1, na.rm = TRUE)/sum(MAL_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Malaria RDT Missing^a^ [MNH06]" = paste0(
-      format(sum(MAL_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAL_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & MAL_MISSING == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Malaria Diagnosis Missing^b^ [MNH04]" = paste0(
-      format(sum(MAL_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Malaria diagnosis or RDT missing ^b^" = paste0(
+      format(sum(MAL_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAL_DIAG_MISSING == 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(round(sum(MAL_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+  
+```
 
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+malaria_tab[is.na(malaria_tab)] <- paste0("0 (0)")
+
+malaria_tab_output <- tb_theme1(malaria_tab) %>% 
+  tab_header(
+    title = md("**Table 7b**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Malaria, n (%)</span>"),
+    rows = 2:3
+  ) %>%
+  row_group_order(groups = c(NA,
+                             "<span style='font-size: 18px'>Malaria, n (%)</span>"
+                           )) %>% 
+    # bold denominator rows
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                  "N with enrollment visit"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                  "N with enrollment visit"))) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit.</span>")
+ ) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(malaria_tab_output, file = "malaria_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "malaria_tab_output.png"))
+
+```
+
+### Table 7c. Hepatitis at enrollment
+
+```{r}
+
+hepatitis_tab <- mat_infections_combined %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "N with enrollment visit" = paste0(
+      format(sum(INFECTION_ENROLL_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  
   # Hepatitis B
-    "Hep B RDT Positive^1^ [MNH06]" = paste0(
+    "Hep B RDT Positive ^a^" = paste0(
       format(sum(M06_HBV_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M06_HBV_POC_LBORRES == 1, na.rm = TRUE)/sum(HBV_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M06_HBV_POC_LBORRES == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HBV_MEAS_MISSING==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Hep B RDT Missing^a^ [MNH06]" = paste0(
-      format(sum(HBV_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Hep B RDT Missing ^b^" = paste0(
+      format(sum(HBV_MEAS_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HBV_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HBV_MEAS_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   # Hepatitis C
-    "Hep C RDT Positive^1^ [MNH06]" = paste0(
+    "Hep C RDT Positive ^a^" = paste0(
       format(sum(M06_HCV_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M06_HCV_POC_LBORRES == 1, na.rm = TRUE)/sum(HCV_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(M06_HCV_POC_LBORRES == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HCV_MEAS_MISSING == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Hep C RDT Missing^a^ [MNH06]" = paste0(
-      format(sum(HCV_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Hep C RDT Missing ^b^" = paste0(
+      format(sum(HCV_MEAS_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HCV_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-  # COVID
-    "Covid RDT Positive^1^ [MNH06]" = paste0(
-      format(sum(M06_COVID_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M06_COVID_POC_LBORRES == 1, na.rm = TRUE)/sum(COVID_MEAS_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-    "Covid Diagnosed Positive^2^ [MNH04]" = paste0(
-      format(sum(M04_COVID_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M04_COVID_LBORRES == 1, na.rm = TRUE)/sum(COVID_DIAG_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-    "Covid RDT Missing^a^ [MNH06]" = paste0(
-      format(sum(COVID_MEAS_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(COVID_MEAS_MISSING == 55, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(round(sum(HCV_MEAS_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
 
-    "Covid Diagnosis Missing^b^ [MNH04]" = paste0(
-      format(sum(COVID_DIAG_MISSING == 55, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(COVID_DIAG_MISSING== 55, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+hepatitis_tab[is.na(hepatitis_tab)] <- paste0("0 (0)")
+
+hepatitis_tab_output <- tb_theme1(hepatitis_tab) %>% 
+  tab_header(
+    title = md("**Table 7c**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Hepatitis, n (%)</span>"),
+    rows = 2:5
+  ) %>%
+  row_group_order(groups = c(NA,
+                             "<span style='font-size: 18px'>Hepatitis, n (%)</span>"
+                           )) %>% 
+  # bold denominator rows
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                  "N with enrollment visit"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                  "N with enrollment visit"))) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit.</span>")
+ ) 
+```
+
+```{r, out.width = '100%'}
+
+gtsave(hepatitis_tab_output, file = "hepatitis_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "hepatitis_tab_output.png"))
+
+```
+
+
+### Table 7d. TB at enrollment
+
+```{r}
+
+tb_tab <- mat_infections_combined %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "N with enrollment visit" = paste0(
+      format(sum(INFECTION_ENROLL_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
     # TB 
-    "TB Symptoms Positive^c^ [MNH04]" = paste0(
+    "TB Symptoms Positive ^a^" = paste0(
       format(sum(W4SS_SYMPTOMS_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(W4SS_SYMPTOMS_ANY == 1, na.rm = TRUE)/sum(W4SS_RESPONSE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Missing All TB Symptoms^b^ [MNH04]" = paste0(
+    "Missing All TB Symptoms ^b^" = paste0(
       format(sum(W4SS_MISSING_SYMP == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(W4SS_MISSING_SYMP == 1, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(W4SS_MISSING_SYMP == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "TB Sputum Test Positive^d^ [MNH08]" = paste0(
+    "TB Sputum Test Positive ^c^" = paste0(
       format(sum(M08_TB_CNFRM_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(M08_TB_CNFRM_LBORRES == 1, na.rm = TRUE)/sum(TB_LAB_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2635,78 +2755,60 @@ infection_other_tab <- mat_infection_other %>%
 
 
 
-
 ```
+
 
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
-infection_other_tab[is.na(infection_other_tab)] <- paste0("0 (0)")
+tb_tab[is.na(tb_tab)] <- paste0("0 (0)")
 
-## the table is too long -- split into 2 
-# sti_enroll_tab1 <- infection_other_tab[1:11,]
-# sti_enroll_tab2 <- infection_other_tab[12:22,]
-
-infection_other_output <- tb_theme1(infection_other_tab) %>% 
+tb_tab_output <- tb_theme1(tb_tab) %>% 
   tab_header(
-    title = md("**Table 7b**")) %>% 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Malaria, n (%)</span>"),
-    rows = 1:4
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Hep B, n (%)</span>"),
-    rows = 5:6
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Hep C, n (%)</span>"),
-    rows = 7:8
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Covid, n (%)</span>"),
-    rows = 9:12
-  ) %>%
+    title = md("**Table 7d**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>TB, n (%)</span>"),
-    rows = 13:15
+    rows = 2:4
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Malaria, n (%)</span>",
-                           "<span style='font-size: 18px'>Hep B, n (%)</span>",
-                           "<span style='font-size: 18px'>Hep C, n (%)</span>",
-                           "<span style='font-size: 18px'>Covid, n (%)</span>",
-                           "<span style='font-size: 18px'>TB, n (%)</span>"
+row_group_order(groups = c(NA,
+                             "<span style='font-size: 18px'>TB, n (%)</span>"
                            )) %>% 
+    # bold denominator rows
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                  "N with enrollment visit"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                  "N with enrollment visit"))) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a valid test result `(TEST_VAR=1 or 0)`. RDT measured variables used in this table from MNH06: `HIV_POC_LBPERF`, `HBV_POC_LBORRES`, `HCV_POC_LBORRES`, `COVID_POC_LBORRES`.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a valid diagnosis `(DIAGNOSIS_VAR=1 or 0)`. Diagnosed variables used in this table from MNH04: `MALARIA_EVER_MHOCCUR`, `TB_CETERM_1-4`, `COVID_LBORRES`.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit.</span>")
  ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with a MNH04 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with valid response to the TB symptom screen in MNH04 `(VAR==1 OR VAR==0)`.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>f</sup> Denominator is total participants with who reported having at least one TB symptom in MNH04 `(VAR==1 OR VAR==0)`.</span>")
- )
+    tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants who reported having at least one TB symptom in MNH04.</span>")
+ ) 
 
 ```
 
 ```{r, out.width = '100%'}
 
-gtsave(infection_other_output, file = "infection_other_output.png", path = path_to_save, expand = 10)
-knitr::include_graphics(paste0(path_to_save, "infection_other_output.png"))
+gtsave(tb_tab_output, file = "tb_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "tb_tab_output.png"))
 
 ```
+
 
 \newpage
 
 
-### Table 7c. All infections combined 
+### Table 7e. All infections combined 
 ```{r}
 
 ## reorder to be output vars and then missing vars 
@@ -2715,22 +2817,25 @@ all_infection_tab <- mat_infections_combined %>%
   group_by(SITE) %>% 
   summarise(
     
-    "Any Measured Infection Positive^a^" = paste0(
+    "N with enrollment visit" = paste0(
+      format(sum(INFECTION_ENROLL_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Any measured infection positive" = paste0(
       format(sum(ANY_INFECTION_MEASURED == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANY_INFECTION_MEASURED == 1, na.rm = TRUE)/sum(M06_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANY_INFECTION_MEASURED == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Any Diagnosed Infection Positive^b^" = paste0(
+    "Any diagnosed infection positive" = paste0(
       format(sum(ANY_INFECTION_DIAGNOSED == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANY_INFECTION_DIAGNOSED == 1, na.rm = TRUE)/sum(M04_FORM_COMPLETE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANY_INFECTION_DIAGNOSED == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Any Infection Positive by Either Method^c^" = paste0(
+    "Any infection positive by either method" = paste0(
       format(sum(INFECTION_ANY_METHOD == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(INFECTION_ANY_METHOD == 1, na.rm = TRUE)/sum(INFECTION_ANY_METHOD_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INFECTION_ANY_METHOD == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -2746,21 +2851,30 @@ all_infection_tab[is.na(all_infection_tab)] <- paste0("0 (0)")
 
 all_infection_output <- tb_theme1(all_infection_tab) %>% 
   tab_header(
-    title = md("**Table 7c**")) %>% 
+    title = md("**Table 7e**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Any infection at enrollment, n (%)</span>"),
-    rows = 1:3
+    label = html("<span style='font-size: 18px'>Any infection at enrollment <sup>a</sup>, n (%)</span>"),
+    rows = 2:4
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Any infection at enrollment, n (%)</span>")) %>% 
+  row_group_order(groups = c(NA,
+                             "<span style='font-size: 18px'>Any infection at enrollment <sup>a</sup>, n (%)</span>")) %>% 
+  # bold denominator rows
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                  "N with enrollment visit"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                  "N with enrollment visit"))) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a MNH04 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with MNH04 OR MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- )
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit.</span>")
+ ) 
+
 ```
 
 ```{r, out.width = '100%'}
