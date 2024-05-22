@@ -1,5 +1,5 @@
 
-# PRISMA Maternal Hemorrhage Variables
+# PRISMA Maternal Hemorrhage Outcome
 
 ## Description
 
