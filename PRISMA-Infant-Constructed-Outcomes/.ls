@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2024 April 22)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2024 May 21)"
 output:
   pdf_document:
     toc: no
@@ -133,7 +133,7 @@ g_legend <- function(p) {
 setwd(paste0(path_to_save))
 ```
 
-**Includes data from synapse last updated:** 2024 April 19 (Pakistan: 2024 April 05)
+**Includes data from synapse last updated:** 2024 May 17 (Zambia: 2024 April 19)
 
 \tableofcontents
 
@@ -1367,7 +1367,7 @@ sga_output <- tb_theme1(sga_tab) %>%
     title = md("**Table 4**")
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Size for Gestational Age (Categorical)<sup>a</sup>, n (%)</span>"),
+    label = html("<span style='font-size: 18px'>Size for Gestational Age (Cateogorical)<sup>a</sup>, n (%)</span>"),
     rows = 1:5
   )  %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Size for Gestational Age (Cateogorical)<sup>a</sup>, n (%)</span>"))
@@ -1423,14 +1423,13 @@ ggplot(data=sga,
 
 ### Table 5. Mortality
 ```{r, mortality, message = FALSE, warning = FALSE}
-
 #  4. Neonatal mortality: Denominator is all live births reported in MNH11 with mh09 filled out 
   # a. <24 hours 
-  # b. Early neonatal mortality: first  7 days 
+  # b. Early neontal mortality: first  7 days 
   # c. Late neonatal mortality: between 7 & 28 days
 
 mortality_tab <- mortality %>% ## denominator is anyone with an MNH09 or MNH11 filled out 
-  ## If India-SAS doesn't have data, add empty row here 
+     ## If india-SAS doesn't have data, add emprty row here 
   mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
   complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
@@ -1612,21 +1611,13 @@ stillbirth_tab <- stillbirth %>% ## denominator is anyone with a birth outcome r
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
-    
-   ## data completeness
-    "Denominator" =  paste0(
-      format(sum(BIRTH_OUTCOME == 0 & GA_AT_BIRTH_ANY >= 20, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Fetal loss or fetal death reported but missing signs of life (NA or 77 reported) ^b^" = paste0(
+    "Fetal loss or fetal death reported but missing signs of life (NA or 77 reported)^a^ ^b^" = paste0(
       format(sum(MISSING_SIGNS_OF_LIFE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MISSING_SIGNS_OF_LIFE == 1, na.rm = TRUE)/sum(BIRTH_OUTCOME == 0 & GA_AT_BIRTH_ANY >= 20, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    ## stillbirth outcome
-    "Denominator " =  paste0(
-      format(sum(STILLBIRTH_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), ## denominator is all fetal losses and livebirths
-
     "Early stillbirth (20-27wks)" = paste0(
       format(sum(STILLBIRTH_GESTAGE_CAT == 11, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -1651,11 +1642,14 @@ stillbirth_tab <- stillbirth %>% ## denominator is anyone with a birth outcome r
       format(round(sum(STILLBIRTH_20WK == 1, na.rm = TRUE)/sum(STILLBIRTH_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
-  
-  # stillbirth timing
-  "Denominator  " =  paste0(
-      format(sum(BIRTH_OUTCOME == 0 &  GA_AT_BIRTH_ANY>=20, na.rm = TRUE), nsmall = 0, digits = 2)), ## denominator is all stillbirths
-
+    
+    "Missing" = paste0(
+      format(sum(STILLBIRTH_GESTAGE_CAT == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STILLBIRTH_GESTAGE_CAT == 55, na.rm = TRUE)/sum(STILLBIRTH_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+        
    "Antepartum" = paste0(
       format(sum(STILLBIRTH_TIMING == 11, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -1692,20 +1686,20 @@ stillbirth_output <- tb_theme1(stillbirth_tab) %>%
     title = md("**Table 6**")
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
-    rows = 1:2
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 1:1
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Stillbirth (categorical) <sup>c</sup></span>"),
-    rows = 3:7
+    label = html("<span style='font-size: 18px'>Stillbirth (categorical)<sup>c</sup></span>"),
+    rows = 2:6
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of stillbirth <sup>a</sup></span>"),
-    rows = 8:11
+    label = html("<span style='font-size: 18px'>Timing of stillbirth<sup>a</sup></span>"),
+    rows = 7:9
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Stillbirth (categorical) <sup>c</sup></span>",
-                  "<span style='font-size: 18px'>Timing of stillbirth <sup>a</sup></span>")
+  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                  "<span style='font-size: 18px'>Stillbirth (categorical)<sup>c</sup></span>",
+                  "<span style='font-size: 18px'>Timing of stillbirth<sup>a</sup></span>")
                   ) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all reported stillbirths.</span>")
@@ -1714,9 +1708,8 @@ stillbirth_output <- tb_theme1(stillbirth_tab) %>%
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Valid signs of life reported in MNH09 and MNH11 (varname: `CRY_CEOCCUR_INF1-4 [MNH09]`, `FHR_VSTAT_INF1-4 [MNH09]`, `MACER_CEOCCUR_INF1-4 [MNH09]`, `CORD_PULS_CEOCCUR_INF1-4 [MNH09]`, `BREATH_FAIL_CEOCCUR [MNH11]`).</span>")
  ) %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all participants with a stillbirth or livebirths.</span>")
- )   
-
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all participants with a birth outcome (`BIRTH_DSTERM=1 or 0 [MNH09]` OR `PRG_DSDECOD=2 or 3 [MNH04]`).</span>")
+ )  
 ```
 
 ```{r, out.width = '100%'}
@@ -2102,12 +2095,12 @@ hyperbili_all_crit_output <- tb_theme1(hyperbili_all_crit_tab) %>%
     rows = 5:8
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Jaundice</span>"),
+    label = html("<span style='font-size: 18px'>Jaundice (IMCI criteria)</span>"),
     rows = 9:12
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (>15mg/dL)</span>",
                   "<span style='font-size: 18px'>Hyperbilirubinemia by TCB (AAP threshold)<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Jaundice</span>")
+                  "<span style='font-size: 18px'>Jaundice (IMCI criteria)</span>")
                   ) %>% 
   tab_footnote(
       footnote = html("<span style='font-size: 18px'><sup>a</sup> AAP threshold determined by the following inputs: phototherapy thresholds with no hyperbilirubinemia neurotoxicity risk factor, gestational age at delivery, and infant age at time of assessment (days and hours).</span>")
