@@ -2638,26 +2638,26 @@ hepatitis_tab <- mat_infections_combined %>%
       format(sum(INFECTION_ENROLL_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
   
   # Hepatitis B
-    "Hep B RDT Positive ^a^" = paste0(
+    "Hep B RDT positive ^a^" = paste0(
       format(sum(M06_HBV_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(M06_HBV_POC_LBORRES == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HBV_MEAS_MISSING==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Hep B RDT Missing ^b^" = paste0(
+    "Hep B RDT missing ^b^" = paste0(
       format(sum(HBV_MEAS_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HBV_MEAS_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   # Hepatitis C
-    "Hep C RDT Positive ^a^" = paste0(
+    "Hep C RDT positive ^a^" = paste0(
       format(sum(M06_HCV_POC_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(M06_HCV_POC_LBORRES == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HCV_MEAS_MISSING == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Hep C RDT Missing ^b^" = paste0(
+    "Hep C RDT missing ^b^" = paste0(
       format(sum(HCV_MEAS_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HCV_MEAS_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2729,19 +2729,19 @@ tb_tab <- mat_infections_combined %>%
       format(sum(INFECTION_ENROLL_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     # TB 
-    "TB Symptoms Positive ^a^" = paste0(
+    "TB symptoms positive ^a^" = paste0(
       format(sum(W4SS_SYMPTOMS_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(W4SS_SYMPTOMS_ANY == 1, na.rm = TRUE)/sum(W4SS_RESPONSE == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Missing All TB Symptoms ^b^" = paste0(
+    "Missing all TB symptoms ^b^" = paste0(
       format(sum(W4SS_MISSING_SYMP == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(W4SS_MISSING_SYMP == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "TB Sputum Test Positive ^c^" = paste0(
+    "TB sputum test positive ^c^" = paste0(
       format(sum(M08_TB_CNFRM_LBORRES == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(M08_TB_CNFRM_LBORRES == 1, na.rm = TRUE)/sum(TB_LAB_RESULT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2786,10 +2786,10 @@ row_group_order(groups = c(NA,
       locations = cells_stub(rows = c(
                   "N with enrollment visit"))) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total particpants with a avlid repsonse the TB symptom screen in MNH04 (`VAR==1` or `VAR==0`).</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
  ) %>% 
     tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants who reported having at least one TB symptom in MNH04.</span>")
