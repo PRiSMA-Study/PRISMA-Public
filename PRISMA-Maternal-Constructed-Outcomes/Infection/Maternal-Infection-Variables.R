@@ -89,7 +89,6 @@ mnh04_constructed_completeness <- mnh04 %>%
 
 mnh04_all_visits <- mnh04 %>% filter(PREGID %in% enrolled_ids_vec) 
 
-
 ## MNH06 ## 
 mnh06_constructed_completeness <- mnh06 %>% 
   filter(M06_TYPE_VISIT==1 & PREGID %in% enrolled_ids_vec) %>% 
@@ -129,13 +128,13 @@ mat_infection_diagnosed <- mnh04_constructed_completeness %>%
   mutate(SYPH_DIAG_RESULT = case_when(M04_SYPH_MHOCCUR %in% c(1,0)~ 1, TRUE ~ 0),
          HIV_DIAG_RESULT = case_when(M04_HIV_EVER_MHOCCUR %in% c(1,0) | M04_HIV_MHOCCUR %in% c(1,0)~ 1, TRUE ~ 0), 
          GON_DIAG_RESULT = case_when(M04_OTHR_STI_MHOCCUR == 1 & M04_GONORRHEA_MHOCCUR %in% c(1,0) | 
-                                       (M04_OTHR_STI_MHOCCUR == 0)~ 1, TRUE ~ 0),
+                                    (M04_OTHR_STI_MHOCCUR == 0)~ 1, TRUE ~ 0),
          CHL_DIAG_RESULT = case_when(M04_OTHR_STI_MHOCCUR == 1 & M04_CHLAMYDIA_MHOCCUR %in% c(1,0) | 
-                                       (M04_OTHR_STI_MHOCCUR == 0)~ 1, TRUE ~ 0),
+                                    (M04_OTHR_STI_MHOCCUR == 0)~ 1, TRUE ~ 0),
          GENU_DIAG_RESULT = case_when(M04_OTHR_STI_MHOCCUR == 1 & M04_GENULCER_MHOCCUR %in% c(1,0)| 
-                                        (M04_OTHR_STI_MHOCCUR == 0)~ 1, TRUE ~ 0),
+                                     (M04_OTHR_STI_MHOCCUR == 0)~ 1, TRUE ~ 0),
          OTHR_DIAG_RESULT = case_when(M04_STI_OTHR_MHOCCUR %in% c(1,0) | 
-                                        (M04_OTHR_STI_MHOCCUR == 0)~ 1, TRUE ~ 0)
+                                     (M04_OTHR_STI_MHOCCUR == 0)~ 1, TRUE ~ 0)
   ) %>% 
   
   ## Is the test result missing among those with a completed form? (form completed == yes AND test result = yes or no)
@@ -174,8 +173,7 @@ mat_infection_sti_any_visit <- mnh04_constructed_syph %>%
   full_join(mnh06_constructed_syph[c("SITE", "MOMID", "PREGID", "TYPE_VISIT", "M06_SYPH_POC_LBORRES")], 
             by = c("SITE", "MOMID", "PREGID", "TYPE_VISIT")) %>% 
   # generate new var for any positive result at any visit 
-  mutate(SYPH_POSITIVE_1 = case_when(TYPE_VISIT == 1 & (M04_SYPH_MHOCCUR == 1 | M06_SYPH_POC_LBORRES == 1)~ 1, TRUE ~ 0),
-         SYPH_POSITIVE_2 = case_when(TYPE_VISIT == 2 & (M04_SYPH_MHOCCUR == 1 | M06_SYPH_POC_LBORRES == 1)~ 1, TRUE ~ 0),
+  mutate(SYPH_POSITIVE_2 = case_when(TYPE_VISIT == 2 & (M04_SYPH_MHOCCUR == 1 | M06_SYPH_POC_LBORRES == 1)~ 1, TRUE ~ 0),
          SYPH_POSITIVE_3 = case_when(TYPE_VISIT == 3 & (M04_SYPH_MHOCCUR == 1 | M06_SYPH_POC_LBORRES == 1)~ 1, TRUE ~ 0),
          SYPH_POSITIVE_4 = case_when(TYPE_VISIT == 4 & (M04_SYPH_MHOCCUR == 1 | M06_SYPH_POC_LBORRES == 1)~ 1, TRUE ~ 0),
          SYPH_POSITIVE_5 = case_when(TYPE_VISIT == 5 & (M04_SYPH_MHOCCUR == 1 | M06_SYPH_POC_LBORRES == 1)~ 1, TRUE ~ 0)
@@ -286,8 +284,8 @@ mat_infection_sti = full_join(mat_infection_diagnosed, mat_infection_measured, b
   )  %>% 
   full_join(mat_infection_sti_any_visit, by = c("SITE", "MOMID", "PREGID")) %>% 
   # generate missing by rdt or dx 
-  mutate(HIV_MISSING = case_when(HIV_DIAG_RESULT==0 | HIV_MEAS_RESULT==0 ~ 1, TRUE ~0), # if missing rdt or dx, HIV_MISSING=1
-         SYPH_MISSING = case_when(SYPH_DIAG_RESULT==0 | SYPH_MEAS_RESULT==0 ~ 1, TRUE ~0) # if missing rdt or dx, SYPH_MISSING=1
+  mutate(HIV_MISSING = case_when(HIV_DIAG_RESULT==0 & HIV_MEAS_RESULT==0 ~ 1, TRUE ~0), # if missing rdt or dx, HIV_MISSING=1
+         SYPH_MISSING = case_when(SYPH_DIAG_RESULT==0 & SYPH_MEAS_RESULT==0 ~ 1, TRUE ~0) # if missing rdt or dx, SYPH_MISSING=1
   )
 
 # save data set
@@ -326,7 +324,6 @@ mat_other_infection_mnh04  <- mnh04_constructed_completeness %>%
                                       M04_TB_CETERM_77 %in% c(55,77), 1, 0)) %>% 
   ## generate summary any infection variables
   mutate(OTHER_INFECTION_DIAG_ANY = ifelse(M04_MALARIA_EVER_MHOCCUR==1 | M04_TB_MHOCCUR==1 | M04_COVID_LBORRES==1,1,0))
-
 
 
 ## Step 2. generate constructed vars for MNH06 measured variables
@@ -382,7 +379,7 @@ mat_infection_other <- full_join(mat_other_infection_mnh04, mat_other_infection_
   )  %>% 
   ## Positive test results by either RDT or Diagnosed (only for syphilis and hiv)
   mutate(MAL_POSITIVE_ENROLL = case_when(M04_MALARIA_EVER_MHOCCUR==1 | M06_MALARIA_POC_LBORRES == 1 ~ 1, TRUE ~ 0),
-         MAL_MISSING = case_when(MAL_DIAG_MISSING==1 | MAL_MEAS_MISSING == 1 ~ 1, TRUE ~ 0))
+         MAL_MISSING = case_when(MAL_DIAG_MISSING==1 & MAL_MEAS_MISSING == 1 ~ 1, TRUE ~ 0))
 
 
 # save data set
