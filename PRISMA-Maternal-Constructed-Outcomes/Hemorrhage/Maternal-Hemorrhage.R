@@ -1,10 +1,6 @@
 #*****************************************************************************
 #* PRISMA Maternal Hemorrhage
 #* Last updated: 21 May 2024
- 
-#The first section, CONSTRUCTED VARIABLES GENERATION, below, the code generates datasets for 
-#each form with additional variables that will be used for multiple outcomes. For example, mnh01_constructed 
-#is a dataset that will be used for several outcomes. 
 
 ## Hemorrhage (antepartum)
 # ## required variables & logic
@@ -28,20 +24,17 @@
 # (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) [MNH09]
 # BIRTH_COMPL_MHTERM_1 [MNH12] (Was the mother diagnosed with any of the following birth complications, PPH)
 
-## Hemorrhage (severe postpartum)
+## severe Hemorrhage (postpartum)
 # ## required variables & logic
-# PPH_CEOCCUR==1 [MNH09] (Did mother experience postpartum hemorrhage)
-# PPH_ESTIMATE_FAORRES >=1000 [MNH09] (Record estimated blood loss)
-# PPH_FAORRES_1==1 [MNH09] (Procedures carried out for PPH, Balloon/condom tamponade)  
-# PPH_FAORRES_2==1 [MNH09] (Procedures carried out for PPH, Surgical interventions) 
-# PPH_FAORRES_3==1 [MNH09] (Procedures carried out for PPH, Brace sutures) 
-# PPH_FAORRES_4==1 [MNH09] (Procedures carried out for PPH, Vessel ligation) 
-# PPH_FAORRES_5==1 [MNH09] (Procedures carried out for PPH, Hysterectomy) 
-# PPH_FAORRES_88==1 [MNH09] (Procedures carried out for PPH, Other) 
-# PPH_TRNSFSN_PROCCUR==1 [MNH09] (Did the mother need a transfusion?) OR
-# (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) [MNH09]
-# BIRTH_COMPL_MHTERM_1 [MNH12] (Was the mother diagnosed with any of the following birth complications, PPH)
-
+## Hemorrhage == 1 AND (PPH_ESTIMATE_FAORRES?=1000 OR Blood transfusion OR any procedure) 
+  # PPH_ESTIMATE_FAORRES >=1000 [MNH09] (Record estimated blood loss) 
+  # PPH_FAORRES_1==1 [MNH09] (Procedures carried out for PPH, Balloon/condom tamponade)  
+  # PPH_FAORRES_2==1 [MNH09] (Procedures carried out for PPH, Surgical interventions) 
+  # PPH_FAORRES_3==1 [MNH09] (Procedures carried out for PPH, Brace sutures) 
+  # PPH_FAORRES_4==1 [MNH09] (Procedures carried out for PPH, Vessel ligation) 
+  # PPH_FAORRES_5==1 [MNH09] (Procedures carried out for PPH, Hysterectomy) 
+  # PPH_FAORRES_88==1 [MNH09] (Procedures carried out for PPH, Other) 
+  # PPH_TRNSFSN_PROCCUR==1 [MNH09] (Did the mother need a transfusion?) 
 
 ## Medications 
 # M09_PPH_CMOCCUR_1_6 (Were any of the following medications given to prevent/treat PPH?, Oxytocin)
@@ -53,7 +46,6 @@
 # M09_PPH_CMOCCUR_77_6 (Were any of the following medications given to prevent/treat PPH?, Other)
 # M09_PPH_CMOCCUR_88_6 (Were any of the following medications given to prevent/treat PPH?, No medications given)
 # M09_PPH_CMOCCUR_99_6 (Were any of the following medications given to prevent/treat PPH?, Don't know)
-
 #*****************************************************************************
 
 ### data queries 
@@ -87,7 +79,11 @@ mnh19 <- m19_merged
 # 1. generate wide dataset with necessary variables from mnh09/mnh04/mnh12
 # 2. generate separate dataset with unscheduled visits 
 ################################################################################
+table(mnh09$M09_PPH_CMOCCUR_88)
+test <- mnh09 %>% select(SITE, contains("PPH_CMOCCUR")) %>% filter(SITE == "Pakistan")
 
+table(test$M09_PPH_CMOCCUR_99)
+table(mnh12$M12_VAG_BLEED_LOSS_ML)
 # data prep
 mnh04_out <- mnh04 %>% 
   rename(TYPE_VISIT = "M04_TYPE_VISIT") %>%
@@ -232,17 +228,29 @@ hemorrhage <- hem_wide_full %>%
                                (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2)
                                ) ~ 1, TRUE ~ 0)) %>% 
   
+
   ## 3. Severe postpartum hemorrhage
-  mutate(HEM_PPH_SEV = case_when(HEM_DENOM==1 & (M09_PPH_CEOCCUR_6==1 | M09_PPH_FAORRES_1_6==1 | M09_PPH_FAORRES_2_6==1 |
-                                   M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
-                                   M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1 |
-                                   M09_PPH_TRNSFSN_PROCCUR_6==1 | M09_PPH_ESTIMATE_FAORRES_6 >=1000 |
-                                 # M12_VAG_BLEED_LOSS_ML_7>=1000 | M12_VAG_BLEED_LOSS_ML_8>=1000 | M12_VAG_BLEED_LOSS_ML_9>=1000 | M12_VAG_BLEED_LOSS_ML_10>=1000 |
-                                 # M12_VAG_BLEED_LOSS_ML_11>=1000 | M12_VAG_BLEED_LOSS_ML_12>=1000 |
-                                   M12_BIRTH_COMPL_MHTERM_1_7==1 |  M12_BIRTH_COMPL_MHTERM_1_8==1 | M12_BIRTH_COMPL_MHTERM_1_9==1 | M12_BIRTH_COMPL_MHTERM_1_10==1 |
-                                   M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1 |
-                                   (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2)
-                                   ) ~ 1, TRUE ~ 0)) %>% 
+  mutate(HEM_PPH_SEV = case_when(HEM_DENOM==1 & HEM_PPH==1 & (M09_PPH_ESTIMATE_FAORRES_6>=1000 | 
+                                                                M12_VAG_BLEED_LOSS_ML_7>=1000 | M12_VAG_BLEED_LOSS_ML_8>=1000 | M12_VAG_BLEED_LOSS_ML_9>=1000 | M12_VAG_BLEED_LOSS_ML_10>=1000 |
+                                                                M12_VAG_BLEED_LOSS_ML_11>=1000 | M12_VAG_BLEED_LOSS_ML_12>=1000 |
+                                                                M09_PPH_TRNSFSN_PROCCUR_6==1 | 
+                                                                M09_PPH_FAORRES_1_6==1 | M09_PPH_FAORRES_2_6==1 |
+                                                                M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
+                                                                M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1) ~ 1, TRUE ~0)
+                                                                ) %>% 
+    
+    # HEM_DENOM==1 & (M09_PPH_CEOCCUR_6==1 | M09_PPH_FAORRES_1_6==1 | M09_PPH_FAORRES_2_6==1 |
+    #                                M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
+    #                                M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1 |
+    #                                M09_PPH_TRNSFSN_PROCCUR_6==1 | M09_PPH_ESTIMATE_FAORRES_6 >=1000 |
+    #                              # M12_VAG_BLEED_LOSS_ML_7>=1000 | M12_VAG_BLEED_LOSS_ML_8>=1000 | M12_VAG_BLEED_LOSS_ML_9>=1000 | M12_VAG_BLEED_LOSS_ML_10>=1000 |
+    #                              # M12_VAG_BLEED_LOSS_ML_11>=1000 | M12_VAG_BLEED_LOSS_ML_12>=1000 |
+    #                                M12_BIRTH_COMPL_MHTERM_1_7==1 |  M12_BIRTH_COMPL_MHTERM_1_8==1 | M12_BIRTH_COMPL_MHTERM_1_9==1 | M12_BIRTH_COMPL_MHTERM_1_10==1 |
+    #                                M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1 |
+    #                                (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2)
+    #                                ) ~ 1, TRUE ~ 0)) %>% 
+
+
   ## 4. Any hemorrhage at any time point
   mutate(HEM_ANY = case_when(HEM_APH==1 | HEM_PPH ==1| HEM_PPH_SEV==1~1, TRUE ~ 0)) %>% 
   select(SITE, MOMID, PREGID,DOB, HEM_DENOM, HEM_APH, HEM_PPH, HEM_PPH_SEV,HEM_ANY,  
@@ -257,13 +265,14 @@ table(hemorrhage$HEM_APH)
 table(hemorrhage$HEM_PPH)
 table(hemorrhage$HEM_PPH_SEV)
 
+test <- hemorrhage %>% filter(HEM_PPH==1)
+
 # set path to save 
 path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
 
 # export data 
 write.csv(hemorrhage, paste0(path_to_save, "hemorrhage" ,".csv"), row.names=FALSE)
 write.xlsx(hemorrhage, paste0(path_to_save, "hemorrhage" ,".xlsx"),na="", rowNames=FALSE)
-
 
 
 hemorrhage_figs <- hemorrhage %>% 
