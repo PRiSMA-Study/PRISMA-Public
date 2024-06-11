@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 April 22)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 June 06)"
 output:
   pdf_document:
     toc: no
@@ -25,19 +25,18 @@ library(tidyverse)
 library(reshape2)
 library(lubridate)
 library(kableExtra)
-#library(emo)
 library(naniar)
 library(RColorBrewer)
 library(gt) ## for table gen
-library(webshot2)  ## for table gen
+library(webshot2) ## for table gen
 library(haven)
 
 # set path to save 
-#Stacie's path:
-#path_to_data <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
-#path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
+# Stacie's path:
+# path_to_data <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
+# path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
-# #Erin's path: 
+# Erin's path: 
 path_to_data <- "Z:/Outcome Data/2024-04-19/"
 path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
@@ -49,6 +48,7 @@ anemia <- read_dta(paste0(path_to_data, "ANEMIA.dta"))  %>% rename_all(toupper) 
 preterm_indication <- read_dta(paste0(path_to_data, "maternal_outcomes_MNH09.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combined", ".csv"))
+near_miss <- read_dta(paste0(path_to_data, "Depression.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -1946,6 +1946,21 @@ knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
 
 **2.** *For Postpartum hemorrhage:* Valid MNH09 form filled out.  
 
+
+## 6. Hemorrhage
+
+**Definition:** Received at least one procedure for postpartum hemorrhage or excessive bleeding (>=500mL) from or into the genital track, either during pregnancy, prior to delivery, or following the birth of a baby. *Severe hemorrhage* defined as received at least one procedure for postpartum hemorrhage or excessive bleeding (>=1000mL) from or into the genital track, either during pregnancy, prior to delivery, or following the birth of a baby.
+
+**Denominator:** All participants with a reported birth outcome.
+
+&nbsp;
+
+**To be included as "non-Missing" for this outcome, a participant must have:**
+
+**1.** *For Antepartum hemorrhage:* At least one MNH04 form filled out. 
+
+**2.** *For Postpartum hemorrhage:* Valid MNH09 form filled out.  
+
 ### Table 6. Hemorrhage
 ```{r}
 
@@ -1968,7 +1983,34 @@ Hemorrhage_tab <- hemorrhage %>%
       format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      ")"),   
+    
+        "PPH reported in MNH09/12/19" = paste0(
+            format(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) |
+                         M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
+                         M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE), nsmall = 0, digits = 2),
+            " (",
+            format(round(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) |
+                         M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
+                         M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+            ")"),
+
+
+          ## hemorrhage subcategories:
+         "Estimated blood loss >= 500mL" = paste0(
+          format(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 500, na.rm = TRUE), nsmall = 0, digits = 2),
+          " (",
+          format(round(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 500, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+    
+
+         "Procedure or blood transfusion" = paste0(
+          format(sum(M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
+                       M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1 | M09_PPH_TRNSFSN_PROCCUR_6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+          " (",
+          format(round(sum(M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
+                             M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1 | M09_PPH_TRNSFSN_PROCCUR_6==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
 
     "Severe postpartum hemorrhage" = paste0(
       format(sum(HEM_PPH_SEV == 1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -1984,29 +2026,14 @@ Hemorrhage_tab <- hemorrhage %>%
           ")"),
     
     
-         "Any procedure for PPH" = paste0(
-          format(sum(M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
-                       M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+         "Procedure or blood transfusion " = paste0(
+          format(sum(HEM_PPH_SEV==1 & (M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
+                       M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1 | M09_PPH_TRNSFSN_PROCCUR_6==1), na.rm = TRUE), nsmall = 0, digits = 2),
           " (",
-          format(round(sum(M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
-                             M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(HEM_PPH_SEV==1 & (M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
+                             M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1 | M09_PPH_TRNSFSN_PROCCUR_6==1), na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
     
-         "Blood transfusion" = paste0(
-          format(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-          " (",
-          format(round(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-    
-         "PPH reported in MNH09/12/19" = paste0(
-          format(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) |
-                       M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
-                       M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE), nsmall = 0, digits = 2),
-          " (",
-          format(round(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) |
-                       M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
-                       M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
     
     "Any hemorrhage at any time point" = paste0(
       format(sum(HEM_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -2094,13 +2121,7 @@ Hemorrhage_tab <- hemorrhage %>%
       " (",
       format(round(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Other" = paste0(
-      format(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
+
   ## Medications given to prevent/treat PPH (among all participants with an pph)
   "Denominator   " = paste0(
       format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
@@ -2141,16 +2162,16 @@ Hemorrhage_tab <- hemorrhage %>%
       format(round(sum(M09_PPH_CMOCCUR_6_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Other" = paste0(
-      format(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-    "No medications given" = paste0(
+    "Other " = paste0(
       format(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "No medications given" = paste0(
+      format(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Don’t know" = paste0(
@@ -2174,31 +2195,33 @@ Hemorrhage_tab <- hemorrhage %>%
 Hemorrhage_tab[is.na(Hemorrhage_tab)] <- paste0("0 (0)")
 
 ## the table is too long -- split into 2 
-Hemorrhage_tab1 <- Hemorrhage_tab[1:15,]
-Hemorrhage_tab2 <- Hemorrhage_tab[16:31,]
+Hemorrhage_tab1 <- Hemorrhage_tab[1:16,]
+Hemorrhage_tab2 <- Hemorrhage_tab[17:34,]
 
 hemorrhage_output1 <- tb_theme1(Hemorrhage_tab1) %>% 
   tab_header(
     title = md("**Table 6**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Hemorrhage <sup>a</sup></span>"),
-    rows = 1:9
+    rows = 1:10
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Methods of blood loss measurements<sup>a</sup></span>"),
-    rows = 10:15
+    label = html("<span style='font-size: 18px'>Methods of blood loss measurements <sup>a</sup></span>"),
+    rows = 11:16
       ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Hemorrhage <sup>a</sup></span>",
-                           "<span style='font-size: 18px'>Methods of blood loss measurements<sup>a</sup></span>")) %>% 
+                           "<span style='font-size: 18px'>Methods of blood loss measurements <sup>a</sup></span>")) %>% 
   ## indent severe categories 
   tab_style(
       style = list(
         cell_text(indent = px(40), size = 24)
         ),
-      locations = cells_stub(rows = c("Estimated blood loss >= 1000mL",
-                                      "Any procedure for PPH",
-                                      "Blood transfusion",
-                                      "PPH reported in MNH09/12/19"
+      locations = cells_stub(rows = c("PPH reported in MNH09/12/19",
+                                      "Estimated blood loss >= 500mL",
+                                      "Procedure or blood transfusion",
+                                      
+                                      "Estimated blood loss >= 1000mL",
+                                      "Procedure or blood transfusion "
                                       )) 
 ) %>%
   # bold denominator rows
@@ -2225,11 +2248,11 @@ hemorrhage_output2 <- tb_theme1(Hemorrhage_tab2) %>%
         title = md("**Table 6 continued**")) %>% 
     tab_row_group(
         label = html("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>b</sup></span>"),
-        rows = 1:7
+        rows = 1:8
       ) %>% 
     tab_row_group(
         label = html("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>b</sup></span>"),
-        rows = 8:16
+        rows = 9:18
       ) %>%
   
     row_group_order(groups = c("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>b</sup></span>",
@@ -2338,7 +2361,7 @@ sti_enroll_tab <- mat_infections_combined %>%
       format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HIV_MISSING == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "HIV diagnosis or RDT missing ^b^" = paste0(
+    "HIV diagnosis and RDT missing ^b^" = paste0(
       format(sum(HIV_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HIV_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2358,7 +2381,7 @@ sti_enroll_tab <- mat_infections_combined %>%
       format(round(sum(SYPH_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Syphilis diagnosis or RDT missing, enrollment ^b^" = paste0(
+    "Syphilis diagnosis and RDT missing, enrollment ^b^" = paste0(
       format(sum(SYPH_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(SYPH_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2568,7 +2591,7 @@ malaria_tab <- mat_infections_combined %>%
       format(round(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & MAL_MISSING == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Malaria diagnosis or RDT missing ^b^" = paste0(
+    "Malaria diagnosis and RDT missing ^b^" = paste0(
       format(sum(MAL_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAL_MISSING == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2757,7 +2780,6 @@ tb_tab <- mat_infections_combined %>%
 
 ```
 
-
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
 tb_tab[is.na(tb_tab)] <- paste0("0 (0)")
@@ -2806,7 +2828,6 @@ knitr::include_graphics(paste0(path_to_save, "tb_tab_output.png"))
 
 
 \newpage
-
 
 ### Table 7e. All infections combined 
 ```{r}
@@ -3295,3 +3316,222 @@ gtsave(any_test_diabetes_output, file = "any_test_diabetes_output.png", path = p
 knitr::include_graphics(paste0(path_to_save, "any_test_diabetes_output.png"))
 
 ```
+
+
+\newpage
+
+## 9. Near-miss 
+
+**Definition:** Diabetes outcomes are assessed as follows:
+
+-   A woman who is pregnant, in labor, or within 42 days of the pregnancy end, *AND*
+
+-   Develops severe complications (severe postpartum hemorrhage, severe pre-eclampsia, eclampsia, sepsis or severe infection, uterine rupture, severe abortion complications) OR undergoes a critical intervention (use of blood products, laparotomy [not a C-section], admission to ICU), *AND*
+
+-   Experiences organ dysfunction [MNH09, MNH12, MNH19], *AND*
+
+-   Survives the experience.
+
+**Denominator:** Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure).
+
+**Numerator:** 
+-   Women who have experienced a severe complication, critical intervention, or have experienced organ dysfunction *AND*
+
+-   Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure). 
+
+### Table 9. Near-miss 
+```{r}
+
+near_miss_tab <- near_miss %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Expected denominator, n" = paste0(
+      format(sum(NEARMISS_WINDOW==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+    
+    "Closed out during pregnancy or within 42 days of pregnancy end" = paste0(
+      format(sum(NEARMISS_CLOSEOUT==1 & NEARMISS_WINDOW == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEARMISS_CLOSEOUT==1 & NEARMISS_WINDOW == 1, na.rm = TRUE)/sum(NEARMISS_WINDOW == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    # "Missing because no MNH09, MNH12, or MNH19 forms" = paste0(
+    #   format(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+    # 
+    # "Missing because not seen at least 42 days postpartum" = paste0(
+    #   format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+    
+    "Women who have passed 42 days after pregnancy end without closing out AND visit after six weeks OR have the event" = paste0(
+      format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+    
+    
+    "Severe PPH" = paste0(
+      format(sum(HEM_PPH_SEV==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_PPH_SEV==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Uterine rupture" = paste0(
+      format(sum(UTERINE_RUP==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+    
+    "Mother needed (M09) and/or received (M19) blood transfusion" = paste0(
+      format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Laparotomy (M19)" = paste0(
+      format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mother referred to ICU (M10)" = paste0(
+      format(sum(ICU==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ICU==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Experienced organ dysfunction, n" = paste0(
+      format(sum(MAT_DYS ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_DYS ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Heart" = paste0(
+      format(sum(ORG_FAIL_HRT ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ORG_FAIL_HRT ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Respiratory" = paste0(
+      format(sum(ORG_FAIL_RESP ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ORG_FAIL_RESP ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Renal/kidney" = paste0(
+      format(sum(ORG_FAIL_RENAL ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ORG_FAIL_RENAL ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Liver" = paste0(
+      format(sum(ORG_FAIL_LIVER ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ORG_FAIL_LIVER ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Neurological" = paste0(
+      format(sum(ORG_FAIL_NEUR ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ORG_FAIL_NEUR ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+        
+    "Uterine" = paste0(
+      format(sum(ORG_FAIL_UTER ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ORG_FAIL_UTER ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+            
+    "Coagulation/hematological" = paste0(
+      format(sum(ORG_FAIL_HEM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ORG_FAIL_HEM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+                
+    "Other" = paste0(
+      format(sum(ORG_FAIL_OTHR ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ORG_FAIL_OTHR ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+                    
+    "Maternal near miss (severe complication & organ failure)" = paste0(
+      format(sum(MAT_MNM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_MNM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+near_miss_tab[is.na(near_miss_tab)] <- paste0("0 (0)")
+
+## the table is too long -- split into 2 
+near_miss_tab1 <- near_miss_tab[1:9,]
+near_miss_tab2 <- near_miss_tab[10:18,]
+
+
+# part 1
+near_miss_tab_output1 <- tb_theme1(near_miss_tab1) %>% 
+  tab_header(
+    title = md("**Table 9**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 1:3
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Indicators of near-miss <sup>a</sup></span>"),
+    rows = 4:9
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                             "<span style='font-size: 18px'>Indicators of near-miss <sup>a</sup></span>"
+                             ))  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure).</span>")
+ )
+
+# part 2
+near_miss_tab_output2 <- tb_theme1(near_miss_tab2) %>% 
+  tab_header(
+    title = md("**Table 9 (continued)**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Indicators of near-miss <sup>a</sup></span>"),
+    rows = 1:8
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Near-miss <sup>a</sup></span>"),
+    rows = 9:9
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Indicators of near-miss <sup>a</sup></span>",
+                             "<span style='font-size: 18px'>Near-miss <sup>a</sup></span>"
+                             ))  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure).</span>")
+ )
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(near_miss_tab1, file = "near_miss_tab1.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "near_miss_tab1.png"))
+
+```
+
+\newpage 
+
+```{r, out.width = '100%'}
+
+gtsave(near_miss_tab2, file = "near_miss_tab2.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "near_miss_tab2.png"))
+
+```
+
+
