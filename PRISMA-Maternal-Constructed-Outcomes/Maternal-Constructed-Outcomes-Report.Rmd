@@ -30,6 +30,7 @@ library(RColorBrewer)
 library(gt) ## for table gen
 library(webshot2) ## for table gen
 library(haven)
+library(dplyr)
 
 # set path to save 
 # Stacie's path:
@@ -437,30 +438,30 @@ anemia_output <- tb_theme1(anemia_tab) %>%
   tab_header(
     title = md("**Table 2a**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Denominator: Completed pregnancies</span>"),
+    label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
     rows = 1:11
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data Completeness</span>"),
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
     rows = 2:11
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Denominator: Completed pregnancies with outcome data</span>"),
+    label = html("<span style='font-size: 18px'>Denominator for anemia prevalence</span>"),
     rows = 5:11
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Anemia Prevalence</span>"),
+    label = html("<span style='font-size: 18px'>Anemia prevalence</span>"),
     rows = 6:11
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Test Type (for lowest Hb measure)</span>"),
+    label = html("<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"),
     rows = 10:11
   ) %>%
- row_group_order(groups = c("<span style='font-size: 18px'>Denominator: Completed pregnancies</span>",
-                  "<span style='font-size: 18px'>Data Completeness</span>",
-                  "<span style='font-size: 18px'>Denominator: Completed pregnancies with outcome data</span>",
-                   "<span style='font-size: 18px'>Anemia Prevalence</span>",
-                  "<span style='font-size: 18px'>Test Type (for lowest Hb measure)</span>"
+ row_group_order(groups = c("<span style='font-size: 18px'>Denominator for data completeness</span>",
+                  "<span style='font-size: 18px'>Data completeness</span>",
+                  "<span style='font-size: 18px'>Denominator for anemia prevalence</span>",
+                   "<span style='font-size: 18px'>Anemia prevalence</span>",
+                  "<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"
                   )) %>%
 
    tab_footnote(
@@ -479,19 +480,42 @@ knitr::include_graphics(paste0(path_to_save, "anemia_output.png"))
 
 ### 2b. Maternal anemia in pregnancy by trimester
 
-**Definition:** Low hemoglobin levels in each trimester, as based on results from complete blood count (CBC) measures or point-of-care hemoglobin tests. Levels of anemia in pregnancy are defined as: no anemia (>=11 g/dL); mild anemia (>=10 & <11 g/dL); moderate anemia (>=7 & <10 g/dL); severe anemia (< 7 g/dL).
+**Definition:** Low hemoglobin levels in each trimester of pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy. Levels of anemia in pregnancy are defined as: 
+
+*First/third trimester:*
+-   no anemia (>=11 g/dL); 
+-   mild anemia (>=10 & <11 g/dL); 
+-   moderate anemia (>=7 & <10 g/dL); 
+-   severe anemia (< 7 g/dL)
+
+*Second trimester:*
+-   no anemia (>=10.5 g/dL); 
+-   mild anemia (>=9.5 & <10.5 g/dL); 
+-   moderate anemia (>=7 & <9.5 g/dL); 
+-   severe anemia (<7 g/dL)
+
+The outcome prioritizes CBC tests where possible, as this is the gold standard measure for hemoglobin. We consider the results of POC tests only in instances where there is no concurrent CBC test within 7 days (before or after) of the POC measure. 
 
 **Denominator:** All participants that completed the trimester of interest including:
 
--   Valid gestational age information provided at enrollment visit in MNH01 including: (varname: `US_GA_WKS_AGE_FTS1-4`,`US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`)
+-   Confirmed enrollment in form MNH02.
 
--   The participant is confirmed to be enrolled in the study based on form MNH02.
+-   Valid gestational age information provided at enrollment visit in MNH01 including: (varname: `US_GA_WKS_AGE_FTS1-4`,`US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`).
 
 -   The participant has completed the trimester of interest based on the Best Obstetric Estimate of the participant’s due date collected at enrollment and the date of the most recent data upload to Synapse.
 
 -   For Trimester 1, participant was recruited during the first trimester (prior to 14 weeks gestation based on Best Obstetric Estimate of gestational age at enrollment).
 
+-   For each trimester, the participant is excluded if the pregnancy ends before the trimester of interest.
+
 ***Note:** This table contains pregnancies that are not yet completed; therefore, the denominator for each outcome varies by the trimester window of interest. * 
+
+**Missingness:** Participants may be considered missing for this outcome if:
+
+-   No valid results (CBC or POC) are provided in the lab forms for the trimester of interest
+
+-   No lab forms dated in the trimester of interest
+
 
 #### Table 2b. Maternal anemia prevalence by trimester of pregnancy, ongoing data collection
 ```{r}
@@ -506,47 +530,75 @@ anemia_tab_tri1 <- anemia %>%
 
   ## trimester 1
 
-    "Missing both US and LMP GA or ultrasound date [MNH01]" = paste0(
-      format(sum(ANEMIA_ANC_T1_MISS== 1 & ENROLL_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+     #Denominator: 
+    
+    "Denominator (completed trimester 1 & recruited at <14 weeks GA)" = paste0(
+      format(sum(ANEMIA_T1_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T1_MISS == 1 & ENROLL_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T1_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing BOTH CBC result and POC result with a sample date in Trimester 1" = paste0(
-      format(sum(ANEMIA_ANC_T1_MISS  ==2, na.rm = TRUE), nsmall = 0, digits = 2),
+    #Data Completeness: 
+
+    "No valid test results in trimester 1" = paste0(
+      format(sum(ANEMIA_T1_MISS == 1 & ANEMIA_T1_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T1_MISS ==2 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T1_MISS == 1 & ANEMIA_T1_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
+    
+    "No lab forms in trimester 1" = paste0(
+      format(sum(ANEMIA_T1_MISS ==2 & ANEMIA_T1_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T1_MISS ==2 & ANEMIA_T1_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Denominator (for non-missing)
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(ANEMIA_T1_MISS ==0 & ANEMIA_T1_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T1_MISS ==0 & ANEMIA_T1_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Values: 
 
     "No anemia (>=11 g/dL)" = paste0(
-      format(sum(ANEMIA_ANC_T1 == 0 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(ANEMIA_T1 == 0 & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T1 == 0 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T1 == 0 & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Mild anemia (>=10 & <11 g/dL)" = paste0(
-      format(sum(ANEMIA_ANC_T1 == 1 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(ANEMIA_T1 == 1 & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T1 == 1 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T1 == 1 & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Moderate anemia (>=7 & <10 g/dL)" = paste0(
-      format(sum(ANEMIA_ANC_T1 == 2 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(ANEMIA_T1 == 2 & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T1 == 2 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T1 == 2 & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Severe anemia (< 7 g/dL)" = paste0(
-      format(sum(ANEMIA_ANC_T1 == 3 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Severe anemia (<7 g/dL)" = paste0(
+      format(sum(ANEMIA_T1 == 3 & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T1 == 3 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T1 == 3 & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing (no hemoglobin data with test date in Trimester 1)" = paste0(
-      format(sum(ANEMIA_ANC_T1 == 55 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #Test type for lowest HB test: 
+    
+    "CBC Test" = paste0(
+      format(sum(HB_LOW_T1_TEST=="CBC" & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T1 == 55 & ENROLL_T1==1 & COMPLETE_T1==1, na.rm = TRUE)/sum(ENROLL_T1==1 & COMPLETE_T1==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")")
+      format(round(sum(HB_LOW_T1_TEST=="CBC" & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "POC Test" = paste0(
+      format(sum(HB_LOW_T1_TEST=="POC" & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_T1_TEST=="POC" & ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T1_DENOM==1 & ANEMIA_T1_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
     
   ) %>% 
   t() %>% as.data.frame() %>% 
@@ -554,113 +606,169 @@ anemia_tab_tri1 <- anemia %>%
   slice(-1)  %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
   mutate_all(funs(str_replace(., "NA", "0"))) 
-
-## trimester 2
+    
+    
 anemia_tab_tri2 <- anemia %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
-  summarise(
-  
-  ## trimester 2
+  summarise(    
+#T2
 
-    "Missing both US and LMP GA or ultrasound date [MNH01] " = paste0(
-      format(sum(ANEMIA_ANC_T2_MISS== 1 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+     #Denominator: 
+    
+    "Denominator (continued pregnancy & completed trimester 2)" = paste0(
+      format(sum(ANEMIA_T2_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T2_MISS== 1 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T2_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing BOTH CBC result and POC result with a sample date in Trimester 2" = paste0(
-      format(sum(ANEMIA_ANC_T2_MISS==2 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ANEMIA_ANC_T2_MISS==2 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+    #Data Completeness: 
 
-    "No anemia (>=11 g/dL) " = paste0(
-      format(sum(ANEMIA_ANC_T2 == 0 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "No valid test results in trimester 2" = paste0(
+      format(sum(ANEMIA_T2_MISS == 1 & ANEMIA_T2_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T2 == 0 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T2_MISS == 1 & ANEMIA_T2_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Mild anemia (>=10 & <11 g/dL) " = paste0(
-      format(sum(ANEMIA_ANC_T2 == 1 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "No lab forms in trimester 2" = paste0(
+      format(sum(ANEMIA_T2_MISS ==2 & ANEMIA_T2_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T2 == 1 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T2_MISS ==2 & ANEMIA_T2_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-     "Moderate anemia (>=7 & <10 g/dL) " = paste0(
-      format(sum(ANEMIA_ANC_T2 == 2 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #Denominator (for non-missing)
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(ANEMIA_T2_MISS ==0 & ANEMIA_T2_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T2 == 2 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T2_MISS ==0 & ANEMIA_T2_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Severe anemia (< 7 g/dL) " = paste0(
-      format(sum(ANEMIA_ANC_T2 == 3 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #Values: 
+
+    "No anemia (>=10.5 g/dL)" = paste0(
+      format(sum(ANEMIA_T2 == 0 & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T2 == 3 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T2 == 0 & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing (no hemoglobin data with test date in Trimester 2) " = paste0(
-      format(sum(ANEMIA_ANC_T2 == 55 & COMPLETE_T2==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Mild anemia (>=9.5 & <10.5 g/dL)" = paste0(
+      format(sum(ANEMIA_T2 == 1 & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T2 == 55 & COMPLETE_T2==1, na.rm = TRUE)/sum(COMPLETE_T2==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")")
+      format(round(sum(ANEMIA_T2 == 1 & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=7 & <9.5 g/dL)" = paste0(
+      format(sum(ANEMIA_T2 == 2 & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T2 == 2 & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (<7 g/dL)" = paste0(
+      format(sum(ANEMIA_T2 == 3 & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T2 == 3 & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Test type for lowest HB test: 
+    
+    "CBC Test" = paste0(
+      format(sum(HB_LOW_T2_TEST=="CBC" & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_T2_TEST=="CBC" & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "POC Test" = paste0(
+      format(sum(HB_LOW_T2_TEST=="POC" & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_T2_TEST=="POC" & ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T2_DENOM==1 & ANEMIA_T2_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
   ) %>% 
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1)  %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
   mutate_all(funs(str_replace(., "NA", "0"))) 
+    
+    
+#T3
 
-
-## trimester 3
 anemia_tab_tri3 <- anemia %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
-  
-    ## trimester 3
-    "Missing both US and LMP GA or ultrasound date [MNH01]  " = paste0(
-      format(sum(ANEMIA_ANC_T3_MISS == 1 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ANEMIA_ANC_T3_MISS == 1 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing BOTH CBC result and POC result with a sample date in Trimester 3" = paste0(
-      format(sum(ANEMIA_ANC_T3_MISS ==2 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ANEMIA_ANC_T3_MISS ==2 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
 
-    "No anemia (>=11 g/dL)  " = paste0(
-      format(sum(ANEMIA_ANC_T3 == 0 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
+     #Denominator: 
+    
+    "Denominator (continued pregnancy & completed trimester 3)" = paste0(
+      format(sum(ANEMIA_T3_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ANEMIA_ANC_T3 == 0 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_T3_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Mild anemia (>=10 & <11 g/dL)  " = paste0(
-      format(sum(ANEMIA_ANC_T3 == 1 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ANEMIA_ANC_T3 == 1 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-     "Moderate anemia (>=7 & <10 g/dL)  " = paste0(
-      format(sum(ANEMIA_ANC_T3 == 2 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ANEMIA_ANC_T3 == 2 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Severe anemia (< 7 g/dL)  " = paste0(
-      format(sum(ANEMIA_ANC_T3 == 3 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ANEMIA_ANC_T3 == 3 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing (no hemoglobin data with test date in Trimester 3)  " = paste0(
-      format(sum(ANEMIA_ANC_T3 == 55 & COMPLETE_T3==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ANEMIA_ANC_T3 == 55 & COMPLETE_T3==1, na.rm = TRUE)/sum(COMPLETE_T3==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")")
+    #Data Completeness: 
 
+    "No valid test results in trimester 3" = paste0(
+      format(sum(ANEMIA_T3_MISS == 1 & ANEMIA_T3_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T3_MISS == 1 & ANEMIA_T3_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No lab forms in trimester 3" = paste0(
+      format(sum(ANEMIA_T3_MISS ==2 & ANEMIA_T3_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T3_MISS ==2 & ANEMIA_T3_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Denominator (for non-missing)
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(ANEMIA_T3_MISS ==0 & ANEMIA_T3_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T3_MISS ==0 & ANEMIA_T3_DENOM==1, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Values: 
+
+    "No anemia (>=11 g/dL)" = paste0(
+      format(sum(ANEMIA_T3 == 0 & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T3 == 0 & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mild anemia (>=10 & <11 g/dL)" = paste0(
+      format(sum(ANEMIA_T3 == 1 & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T3 == 1 & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=7 & <10 g/dL)" = paste0(
+      format(sum(ANEMIA_T3 == 2 & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T3 == 2 & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (<7 g/dL)" = paste0(
+      format(sum(ANEMIA_T3 == 3 & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_T3 == 3 & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Test type for lowest HB test: 
+    
+    "CBC Test" = paste0(
+      format(sum(HB_LOW_T3_TEST=="CBC" & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_T3_TEST=="CBC" & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "POC Test" = paste0(
+      format(sum(HB_LOW_T3_TEST=="POC" & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_T3_TEST=="POC" & ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm = TRUE)/sum(ANEMIA_T3_DENOM==1 & ANEMIA_T3_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
   ) %>% 
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
@@ -669,7 +777,11 @@ anemia_tab_tri3 <- anemia %>%
   mutate_all(funs(str_replace(., "NA", "0"))) 
 
 
+
+
 ```
+
+
 
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
@@ -686,16 +798,31 @@ tab_spanner(
     columns = 1:7
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness</span>"),
-        rows = 1:7
+    label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
+        rows = 1:10
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>All pregnancies recruited in Trimester 1 & completed Trimester 1 by data upload date</span>"),
-    rows = 3:7
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 2:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for anemia prevalence</span>"),
+    rows = 4:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Anemia prevalence</span>"),
+    rows = 5:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"),
+    rows = 9:10
   ) %>%
 
- row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
-                            "<span style='font-size: 18px'>All pregnancies recruited in Trimester 1 & completed Trimester 1 by data upload date</span>"))
+ row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for data completeness</span>",
+                            "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Denominator for anemia prevalence</span>",
+                            "<span style='font-size: 18px'>Anemia prevalence</span>",
+                            "<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"))
 
 # TRIMESTER 2
 anemia_tab_tri2_output <- tb_theme1(anemia_tab_tri2) %>% 
@@ -706,16 +833,31 @@ tab_spanner(
     columns = 1:7
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness</span>"),
-        rows = 1:7
+    label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
+        rows = 1:10
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>All pregnancies that completed Trimester 2 by data upload date</span>"),
-    rows = 3:7
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 2:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for anemia prevalence</span>"),
+    rows = 4:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Anemia prevalence</span>"),
+    rows = 5:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"),
+    rows = 9:10
   ) %>%
 
- row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
-                            "<span style='font-size: 18px'>All pregnancies that completed Trimester 2 by data upload date</span>"))
+ row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for data completeness</span>",
+                            "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Denominator for anemia prevalence</span>",
+                            "<span style='font-size: 18px'>Anemia prevalence</span>",
+                            "<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"))
 
 # TRIMESTER 3
 anemia_tab_tri3_output <- tb_theme1(anemia_tab_tri3) %>% 
@@ -726,19 +868,34 @@ tab_spanner(
     columns = 1:7
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness</span>"),
-        rows = 1:7
+    label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
+        rows = 1:10
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>All pregnancies that completed Trimester 3 by data upload date</span>"),
-    rows = 3:7
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 2:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for anemia prevalence</span>"),
+    rows = 4:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Anemia prevalence</span>"),
+    rows = 5:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"),
+    rows = 9:10
   ) %>%
 
- row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
-                            "<span style='font-size: 18px'>All pregnancies that completed Trimester 3 by data upload date</span>")) %>% 
+ row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for data completeness</span>",
+                            "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Denominator for anemia prevalence</span>",
+                            "<span style='font-size: 18px'>Anemia prevalence</span>",
+                            "<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>")) %>% 
   
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>Note</sup>**This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on whole blood/CBC measures of hemoglobin first, filling in point-of-care measures of hemoglobin only when no CBC result exists for the window of interest. For each participant, this table presents the worst anemia status observed during the window of interest if multiple tests are provided. </span>")
+    footnote = html("<span style='font-size: 18px'><sup>Note</sup>**This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on CBC measures of hemoglobin or POC measures of hemoglobin that are not within 7 days of a CBC test. For each participant, this table presents the worst anemia status observed during the trimester of interest if multiple tests are provided. For trimesters 1 and 2, participants whose pregnancy ends before the end of the trimester of interest (and no tests are recorded in that trimester) are excluded. For trimester 3, participants whose pregnancy ends before 28 weeks gestation are excluded. </span>")
  ) 
 
 ```
@@ -782,13 +939,13 @@ knitr::include_graphics(paste0(path_to_data, "anemia-fig.jpg"))
 
 ### 2c. Maternal anemia in the postpartum period
 
-**Definition:** Low hemoglobin levels in the postpartum period, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Levels of anemia in the postpartum period are defined as: no anemia (>=12 g/dL); mild anemia (>=11 & <12 g/dL); moderate anemia (>=8 & <11 g/dL); severe anemia (< 8 g/dL).
+**Definition:** Low hemoglobin levels in the postpartum period, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in the postpartum time period of interest. Levels of anemia in the postpartum period are defined as: no anemia (>=12 g/dL); mild anemia (>=11 & <12 g/dL); moderate anemia (>=8 & <11 g/dL); severe anemia (< 8 g/dL).
 
 **Denominator:** All participants with completed pregnancies including:
 
 -   Confirmed enrollment in form MNH02.
 
--   Confirmed pregnancy end date in MNH09.
+-   Confirmed pregnancy end date in MNH09 or MNH04 or MNH19.
 
 -   The participant has completed the postpartum window of interest based on the pregnancy end date reported in MNH09 and the date of the most recent data upload to Synapse.
 
@@ -799,101 +956,167 @@ knitr::include_graphics(paste0(path_to_data, "anemia-fig.jpg"))
 #### Table 2c. Maternal anemia prevalence postpartum, ongoing data collection
 ```{r}
 
-anemia_pph_tab <- anemia %>% 
+anemia_pph6_tab <- anemia %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
     
   ## pnc6
 
-    "Missing pregnancy end date [MNH09]" = paste0(
-      format(sum(MAT_ANEMIA_M_PNC6L_MISS== 1 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+     #Denominator: 
+    
+    "Denominator (PNC6 window completed)" = paste0(
+      format(sum(ANEMIA_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC6L_MISS== 1 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC6_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing BOTH CBC result and POC result with a sample date in PNC-6 window" = paste0(
-      format(sum(MAT_ANEMIA_M_PNC6L_MISS==2 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #Data Completeness: 
+
+    "No valid test results in PNC6 window" = paste0(
+      format(sum(ANEMIA_PNC6_MISS == 1 & ANEMIA_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC6L_MISS==2 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC6_MISS == 1 & ANEMIA_PNC6_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
+    
+    "No lab forms in PNC6 window" = paste0(
+      format(sum(ANEMIA_PNC6_MISS ==2 & ANEMIA_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC6_MISS ==2 & ANEMIA_PNC6_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Denominator (for non-missing)
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(ANEMIA_PNC6_MISS ==0 & ANEMIA_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC6_MISS ==0 & ANEMIA_PNC6_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Values: 
 
     "No anemia (>=12 g/dL)" = paste0(
-      format(sum(MAT_ANEMIA_M_PNC6L== 0 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(ANEMIA_PNC6 == 0 & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC6L == 0 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC6 == 0 & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Mild anemia (>=11 & <12 g/dL)" = paste0(
-      format(sum(MAT_ANEMIA_M_PNC6L == 1 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(ANEMIA_PNC6 == 1 & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC6L == 1 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC6 == 1 & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Moderate anemia (>=8 & <11 g/dL)" = paste0(
-      format(sum(MAT_ANEMIA_M_PNC6L == 2 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(ANEMIA_PNC6 == 2 & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC6L == 2 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC6 == 2 & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Severe anemia (< 8 g/dL)" = paste0(
-      format(sum(MAT_ANEMIA_M_PNC6L== 3 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Severe anemia (<8 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC6 == 3 & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC6L== 3 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC6 == 3 & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing" = paste0(
-      format(sum(MAT_ANEMIA_M_PNC6L == 55 & PREG_END_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #Test type for lowest HB test: 
+    
+    "CBC Test" = paste0(
+      format(sum(HB_LOW_PNC6_TEST=="CBC" & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC6L == 55 & PREG_END_PNC6==1, na.rm = TRUE)/sum(PREG_END_PNC6==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HB_LOW_PNC6_TEST=="CBC" & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
+    
+    "POC Test" = paste0(
+      format(sum(HB_LOW_PNC6_TEST=="POC" & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_PNC6_TEST=="POC" & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
     
     
   ## pnc26
+
+anemia_pph26_tab <- anemia %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
   
-    "Missing pregnancy end date [MNH09] " = paste0(
-      format(sum(MAT_ANEMIA_M_PNC26L_MISS == 1 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+     #Denominator: 
+    
+    "Denominator (PNC26 window completed)" = paste0(
+      format(sum(ANEMIA_PNC26_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC26L_MISS == 1 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC26_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing BOTH CBC result and POC result with a sample date in PNC26 window" = paste0(
-      format(sum(MAT_ANEMIA_M_PNC26L_MISS ==2 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_ANEMIA_M_PNC26L_MISS ==2 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+    #Data Completeness: 
 
-    "No anemia (>=12 g/dL) " = paste0(
-      format(sum(MAT_ANEMIA_M_PNC26L== 0 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "No valid test results in PNC26 window" = paste0(
+      format(sum(ANEMIA_PNC26_MISS == 1 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC26L== 0 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC26_MISS == 1 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Mild anemia (>=11 & <12 g/dL) " = paste0(
-      format(sum(MAT_ANEMIA_M_PNC26L== 1 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "No lab forms in PNC26 window" = paste0(
+      format(sum(ANEMIA_PNC26_MISS ==2 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC26L== 1 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC26_MISS ==2 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-     "Moderate anemia (>=8 & <11 g/dL) " = paste0(
-      format(sum(MAT_ANEMIA_M_PNC26L== 2 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #Denominator (for non-missing)
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(ANEMIA_PNC26_MISS ==0 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_ANEMIA_M_PNC26L== 2 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ANEMIA_PNC26_MISS ==0 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Severe anemia (< 8 g/dL) " = paste0(
-      format(sum(MAT_ANEMIA_M_PNC26L== 3 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_ANEMIA_M_PNC26L== 3 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing " = paste0(
-      format(sum(MAT_ANEMIA_M_PNC26L== 55 & PREG_END_PNC26==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_ANEMIA_M_PNC26L== 55 & PREG_END_PNC26==1, na.rm = TRUE)/sum(PREG_END_PNC26==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")")
-    
+    #Values: 
 
+    "No anemia (>=12 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC26 == 0 & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC26 == 0 & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mild anemia (>=11 & <12 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC26 == 1 & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC26 == 1 & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate anemia (>=8 & <11 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC26 == 2 & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC26 == 2 & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe anemia (<8 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC26 == 3 & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC26 == 3 & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    #Test type for lowest HB test: 
+    
+    "CBC Test" = paste0(
+      format(sum(HB_LOW_PNC26_TEST=="CBC" & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_PNC26_TEST=="CBC" & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "POC Test" = paste0(
+      format(sum(HB_LOW_PNC26_TEST=="POC" & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_PNC26_TEST=="POC" & ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
     
   ) %>% 
   t() %>% as.data.frame() %>% 
@@ -902,55 +1125,114 @@ anemia_pph_tab <- anemia %>%
   mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
   mutate_all(funs(str_replace(., "NA", "0"))) 
 
+
 ```
 
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
-anemia_pph_tab[is.na(anemia_pph_tab)] <- paste0("0 (0)")
+anemia_pph6_tab[is.na(anemia_pph6_tab)] <- paste0("0 (0)")
+anemia_pph26_tab[is.na(anemia_pph26_tab)] <- paste0("0 (0)")
 
-anemia_pph_output <- tb_theme1(anemia_pph_tab) %>% 
+
+"<span style='font-size: 18px'>Data completeness</span>"
+
+anemia_pph6_output <- tb_theme1(anemia_pph6_tab) %>% 
   tab_header(
     title = md("**Table 2c**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness at PNC-6 <sup>a</sup></span>"),
-        rows = 1:2
+    label = html("<span style='font-size: 18px'>Denominator for PNC6<sup>a</sup></span>"),
+        rows = 1:10
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Maternal anemia prevalence at PNC-6 <sup>a</sup></span>"),
-    rows = 3:7
-  ) %>%
- tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness at PNC-26 <sup>b</sup></span>"),
-        rows = 8:9
+    label = html("<span style='font-size: 18px'>Data completeness at PNC6</span>"),
+        rows = 2:10
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Maternal anemia prevalence at PNC-26 <sup>b</sup></span>"),
-    rows = 10:14
+    label = html("<span style='font-size: 18px'>Denominator for anemia prevalence</span>"),
+    rows = 4:10
   ) %>%
-
- row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness at PNC-6 <sup>a</sup></span>",
-                            "<span style='font-size: 18px'>Maternal anemia prevalence at PNC-6 <sup>a</sup></span>",
-                            "<span style='font-size: 18px'>Data completeness at PNC-26 <sup>b</sup></span>",
-                            "<span style='font-size: 18px'>Maternal anemia prevalence at PNC-26 <sup>b</sup></span>")) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Prevalence is based on tests collected during the PNC-6 late visit window (6-12 weeks postpartum).</span>")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Anemia prevalence at PNC6</span>"),
+    rows = 5:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"),
+    rows = 9:10
+  ) %>%
   
-    tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Prevalence is based on tests collected during the PNC-26 late visit window (26-39 weeks postpartum).</span>")) %>% 
+ row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for PNC6<sup>a</sup></span>",
+                            "<span style='font-size: 18px'>Data completeness at PNC6</span>",
+                            "<span style='font-size: 18px'>Denominator for anemia prevalence</span>",
+                            "<span style='font-size: 18px'>Anemia prevalence at PNC6</span>",
+                     "<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>")) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> This outcome is based on tests collected during the PNC-6 late visit window (6-12 weeks postpartum); the data completeness denominator includes any participant with a valid lab test during this window, as well as participants without lab data who have progressed in the study through the PNC-6 window.</span>")) %>%   
   
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>Note</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on whole blood/CBC measures of hemoglobin first, filling in point-of-care measures of hemoglobin only when no CBC result exists for the postpartum window of interest. For each participant, this table presents the worst anemia status observed during the postpartum window of interest if multiple tests are provided.</span>")) 
+    footnote = html("<span style='font-size: 18px'><sup>Note</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on CBC measures of hemoglobin or POC measures of hemoglobin that are not within 7 days of a CBC test. For each participant, this table presents the worst anemia status observed during the postpartum window of interest if multiple tests are provided.</span>")) 
+
+
+# PNC26 (making a separate table for more space, given longer lines)
+
+anemia_pph26_output <- tb_theme1(anemia_pph26_tab) %>% 
+  tab_header(
+    title = md("**Table 2c continued**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for PNC26<sup>a</sup></span>"),
+        rows = 1:10
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness at PNC26</span>"),
+        rows = 2:10
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for anemia prevalence</span>"),
+    rows = 4:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Anemia prevalence at PNC26</span>"),
+    rows = 5:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"),
+    rows = 9:10
+  ) %>%
+  
+ row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for PNC26<sup>a</sup></span>",
+                            "<span style='font-size: 18px'>Data completeness at PNC26</span>",
+                            "<span style='font-size: 18px'>Denominator for anemia prevalence</span>",
+                            "<span style='font-size: 18px'>Anemia prevalence at PNC26</span>",
+                            "<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>")) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> This outcome is based on tests collected during the PNC-26 late visit window (26-39 weeks postpartum); the data completeness denominator includes any participant with a valid lab test during this window, as well as participants without lab data who have progressed in the study through the PNC-26 window. Note that participants who had an early pregnancy loss (<20 weeks GA) are excluded from this PNC-26 measure per study follow-up protocol. </span>")) %>%   
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on CBC measures of hemoglobin or POC measures of hemoglobin that are not within 7 days of a CBC test. For each participant, this table presents the worst anemia status observed during the postpartum window of interest if multiple tests are provided.</span>")) 
 
 ```
 
 ```{r, out.width = '100%'}
 
-gtsave(anemia_pph_output, file = "anemia_pph_output.png", path = path_to_save, expand = 10)
-knitr::include_graphics(paste0(path_to_save, "anemia_pph_output.png"))
+gtsave(anemia_pph6_output, file = "anemia_pph6_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "anemia_pph6_output.png"))
 
 ```
 
 \newpage 
+
+
+```{r, out.width = '100%'}
+
+gtsave(anemia_pph26_output, file = "anemia_pph26_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "anemia_pph26_output.png"))
+
+```
+
+
+
+\newpage
 
 
 ## 3. Preterm delivery classification
