@@ -38,7 +38,7 @@ library(dplyr)
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-path_to_data <- "Z:/Outcome Data/2024-05-31/"
+path_to_data <- "Z:/Outcome Data/2024-06-17/"
 path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
@@ -49,7 +49,7 @@ anemia <- read_dta(paste0(path_to_data, "ANEMIA.dta"))  %>% rename_all(toupper) 
 preterm_indication <- read_dta(paste0(path_to_data, "PREGEND.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combined", ".csv"))
-near_miss <- read_dta(paste0(path_to_data, "Depression.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+near_miss <- read_dta(paste0(path_to_data, "near-miss-maternal-outcomes.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -1282,9 +1282,9 @@ preterm_tab <- preterm_indication %>%
       ")"),  
      
      "Excluded: maternal deaths prior to delivery" = paste0(
-      format(sum(PREG_END== 1 & MAT_DEATH==1 & PREG_END_DELIV==0 & MAT_UTER_RUP_MISS==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & MAT_DEATH==1 & PREG_END_DELIV==0 & MAT_UTER_RUP_MISS==4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
     
     "Missing: Gestational age information unavailable [MNH01]" = paste0(
@@ -1698,13 +1698,19 @@ b.  date and time of membrane rupture (if occurred) (varnames [form]: `MEMBRANE_
 
 ## 4. Preterm premature rupture of membranes (PPROM)
 
-**Definition:** Spontaneous rupture of membranes occurs prior to 37 weeks GA and before onset of labor.
+**Definition:** Spontaneous rupture of membranes occurs prior to 37 weeks GA and before onset of labor OR clinical diagnosis of PPROM during hospitalization.
 
 **Denominator:** All completed pregnancies with:
 
 -   Valid gestational age information provided at enrollment visit in MNH01 including: (varnames [form]: `US_GA_WKS_AGE_FTS1-4` [MNH01], `US_GA_DAYS_AGE_FTS1-4` [MNH01], `GA_LMP_WEEKS_SCORRES` [MNH01], `US_OHOSTDAT` [MNH01]).
 
+And either: 
+
 -   MNH09 form filled and date/time of rupture of membranes and onset of labor provided, if applicable (varnames [form]: `MEMBRANE_RUPT_MHSTDAT`, `MEMBRANE_RUPT_MHSTTIM`, `LABOR_MHSTDAT`, `LABOR_MHSTTIM` [MNH09])
+
+or:
+
+-   MNH19 form filled with information on date of hospitalization and clinical diagnosis of PROM (varnames [form]: `OHOSTDAT`, `MAT_EST_OHOSTDAT`, `LD_COMPL_MHTERM_1`)
 
 ***Note:** Gestational age information collected in MNH01 is used to generate best obstetric estimates for GA, EDD, and estimated conception date. These constructed variables are then used to calculate GA at time of rupture of membranes.*
 
@@ -1714,17 +1720,22 @@ b.  date and time of membrane rupture (if occurred) (varnames [form]: `MEMBRANE_
 
 **2.** Valid enrollment ultrasound visit date (varname [form]: `US_OHOSTDAT` [MNH01]). 
 
-**3.** Valid responses for variables on labor including: 
+And either: 
+
+**3.** Valid responses for variables on labor and type of membrane rupture including: 
 
 a.  if the woman experienced labor (varname [form]: `LABOR_MHOCCUR` [MNH09]); and
 
 b.  date and time of labor onset if she experienced labor (varname [form]: `LABOR_MHSTDAT`, `LABOR_MHSTTIM` [MNH09]).
 
-**4.** Valid responses for variables on type of membrane rupture including:
+c.  type of membrane rupture (varname [form]: `MEMBRANE_RUPT_MHTERM` [MNH09]); and
 
-a.  type of membrane rupture (varname [form]: `MEMBRANE_RUPT_MHTERM` [MNH09]); and
+d.  date and time of membrane rupture (if occurred) (varname [form]: `MEMBRANE_RUPT_MHSTDAT`, `MEMBRANE_RUPT_MHSTTIM` [MH09])
 
-b.  date and time of membrane rupture (if occurred) (varname [form]: `MEMBRANE_RUPT_MHSTDAT`, `MEMBRANE_RUPT_MHSTTIM` [MH09])
+or:
+
+**4.** Information on clinical diagnosis of PROM at <37 weeks gestation in MNH19 form 
+
 
 ### Table 4. Preterm premature rupture of membranes (PPROM)
 ```{r}
@@ -1734,46 +1745,54 @@ pprom_tab <- preterm_indication %>%
   group_by(SITE) %>% 
   summarise(
     
-    "Missing both US and LMP GA or ultrasound date [MNH01]" = paste0(
-      format(sum(PPROM_PREGEND_MISS== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #Denominator for data completeness: 
+    
+    "Total completed pregnancies" = paste0(
+      format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PPROM_PREGEND_MISS== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing information on type of rupture of membranes (spontaneous or artificial) [MNH09]" = paste0(
-      format(sum(PPROM_PREGEND_MISS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPROM_OCCUR_MISS==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PPROM_PREGEND_MISS==2, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPROM_OCCUR_MISS==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Missing information on timing of spontaneous rupture of membranes [MNH09]" = paste0(
-      format(sum(PPROM_PREGEND_MISS==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPROM_OCCUR_MISS==2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PPROM_PREGEND_MISS== 3, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPROM_OCCUR_MISS== 2, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing information on timing of labor [MNH09]" = paste0(
-      format(sum(PPROM_PREGEND_MISS == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Missing information on labor [MNH09]" = paste0(
+      format(sum(PPROM_OCCUR_MISS == 3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PPROM_PREGEND_MISS == 4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPROM_OCCUR_MISS == 3, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+   "Excluded: pregnancy loss at <20 weeks with no information on PPROM" = paste0(
+      format(sum(PPROM_OCCUR_MISS == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_OCCUR_MISS == 4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Denominator (non-missing)" = paste0(
+      format(sum(PREG_END==1 & PPROM_OCCUR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & PPROM_OCCUR_MISS==0, na.rm = TRUE)/sum(PREG_END==1 & PPROM_OCCUR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "PPROM" = paste0(
-      format(sum(PPROM_PREGEND == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPROM_OCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PPROM_PREGEND == 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPROM_OCCUR == 1, na.rm = TRUE)/sum(PREG_END==1 & PPROM_OCCUR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "No PPROM" = paste0(
-      format(sum(PPROM_PREGEND==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPROM_OCCUR==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PPROM_PREGEND==0, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing" = paste0(
-      format(sum(PPROM_PREGEND==55, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(PPROM_PREGEND==55, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPROM_OCCUR==0, na.rm = TRUE)/sum(PREG_END==1 & PPROM_OCCUR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     ) %>% 
   t() %>% as.data.frame() %>% 
@@ -1792,15 +1811,25 @@ pprom_tab_output <- tb_theme1(pprom_tab) %>%
   tab_header(
     title = md("**Table 4**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data Completeness (among all completed pregnancies with MNH01 and MNH09)</span>"),
-        rows = 1:4
+    label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
+        rows = 1:5
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>PPROM (among all completed pregnancies with MNH01 and MNH09)</span>"),
-    rows = 5:7
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 2:5
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for PPROM prevalence</span>"),
+    rows = 6:8
   ) %>%
- row_group_order(groups = c( "<span style='font-size: 18px'>Data Completeness (among all completed pregnancies with MNH01 and MNH09)</span>",
-                            "<span style='font-size: 18px'>PPROM (among all completed pregnancies with MNH01 and MNH09)</span>")) 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>PPROM prevalence</span>"),
+    rows = 7:8
+  ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for data completeness</span>",
+                            "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Denominator for PPROM prevalence</span>",
+                            "<span style='font-size: 18px'>PPROM prevalence</span>")) 
 
 ```
 
@@ -3694,9 +3723,9 @@ knitr::include_graphics(paste0(path_to_save, "any_test_diabetes_output.png"))
 
 \newpage
 
-## 9. Near-miss 
+## 9. Maternal near-miss 
 
-**Definition:** Diabetes outcomes are assessed as follows:
+**Definition:** Includes:
 
 -   A woman who is pregnant, in labor, or within 42 days of the pregnancy end, *AND*
 
@@ -3706,7 +3735,7 @@ knitr::include_graphics(paste0(path_to_save, "any_test_diabetes_output.png"))
 
 -   Survives the experience.
 
-**Denominator:** Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure).
+**Denominator:** Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication or underwent a critical intervention).
 
 **Numerator:** 
 -   Women who have experienced a severe complication, critical intervention, or have experienced organ dysfunction *AND*
@@ -3716,7 +3745,7 @@ knitr::include_graphics(paste0(path_to_save, "any_test_diabetes_output.png"))
 ### Table 9. Near-miss 
 ```{r}
 
-near_miss_tab <- near_miss %>% 
+near_miss_taba <- near_miss %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -3742,26 +3771,108 @@ near_miss_tab <- near_miss %>%
     #   format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
     
-    "Women who have passed 42 days after pregnancy end without closing out AND visit after six weeks OR have the event" = paste0(
+    "Women who have passed 42 days after pregnancy end without closing out AND visit after six weeks OR have the event <sup>a</sup>" = paste0(
       format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
     
-    "Severe PPH" = paste0(
-      format(sum(HEM_PPH_SEV==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Any potentially life-threatening condition" = paste0(
+      format(sum(PLTC==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_PPH_SEV==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PLTC==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Uterine rupture" = paste0(
-      format(sum(UTERINE_RUP==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+    "PPH" = paste0(
+      format(sum(HEM_PPH == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_PPH==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Pre-eclampsia" = paste0(
+      format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Eclampsia" = paste0(
+      format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Severe hypertension" = paste0(
+      format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Sepsis or severe infection" = paste0(
+      format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Endometritis" = paste0(
+      format(sum(ENDOMETRITIS_M19 ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ENDOMETRITIS_M19 ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),   
+    
+    "Placenta accrete" = paste0(
+      format(sum(PLACENTA_ACCRETE_M09 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PLACENTA_ACCRETE_M09 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),   
+    
+   "Placental abruption" = paste0(
+      format(sum(PLACENTA_ABRUPTION_M09 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PLACENTA_ABRUPTION_M09 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),   
+   
+   "Uterine rupture" = paste0(
+      format(sum(UTERINE_RUP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(UTERINE_RUP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+   "Obstructed labor" = paste0(
+      format(sum(OBS_LABOR == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(OBS_LABOR == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),        
+    
+   "Prolonged labor" = paste0(
+      format(sum(PRO_LABOR == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRO_LABOR == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
+
+   "Severe abortion complications" = paste0(
+      format(sum(ABORT_COMPL_M19 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ABORT_COMPL_M19 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),     
+   
+    "Pulmonary edema" = paste0(
+       format(sum(PULM_EDEMA_M19 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+       " (",
+       format(round(sum(PULM_EDEMA_M19 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+   
+   )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0")))
+      
+      
+near_miss_tabb <- near_miss %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(      
     
     "Mother needed (M09) and/or received (M19) blood transfusion" = paste0(
-      format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Laparotomy (M19)" = paste0(
       format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3772,65 +3883,67 @@ near_miss_tab <- near_miss %>%
       " (",
       format(round(sum(ICU==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
+    
+    "Any unplanned hospitalization" = paste0(
+      format(sum(HOSP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HOSP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    # Near-miss list: 
+  
+    "Hysterectomy" = paste0(
+      format(sum(HYSTERECTOMY == 1 & NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HYSTERECTOMY == 1 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+    "Eclampsia with severe features" = paste0(
+      format(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+   "Uterine rupture" = paste0(
+      format(sum(UTERINE_RUP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(UTERINE_RUP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Sepsis" = paste0(
+      format(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Laparotomy (M19)" = paste0(
+      format(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+   
+    "Blood transfusion" = paste0(
+      format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
 
-    "Experienced organ dysfunction, n" = paste0(
+    "Experienced organ dysfunction" = paste0(
       format(sum(MAT_DYS ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAT_DYS ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Heart" = paste0(
-      format(sum(ORG_FAIL_HRT ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ORG_FAIL_HRT ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Respiratory" = paste0(
-      format(sum(ORG_FAIL_RESP ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ORG_FAIL_RESP ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
-    "Renal/kidney" = paste0(
-      format(sum(ORG_FAIL_RENAL ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ORG_FAIL_RENAL ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Liver" = paste0(
-      format(sum(ORG_FAIL_LIVER ==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ORG_FAIL_LIVER ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Neurological" = paste0(
-      format(sum(ORG_FAIL_NEUR ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ORG_FAIL_NEUR ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-        
-    "Uterine" = paste0(
-      format(sum(ORG_FAIL_UTER ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ORG_FAIL_UTER ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-            
-    "Coagulation/hematological" = paste0(
-      format(sum(ORG_FAIL_HEM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ORG_FAIL_HEM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-                
-    "Other" = paste0(
-      format(sum(ORG_FAIL_OTHR ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ORG_FAIL_OTHR ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
                     
-    "Maternal near miss (severe complication & organ failure)" = paste0(
+    "Any near miss" = paste0(
       format(sum(MAT_MNM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAT_MNM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+   
+    "Near miss but no PLTC <sup>b</sup>" = paste0(
+      format(sum(MISS_PLTC ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MISS_PLTC ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
   )  %>%
@@ -3845,11 +3958,12 @@ near_miss_tab <- near_miss %>%
 
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
-near_miss_tab[is.na(near_miss_tab)] <- paste0("0 (0)")
+near_miss_taba[is.na(near_miss_taba)] <- paste0("0 (0)")
+near_miss_tabb[is.na(near_miss_tabb)] <- paste0("0 (0)")
 
 ## the table is too long -- split into 2 
-near_miss_tab1 <- near_miss_tab[1:9,]
-near_miss_tab2 <- near_miss_tab[10:18,]
+near_miss_tab1 <- near_miss_taba
+near_miss_tab2 <- near_miss_tabb
 
 
 # part 1
@@ -3861,11 +3975,11 @@ near_miss_tab_output1 <- tb_theme1(near_miss_tab1) %>%
     rows = 1:3
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Indicators of near-miss <sup>a</sup></span>"),
-    rows = 4:9
+    label = html("<span style='font-size: 18px'>Experienced potentially life-threatening condition (PLTC) </span>"),
+    rows = 4:17
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
-                             "<span style='font-size: 18px'>Indicators of near-miss <sup>a</sup></span>"
+                             "<span style='font-size: 18px'>Experienced potentially life-threatening condition (PLTC) </span>"
                              ))  %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure).</span>")
@@ -3876,25 +3990,25 @@ near_miss_tab_output2 <- tb_theme1(near_miss_tab2) %>%
   tab_header(
     title = md("**Table 9 (continued)**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Indicators of near-miss <sup>a</sup></span>"),
-    rows = 1:8
+    label = html("<span style='font-size: 18px'>Underwent critical intervention</span>"),
+    rows = 1:3
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Near-miss <sup>a</sup></span>"),
-    rows = 9:9
+    label = html("<span style='font-size: 18px'>Maternal near-miss (PRISMA definition)</span>"),
+    rows = 4:11
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Indicators of near-miss <sup>a</sup></span>",
-                             "<span style='font-size: 18px'>Near-miss <sup>a</sup></span>"
+  row_group_order(groups = c("<span style='font-size: 18px'>Underwent critical intervention</span>",
+                             "<span style='font-size: 18px'>Maternal near-miss (PRISMA definition)</span>"
                              ))  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Observations that qualify as a near miss but not as a PLTC require further adjudication.</span>" )
  )
 
 ```
 
 ```{r, out.width = '100%'}
 
-gtsave(near_miss_tab1, file = "near_miss_tab1.png", path = path_to_save, expand = 10)
+gtsave(near_miss_tab_output1, file = "near_miss_tab1.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "near_miss_tab1.png"))
 
 ```
@@ -3903,9 +4017,249 @@ knitr::include_graphics(paste0(path_to_save, "near_miss_tab1.png"))
 
 ```{r, out.width = '100%'}
 
-gtsave(near_miss_tab2, file = "near_miss_tab2.png", path = path_to_save, expand = 10)
+gtsave(near_miss_tab_output2, file = "near_miss_tab2.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "near_miss_tab2.png"))
 
 ```
+
+
+\newpage
+
+
+## 10. Uterine Rupture
+
+**Definition:** Uterine rupture at any time in pregnancy (drawn from Forms MNH09, MNH12, or MNH19)
+
+**Denominator:** All completed pregnancies (at any gestational age)
+
+### Table 10. Uterine rupture
+```{r}
+
+uter_rup_tab <- preterm_indication %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Total completed pregnancies" = paste0(
+      format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),   
+     
+     "Missing: L&D information (MNH09)" = paste0(
+      format(sum(PREG_END== 1 & MAT_UTER_RUP_MISS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & MAT_UTER_RUP_MISS==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+     
+    "Missing: Missing both L&D & PNC information" = paste0(
+      format(sum(MAT_UTER_RUP_MISS== 3 & PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_UTER_RUP_MISS== 3 & PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Missing: information for pregnancy loss reported in MNH04/MNH19" = paste0(
+      format(sum(PREG_END== 1 & MAT_UTER_RUP_MISS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & MAT_UTER_RUP_MISS==2, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+    "Missing: information for a maternal death prior to delivery" = paste0(
+      format(sum(PREG_END== 1 & MAT_UTER_RUP_MISS==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & MAT_UTER_RUP_MISS==4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Uterine rupture" = paste0(
+      format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "No uterine rupture" = paste0(
+      format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==0, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+uter_rup_tab[is.na(uter_rup_tab)] <- paste0("0 (0)")
+
+uter_rup_tab_output <- tb_theme1(uter_rup_tab) %>% 
+  tab_header(
+    title = md("**Table 10**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
+        rows = 1:5
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 2:5
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for uterine rupture prevalence</span>"),
+    rows = 6:8
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Uterine rupture prevalence</span>"),
+    rows = 7:8
+  ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for data completeness</span>",
+                            "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Denominator for uterine rupture prevalence</span>",
+                            "<span style='font-size: 18px'>Uterine rupture prevalence</span>")) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(uter_rup_tab_output, file = "uter_rup_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "uter_rup_tab_output.png"))
+
+```
+
+
+
+\newpage
+
+
+## 11. Prolonged labor
+
+**Definition:** Labor lasting ≥20 hours for primipara women or ≥14 hours for multipara women
+
+**Denominator:** Pregnancies ending in a livebirth or stillbirth (>20 weeks GA)
+
+### Table 11. Prolonged labor
+```{r}
+
+prolong_tab <- preterm_indication %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Total completed pregnancies" = paste0(
+      format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),   
+     
+     "Excluded: Pregnancy losses <20 weeks GA or induced abortion" = paste0(
+      format(sum(PREG_END== 1 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+     
+    "Excluded: Maternal deaths prior to delivery" = paste0(
+      format(sum(PREG_END== 1 & PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Missing: unknown if labor occurred" = paste0(
+      format(sum(PREG_END== 1 & PRO_LABOR_MISS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & PRO_LABOR_MISS==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+    "Missing: unknown parity & labor lasted 14-20 hrs" = paste0(
+      format(sum(PREG_END== 1 & PRO_LABOR_MISS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & PRO_LABOR_MISS==2, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing: unknown length of labor" = paste0(
+      format(sum(PREG_END== 1 & PRO_LABOR_MISS==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & PRO_LABOR_MISS==3, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing: labor timing errors (under review)" = paste0(
+      format(sum(PREG_END== 1 & PRO_LABOR_MISS==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & PRO_LABOR_MISS==4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(PREG_END==1 & PRO_LABOR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & PRO_LABOR_MISS==0, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Prolonged labor" = paste0(
+      format(sum(PREG_END==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE)/sum(PREG_END==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "No prolonged labor" = paste0(
+      format(sum(PREG_END==1 & PRO_LABOR_MISS==0 & PRO_LABOR==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & PRO_LABOR_MISS==0 & PRO_LABOR==0, na.rm = TRUE)/sum(PREG_END==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+prolong_tab[is.na(prolong_tab)] <- paste0("0 (0)")
+
+prolong_tab_output <- tb_theme1(uter_rup_tab) %>% 
+  tab_header(
+    title = md("**Table 10**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
+        rows = 1:5
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 2:5
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for prolonged labor prevalence</span>"),
+    rows = 6:8
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Prolonged labor prevalence</span>"),
+    rows = 7:8
+  ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for data completeness</span>",
+                            "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Denominator for prolonged labor prevalence</span>",
+                            "<span style='font-size: 18px'>Prolonged labor prevalence</span>")) 
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(prolong_tab_output, file = "prolong_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "prolong_tab_output.png"))
+
+```
+
+
+
 
 
