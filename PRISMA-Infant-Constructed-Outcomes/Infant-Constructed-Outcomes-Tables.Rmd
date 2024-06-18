@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2024 April 22)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2024 June 18)"
 output:
   pdf_document:
     toc: no
@@ -45,6 +45,8 @@ stillbirth <- read.csv(paste0(path_to_data, "stillbirth", ".csv"))
 birth_asphyxia <- read.csv(paste0(path_to_data, "birth_asphyxia", ".csv")) 
 fetal_death <- read.csv(paste0(path_to_data, "fetal_death", ".csv")) 
 hyperbili_all_crit <- read.csv(paste0(path_to_data, "hyperbili_all_crit", ".csv")) 
+psbi_outcome <- read.csv(paste0(path_to_data, "psbi_outcome", ".csv")) 
+
 infant_outcomes <- read.csv(paste0(path_to_data, "infant_outcomes", ".csv")) 
 
 mnh01_constructed <- read.csv(paste0(path_to_data, "mnh01_constructed.csv")) 
@@ -133,7 +135,7 @@ g_legend <- function(p) {
 setwd(paste0(path_to_save))
 ```
 
-**Includes data from synapse last updated:** 2024 April 19 (Pakistan: 2024 April 05)
+**Includes data from synapse last updated:** 2024 June 14 
 
 \tableofcontents
 
@@ -159,8 +161,8 @@ setwd(paste0(path_to_save))
 ## neo/inf mortality: All live births with MNH09 and MNH11 filled out AND have passed the risk period with a visit OR died within the risk period.
 ## stillbirth: Any infant with a birth outcome reported in MNH04 `(PRG_DSDECOD)` or MNH09 `(BIRTH_DSTERM)`.
 ## fetal death: Any infant with a fetal loss reported in MNH04 `(PRG_DSDECOD)` or birth outcome in MNH09 `(BIRTH_DSTERM_INF1)`.
-## asphyxia
 
+## asphyxia
 all_births <- mnh09_long %>%
   ## If india-SAS doesn't have data, add emprty row here 
   mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
@@ -1254,7 +1256,7 @@ Figure 3b. Gestational age at birth was calculated by taking the difference betw
 ## 4. Size for gestational age (SGA/LGA)
 **Definition:** GA & sex-specific birthweight percentiles per INTERGROWTH standard.Further classified as <3rd, 3rd to 10th, 10th to <90th, >=90th. 
 
-**Denominator:** All participants with a MNH09 form filled out with a reported "live birth" `(BIRTH_DSTERM_INF1-4=1 [MNH09])`.
+**Denominator:** All live births reported in MNH09.
 
 ***Note:** Gestational age information collected in MNH01 is used to generate best obstetric estimates for EDD. These constructed variables are then used to calculate GA at time of birth.* 
 
@@ -1333,11 +1335,10 @@ sga_tab <- sga %>%
       format(round(sum(SGA_CAT == 14, na.rm = TRUE)/sum(SGA_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-  ) %>% 
+  ) %>%
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1) 
-
 
 
 # out <- sga %>% filter(SITE == "Kenya" & SGA_CAT==55) %>% select(SITE, MOMID, PREGID, INFANTID, GESTAGEBIRTH_BOE_DAYS, GESTAGEBIRTH_BOE, BWEIGHT_ANY, M09_SEX)
@@ -1348,14 +1349,14 @@ sga_tab <- sga %>%
 ```{r}
 
 sga_tab <- sga_tab %>% 
-  `rownames<-` (c(
-    "SGA <3rd percentile",
-    "SGA 3rd to <10th percentile",
-    "AGA 10th to <90th percentile",
-    "LGA >= 90th percentile",
-    "Missing"
-  )
-  ) %>%
+  # `rownames<-` (c(
+  #   "SGA <3rd percentile",
+  #   "SGA 3rd to <10th percentile",
+  #   "AGA 10th to <90th percentile",
+  #   "LGA >= 90th percentile",
+  #   "Missing"
+  # )
+  # ) %>%
   # mutate_all(funs(str_replace(., "NA (0)", "0 (0)"))) %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) 
 
@@ -1367,10 +1368,27 @@ sga_output <- tb_theme1(sga_tab) %>%
     title = md("**Table 4**")
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Size for Gestational Age (Categorical)<sup>a</sup>, n (%)</span>"),
+    label = html("<span style='font-size: 18px'>Size for Gestational Age (Cateogorical)<sup>a</sup>, n (%)</span>"),
     rows = 1:5
   )  %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Size for Gestational Age (Cateogorical)<sup>a</sup>, n (%)</span>"))
+  row_group_order(groups = c("<span style='font-size: 18px'>Size for Gestational Age (Cateogorical)<sup>a</sup>, n (%)</span>")) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all live births reported in MNH09.</span>")
+ ) %>% 
+    tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator"))) 
+
+
 
 ```
 
@@ -1419,24 +1437,25 @@ ggplot(data=sga,
 
 **1.** Valid date of birth (varname: `DELIV_DSSTDAT_INF1-4 [MNH09]`). 
 
-**2.** Birth outcome reported as "Live birth" (varname: `BIRTH_DSTERM [MNH09]`)
+**2.** Birth outcome reported as "live birth" (varname: `BIRTH_DSTERM [MNH09]`)
 
 ### Table 5. Mortality
 ```{r, mortality, message = FALSE, warning = FALSE}
-
-#  4. Neonatal mortality: Denominator is all live births reported in MNH11 with mh09 filled out 
+#  4. Neonatal mortality: Denominator is all live births reported in MNH11 with mnh09 filled out 
   # a. <24 hours 
   # b. Early neonatal mortality: first  7 days 
   # c. Late neonatal mortality: between 7 & 28 days
 
 mortality_tab <- mortality %>% ## denominator is anyone with an MNH09 or MNH11 filled out 
-  ## If India-SAS doesn't have data, add empty row here 
+  ## If india-SAS doesn't have data, add empty row here 
   mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
   complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
+    "Denominator" =  paste0(
+      format(sum(DATA_COMPLETE_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Missing MNH09 (but has MNH11 or MNH24)" = paste0(
       format(sum(MISSING_MNH09 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -1553,27 +1572,47 @@ mortality_output <- tb_theme1(mortality_all_tab) %>%
     title = md("**Table 5**")
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data Completeness</span>"),
-    rows = 1:2
+    label = html("<span style='font-size: 18px'>Data Completeness<sup>a</sup></span>"),
+    rows = 1:3
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>a</sup></span>"),
-    rows = 3:8
+    label = html("<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>"),
+    rows = 4:9
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of Infant Mortality<sup>b</sup></span>"),
-    rows = 9:12
+    label = html("<span style='font-size: 18px'>Timing of Infant Mortality<sup>c</sup></span>"),
+    rows = 10:13
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data Completeness</span>",
-                  "<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Timing of Infant Mortality<sup>b</sup></span>")
+  row_group_order(groups = c("<span style='font-size: 18px'>Data Completeness<sup>a</sup></span>",
+                  "<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>",
+                  "<span style='font-size: 18px'>Timing of Infant Mortality<sup>c</sup></span>")
                   ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all live births.</span>")
+ )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period with a visit OR died within the risk period (risk period: age = 28days).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period with a visit OR died within the risk period (risk period: age = 28days).</span>")
  )  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period (risk period: age = 365days).</span>")
- ) 
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period (risk period: age = 365days).</span>")
+ ) %>% 
+    tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator",
+                 "Denominator ", 
+                 "Denominator  "))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator",
+                 "Denominator ", 
+                 "Denominator  "))) 
+
 ```
 
 ```{r, out.width = '100%'}
@@ -1613,11 +1652,10 @@ stillbirth_tab <- stillbirth %>% ## denominator is anyone with a birth outcome r
   group_by(SITE) %>% 
   summarise(
     
-   ## data completeness
     "Denominator" =  paste0(
-      format(sum(BIRTH_OUTCOME == 0 & GA_AT_BIRTH_ANY >= 20, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DATA_COMPLETE_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Fetal loss or fetal death reported but missing signs of life (NA or 77 reported) ^b^" = paste0(
+    "Fetal loss or fetal death reported but missing signs of life (NA or 77 reported)^a^ ^b^" = paste0(
       format(sum(MISSING_SIGNS_OF_LIFE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MISSING_SIGNS_OF_LIFE == 1, na.rm = TRUE)/sum(BIRTH_OUTCOME == 0 & GA_AT_BIRTH_ANY >= 20, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -1625,7 +1663,7 @@ stillbirth_tab <- stillbirth %>% ## denominator is anyone with a birth outcome r
     
     ## stillbirth outcome
     "Denominator " =  paste0(
-      format(sum(STILLBIRTH_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), ## denominator is all fetal losses and livebirths
+      format(sum(STILLBIRTH_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Early stillbirth (20-27wks)" = paste0(
       format(sum(STILLBIRTH_GESTAGE_CAT == 11, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -1651,27 +1689,32 @@ stillbirth_tab <- stillbirth %>% ## denominator is anyone with a birth outcome r
       format(round(sum(STILLBIRTH_20WK == 1, na.rm = TRUE)/sum(STILLBIRTH_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
-  
-  # stillbirth timing
-  "Denominator  " =  paste0(
-      format(sum(BIRTH_OUTCOME == 0 &  GA_AT_BIRTH_ANY>=20, na.rm = TRUE), nsmall = 0, digits = 2)), ## denominator is all stillbirths
-
-   "Antepartum" = paste0(
-      format(sum(STILLBIRTH_TIMING == 11, na.rm = TRUE), nsmall = 0, digits = 2),
+    # "Missing" = paste0(
+    #   format(sum(STILLBIRTH_GESTAGE_CAT == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(STILLBIRTH_GESTAGE_CAT == 55, na.rm = TRUE)/sum(STILLBIRTH_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"), 
+     
+   ## stillbirth timing outcome
+    "Denominator  " =  paste0(
+      format(sum(STILLBIRTH_20WK == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ 
+    "Antepartum" = paste0(
+      format(sum(STILLBIRTH_TIMING == 11 & STILLBIRTH_20WK ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(STILLBIRTH_TIMING == 11, na.rm = TRUE)/sum(BIRTH_OUTCOME == 0 &  GA_AT_BIRTH_ANY>=20, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STILLBIRTH_TIMING == 11 & STILLBIRTH_20WK ==1, na.rm = TRUE)/sum(STILLBIRTH_20WK ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
     
     "Intrapartum" = paste0(
-      format(sum(STILLBIRTH_TIMING == 12, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(STILLBIRTH_TIMING == 12 & STILLBIRTH_20WK ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(STILLBIRTH_TIMING == 12, na.rm = TRUE)/sum(BIRTH_OUTCOME == 0 &  GA_AT_BIRTH_ANY>=20, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STILLBIRTH_TIMING == 12 & STILLBIRTH_20WK ==1, na.rm = TRUE)/sum(STILLBIRTH_20WK ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
    
     "Don't Know" = paste0(
-      format(sum(STILLBIRTH_TIMING == 99, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(STILLBIRTH_TIMING == 99 & STILLBIRTH_20WK ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(STILLBIRTH_TIMING == 99, na.rm = TRUE)/sum(BIRTH_OUTCOME == 0 &  GA_AT_BIRTH_ANY>=20, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STILLBIRTH_TIMING == 99 & STILLBIRTH_20WK ==1, na.rm = TRUE)/sum(STILLBIRTH_20WK ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   ) %>% 
@@ -1692,30 +1735,50 @@ stillbirth_output <- tb_theme1(stillbirth_tab) %>%
     title = md("**Table 6**")
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
+    label = html("<span style='font-size: 18px'>Data completeness<sup>a b</sup></span>"),
     rows = 1:2
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Stillbirth (categorical) <sup>c</sup></span>"),
+    label = html("<span style='font-size: 18px'>Stillbirth (categorical)<sup>c</sup></span>"),
     rows = 3:7
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of stillbirth <sup>a</sup></span>"),
+    label = html("<span style='font-size: 18px'>Timing of stillbirth<sup>d</sup></span>"),
     rows = 8:11
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Stillbirth (categorical) <sup>c</sup></span>",
-                  "<span style='font-size: 18px'>Timing of stillbirth <sup>a</sup></span>")
+  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness<sup>a b</sup></span>",
+                             "<span style='font-size: 18px'>Stillbirth (categorical)<sup>c</sup></span>",
+                             "<span style='font-size: 18px'>Timing of stillbirth<sup>d</sup></span>")
                   ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all reported stillbirths.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all particpants with a birth outcome reported in MNH09.</span>")
  ) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Valid signs of life reported in MNH09 and MNH11 (varname: `CRY_CEOCCUR_INF1-4 [MNH09]`, `FHR_VSTAT_INF1-4 [MNH09]`, `MACER_CEOCCUR_INF1-4 [MNH09]`, `CORD_PULS_CEOCCUR_INF1-4 [MNH09]`, `BREATH_FAIL_CEOCCUR [MNH11]`).</span>")
  ) %>% 
-tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all participants with a stillbirth or livebirths.</span>")
- )   
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all participants with a birth outcome (`BIRTH_DSTERM=1 or 0 [MNH09]` OR `PRG_DSDECOD=2 or 3 [MNH04]`).</span>")
+ )  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all reported stillbirths.</span>")
+ ) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator",
+                 "Denominator ", 
+                 "Denominator  "))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator",
+                 "Denominator ", 
+                 "Denominator  "))) 
+
 
 ```
 
@@ -1742,20 +1805,28 @@ knitr::include_graphics("stillbirth_output.png")
 ```{r}
 
 fetal_death_tab <- fetal_death %>% ## denominator is anyone with a birth outcome reported 
-   ## If india-SAS doesn't have data, add emprty row here 
+  ## If India-SAS doesn't have data, add empty row here 
   mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
   complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
-
-    "Fetal loss reported but specified type of loss is missing" = paste0(
-      format(sum(INVALID_FETAL_LOSS == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(INVALID_FETAL_LOSS == 1, na.rm = TRUE)/sum(M04_PRG_DSDECOD == 2, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
     
+    # "Denominator" =  paste0(
+    #   format(sum(M04_PRG_DSDECOD == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    # 
+    # "Fetal loss reported but specified type of loss is missing" = paste0(
+    #   format(sum(INVALID_FETAL_LOSS == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(INVALID_FETAL_LOSS == 1, na.rm = TRUE)/sum(M04_PRG_DSDECOD == 2, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+    
+    ## fetal death 
+    
+    "Denominator" =  paste0(
+      format(sum(INF_FETAL_DTH_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
     "Stillbirth (fetal loss >=20wks)" = paste0(
       format(sum(STILLBIRTH_20WK == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -1780,11 +1851,14 @@ fetal_death_tab <- fetal_death %>% ## denominator is anyone with a birth outcome
       format(round(sum(INF_FETAL_DTH == 1, na.rm = TRUE)/sum(INF_FETAL_DTH_DENOM, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
-    
-    "Induced abortion^d^" = paste0(
+    ## other fetal death 
+    "Denominator " =  paste0(
+      format(sum(INF_FETAL_DTH_OTHR_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Induced abortion^c^" = paste0(
       format(sum(INF_ABOR_IND == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(INF_ABOR_IND == 1, na.rm = TRUE)/sum(INF_FETAL_DTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_ABOR_IND == 1, na.rm = TRUE)/sum(INF_FETAL_DTH_OTHR_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
 
   ) %>% 
@@ -1804,33 +1878,44 @@ fetaldeath_output <- tb_theme1(fetal_death_tab) %>%
   tab_header(
     title = md("**Table 7**")
   ) %>%
+  # tab_row_group(
+  #   label = html("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>"),
+  #   rows = 1:1
+  # ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>"),
-    rows = 1:1
+    label = html("<span style='font-size: 18px'>Fetal death<sup>a</sup></span>"),
+    rows = 1:5
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Fetal death<sup>b</sup></span>"),
-    rows = 2:5
+    label = html("<span style='font-size: 18px'>Other fetal death<sup>b</sup></span>"),
+    rows = 6:7
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Other fetal death<sup>c</sup></span>"),
-    rows = 6:6
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Fetal death<sup>b</sup></span>",
-                  "<span style='font-size: 18px'>Other fetal death<sup>c</sup></span>")) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is n reported fetal loss as pregnancy status in mnh04 (varname: `PRG_DSDECOD [MNH01]`).</span>")
- ) %>% 
+  row_group_order(groups = c("<span style='font-size: 18px'>Fetal death<sup>a</sup></span>",
+                             "<span style='font-size: 18px'>Other fetal death<sup>b</sup></span>")) %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is n total births excluding induced abortions</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is n total births excluding induced abortions</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is n total births.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is n total births.</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Induced abortion defined as an elective surgical procedure or medical intervention to terminate the pregnancy at any gestational age).</span>")
- )  
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Induced abortion defined as an elective surgical procedure or medical intervention to terminate the pregnancy at any gestational age).</span>")
+ )  %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator",
+                 "Denominator "))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator",
+                 "Denominator "))) 
+
 ```
 
 ```{r, out.width = '100%'}
@@ -1865,13 +1950,21 @@ birth_asphyxia_tab <- birth_asphyxia %>% ## denominator is anyone with a birth o
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
+    
+    # data completeness 
+    "Denominator" =  paste0(
+      format(sum(DATA_COMPLETE_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Invalid birth complications in MNH11 or MNH20 (NA or 77 reported)^a^" = paste0(
+    "Invalid birth complications in MNH11 (NA or 77 reported)^a^" = paste0(
       format(sum(INF_ASPH == 55, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(INF_ASPH == 55, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
       ")"),
     
+    # indicators of birth asphyxia
+     "Denominator " =  paste0(
+      format(sum(INF_ASPH_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
     "Failed to initiate and sustain breathing at birth" = paste0(
       format(sum(M11_BREATH_FAIL_CEOCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -1907,7 +2000,12 @@ birth_asphyxia_tab <- birth_asphyxia %>% ## denominator is anyone with a birth o
       " (",
       format(round(sum(M11_INF_PROCCUR_6 == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
       ")"),
-
+    
+    
+    # perinatal birth asphyxia 
+    "Denominator  " =  paste0(
+      format(sum(INF_ASPH_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
     "Birth asphyxia^b^" = paste0(
       format(sum(INF_ASPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -1933,15 +2031,15 @@ asphyxia_output <- tb_theme1(birth_asphyxia_tab) %>%
     title = md("**Table 8**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>"),
-    rows = 1:1
+    rows = 1:2
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Indicators of birth asphyxia<sup>a</sup></span>"),
-    rows = 2:7
+    rows = 3:9
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Perinatal birth asphyxia<sup>a</sup></span>"),
-    rows = 8:8
+    rows = 10:11
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>",
                   "<span style='font-size: 18px'>Indicators of birth asphyxia<sup>a</sup></span>",
@@ -1952,7 +2050,24 @@ asphyxia_output <- tb_theme1(birth_asphyxia_tab) %>%
  ) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Defined as required any breathing assistance at birth.</span>")
- )
+ ) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator",
+                 "Denominator ", 
+                 "Denominator  "))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator",
+                 "Denominator ", 
+                 "Denominator  "))) 
+
 
 ```
 
@@ -1982,9 +2097,11 @@ hyperbili_all_crit_tab <- hyperbili_all_crit %>% ## Denominator is all live birt
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
+    
+    ## hyperbili by TCB
     # "Denominator" = paste0(
     #   format(sum(DENOM_24HR == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-    # 
+
     "Hyperbilirubinemia <24 hrs of life" = paste0(
       format(sum(INF_HYPERBILI_TCB15_24HR == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -2016,7 +2133,7 @@ hyperbili_all_crit_tab <- hyperbili_all_crit %>% ## Denominator is all live birt
 ## Hyperbilirubinemia by AAP thresholds
     # "Denominator " = paste0(
     #   format(sum(DENOM_24HR == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-    # 
+
     "Hyperbilirubinemia <24 hrs of life " = paste0(
       format(sum(INF_HYPERBILI_AAP_24HR == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -2102,12 +2219,12 @@ hyperbili_all_crit_output <- tb_theme1(hyperbili_all_crit_tab) %>%
     rows = 5:8
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Jaundice</span>"),
+    label = html("<span style='font-size: 18px'>Jaundice (IMCI criteria)</span>"),
     rows = 9:12
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (>15mg/dL)</span>",
                   "<span style='font-size: 18px'>Hyperbilirubinemia by TCB (AAP threshold)<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Jaundice</span>")
+                  "<span style='font-size: 18px'>Jaundice (IMCI criteria)</span>")
                   ) %>% 
   tab_footnote(
       footnote = html("<span style='font-size: 18px'><sup>a</sup> AAP threshold determined by the following inputs: phototherapy thresholds with no hyperbilirubinemia neurotoxicity risk factor, gestational age at delivery, and infant age at time of assessment (days and hours).</span>")
@@ -2121,3 +2238,1024 @@ knitr::include_graphics("hyperbili_all_crit_output.png")
 ```
 
 \newpage
+
+## 10. PSBI
+
+**Definition:** Presence of any clinical signs or symptoms as defined by the WHO IMCI criteria, which are consistent with possible severe bacterial infection from delivery to 59 days.
+
+**Denominator:** All livebirths aged 0-59 days. 
+
+&nbsp;
+
+### Table 10. PSBI
+```{r, psbi, message = FALSE, warning = FALSE}
+# Has the baby had difficulty in feeding
+# Has the baby had convulsions? 
+# Has the baby had fast or difficult breathing? (60 breaths per minute or more)
+# Does infant have severe chest in-drawing?
+# Has the baby had a fever? (38C or higher)
+# Has the baby had low body temperature (<35.5C)
+
+psbi_tab <- psbi_outcome %>% ## Denominator is all live births aged 0-59 days
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    ## data completeness 
+      # Missing confirmatory respiratory rate
+      "IPC" = paste0(
+      format(sum(INF_PSBI_IPC == 1 & 
+                   (M11_BREATH_VSORRES_1 >= 60 & M11_BREATH_VSORRES_2 <0), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_IPC == 1 & 
+                   (M11_BREATH_VSORRES_1 >= 60 & M11_BREATH_VSORRES_2 <0), na.rm = TRUE)/sum(INF_PSBI_IPC == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+
+      "PNC0" = paste0(
+      format(sum(INF_PSBI_PNC0 == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_PNC0 == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE)/sum(INF_PSBI_PNC0 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+      
+      "PNC1" = paste0(
+      format(sum(INF_PSBI_PNC1 == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_PNC1 == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE)/sum(INF_PSBI_PNC1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+      
+       "PNC4" = paste0(
+      format(sum(INF_PSBI_PNC4 == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_PNC4 == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE)/sum(INF_PSBI_PNC4 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      "PNC6" = paste0(
+      format(sum(INF_PSBI_PNC6 == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_PNC6 == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE)/sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+      
+      "Unscheduled visit" = paste0(
+      format(sum(INF_PSBI_UNSCHED == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_UNSCHED == 1 & 
+                   (M13_BREATH_VSORRES_1 >= 60 & M13_BREATH_VSORRES_2 <0), na.rm = TRUE)/sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+      
+      "Hospitalization visit" = paste0(
+      format(sum(INF_PSBI_HOSPITAL == 1 & 
+                   (M20_RR_VSORRES >= 60 & M20_MAX_RR_VSORRES <0), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_HOSPITAL == 1 & 
+                   (M20_RR_VSORRES >= 60 & M20_MAX_RR_VSORRES <0), na.rm = TRUE)/sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+      
+     # Missing confirmatory temperature 
+     "IPC " = paste0(format(sum(INF_PSBI_IPC == 1 & 
+                                        (((M11_TEMP_VSORRES > 0 & M11_TEMP_VSORRES < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
+                                        (M11_TEMP_VSORRES >=38 & M11_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_IPC == 1 & 
+                                        (((M11_TEMP_VSORRES > 0 & M11_TEMP_VSORRES < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
+                                        (M11_TEMP_VSORRES >=38 & M11_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_IPC == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+
+    "PNC0 " = paste0(format(sum(INF_PSBI_PNC0 == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_PNC0 == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_PNC0 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+      
+      "PNC1 " = paste0(format(sum(INF_PSBI_PNC1 == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_PNC1 == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_PNC1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+      
+       "PNC4 " = paste0(format(sum(INF_PSBI_PNC4 == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_PNC4 == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_PNC4 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+      
+      "PNC6 " = paste0(format(sum(INF_PSBI_PNC6 == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_PNC6 == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+      
+      "Unscheduled visit " = paste0(format(sum(INF_PSBI_UNSCHED == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_UNSCHED == 1 & 
+                                        (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
+                                        (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+      
+      "Hospitalization visit " = paste0(format(sum(INF_PSBI_HOSPITAL == 1 & 
+                                        (((M20_TEMP_VSORRES > 0 & M20_MAX_TEMP_VSORRES < 35.5) & (M20_MAX_TEMP_VSORRES < 0)) | 
+                                        (M20_TEMP_VSORRES >=38 & M20_MAX_TEMP_VSORRES < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",  format(round(sum(INF_PSBI_HOSPITAL == 1 & 
+                                        (((M20_TEMP_VSORRES > 0 & M20_TEMP_VSORRES < 35.5) & (M20_LOW_TEMP_VSORRES < 0)) | 
+                                        (M20_TEMP_VSORRES >=38 & M20_LOW_TEMP_VSORRES < 0)), na.rm = TRUE)/sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+      
+    ## PSBI BY VISIT 
+    "Denominator" = paste0(
+       format(sum(INF_PSBI_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "IPC (target window: delivery to 72 hours" = paste0(
+      format(sum(INF_PSBI_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_IPC == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      "Difficulty in feeding" = paste0(
+      format(sum(INF_PSBI_IPC == 1 & M11_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+    
+      "Convulsions" = paste0(
+      format(sum(INF_PSBI_IPC == 1 & M11_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+      "Fast breathing (RR>=60)" = paste0(
+      format(sum(INF_PSBI_IPC == 1 & (M11_BREATH_VSORRES_1 >= 60 | M11_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)), 
+    
+      "Severe chest in-drawing" = paste0(
+      format(sum(INF_PSBI_IPC == 1 & M11_CHESTINDRAW_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+      
+      "Fever (>=38C)" = paste0(
+      format(sum(INF_PSBI_IPC == 1 & (M11_TEMP_VSORRES >= 38 | M11_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)), 
+    
+      "Low body temperature (<35.5C)" = paste0(
+      format(sum(INF_PSBI_IPC == 1 & ((M11_TEMP_VSORRES > 0 & M11_TEMP_VSORRES < 35.5)| (M11_TEMP_VSORRES_2 > 0 & M11_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+    "PNC0 (target window: 3 to 5 days)" = paste0(
+      format(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+          
+            "Difficulty in feeding " = paste0(
+            format(sum(INF_PSBI_PNC0 == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Convulsions " = paste0(
+            format(sum(INF_PSBI_PNC0 == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+      
+            "Fast breathing (RR>=60) " = paste0(
+            format(sum(INF_PSBI_PNC0 == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Severe chest in-drawing " = paste0(
+            format(sum(INF_PSBI_PNC0 == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+            
+            "Fever (>=38C) " = paste0(
+            format(sum(INF_PSBI_PNC0 == 1 & (M13_TEMP_VSORRES_1 >= 38 | M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Low body temperature (<35.5C) " = paste0(
+            format(sum(INF_PSBI_PNC0 == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)| (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)), 
+      
+    
+    "PNC1 (target window: 7 to 14 days)" = paste0(
+      format(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+            "Difficulty in feeding  " = paste0(
+            format(sum(INF_PSBI_PNC1 == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Convulsions  " = paste0(
+            format(sum(INF_PSBI_PNC1 == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+      
+            "Fast breathing (RR>=60)  " = paste0(
+            format(sum(INF_PSBI_PNC1 == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Severe chest in-drawing  " = paste0(
+            format(sum(INF_PSBI_PNC1 == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+            
+            "Fever (>=38C)  " = paste0(
+            format(sum(INF_PSBI_PNC1 == 1 & (M13_TEMP_VSORRES_1 >= 38 | M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Low body temperature (<35.5C)  " = paste0(
+            format(sum(INF_PSBI_PNC1 == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)| (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+    "PNC4 (target window: 28 to 35 days)" = paste0(
+      format(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+            
+            "Difficulty in feeding   " = paste0(
+            format(sum(INF_PSBI_PNC4 == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Convulsions   " = paste0(
+            format(sum(INF_PSBI_PNC4 == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+      
+            "Fast breathing (RR>=60)   " = paste0(
+            format(sum(INF_PSBI_PNC4 == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Severe chest in-drawing   " = paste0(
+            format(sum(INF_PSBI_PNC4 == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+            
+            "Fever (>=38C)   " = paste0(
+            format(sum(INF_PSBI_PNC4 == 1 & (M13_TEMP_VSORRES_1 >= 38 | M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Low body temperature (<35.5C)   " = paste0(
+            format(sum(INF_PSBI_PNC4 == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)| (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+    
+    "PNC6 (target window: 6 to 12 weeks)" = paste0(
+      format(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+            "Difficulty in feeding    " = paste0(
+            format(sum(INF_PSBI_PNC6 == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Convulsions    " = paste0(
+            format(sum(INF_PSBI_PNC6 == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+      
+            "Fast breathing (RR>=60)    " = paste0(
+            format(sum(INF_PSBI_PNC6 == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Severe chest in-drawing    " = paste0(
+            format(sum(INF_PSBI_PNC6 == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+            
+            "Fever (>=38C)    " = paste0(
+            format(sum(INF_PSBI_PNC6 == 1 & (M13_TEMP_VSORRES_1 >= 38 | M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Low body temperature (<35.5C)    " = paste0(
+            format(sum(INF_PSBI_PNC6 == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)| (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+    "Unscheduled" = paste0(
+      format(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+            "Difficulty in feeding     " = paste0(
+            format(sum(INF_PSBI_UNSCHED == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Convulsions     " = paste0(
+            format(sum(INF_PSBI_UNSCHED == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+      
+            "Fast breathing (RR>=60)     " = paste0(
+            format(sum(INF_PSBI_UNSCHED == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Severe chest in-drawing     " = paste0(
+            format(sum(INF_PSBI_UNSCHED == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+            
+            "Fever (>=38C)     " = paste0(
+            format(sum(INF_PSBI_UNSCHED == 1 & (M13_TEMP_VSORRES_1 >= 38 | M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Low body temperature (<35.5C)     " = paste0(
+            format(sum(INF_PSBI_UNSCHED == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)| (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+    "Hospitalization" = paste0(
+      format(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+           "Difficulty in feeding      " = paste0(
+            format(sum(INF_PSBI_HOSPITAL == 1 & M20_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+            "Convulsions      " = paste0(
+            format(sum(INF_PSBI_HOSPITAL == 1 & M20_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+      
+            "Fast breathing (RR>=60)      " = paste0(
+            format(sum(INF_PSBI_HOSPITAL == 1 & (M20_RR_VSORRES >= 60 | M20_MAX_RR_VSORRES >=60) , na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Severe chest in-drawing      " = paste0(
+            format(sum(INF_PSBI_HOSPITAL == 1 & M20_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)), 
+            
+            "Fever (>=38C)      " = paste0(
+            format(sum(INF_PSBI_HOSPITAL == 1 & (M20_TEMP_VSORRES >= 38 | M20_MAX_TEMP_VSORRES >= 38), na.rm = TRUE), nsmall = 0, digits = 2)), 
+          
+            "Low body temperature (<35.5C)      " = paste0(
+            format(sum(INF_PSBI_HOSPITAL == 1 & ((M20_TEMP_VSORRES > 0 & M20_TEMP_VSORRES < 35.5)| (M20_LOW_TEMP_VSORRES > 0 & M20_LOW_TEMP_VSORRES < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2))
+
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)
+
+
+# 
+# 
+# psbi_tab <- psbi_outcome %>% ## Denominator is all live births aged 0-59 days
+#   rowwise() %>% 
+#   group_by(SITE) %>% 
+#   summarise(
+#     
+#     "Denominator" = paste0(
+#        format(sum(INF_PSBI_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+# 
+#     "IPC (target window: delivery to 72 hours" = paste0(
+#       format(sum(INF_PSBI_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(INF_PSBI_IPC == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#     
+#     "PNC0 (target window: 3 to 5 days)" = paste0(
+#       format(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#     
+#     "PNC1 (target window: 7 to 14 days)" = paste0(
+#       format(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#     
+#     "PNC4 (target window: 28 to 35 days)" = paste0(
+#       format(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#     
+#     "PNC6 (target window: 6 to 12 weeks)" = paste0(
+#       format(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#     
+#     "Unscheduled" = paste0(
+#       format(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#     
+#     "Hospitalization" = paste0(
+#       format(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")")
+# 
+#   ) %>% 
+#   t() %>% as.data.frame() %>% 
+#   `colnames<-`(c(.[1,])) %>% 
+#   slice(-1) 
+# 
+
+
+```
+
+```{r}
+# psbi_tab <- psbi_tab %>% 
+#   mutate_all(funs(str_replace(., "NaN", "0"))) 
+# 
+# # replace NA with 0s (this likely means there is not yet data)
+# psbi_tab[is.na(psbi_tab)] <- paste0("0 (0)")
+# 
+# psbi_tab_output <- tb_theme1(psbi_tab) %>% 
+#   tab_header(
+#     title = md("**Table 10**")
+#   ) %>%
+#   tab_row_group(
+#     label = html("<span style='font-size: 18px'>PSBI by visit<sup>a</sup></span>"),
+#     rows = 1:8
+#   ) %>%
+#   row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit</span>")) %>% 
+#   tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>a</sup> If an infant has a PSBI diagnosis at more than one time point, they are counted only once for PSBI at any time point.</span>")
+#    )  
+
+psbi_tab <- psbi_tab %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+# replace NA with 0s (this likely means there is not yet data)
+psbi_tab[is.na(psbi_tab)] <- paste0("0 (0)")
+
+
+psbi_tab1 <- psbi_tab[1:14,]
+psbi_tab2 <- psbi_tab[15:36,]
+psbi_tab3 <- psbi_tab[37:50,]
+psbi_tab4 <- psbi_tab[51:64,]
+
+psbi_tab_output1 <- tb_theme1(psbi_tab1) %>% 
+  tab_header(
+    title = md("**Table 10**")
+  ) %>%
+ tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness: missing confirmatory respiratory rate measurement <sup>a</sup></span>"),
+    rows = 1:7
+  ) %>%
+  
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness: missing confirmatory temperature measurement <sup>b</sup></span>"),
+    rows = 8:14
+  ) %>%
+
+  row_group_order(groups = c("<span style='font-size: 18px'>Data Completeness: missing confirmatory respiratory rate measurement <sup>a</sup></span>",
+                             "<span style='font-size: 18px'>Data Completeness: missing confirmatory temperature measurement <sup>b</sup></span>")) %>% 
+  tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>a</sup> Missing confirmatory respiratory rate measurements among those with a RR>=60 breaths per minute. Denominator is n total psbi case at the specified visit.</span>")
+   ) %>% 
+  tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>b</sup> Missing confirmatory temperature among those with a temperature reading >=38C or <35.5C.Denominator is n total psbi case at the specified visit.</span>")
+   ) 
+
+psbi_tab_output2 <- tb_theme1(psbi_tab2) %>% 
+  tab_header(
+    title = md("**Table 10 continued**")
+  ) %>%
+
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
+    rows = 1:22
+  ) %>%
+  
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+        "IPC (target window: delivery to 72 hours",
+        "PNC0 (target window: 3 to 5 days)",
+        "PNC1 (target window: 7 to 14 days)"
+        ))) %>% 
+
+    ## indent severe categories 
+  tab_style(
+      style = list(
+        cell_text(indent = px(40), size = 24)
+        ),
+      locations = cells_stub(rows = c("Difficulty in feeding",
+                                      "Convulsions",
+                                      "Fast breathing (RR>=60)",
+                                      "Severe chest in-drawing",
+                                      "Fever (>=38C)",
+                                      "Low body temperature (<35.5C)",
+                                      
+                                      "Difficulty in feeding ",
+                                      "Convulsions ",
+                                      "Fast breathing (RR>=60) ",
+                                      "Severe chest in-drawing ",
+                                      "Fever (>=38C) ",
+                                      "Low body temperature (<35.5C) " ,
+                                      
+                                      "Difficulty in feeding  ",
+                                      "Convulsions  ",
+                                      "Fast breathing (RR>=60)  ",
+                                      "Severe chest in-drawing  ",
+                                      "Fever (>=38C)  ",
+                                      "Low body temperature (<35.5C)  "
+                                      
+                                      )) 
+      ) %>% 
+
+  row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>")) %>% 
+
+  tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all livebirths aged 0-59 days.</span>")
+   )
+
+
+
+psbi_tab_output3 <- tb_theme1(psbi_tab3) %>% 
+  tab_header(
+    title = md("**Table 10 continued**")
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
+    rows = 1:14
+  ) %>%
+  
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+        "PNC4 (target window: 28 to 35 days)",
+        "PNC6 (target window: 6 to 12 weeks)"))) %>% 
+
+    ## indent severe categories 
+  tab_style(
+      style = list(
+        cell_text(indent = px(40), size = 24)
+        ),
+      locations = cells_stub(rows = c("Difficulty in feeding   ",
+                                      "Convulsions   ",
+                                      "Fast breathing (RR>=60)   ",
+                                      "Severe chest in-drawing   ",
+                                      "Fever (>=38C)   ",
+                                      "Low body temperature (<35.5C)   ", 
+                                      
+                                      "Difficulty in feeding    ",
+                                      "Convulsions    ",
+                                      "Fast breathing (RR>=60)    ",
+                                      "Severe chest in-drawing    ",
+                                      "Fever (>=38C)    ",
+                                      "Low body temperature (<35.5C)    " 
+                                                                            )) 
+      ) %>% 
+
+  row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>")) %>% 
+  tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all livebirths aged 0-59 days.</span>")
+   )
+
+
+
+psbi_tab_output4 <- tb_theme1(psbi_tab4) %>% 
+  tab_header(
+    title = md("**Table 10 continued**")
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
+    rows = 1:14
+  ) %>%
+  
+  ## bold visits
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+        "Unscheduled", 
+        "Hospitalization"))) %>% 
+
+    ## indent severe categories 
+  tab_style(
+      style = list(
+        cell_text(indent = px(40), size = 24)
+        ),
+      locations = cells_stub(rows = c(
+
+                                      "Difficulty in feeding     ",
+                                      "Convulsions     ",
+                                      "Fast breathing (RR>=60)     ",
+                                      "Severe chest in-drawing     ",
+                                      "Fever (>=38C)     ",
+                                      "Low body temperature (<35.5C)     " ,
+                                      
+                                      "Difficulty in feeding      ",
+                                      "Convulsions      ",
+                                      "Fast breathing (RR>=60)      ",
+                                      "Severe chest in-drawing      ",
+                                      "Fever (>=38C)      ",
+                                      "Low body temperature (<35.5C)      " 
+                                      
+                                      )) 
+      ) %>% 
+
+  row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>")) %>% 
+  tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all livebirths aged 0-59 days.</span>")
+   )
+
+
+
+```
+
+```{r, out.width = '100%'}
+
+psbi_tab_output1 <- psbi_tab_output1 %>% gtsave("psbi_tab_output1.png", expand = 8)
+knitr::include_graphics("psbi_tab_output1.png")
+```
+
+\newpage
+
+```{r, out.width = '100%'}
+
+psbi_tab_output2 <- psbi_tab_output2 %>% gtsave("psbi_tab_output2.png", expand = 8)
+knitr::include_graphics("psbi_tab_output2.png")
+```
+
+\newpage
+
+```{r, out.width = '100%'}
+
+psbi_tab_output3 <- psbi_tab_output3 %>% gtsave("psbi_tab_output3.png", expand = 8)
+knitr::include_graphics("psbi_tab_output3.png")
+```
+
+\newpage 
+```{r, out.width = '100%'}
+
+psbi_tab_output4 <- psbi_tab_output4 %>% gtsave("psbi_tab_output4.png", expand = 8)
+knitr::include_graphics("psbi_tab_output4.png")
+```
+
+
+<!-- ### Table 11 PSBI - WITH confirmatory measurements for temp/hypothermia -->
+<!-- ```{r, psbi_2, message = FALSE, warning = FALSE} -->
+<!-- # Has the baby had difficulty in feeding -->
+<!-- # Has the baby had convulsions?  -->
+<!-- # Has the baby had fast or difficult breathing? (60 breaths per minute or more) -->
+<!-- # Does infant have severe chest in-drawing? -->
+<!-- # Has the baby had a fever? (38C or higher) -->
+<!-- # Has the baby had low body temperature (<35.5C) -->
+
+<!-- psbi_tab_confirm <- psbi_confirm %>% ## Denominator is all live births aged 0-59 days -->
+<!--   rowwise() %>%  -->
+<!--   group_by(SITE) %>%  -->
+<!--   summarise( -->
+
+<!--     "Denominator" = paste0( -->
+<!--        format(sum(INF_PSBI_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), -->
+
+<!--     "IPC (target window: delivery to 72 hours" = paste0( -->
+<!--       format(sum(INF_PSBI_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--       " (", -->
+<!--       format(round(sum(INF_PSBI_IPC == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--       ")"), -->
+
+<!--       "Difficulty in feeding" = paste0( -->
+<!--       format(sum(INF_PSBI_IPC == 1 & M11_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--       "Convulsions" = paste0( -->
+<!--       format(sum(INF_PSBI_IPC == 1 & M11_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--       "Fast breathing (RR>=60)" = paste0( -->
+<!--       format(sum(INF_PSBI_IPC == 1 & (M11_BREATH_VSORRES_1 >= 60 | M11_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--       "Severe chest in-drawing" = paste0( -->
+<!--       format(sum(INF_PSBI_IPC == 1 & M11_CHESTINDRAW_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--       "Fever (>=38C)" = paste0( -->
+<!--       format(sum(INF_PSBI_IPC == 1 & (M11_TEMP_VSORRES >= 38 & M11_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--       "Low body temperature (<35.5C)" = paste0( -->
+<!--       format(sum(INF_PSBI_IPC == 1 & ((M11_TEMP_VSORRES > 0 & M11_TEMP_VSORRES < 35.5)& (M11_TEMP_VSORRES_2 > 0 & M11_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+
+<!--     "PNC0 (target window: 3 to 5 days)" = paste0( -->
+<!--       format(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--       " (", -->
+<!--       format(round(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--       ")"), -->
+
+<!--             "Difficulty in feeding " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC0 == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Convulsions " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC0 == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fast breathing (RR>=60) " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC0 == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Severe chest in-drawing " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC0 == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fever (>=38C) " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC0 == 1 & (M13_TEMP_VSORRES_1 >= 38 & M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Low body temperature (<35.5C) " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC0 == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)& (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+
+<!--     "PNC1 (target window: 7 to 14 days)" = paste0( -->
+<!--       format(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--       " (", -->
+<!--       format(round(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--       ")"), -->
+<!--             "Difficulty in feeding  " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC1 == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Convulsions  " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC1 == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fast breathing (RR>=60)  " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC1 == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Severe chest in-drawing  " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC1 == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fever (>=38C)  " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC1 == 1 & (M13_TEMP_VSORRES_1 >= 38 & M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Low body temperature (<35.5C)  " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC1 == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)& (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--     "PNC4 (target window: 28 to 35 days)" = paste0( -->
+<!--       format(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--       " (", -->
+<!--       format(round(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--       ")"), -->
+
+<!--             "Difficulty in feeding   " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC4 == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Convulsions   " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC4 == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fast breathing (RR>=60)   " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC4 == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Severe chest in-drawing   " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC4 == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fever (>=38C)   " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC4 == 1 & (M13_TEMP_VSORRES_1 >= 38 & M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Low body temperature (<35.5C)   " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC4 == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)& (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+
+<!--     "PNC6 (target window: 6 to 12 weeks)" = paste0( -->
+<!--       format(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--       " (", -->
+<!--       format(round(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--       ")"), -->
+
+<!--             "Difficulty in feeding    " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC6 == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Convulsions    " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC6 == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fast breathing (RR>=60)    " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC6 == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Severe chest in-drawing    " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC6 == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fever (>=38C)    " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC6 == 1 & (M13_TEMP_VSORRES_1 >= 38 & M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Low body temperature (<35.5C)    " = paste0( -->
+<!--             format(sum(INF_PSBI_PNC6 == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)& (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--     "Unscheduled" = paste0( -->
+<!--       format(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--       " (", -->
+<!--       format(round(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--       ")"), -->
+
+<!--             "Difficulty in feeding     " = paste0( -->
+<!--             format(sum(INF_PSBI_UNSCHED == 1 & M13_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Convulsions     " = paste0( -->
+<!--             format(sum(INF_PSBI_UNSCHED == 1 & M13_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fast breathing (RR>=60)     " = paste0( -->
+<!--             format(sum(INF_PSBI_UNSCHED == 1 & (M13_BREATH_VSORRES_1 >= 60 | M13_BREATH_VSORRES_2 >=60) , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Severe chest in-drawing     " = paste0( -->
+<!--             format(sum(INF_PSBI_UNSCHED == 1 & M13_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fever (>=38C)     " = paste0( -->
+<!--             format(sum(INF_PSBI_UNSCHED == 1 & (M13_TEMP_VSORRES_1 >= 38 & M13_TEMP_VSORRES_2 >= 38), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Low body temperature (<35.5C)     " = paste0( -->
+<!--             format(sum(INF_PSBI_UNSCHED == 1 & ((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5)& (M13_TEMP_VSORRES_2 > 0 & M13_TEMP_VSORRES_2 < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--     "Hospitalization" = paste0( -->
+<!--       format(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--       " (", -->
+<!--       format(round(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--       ")"), -->
+
+<!--            "Difficulty in feeding      " = paste0( -->
+<!--             format(sum(INF_PSBI_HOSPITAL == 1 & M20_POOR_FEED_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+<!--             "Convulsions      " = paste0( -->
+<!--             format(sum(INF_PSBI_HOSPITAL == 1 & M20_CONV_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fast breathing (RR>=60)      " = paste0( -->
+<!--             format(sum(INF_PSBI_HOSPITAL == 1 & (M20_RR_VSORRES >= 60 | M20_MAX_RR_VSORRES >=60) , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Severe chest in-drawing      " = paste0( -->
+<!--             format(sum(INF_PSBI_HOSPITAL == 1 & M20_CHEST_CEOCCUR == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Fever (>=38C)      " = paste0( -->
+<!--             format(sum(INF_PSBI_HOSPITAL == 1 & (M20_TEMP_VSORRES >= 38 & M20_TEMP_VSORRES >= 38), na.rm = TRUE), nsmall = 0, digits = 2)),  -->
+
+<!--             "Low body temperature (<35.5C)      " = paste0( -->
+<!--             format(sum(INF_PSBI_HOSPITAL == 1 & ((M20_TEMP_VSORRES > 0 & M20_TEMP_VSORRES < 35.5)| (M20_LOW_TEMP_VSORRES > 0 & M20_LOW_TEMP_VSORRES < 35.5)), na.rm = TRUE), nsmall = 0, digits = 2)) -->
+
+<!--   ) %>%  -->
+<!--   t() %>% as.data.frame() %>%  -->
+<!--   `colnames<-`(c(.[1,])) %>%  -->
+<!--   slice(-1) -->
+
+
+<!-- #  -->
+<!-- #  -->
+<!-- # psbi_tab <- psbi_outcome %>% ## Denominator is all live births aged 0-59 days -->
+<!-- #   rowwise() %>%  -->
+<!-- #   group_by(SITE) %>%  -->
+<!-- #   summarise( -->
+<!-- #      -->
+<!-- #     "Denominator" = paste0( -->
+<!-- #        format(sum(INF_PSBI_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), -->
+<!-- #  -->
+<!-- #     "IPC (target window: delivery to 72 hours" = paste0( -->
+<!-- #       format(sum(INF_PSBI_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!-- #       " (", -->
+<!-- #       format(round(sum(INF_PSBI_IPC == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!-- #       ")"), -->
+<!-- #      -->
+<!-- #     "PNC0 (target window: 3 to 5 days)" = paste0( -->
+<!-- #       format(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!-- #       " (", -->
+<!-- #       format(round(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!-- #       ")"), -->
+<!-- #      -->
+<!-- #     "PNC1 (target window: 7 to 14 days)" = paste0( -->
+<!-- #       format(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!-- #       " (", -->
+<!-- #       format(round(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!-- #       ")"), -->
+<!-- #      -->
+<!-- #     "PNC4 (target window: 28 to 35 days)" = paste0( -->
+<!-- #       format(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!-- #       " (", -->
+<!-- #       format(round(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!-- #       ")"), -->
+<!-- #      -->
+<!-- #     "PNC6 (target window: 6 to 12 weeks)" = paste0( -->
+<!-- #       format(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!-- #       " (", -->
+<!-- #       format(round(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!-- #       ")"), -->
+<!-- #      -->
+<!-- #     "Unscheduled" = paste0( -->
+<!-- #       format(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!-- #       " (", -->
+<!-- #       format(round(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!-- #       ")"), -->
+<!-- #      -->
+<!-- #     "Hospitalization" = paste0( -->
+<!-- #       format(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!-- #       " (", -->
+<!-- #       format(round(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!-- #       ")") -->
+<!-- #  -->
+<!-- #   ) %>%  -->
+<!-- #   t() %>% as.data.frame() %>%  -->
+<!-- #   `colnames<-`(c(.[1,])) %>%  -->
+<!-- #   slice(-1)  -->
+<!-- #  -->
+
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- # psbi_tab <- psbi_tab %>%  -->
+<!-- #   mutate_all(funs(str_replace(., "NaN", "0")))  -->
+<!-- #  -->
+<!-- # # replace NA with 0s (this likely means there is not yet data) -->
+<!-- # psbi_tab[is.na(psbi_tab)] <- paste0("0 (0)") -->
+<!-- #  -->
+<!-- # psbi_tab_output <- tb_theme1(psbi_tab) %>%  -->
+<!-- #   tab_header( -->
+<!-- #     title = md("**Table 10**") -->
+<!-- #   ) %>% -->
+<!-- #   tab_row_group( -->
+<!-- #     label = html("<span style='font-size: 18px'>PSBI by visit<sup>a</sup></span>"), -->
+<!-- #     rows = 1:8 -->
+<!-- #   ) %>% -->
+<!-- #   row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit</span>")) %>%  -->
+<!-- #   tab_footnote( -->
+<!-- #       footnote = html("<span style='font-size: 18px'><sup>a</sup> If an infant has a PSBI diagnosis at more than one time point, they are counted only once for PSBI at any time point.</span>") -->
+<!-- #    )   -->
+
+
+
+<!-- psbi_tab_confirm <- psbi_tab_confirm %>%  -->
+<!--   mutate_all(funs(str_replace(., "NaN", "0")))  -->
+
+<!-- # replace NA with 0s (this likely means there is not yet data) -->
+<!-- psbi_tab_confirm[is.na(psbi_tab_confirm)] <- paste0("0 (0)") -->
+
+
+<!-- psbi_tab1 <- psbi_tab_confirm[1:22,] -->
+<!-- psbi_tab2 <- psbi_tab_confirm[23:50,] -->
+
+<!-- psbi_tab_output1 <- tb_theme1(psbi_tab1) %>%  -->
+<!--   tab_header( -->
+<!--     title = md("**Table 11**") -->
+<!--   ) %>% -->
+<!--   tab_row_group( -->
+<!--     label = html("<span style='font-size: 18px'>PSBI by visit<sup>a</sup></span>"), -->
+<!--     rows = 1:22 -->
+<!--   ) %>% -->
+
+<!-- tab_style( -->
+<!--       style = list( -->
+<!--         cell_text(weight = "bold") -->
+<!--         ), -->
+<!--       locations = cells_stub(rows = c( -->
+<!--         "IPC (target window: delivery to 72 hours", -->
+<!--         "PNC0 (target window: 3 to 5 days)", -->
+<!--         "PNC1 (target window: 7 to 14 days)"))) %>%  -->
+
+<!--     ## indent severe categories  -->
+<!--   tab_style( -->
+<!--       style = list( -->
+<!--         cell_text(indent = px(40), size = 24) -->
+<!--         ), -->
+<!--       locations = cells_stub(rows = c("Difficulty in feeding", -->
+<!--                                       "Convulsions", -->
+<!--                                       "Fast breathing (RR>=60)", -->
+<!--                                       "Severe chest in-drawing", -->
+<!--                                       "Fever (>=38C)", -->
+<!--                                       "Low body temperature (<35.5C)" , -->
+
+<!--                                       "Difficulty in feeding ", -->
+<!--                                       "Convulsions ", -->
+<!--                                       "Fast breathing (RR>=60) ", -->
+<!--                                       "Severe chest in-drawing ", -->
+<!--                                       "Fever (>=38C) ", -->
+<!--                                       "Low body temperature (<35.5C) " , -->
+
+<!--                                       "Difficulty in feeding  ", -->
+<!--                                       "Convulsions  ", -->
+<!--                                       "Fast breathing (RR>=60)  ", -->
+<!--                                       "Severe chest in-drawing  ", -->
+<!--                                       "Fever (>=38C)  ", -->
+<!--                                       "Low body temperature (<35.5C)  "  -->
+<!--                                                                             ))  -->
+<!--       ) %>%  -->
+
+<!--   row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit<sup>a</sup></span>"))  -->
+
+
+
+
+<!-- psbi_tab_output2 <- tb_theme1(psbi_tab2) %>%  -->
+<!--   tab_header( -->
+<!--     title = md("**Table 11 continued**") -->
+<!--   ) %>% -->
+<!--   tab_row_group( -->
+<!--     label = html("<span style='font-size: 18px'>PSBI by visit<sup>a</sup></span>"), -->
+<!--     rows = 1:28 -->
+<!--   ) %>% -->
+
+<!--   ## bold visits -->
+<!-- tab_style( -->
+<!--       style = list( -->
+<!--         cell_text(weight = "bold") -->
+<!--         ), -->
+<!--       locations = cells_stub(rows = c( -->
+<!--         "PNC4 (target window: 28 to 35 days)" ,         -->
+<!--         "PNC6 (target window: 6 to 12 weeks)", -->
+<!--         "Unscheduled",  -->
+<!--         "Hospitalization"))) %>%  -->
+
+<!--     ## indent severe categories  -->
+<!--   tab_style( -->
+<!--       style = list( -->
+<!--         cell_text(indent = px(40), size = 24) -->
+<!--         ), -->
+<!--       locations = cells_stub(rows = c( -->
+<!--                                       "Difficulty in feeding   ", -->
+<!--                                       "Convulsions   ", -->
+<!--                                       "Fast breathing (RR>=60)   ", -->
+<!--                                       "Severe chest in-drawing   ", -->
+<!--                                       "Fever (>=38C)   ", -->
+<!--                                       "Low body temperature (<35.5C)   " , -->
+
+<!--                                       "Difficulty in feeding    ", -->
+<!--                                       "Convulsions    ", -->
+<!--                                       "Fast breathing (RR>=60)    ", -->
+<!--                                       "Severe chest in-drawing    ", -->
+<!--                                       "Fever (>=38C)    ", -->
+<!--                                       "Low body temperature (<35.5C)    " , -->
+
+<!--                                       "Difficulty in feeding     ", -->
+<!--                                       "Convulsions     ", -->
+<!--                                       "Fast breathing (RR>=60)     ", -->
+<!--                                       "Severe chest in-drawing     ", -->
+<!--                                       "Fever (>=38C)     ", -->
+<!--                                       "Low body temperature (<35.5C)     " , -->
+
+<!--                                       "Difficulty in feeding      ", -->
+<!--                                       "Convulsions      ", -->
+<!--                                       "Fast breathing (RR>=60)      ", -->
+<!--                                       "Severe chest in-drawing      ", -->
+<!--                                       "Fever (>=38C)      ", -->
+<!--                                       "Low body temperature (<35.5C)      "  -->
+
+<!--                                       ))  -->
+<!--       ) %>%  -->
+
+<!--   row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit<sup>a</sup></span>"))  -->
+
+
+<!-- ``` -->
+
+<!-- ```{r, out.width = '100%'} -->
+
+<!-- psbi_tab_output1 <- psbi_tab_output1 %>% gtsave("psbi_tab_output1.png", expand = 8) -->
+<!-- knitr::include_graphics("psbi_tab_output1.png") -->
+<!-- ``` -->
+
+<!-- \newpage -->
+
+<!-- ```{r, out.width = '100%'} -->
+
+<!-- psbi_tab_output2 <- psbi_tab_output2 %>% gtsave("psbi_tab_output2.png", expand = 8) -->
+<!-- knitr::include_graphics("psbi_tab_output2.png") -->
+<!-- ``` -->
+
+

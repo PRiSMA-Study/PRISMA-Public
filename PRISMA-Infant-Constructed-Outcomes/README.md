@@ -8,7 +8,7 @@ accompanying report. This file is an ongoing document that will be
 updated as more outcomes are coded and generated. More information on
 the outcomes coded here can be found in the PRISMA protocol.
 
-#### :pushpin: Updated on 14 February 2024
+#### :pushpin: Updated on 18 June 2024
 
 #### :pushpin: Originally drafted by:
 
@@ -33,6 +33,8 @@ code.
 - Stillbirth
 - Fetal Loss
 - Perinatal Birth Asphyxia
+- Hyperbilirubinemia
+- PSBI
 
 
 ## What data is required:
