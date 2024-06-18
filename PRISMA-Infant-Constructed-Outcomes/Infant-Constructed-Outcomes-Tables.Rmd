@@ -607,11 +607,52 @@ hyperbili_sum <- hyperbili_all_crit %>%
   mutate_all(funs(str_replace(., "NaN", "0"))) 
 
 
+# psbi
+psbi_sum <- psbi_outcome %>% 
+  ## If india-SAS doesn't have data, add empty row here 
+  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  # ## Add empty rows for missing SITE values if the specific site doesn't exist
+  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "PSBI at IPC, n (%)^f^" = paste0(
+      format(sum(INF_PSBI_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_IPC == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = psbi_outcome %>%
+        plyr::summarise(
+          
+    "PSBI at IPC, n (%)^f^" = paste0(
+      format(sum(INF_PSBI_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INF_PSBI_IPC == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+
+
+
 ```
 
 ```{r}
 
-infantoutcomes_combined <- bind_rows(all_births, lbw_sum, preterm_sum, sga_sum, neo_mort_sum, stillbirth_sum, fetal_dth_sum, birth_asphyxia_sum, hyperbili_sum) %>% select("Total", "Ghana", "India-CMC","India-SAS", "Kenya", "Pakistan", "Zambia")
+infantoutcomes_combined <- bind_rows(all_births, lbw_sum, preterm_sum, sga_sum, neo_mort_sum, stillbirth_sum, fetal_dth_sum, birth_asphyxia_sum, hyperbili_sum, psbi_sum) %>% select("Total", "Ghana", "India-CMC","India-SAS", "Kenya", "Pakistan", "Zambia")
 
 infantoutcomes_output <-  infantoutcomes_combined %>% 
   select(-Total) 
@@ -643,6 +684,9 @@ All infants with a TcB measurement taken at <14 weeks of life.</span>")
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>e</sup> 
 All infants with a jaundice assessment at <14 weeks of life.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>f</sup> Denominator is all livebirths aged 0-59 days.</span>")
  ) 
 
 infantoutcomes_summary <-infantoutcomes_combined
@@ -2373,7 +2417,7 @@ psbi_tab <- psbi_outcome %>% ## Denominator is all live births aged 0-59 days
     "Denominator" = paste0(
        format(sum(INF_PSBI_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "IPC (target window: delivery to 72 hours" = paste0(
+    "IPC (target window: delivery to 72 hours)" = paste0(
       format(sum(INF_PSBI_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(INF_PSBI_IPC == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2678,7 +2722,7 @@ tab_style(
         cell_text(weight = "bold")
         ),
       locations = cells_stub(rows = c(
-        "IPC (target window: delivery to 72 hours",
+        "IPC (target window: delivery to 72 hours)",
         "PNC0 (target window: 3 to 5 days)",
         "PNC1 (target window: 7 to 14 days)"
         ))) %>% 
