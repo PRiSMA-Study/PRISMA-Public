@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 June 17)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 June 18)"
 output:
   pdf_document:
     toc: no
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: 02 April 2024, Stacie Loisate
-#* Last updated: June 14 2024, Erin Oakley
+#* Last updated: June 18 2024, Erin Oakley
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -38,7 +38,7 @@ library(dplyr)
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-path_to_data <- "Z:/Outcome Data/2024-06-17/"
+path_to_data <- "D:/Users/emoakley/Documents/Outcome Data/2024-06-17/" ##offline copy
 path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
@@ -50,6 +50,7 @@ preterm_indication <- read_dta(paste0(path_to_data, "PREGEND.dta"))  %>% rename_
 gdm <- read_dta(paste0(path_to_data, "GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combined", ".csv"))
 near_miss <- read_dta(paste0(path_to_data, "near-miss-maternal-outcomes.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+thy<- read_dta(paste0(path_to_data, "thyr_collapsed.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -130,7 +131,7 @@ g_legend <- function(p) {
 
 ```
 
-**Includes data from synapse last updated:** 2024 April 19
+**Includes data from synapse last updated:** 2024 June 14
 
 \setcounter{tocdepth}{6}
 \tableofcontents
@@ -172,62 +173,6 @@ g_legend <- function(p) {
 ### Table 1. Maternal mortality
 ```{r}
 
-## with percents -- to add denominators when available
- # mortality_tab <- depression_mortality %>%
- #   rowwise() %>%
- #   group_by(SITE) %>%
- #   summarise(
- #
- #     "Missing cause of death information, n" = paste0(
- #       format(sum(MAT_DEATH_MISSCAUSE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
- #       " (",
- #       format(round(sum(MAT_DEATH_MISSCAUSE == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
- #       ")"),
- #
- #     "Missing date of death information, n" = paste0(
- #       format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
- #       " (",
- #       format(round(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
- #       ")"),
- #
- #     # "Any death ^a^, n" = paste0(
- #     #   format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
- #     #   " (",
- #     #   format(round(sum(MAT_DEATH == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
- #     #   ")"),
- #
- #     "Pregnancy-related death, n" = paste0(
- #       format(sum(MAT_DEATH_42 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
- #       " (",
- #       format(round(sum(MAT_DEATH_42 == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
- #       ")"),
- #
- #     #  "Late pregnancy-related death, n" = paste0(
- #     #   format(sum(MAT_DEATH_42 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
- #     #   " (",
- #     #   format(round(sum(MAT_DEATH_42 == 2, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
- #     #   ")"),
- #     #
- #     # "Maternal mortality, n" = paste0(
- #     #   format(sum(MAT_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
- #     #   " (",
- #     #   format(round(sum(MAT_MORTALITY == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
- #     #   ")"),
- #     #
- #     #  "Later maternal mortality, n" = paste0(
- #     #   format(sum(MAT_LATE_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
- #     #   " (",
- #     #   format(round(sum(MAT_LATE_MORTALITY == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
- #     #   ")")
- #
- #   ) %>%
- #   t() %>% as.data.frame() %>%
- #   `colnames<-`(c(.[1,])) %>%
- #   slice(-1)  %>%
- #   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
- #   mutate_all(funs(str_replace(., "NA", "0")))
- #
-
 # ## without percents
  mortality_tab <- mortality %>%
    rowwise() %>%
@@ -268,7 +213,7 @@ g_legend <- function(p) {
 
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
- mortality_tab[is.na(mortality_tab)] <- paste0("0")
+  mortality_tab[is.na(mortality_tab)] <- paste0("0")
 
  mortality_output <- tb_theme1(mortality_tab) %>%
    tab_header(
@@ -279,8 +224,11 @@ g_legend <- function(p) {
    ) %>%
    tab_row_group(
      label = html("<span style='font-size: 18px'>Maternal death</span>"),
-     rows = 3:3
+     rows = 3:7
    ) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                  "<span style='font-size: 18px'>Maternal death</span>"
+                  )) %>%
   tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes.</span>")
   ) %>% 
@@ -309,16 +257,25 @@ knitr::include_graphics(paste0(path_to_save, "mortality_output.png"))
 **Definition:** Low hemoglobin levels in pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy. Levels of anemia in pregnancy are defined as: 
 
 *First/third trimester:*
--   no anemia (>=11 g/dL); 
+
+-   no anemia (>=11 g/dL);
+
 -   mild anemia (>=10 & <11 g/dL); 
--   moderate anemia (>=7 & <10 g/dL); 
+
+-   moderate anemia (>=7 & <10 g/dL);
+
 -   severe anemia (< 7 g/dL)
 
 *Second trimester:*
--   no anemia (>=10.5 g/dL); 
+
+-   no anemia (>=10.5 g/dL);
+
 -   mild anemia (>=9.5 & <10.5 g/dL); 
--   moderate anemia (>=7 & <9.5 g/dL); 
--   severe anemia (<7 g/dL)
+
+-   moderate anemia (>=7 & <9.5 g/dL);
+
+-   severe anemia (< 7 g/dL)
+
 
 The outcome prioritizes CBC tests where possible, as this is the gold standard measure for hemoglobin. We consider the results of POC tests only in instances where there is no concurrent CBC test within 7 days (before or after) of the POC measure. 
 
@@ -335,6 +292,8 @@ The outcome prioritizes CBC tests where possible, as this is the gold standard m
 -   No lab forms dated in pregnancy
 
 -   Missing gestational age at enrollment information (varname: `US_GA_WKS_AGE_FTS1-4`,`US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`)
+
+\newpage
 
 #### Table 2a. Maternal anemia in pregnancy
 ```{r}
@@ -483,16 +442,24 @@ knitr::include_graphics(paste0(path_to_save, "anemia_output.png"))
 **Definition:** Low hemoglobin levels in each trimester of pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy. Levels of anemia in pregnancy are defined as: 
 
 *First/third trimester:*
--   no anemia (>=11 g/dL); 
+
+-   no anemia (>=11 g/dL);
+
 -   mild anemia (>=10 & <11 g/dL); 
--   moderate anemia (>=7 & <10 g/dL); 
+
+-   moderate anemia (>=7 & <10 g/dL);
+
 -   severe anemia (< 7 g/dL)
 
 *Second trimester:*
--   no anemia (>=10.5 g/dL); 
+
+-   no anemia (>=10.5 g/dL);
+
 -   mild anemia (>=9.5 & <10.5 g/dL); 
--   moderate anemia (>=7 & <9.5 g/dL); 
--   severe anemia (<7 g/dL)
+
+-   moderate anemia (>=7 & <9.5 g/dL);
+
+-   severe anemia (< 7 g/dL)
 
 The outcome prioritizes CBC tests where possible, as this is the gold standard measure for hemoglobin. We consider the results of POC tests only in instances where there is no concurrent CBC test within 7 days (before or after) of the POC measure. 
 
@@ -516,6 +483,7 @@ The outcome prioritizes CBC tests where possible, as this is the gold standard m
 
 -   No lab forms dated in the trimester of interest
 
+\newpage
 
 #### Table 2b. Maternal anemia prevalence by trimester of pregnancy, ongoing data collection
 ```{r}
@@ -1134,7 +1102,6 @@ anemia_pph6_tab[is.na(anemia_pph6_tab)] <- paste0("0 (0)")
 anemia_pph26_tab[is.na(anemia_pph26_tab)] <- paste0("0 (0)")
 
 
-"<span style='font-size: 18px'>Data completeness</span>"
 
 anemia_pph6_output <- tb_theme1(anemia_pph6_tab) %>% 
   tab_header(
@@ -1261,6 +1228,35 @@ knitr::include_graphics(paste0(path_to_save, "anemia_pph26_output.png"))
 
 **Denominator:** All preterm deliveries as defined above.
 
+**To be included as "non-missing" for this outcome, a participant must have:**
+
+*For all outcomes:*
+
+**1.** Reported gestational age by either LMP or Ultrasound (varnames [form]: `US_GA_WKS_AGE_FTS1-4` [MNH01], `US_GA_DAYS_AGE_FTS1-4` [MNH01], `GA_LMP_WEEKS_SCORRES` [MNH01]).
+
+**2.** Valid enrollment ultrasound visit date (varname [form]: `US_OHOSTDAT` [MNH01]).
+
+**3.** Valid date of birth for first fetus/infant in the pregnancy (varname [form]: `DELIV_DSSTDAT_INF1` [MNH09]).
+
+*For 3b. Provider-initiated preterm & 3c. Spontaneous preterm:*
+
+**4.** Valid responses for variables on labor including:
+
+a.  if the woman experienced labor (varname [form]: `LABOR_MHOCCUR` [MNH09]);
+
+b.  date and time of labor onset if she experienced labor (`LABOR_MHSTDAT`, `LABOR_MHSTTIM` [MNH09]);
+
+c.  if labor was induced (varname [form]: `INDUCED_PROCCUR` [MNH09])
+
+**5.** Valid responses for variables on type of membrane rupture including:
+
+a.  type of membrane rupture (varname [form]: `MEMBRANE_RUPT_MHTERM` [MNH09]);
+
+b.  date and time of membrane rupture (if occurred) (varnames [form]: `MEMBRANE_RUPT_MHSTDAT`, `MEMBRANE_RUPT_MHSTTIM` [MH09])
+
+**6.** Delivery mode for all fetuses/infants (varname: DELIV_PRROUTE_INF1-4, MNH09])
+
+
 ### Table 3a. Preterm delivery & preterm classification
 ```{r}
 
@@ -1275,7 +1271,7 @@ preterm_tab <- preterm_indication %>%
       format(round(sum(PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),   
      
-     "Excluded: pregnancy losses <20 weeks GA" = paste0(
+     "Excluded: pregnancy losses <20 weeks GA or induced abortion" = paste0(
       format(sum(PREG_END== 1 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PREG_END== 1 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -1666,33 +1662,7 @@ knitr::include_graphics(paste0(path_to_save, "spon_preterm_tab_output.png"))
 
 ```
 
-**To be included as "non-missing" for this outcome, a participant must have:**
 
-*For all outcomes:*
-
-**1.** Reported gestational age by either LMP or Ultrasound (varnames [form]: `US_GA_WKS_AGE_FTS1-4` [MNH01], `US_GA_DAYS_AGE_FTS1-4` [MNH01], `GA_LMP_WEEKS_SCORRES` [MNH01]).
-
-**2.** Valid enrollment ultrasound visit date (varname [form]: `US_OHOSTDAT` [MNH01]).
-
-**3.** Valid date of birth for first fetus/infant in the pregnancy (varname [form]: `DELIV_DSSTDAT_INF1` [MNH09]).
-
-*For 3b. Provider-initiated preterm & 3c. Spontaneous preterm:*
-
-**4.** Valid responses for variables on labor including:
-
-a.  if the woman experienced labor (varname [form]: `LABOR_MHOCCUR` [MNH09]);
-
-b.  date and time of labor onset if she experienced labor (`LABOR_MHSTDAT`, `LABOR_MHSTTIM` [MNH09]);
-
-c.  if labor was induced (varname [form]: `INDUCED_PROCCUR` [MNH09])
-
-**5.** Valid responses for variables on type of membrane rupture including:
-
-a.  type of membrane rupture (varname [form]: `MEMBRANE_RUPT_MHTERM` [MNH09]);
-
-b.  date and time of membrane rupture (if occurred) (varnames [form]: `MEMBRANE_RUPT_MHSTDAT`, `MEMBRANE_RUPT_MHSTTIM` [MH09])
-
-**6.** Delivery mode for all fetuses/infants (varname: DELIV_PRROUTE_INF1-4, MNH09])
 
 \newpage
 
@@ -2350,20 +2320,6 @@ knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
 **2.** *For Postpartum hemorrhage:* Valid MNH09 form filled out.  
 
 
-## 6. Hemorrhage
-
-**Definition:** Received at least one procedure for postpartum hemorrhage or excessive bleeding (>=500mL) from or into the genital track, either during pregnancy, prior to delivery, or following the birth of a baby. *Severe hemorrhage* defined as received at least one procedure for postpartum hemorrhage or excessive bleeding (>=1000mL) from or into the genital track, either during pregnancy, prior to delivery, or following the birth of a baby.
-
-**Denominator:** All participants with a reported birth outcome.
-
-&nbsp;
-
-**To be included as "non-Missing" for this outcome, a participant must have:**
-
-**1.** *For Antepartum hemorrhage:* At least one MNH04 form filled out. 
-
-**2.** *For Postpartum hemorrhage:* Valid MNH09 form filled out.  
-
 ### Table 6. Hemorrhage
 ```{r}
 
@@ -2695,7 +2651,7 @@ gtsave(hemorrhage_output2, file = "hemorrhage_output2.png", path = path_to_save,
 knitr::include_graphics(paste0(path_to_save, "hemorrhage_output2.png"))
 ```
 
-### Figure 2. Estimated blood loss during labor and delivery
+### Figure 5. Estimated blood loss during labor and delivery
 ```{r, out.width = '100%', fig.align='center'}
 
 hemorrhage_figs <- hemorrhage %>% 
@@ -3217,7 +3173,7 @@ row_group_order(groups = c(NA,
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
  ) %>% 
     tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants who reported having at least one TB symptom in MNH04.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants who reported having at least one TB symptom in MNH04.</span>")
  ) 
 
 ```
@@ -3314,12 +3270,12 @@ knitr::include_graphics(paste0(path_to_save, "all_infection_output.png"))
 
 **Definition:** Diabetes outcomes are assessed as follows:
 
--   *Overt diabetes* is measured by HbA1c level as assessed at enrollment. If this datapoint is missing at enrollment, we rely on HbA1c level as reported in a subsequent visit (unscheduled or ANC-20), if the result is taken at <20 weeks GA. Overt diabetes is defined as HbA1c >6.5%. 
+-   *Overt diabetes* is measured by HbA1c level as assessed at enrollment. If this datapoint is missing at enrollment, we rely on HbA1c level as reported in a subsequent visit (unscheduled or ANC-20), if the result is taken at <20 weeks GA. Overt diabetes is defined as HbA1c >=6.5%. 
 
 -   *Gestational diabetes* is measured by three blood glucose tests as assessed at ANC-28 visit. If this datapoint is missing at ANC-28, we rely on the test result reported at subsequent visits. Gestational diabetes is defined as pretest fasting glucose >=5.1 mmol/L or oral glucose-tolerance test (OGTT) 1-hour result >=10.0 mmol/L or OGTT 2-hour result >=8.5 mmol/L. Gestational diabetes outcomes exclude any participants with Overt Diabetes at enrollment.
 
 
-**Denominators:** All participants who have passed the ANC-28 visit window (26-30 weeks) based on the following variables:
+**Denominators:** All participants who have continued pregnancy at 28 weeks gestation and passed the ANC-28 visit window (26-30 weeks) based on the following variables:
 
 -   Valid gestational age information provided at enrollment visit in MNH01 including: (varname: `US_GA_WKS_AGE_FTS1-4`, `US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`).
 
@@ -3338,6 +3294,12 @@ overt_diabetes <- gdm %>%
   group_by(SITE) %>% 
   summarise(
     
+    "Denominator (pregnancies continued to 28 weeks gestation)" = paste0(
+      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
     "Missing enrollment lab form (MNH08) or other lab at <20 weeks GA" = paste0(
       format(sum(DIAB_OVERT_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3350,22 +3312,22 @@ overt_diabetes <- gdm %>%
       format(round(sum(DIAB_OVERT_MISS==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
+    "Denominator (non-missing)" = paste0(
+      format(sum(DIAB_OVERT_MISS==0 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT_MISS==0 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
     "No overt diabetes (<=6.5% HbA1c)" = paste0(
-      format(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Overt diabetes (>6.5% HbA1c)" = paste0(
-      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Overt diabetes (>=6.5% HbA1c)" = paste0(
+      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing" = paste0(
-      format(sum(DIAB_OVERT==55 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(DIAB_OVERT==55 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -3385,19 +3347,29 @@ overt_diabetes_output <- tb_theme1(overt_diabetes) %>%
   tab_header(
     title = md("**Table 8a**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 1:2
+    label = html("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>"),
+    rows = 1:3
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Overt Diabetes: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 3:5
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 2:3
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
-                             "<span style='font-size: 18px'>Overt Diabetes: All pregnancies >= 30 weeks by data upload date</span>"
-                             ))  
- #  tab_footnote(
- #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- # ) 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for overt diabetes prevalence</span>"),
+    rows = 4:6
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Overt diabetes prevalence</span>"),
+    rows = 5:6
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>",
+                             "<span style='font-size: 18px'>Data completeness</span>",
+                             "<span style='font-size: 18px'>Denominator for overt diabetes prevalence</span>",
+                             "<span style='font-size: 18px'>Overt diabetes prevalence</span>"
+                             ))  %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants who had continued pregnancy to 28 weeks gestation (excluding earlier pregnancy losses and withdrawals from the study) AND who have progressed through the ANC-28 visit window.</span>")
+  ) 
 ```
 
 ```{r, out.width = '100%'}
@@ -3416,6 +3388,18 @@ pretest_fast_diabetes <- gdm %>%
   group_by(SITE) %>% 
   summarise(
     
+    "Denominator (pregnancies continued to 28 weeks gestation)" = paste0(
+      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Excluded: Overt diabetes (>=6.5% HbA1c)" = paste0(
+      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
       format(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3428,22 +3412,22 @@ pretest_fast_diabetes <- gdm %>%
       format(round(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "No gestational diabetes(<5.1 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Denominator (non-missing)" = paste0(
+      format(sum(DIAB_GEST_FASTING_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No gestational diabetes(<5.1 mmol/L)" = paste0(
+      format(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=5.1 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing" = paste0(
-      format(sum(DIAB_GEST_FASTING==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(DIAB_GEST_FASTING==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -3463,19 +3447,29 @@ pretest_fast_diabetes_output <- tb_theme1(pretest_fast_diabetes) %>%
   tab_header(
     title = md("**Table 8b**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 1:2
+    label = html("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>"),
+    rows = 1:4
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Gestational Diabetes by Pretest Fasting Glucose: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 3:5
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 2:4
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
-                             "<span style='font-size: 18px'>Gestational Diabetes by Pretest Fasting Glucose: All pregnancies >= 30 weeks by data upload date</span>"
-                             ))  
- #  tab_footnote(
- #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- # ) 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for Gestational Diabetes prevalence</span>"),
+    rows = 5:7
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Gestational Diabetes by pretest fasting glucose</span>"),
+    rows = 6:7
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>",
+                             "<span style='font-size: 18px'>Data completeness</span>",
+                             "<span style='font-size: 18px'>Denominator for Gestational Diabetes prevalence</span>",
+                             "<span style='font-size: 18px'>Gestational Diabetes by pretest fasting glucose</span>"
+                             ))   %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants who had continued pregnancy to 28 weeks gestation (excluding earlier pregnancy losses and withdrawals from the study) AND who have progressed through the ANC-28 visit window.</span>")
+  )
 ```
 
 ```{r, out.width = '100%'}
@@ -3494,34 +3488,45 @@ ogtt_diabetes <- gdm %>%
   group_by(SITE) %>% 
   summarise(
     
+    "Denominator (pregnancies continued to 28 weeks gestation)" = paste0(
+      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Excluded: Overt diabetes (>=6.5% HbA1c)" = paste0(
+      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
       format(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Missing 1-hr OGTT result at ANC-28 (and not provided in any other visit)" = paste0(
+    "Missing  1-hr OGTT result at ANC-28 (and not provided in any other visit)" = paste0(
       format(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "No gestational diabetes (<10.0 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Denominator (non-missing)" = paste0(
+      format(sum(DIAB_GEST_1HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No gestational diabetes (<10.0 mmol/L)" = paste0(
+      format(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=10.0 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing" = paste0(
-      format(sum(DIAB_GEST_1HR==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(DIAB_GEST_1HR==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -3541,19 +3546,29 @@ ogtt_diabetes_output <- tb_theme1(ogtt_diabetes) %>%
   tab_header(
     title = md("**Table 8c**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 1:2
+    label = html("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>"),
+    rows = 1:4
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Gestational Diabetes by 1-hr OGTT: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 3:5
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 2:4
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
-                             "<span style='font-size: 18px'>Gestational Diabetes by 1-hr OGTT: All pregnancies >= 30 weeks by data upload date</span>"
-                             ))  
- #  tab_footnote(
- #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- # ) 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for Gestational Diabetes prevalence</span>"),
+    rows = 5:7
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Gestational Diabetes by 1-hr OGTT</span>"),
+    rows = 6:7
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>",
+                             "<span style='font-size: 18px'>Data completeness</span>",
+                             "<span style='font-size: 18px'>Denominator for Gestational Diabetes prevalence</span>",
+                             "<span style='font-size: 18px'>Gestational Diabetes by 1-hr OGTT</span>"
+                             ))   %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants who had continued pregnancy to 28 weeks gestation (excluding earlier pregnancy losses and withdrawals from the study) AND who have progressed through the ANC-28 visit window.</span>")
+  )
 ```
 
 ```{r, out.width = '100%'}
@@ -3572,6 +3587,18 @@ ogtt2_diabetes <- gdm %>%
   group_by(SITE) %>% 
   summarise(
     
+   "Denominator (pregnancies continued to 28 weeks gestation)" = paste0(
+      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+   
+    "Excluded: Overt diabetes (>=6.5% HbA1c)" = paste0(
+      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
       format(sum(DIAB_GEST_2HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3584,22 +3611,22 @@ ogtt2_diabetes <- gdm %>%
       format(round(sum(DIAB_GEST_2HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "No gestational diabetes (<8.5 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Denominator (non-missing)" = paste0(
+      format(sum(DIAB_GEST_2HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No gestational diabetes (<8.5 mmol/L)" = paste0(
+      format(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=8.5 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing" = paste0(
-      format(sum(DIAB_GEST_2HR==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(DIAB_GEST_2HR==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -3608,6 +3635,7 @@ ogtt2_diabetes <- gdm %>%
   slice(-1) %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
   mutate_all(funs(str_replace(., "NA", "0"))) 
+  
 
 ```
 
@@ -3619,19 +3647,29 @@ ogtt2_diabetes_output <- tb_theme1(ogtt2_diabetes) %>%
   tab_header(
     title = md("**Table 8d**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 1:2
+    label = html("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>"),
+    rows = 1:4
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Gestational Diabetes by 2-hr OGTT: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 3:5
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 2:4
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
-                             "<span style='font-size: 18px'>Gestational Diabetes by 2-hr OGTT: All pregnancies >= 30 weeks by data upload date</span>"
-                             ))  
- #  tab_footnote(
- #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a MNH06 at enrollment filled out `(TYPE_VISIT=1)`.</span>")
- # ) 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for Gestational Diabetes prevalence</span>"),
+    rows = 5:7
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Gestational Diabetes by 2-hr OGTT</span>"),
+    rows = 6:7
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>",
+                             "<span style='font-size: 18px'>Data completeness</span>",
+                             "<span style='font-size: 18px'>Denominator for Gestational Diabetes prevalence</span>",
+                             "<span style='font-size: 18px'>Gestational Diabetes by 2-hr OGTT</span>"
+                             ))   %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants who had continued pregnancy to 28 weeks gestation (excluding earlier pregnancy losses and withdrawals from the study) AND who have progressed through the ANC-28 visit window.</span>")
+  ) 
 ```
 
 ```{r, out.width = '100%'}
@@ -3651,10 +3689,22 @@ any_test_diabetes <- gdm %>%
   group_by(SITE) %>% 
   summarise(
     
-    "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+   "Denominator (pregnancies continued to 28 weeks gestation)" = paste0(
+      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+   
+    "Excluded: Overt diabetes (>=6.5% HbA1c)" = paste0(
+      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
+      format(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing test result(s) at ANC-28 (and not provided in any other visit)" = paste0(
@@ -3663,22 +3713,22 @@ any_test_diabetes <- gdm %>%
       format(round(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "No gestational diabetes (across all three tests)" = paste0(
-      format(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Denominator (non-missing)" = paste0(
+      format(sum(DIAB_GEST_ANY_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No gestational diabetes (across all 3 tests)" = paste0(
+      format(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (by any test)" = paste0(
-      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Missing" = paste0(
-      format(sum(DIAB_GEST_ANY==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(DIAB_GEST_ANY==55 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -3687,6 +3737,8 @@ any_test_diabetes <- gdm %>%
   slice(-1) %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
   mutate_all(funs(str_replace(., "NA", "0"))) 
+    
+ 
 
 ```
 
@@ -3698,16 +3750,29 @@ any_test_diabetes_output <- tb_theme1(any_test_diabetes) %>%
   tab_header(
     title = md("**Table 8e**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 1:2
+    label = html("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>"),
+    rows = 1:4
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Gestational Diabetes by any test:  All pregnancies >= 30 weeks by data upload date</span>"),
-    rows = 3:5
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 2:4
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data missingness: All pregnancies >= 30 weeks by data upload date</span>",
-                             "<span style='font-size: 18px'>Gestational Diabetes by any test:  All pregnancies >= 30 weeks by data upload date</span>"
-                             ))  %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Denominator for Gestational Diabetes prevalence</span>"),
+    rows = 5:7
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Gestational Diabetes by any test</span>"),
+    rows = 6:7
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Denominator for data completeness<sup>a</sup></span>",
+                             "<span style='font-size: 18px'>Data completeness</span>",
+                             "<span style='font-size: 18px'>Denominator for Gestational Diabetes prevalence</span>",
+                             "<span style='font-size: 18px'>Gestational Diabetes by any test</span>"
+                             ))   %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants who had continued pregnancy to 28 weeks gestation (excluding earlier pregnancy losses and withdrawals from the study) AND who have progressed through the ANC-28 visit window.</span>")
+  )  %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note: </sup>This table presents Overt Diabetes based on HbA1c test result at enrollment or as provided in another visit at less than 20 weeks gestation. The table presents rates of Gestational Diabetes based on blood glucose tests conducted at or near 28 weeks gestation; we exclude all women with Overt Diabetes from the denominator for Gestational Diabetes, while we include women without Overt Diabetes or with missing HbA1c test results. For the final outcome (Gestational Diabetes by any test), only observations with all three (negative) blood-glucose tests are considered negative for Gestational Diabetes, while women with any positive test are considered positive for Gestational Diabetes regardless of whether other tests results are missing.</span>")
  )
@@ -3720,6 +3785,43 @@ knitr::include_graphics(paste0(path_to_save, "any_test_diabetes_output.png"))
 
 ```
 
+\newpage 
+
+#### Figure 6. Venn diagram of Gestational Diabetes diagnosis by test type
+```{r}
+library(knitr)
+library(tidyverse)
+library(reshape2)
+library(lubridate)
+library(naniar)
+library(dplyr)
+library(RColorBrewer)
+library(ggvenn)
+library(wesanderson)
+
+# VennDiagram - All site
+GDM_pre <- gdm %>% filter(DIAB_GEST_FASTING==1) %>% 
+  select(MOMID) %>% unlist()
+
+GDM_1 <- gdm %>% filter(DIAB_GEST_1HR==1) %>% 
+  select(MOMID) %>% unlist()
+
+GDM_2 <- gdm %>% filter(DIAB_GEST_2HR==1) %>% 
+  select(MOMID) %>% unlist()
+
+# Package ggvenn
+ggvenn(data = list(`Fasting glucose` = GDM_pre,
+                   `1-hr OGTT` = GDM_1,
+                   `2-hr OGTT` = GDM_2), 
+       fill_color = wesanderson::wes_palette("FantasticFox1", n=3),
+       text_size = 3.5,
+       stroke_size = 0.5,set_name_size = 5)
+
+
+```
+
+
+
 
 \newpage
 
@@ -3729,18 +3831,26 @@ knitr::include_graphics(paste0(path_to_save, "any_test_diabetes_output.png"))
 
 -   A woman who is pregnant, in labor, or within 42 days of the pregnancy end, *AND*
 
--   Develops severe complications (severe postpartum hemorrhage, severe pre-eclampsia, eclampsia, sepsis or severe infection, uterine rupture, severe abortion complications) OR undergoes a critical intervention (use of blood products, laparotomy [not a C-section], admission to ICU), *AND*
+-   Experienced the PRISMA-near-miss criteria (organ dysfunction, hysterectomy, blood transfusion of any volume, eclampsia with severe features, uterine rupture, sepsis, or laparotomy other than C-section), *AND*
 
--   Experiences organ dysfunction [MNH09, MNH12, MNH19], *AND*
+-   Experiences a potentially life-threatening condition (PLTC; postpartum hemorrhage, preeclampsia, eclampsia, sepsis or severe infection, ruptured uterus, admission to ICU, blood transfusion, laparotomy other than C-section, abortion complications, severe hypertension, obstructed labor, prolonged labor, pulmonary edema, placenta accrete, placenta abruption, endometritis, admitted for in-patient care [M19_VISIT_FAORRES == 3] or referred to another institution [M19_VISIT_FAORRES == 4 or M19_ADMIT_DSTERM == 2]), *AND*
 
 -   Survives the experience.
 
-**Denominator:** Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication or underwent a critical intervention).
+**Denominator:** 
 
-**Numerator:** 
--   Women who have experienced a severe complication, critical intervention, or have experienced organ dysfunction *AND*
+-   Expected denominator: woman has passed 42 days postpartum
 
--   Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure). 
+-   Near-miss denominator: Passed 42 days postpartum AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND we have seen them on or after 42 days postpartum OR they have experienced PLTC 
+
+**Proposed criteria for adjudication:** 
+
+-   Woman who meets near-miss criteria but did NOT have PLTC 
+
+-   Woman who died (excluding accidental/incidental causes) but did NOT have PLTC
+
+-   Woman who has PLTC and dies but did NOT meet near-miss criteria
+
 
 ### Table 9. Near-miss 
 ```{r}
@@ -3753,25 +3863,25 @@ near_miss_taba <- near_miss %>%
     "Expected denominator, n" = paste0(
       format(sum(NEARMISS_WINDOW==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
-    "Closed out during pregnancy or within 42 days of pregnancy end" = paste0(
+    "Closed out during pregnancy or within 42 days of pregnancy end without experiencing a PLTC" = paste0(
       format(sum(NEARMISS_CLOSEOUT==1 & NEARMISS_WINDOW == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEARMISS_CLOSEOUT==1 & NEARMISS_WINDOW == 1, na.rm = TRUE)/sum(NEARMISS_WINDOW == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    # "Missing because no MNH09, MNH12, or MNH19 forms" = paste0(
-    #   format(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
-    # 
-    # "Missing because not seen at least 42 days postpartum" = paste0(
-    #   format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
+     "Missing because no MNH09, MNH12, or MNH19 forms" = paste0(
+       format(sum(NEARMISS_MISSFORMS ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+       " (",
+       format(round(sum(NEARMISS_MISSFORMS ==1, na.rm = TRUE)/sum(NEARMISS_WINDOW == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+       ")"),
+     
+     "Missing because not seen at least 42 days postpartum and did not experience a PLTC" = paste0(
+       format(sum(NEARMISS_NOTSEEN42==1, na.rm = TRUE), nsmall = 0, digits = 2),
+       " (",
+       format(round(sum(NEARMISS_NOTSEEN42==1, na.rm = TRUE)/sum(NEARMISS_WINDOW == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+       ")"),
     
-    "Women who have passed 42 days after pregnancy end without closing out AND visit after six weeks OR have the event <sup>a</sup>" = paste0(
+    "Near miss denominator <sup>a</sup>" = paste0(
       format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
     
@@ -3787,25 +3897,25 @@ near_miss_taba <- near_miss %>%
       format(round(sum(HEM_PPH==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Pre-eclampsia" = paste0(
+    "Pre-eclampsia *" = paste0(
       format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Eclampsia" = paste0(
+    "Eclampsia *" = paste0(
       format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Severe hypertension" = paste0(
+    "Severe hypertension *" = paste0(
       format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Sepsis or severe infection" = paste0(
+    "Sepsis or severe infection *" = paste0(
       format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3884,6 +3994,12 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(ICU==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
+    "Laparotomy other than C-section (M19)" = paste0(
+      format(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
     "Any unplanned hospitalization" = paste0(
       format(sum(HOSP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3898,7 +4014,7 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(HYSTERECTOMY == 1 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
     
-    "Eclampsia with severe features" = paste0(
+    "Eclampsia with severe features *" = paste0(
       format(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3910,19 +4026,19 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(UTERINE_RUP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Sepsis" = paste0(
+    "Sepsis *" = paste0(
       format(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Laparotomy (M19)" = paste0(
+    "Laparotomy other than C-section (M19)" = paste0(
       format(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
    
-    "Blood transfusion" = paste0(
+    "Mother needed (M09) and/or received (M19) blood transfusion" = paste0(
       format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3933,14 +4049,26 @@ near_miss_tabb <- near_miss %>%
       " (",
       format(round(sum(MAT_DYS ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
+   
+    "Met any near miss criteria" = paste0(
+      format(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
                     
-    "Any near miss" = paste0(
+    "Met near miss criteria and PLTC and survived" = paste0(
       format(sum(MAT_MNM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAT_MNM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
    
-    "Near miss but no PLTC <sup>b</sup>" = paste0(
+    # "Woman died *" = paste0(
+    #   format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+   
+    "Adjudication required: Near miss but no PLTC <sup>b</sup>" = paste0(
       format(sum(MISS_PLTC ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MISS_PLTC ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3972,17 +4100,20 @@ near_miss_tab_output1 <- tb_theme1(near_miss_tab1) %>%
     title = md("**Table 9**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness</span>"),
-    rows = 1:3
+    rows = 1:5
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Experienced potentially life-threatening condition (PLTC) </span>"),
-    rows = 4:17
+    rows = 5:19
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
                              "<span style='font-size: 18px'>Experienced potentially life-threatening condition (PLTC) </span>"
                              ))  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Passed the PNC6 window AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND (we have seen them after the PNC6 window OR they have experienced severe complication, underwent a critical intervention, or organ failure).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Any woman who has passed 42 days postpartum without closeout AND has completed a visit 42+ days postpartum OR she experienced PLTC.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>*</sup> These items will be added to the PLTC criteria or near-miss criteria once available.</span>")
  )
 
 # part 2
@@ -3991,17 +4122,20 @@ near_miss_tab_output2 <- tb_theme1(near_miss_tab2) %>%
     title = md("**Table 9 (continued)**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Underwent critical intervention</span>"),
-    rows = 1:3
+    rows = 1:4
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Maternal near-miss (PRISMA definition)</span>"),
-    rows = 4:11
+    rows = 5:12
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Underwent critical intervention</span>",
                              "<span style='font-size: 18px'>Maternal near-miss (PRISMA definition)</span>"
                              ))  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Observations that qualify as a near miss but not as a PLTC require further adjudication.</span>" )
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Observations that qualify as a near miss but not as a PLTC require further adjudication.</span>" )  ) %>% 
+     
+       tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>*</sup> These items will be added to the PLTC criteria or near-miss criteria once available.</span>")
  )
 
 ```
@@ -4166,9 +4300,9 @@ prolong_tab <- preterm_indication %>%
       ")"),  
      
     "Excluded: Maternal deaths prior to delivery" = paste0(
-      format(sum(PREG_END== 1 & PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & (PREG_LOSS_DEATH==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & (PREG_LOSS_DEATH==1 & PRO_LABOR_MISS!=0), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
      "Missing: unknown if labor occurred" = paste0(
@@ -4196,21 +4330,21 @@ prolong_tab <- preterm_indication %>%
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(PREG_END==1 & PRO_LABOR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & PRO_LABOR_MISS==0, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Prolonged labor" = paste0(
-      format(sum(PREG_END==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE)/sum(PREG_END==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "No prolonged labor" = paste0(
-      format(sum(PREG_END==1 & PRO_LABOR_MISS==0 & PRO_LABOR==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & PRO_LABOR_MISS==0 & PRO_LABOR==0, na.rm = TRUE)/sum(PREG_END==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
   
     ) %>% 
@@ -4226,24 +4360,24 @@ prolong_tab <- preterm_indication %>%
 # replace NA with 0s (this likely means there is not yet data)
 prolong_tab[is.na(prolong_tab)] <- paste0("0 (0)")
 
-prolong_tab_output <- tb_theme1(uter_rup_tab) %>% 
+prolong_tab_output <- tb_theme1(prolong_tab) %>% 
   tab_header(
     title = md("**Table 10**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
-        rows = 1:5
+        rows = 1:7
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness</span>"),
-        rows = 2:5
+        rows = 2:7
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Denominator for prolonged labor prevalence</span>"),
-    rows = 6:8
+    rows = 8:10
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Prolonged labor prevalence</span>"),
-    rows = 7:8
+    rows = 9:10
   ) %>%
  row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for data completeness</span>",
                             "<span style='font-size: 18px'>Data completeness</span>",
@@ -4260,6 +4394,238 @@ knitr::include_graphics(paste0(path_to_save, "prolong_tab_output.png"))
 ```
 
 
+\newpage
+
+
+## 12. Thyroid Dysfunction
+
+**Reference ranges:** 
+
+-   1st trimester: TSH 0.6-3.4 µIU/mL; T4: 0.8-1.2 ng/dL
+
+-   2nd trimester: TSH 0.37 - 3.6 µIU/mL; T4:0.6-1 ng/dL
+
+-   3rd trimester: TSH 0.38-4.04 µIU/mL; T4:0.5-0.8 ng/dL
+
+**Definition:**
+
+-   Overt hyperthyroidism: low TSH & high free T4
+
+-   Subclinical hyperthyroidism: low TSH & normal free T4
+
+-   Overt hypothyroidism: high TSH & low free T4
+
+-   Subclinical hypothyroidism: high TSH & normal free T4
+
+-   Euthyroid: normal TSH
+
+-   Unclassified: (high TSH + high T4) or (low TSH + low T4)
+
+
+**Expected Denominator:** Women who have passed the window and have not closed out or closed out after the window
+
+**Common causes of missingness:** 
+
+-   Missing estimated due date based on BOE (cannot calculate trimester or visit window)
+
+-   Missing thyroid lab test date [THYROID_LBTSTDAT]
+
+-   Missing TSH [THYROID_TSH_LBORRES]
+
+-   Abnormal TSH result + missing free T4 [THYROID_FREET4_LBORRES]
+
+
+### Table 12a. Thyroid Dysfunction at ANC-20
+```{r}
+
+thy_tab <- thy %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Expected number at ANC20" = paste0(
+      format(sum(THYR_ANC20_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+     "Missing" = paste0(
+      format(sum(THYR_ANC20 == 55 & THYR_ANC20_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC20 == 55 & THYR_ANC20_EXP == 1, na.rm = TRUE)/sum(THYR_ANC20_EXP == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+     
+    "Denominator at ANC20 (non-missing)" = paste0(
+      format(sum(THYR_ANC20_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+     "Euthyroid at ANC20" = paste0(
+      format(sum(THYR_ANC20 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC20 == 1, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+     "Overt hyperthyroidism at ANC20" = paste0(
+      format(sum(THYR_ANC20 == 3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC20 == 3, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Subclinical hyperthyroidism at ANC20" = paste0(
+      format(sum(THYR_ANC20 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC20 == 2, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Overt hypothyroidism at ANC20" = paste0(
+      format(sum(THYR_ANC20 == 5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC20 == 5, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Subclinical hypothyroidism at ANC20" = paste0(
+      format(sum(THYR_ANC20 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC20 == 4, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Unclassified" = paste0(
+      format(sum(THYR_ANC20 == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC20 == 0, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+thy_tab[is.na(thy_tab)] <- paste0("0 (0)")
+
+thy_tab_output <- tb_theme1(thy_tab) %>% 
+  tab_header(
+    title = md("**Table 12a**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:2
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Thyroid function at ANC-20</span>"),
+        rows = 3:9
+    ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Thyroid function at ANC-20</span>"))  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" ))
 
 
 
+```
+
+```{r, out.width = '100%'}
+
+gtsave(thy_tab_output, file = "thy_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "thy_tab_output.png"))
+
+```
+\newpage
+
+### Table 12b. Thyroid Dysfunction at ANC-32
+```{r}
+
+thy_tab32 <- thy %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Expected number at ANC32^a^" = paste0(
+      format(sum(THYR_ANC32_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+     "Missing" = paste0(
+      format(sum(THYR_ANC32 == 55 & THYR_ANC32_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC32 == 55 & THYR_ANC32_EXP == 1, na.rm = TRUE)/sum(THYR_ANC32_EXP == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+     
+    "Denominator at ANC32 (non-missing)" = paste0(
+      format(sum(THYR_ANC32_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+     "Euthyroid at ANC32" = paste0(
+      format(sum(THYR_ANC32 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC32 == 1, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+     "Overt hyperthyroidism at ANC32" = paste0(
+      format(sum(THYR_ANC32 == 3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC32 == 3, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Subclinical hyperthyroidism at ANC32" = paste0(
+      format(sum(THYR_ANC32 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC32 == 2, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Overt hypothyroidism at ANC32" = paste0(
+      format(sum(THYR_ANC32 == 5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC32 == 5, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Subclinical hypothyroidism at ANC32" = paste0(
+      format(sum(THYR_ANC32 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC32 == 4, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Unclassified" = paste0(
+      format(sum(THYR_ANC32 == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ANC32 == 0, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+thy_tab32[is.na(thy_tab32)] <- paste0("0 (0)")
+
+thy_tab_output32 <- tb_theme1(thy_tab32) %>% 
+  tab_header(
+    title = md("**Table 12b**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:2
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Thyroid function at ANC-32</span>"),
+        rows = 3:9
+    ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Thyroid function at ANC-32</span>"))  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" )) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who have passed the late window for ANC36</span>" ))
+
+
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(thy_tab_output32, file = "thy_tab_output32.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "thy_tab_output32.png"))
+
+```
