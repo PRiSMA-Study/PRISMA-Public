@@ -46,6 +46,7 @@ birth_asphyxia <- read.csv(paste0(path_to_data, "birth_asphyxia", ".csv"))
 fetal_death <- read.csv(paste0(path_to_data, "fetal_death", ".csv")) 
 hyperbili_all_crit <- read.csv(paste0(path_to_data, "hyperbili_all_crit", ".csv")) 
 psbi_outcome <- read.csv(paste0(path_to_data, "psbi_outcome", ".csv")) 
+infant_trajectory <- read.csv(paste0("Z:/Outcome Data/2024-06-14/infant_trajectory_wide_2024-06-14.csv"))
 
 infant_outcomes <- read.csv(paste0(path_to_data, "infant_outcomes", ".csv")) 
 
@@ -2889,3 +2890,751 @@ psbi_tab_output4 <- psbi_tab_output4 %>% gtsave("psbi_tab_output4.png", expand =
 knitr::include_graphics("psbi_tab_output4.png")
 ```
 
+\newpage
+
+## 11. Infant Growth Trajectories
+
+**Definitions:** 
+
+**-** Underweight (Weight for Age - WAZ):  Proportion of infants more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 	
+
+**-** Severely Underweight (Weight for Age - WAZ): Proportion of infants more than 3 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 	
+
+**-** Wasting (Weight for Length - WFL): Proportion of infants with more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 
+
+**-** Severe Wasting (Weight for Length - WFL): Proportion of infants more than 3 standard deviations (z score) below the WHO Children Health Reference Growth Standard.
+
+**-** Stunting (Length for Age - LAZ): Proportion of infants more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard
+
+**-** Severe Stunting (Length for Age - LAZ): Proportion of infants more than 3 standard deviations  (z score) below the WHO Children Health Reference Growth Standard
+
+**-** Microcephaly ( Head circumference for Age - HCZ): Proportion of infants more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 
+
+**-** Overweight (Weight for Length - WFL): Proportion of infants with more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 
+
+&nbsp;
+
+\newpage
+
+### Table 11a. Infant trajectory outcome at birth
+
+**Denominator:** All living infants with at least completed visits at birth (0 – 5 days) 
+(have MNH11 & MNH09)  AND have all anthropometric measures AND have valid z-scores.
+
+```{r}
+
+inf_traj_birth_tab <- infant_trajectory %>% 
+  ## If India-SAS doesn't have data, add empty row here 
+  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  ## Add empty rows for missing SITE values if the specific site doesn't exist
+  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+    "Denominator ^a^" =  paste0(
+      format(sum(TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Missing birth date (MNH09)" = paste0(
+      format(sum(is.na(DOB) & TYPE_VISIT == 6), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(is.na(DOB) & TYPE_VISIT == 6)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Missing visit date at birth (MNH11)" = paste0(
+      format(sum(is.na(VISIT_DATE) & TYPE_VISIT == 6), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(is.na(VISIT_DATE) & TYPE_VISIT == 6)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing information on infant sex" = paste0(
+      format(sum(is.na(SEX) & TYPE_VISIT == 6), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(is.na(SEX) & TYPE_VISIT == 6)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Missing information on infant length" = paste0(
+      format(sum(LENGTH_MRSRE == 0 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LENGTH_MRSRE == 0 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing information on infant weight" = paste0(
+      format(sum(WEIGHT_MRSRE == 0 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEIGHT_MRSRE == 0 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing information on head circumference" = paste0(
+      format(sum(HC_MRSRE == 0 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HC_MRSRE == 0 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing at least one anthropometry measurement" = paste0(
+      format(sum(MSRE_COMPLT == 0 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MSRE_COMPLT == 0 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
+    
+    "Invalid Z score measure ^b^" = paste0(
+      format(sum(ONE_MSRE_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ONE_MSRE_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
+    
+    "Functional Denominator" =  paste0(
+      format(sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    ## infant trajectories at birth outcome 
+    "Denominator ^c^" =  paste0(
+      format(sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Underweight (WAZ < -2)" = paste0(
+      format(sum(UNDER_WEIGHT == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(UNDER_WEIGHT == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
+    
+    "Severe underweight (WAZ <-3)" = paste0(
+      format(sum(SEVERE_UNDER == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_UNDER == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+
+    "Wasting (WFL < -2)" = paste0(
+      format(sum(WASTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WASTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Severe wasting (WFL < -3)" = paste0(
+      format(sum(SEVERE_WASTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_WASTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Stunting (LAZ <- 2)" = paste0(
+      format(sum(STUNTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STUNTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Severe Stunting (LAZ <- 3)" = paste0(
+      format(sum(SEVERE_STUNTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_STUNTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Overweight (WFL > 3)" = paste0(
+      format(sum(OVERWEIGHT == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(OVERWEIGHT == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Microcephaly (HCZ < -2)" = paste0(
+      format(sum(MICROCEPHALY == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MICROCEPHALY == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) 
+
+```
+
+```{r}
+
+inf_traj_birth_tab <- inf_traj_birth_tab %>%   
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+# replace NA with 0s (this likely means there is not yet data)
+inf_traj_birth_tab[is.na(inf_traj_birth_tab)] <- paste0("0 (0)")
+
+
+inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab) %>% 
+  tab_header(
+    title = md("**Table 11b**")
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>"),
+    rows = 1:10
+  ) %>%
+  
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Infant growth trajectory outcomes at birth (0 – 5 days)</span>"),
+    rows = 11:19
+  ) %>%
+
+  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>",
+                             "<span style='font-size: 18px'>Infant growth trajectory outcomes at birth (0 – 5 days)</span>")) %>% 
+    tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator ^a^",
+                 "Denominator ^c^"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator ^a^",
+                 "Denominator ^c^"))) %>% 
+  tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>a</sup> Participants who had at least one invalid z-score measure.</span>")
+   ) %>%
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total live births with MNH09 & MNH11.</span>")) %>% 
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>c</sup> All living infants with at least completed visits at birth (0 – 5 days) (have MNH11 & MNH09)  AND have all anthropometric measures AND have valid z-scores.</span>")
+   )
+
+# inf_traj_birth_tab1 <- inf_traj_birth_tab[1:10,]
+# inf_traj_birth_tab2 <- inf_traj_birth_tab[11:19,]
+# 
+# inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>% 
+#   tab_header(
+#     title = md("**Table 11a**")
+#   ) %>%
+#   tab_row_group(
+#     label = html("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>"),
+#     rows = 1:10
+#   ) %>%
+# 
+#   row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>")) %>% 
+#     tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_body(rows = c(
+#                  "Denominator ^a^"))) %>% 
+#   tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_stub(rows = c(
+#                  "Denominator ^a^"))) %>% 
+#   
+#   tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>a</sup> Participants who had at least one invalid z-score measure.</span>")
+#    ) %>% 
+#     tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total live births with MNH09 & MNH11.</span>")
+#    ) 
+#   
+# 
+# inf_traj_birth_output2 <- tb_theme1(inf_traj_birth_tab2) %>% 
+#   tab_header(
+#     title = md("**Table 11a continued**")
+#   ) %>%
+#   tab_row_group(
+#     label = html("<span style='font-size: 18px'>Infant growth trajectory outcomes at birth (0 – 5 days)</span>"),
+#     rows = 1:9
+#   ) %>%
+# 
+#   row_group_order(groups = c("<span style='font-size: 18px'>Infant growth trajectory outcomes at birth (0 – 5 days)</span>")) %>% 
+#     tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_body(rows = c(
+#                  "Denominator ^c^"))) %>% 
+#   tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_stub(rows = c(
+#                  "Denominator ^c^"))) %>% 
+#     tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>c</sup> All living infants with at least completed visits at birth (0 – 5 days) (have MNH11 & MNH09)  AND have all anthropometric measures AND have valid z-scores.</span>")
+#    ) 
+  
+
+```
+
+```{r, out.width = '100%'}
+inf_traj_birth_output1 <- inf_traj_birth_output1 %>% gtsave("inf_traj_birth_output1.png", expand = 10)
+knitr::include_graphics("inf_traj_birth_output1.png")
+```
+
+```{r, out.width = '100%'}
+# inf_traj_birth_output2 <- inf_traj_birth_output2 %>% gtsave("inf_traj_birth_output2.png", expand = 10)
+# knitr::include_graphics("inf_traj_birth_output2.png")
+```
+
+\newpage
+
+### Table 11b. Infant trajectory outcome at one month
+
+**Denominator:** All living infants with at least completed visits at birth (21 - 42 days) 
+ AND have all anthropometric measures AND have valid z-scores. 
+
+```{r}
+
+inf_traj_onem_tab <- infant_trajectory %>% 
+  ## If India-SAS doesn't have data, add empty row here 
+  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  ## Add empty rows for missing SITE values if the specific site doesn't exist
+  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+    "Denominator ^a^" =  paste0(
+      format(sum(VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Missing information on infant length" = paste0(
+      format(sum(LENGTH_MRSRE_M1 == 0 & VITAL_M1 == 1, na.rm= TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LENGTH_MRSRE_M1 == 0 & VITAL_M1 == 1, na.rm= TRUE)/sum(VITAL_M1==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Missing information on infant weight" = paste0(
+      format(sum(WEIGHT_MRSRE_M1 == 0 & VITAL_M1 == 1, na.rm=TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEIGHT_MRSRE_M1 == 0 & VITAL_M1 == 1, na.rm=TRUE)/sum(VITAL_M1==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing information on head circumference " = paste0(
+      format(sum(HC_MRSRE_M1 == 0 & VITAL_M1 == 1, na.rm=TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HC_MRSRE_M1 == 0 & VITAL_M1 == 1, na.rm=TRUE)/sum(VITAL_M1==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Missing at least one anthropometry measurement" = paste0(
+      format(sum(MSRE_COMPLT_M1 == 0 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MSRE_COMPLT_M1 == 0 & VITAL_M1 == 1, na.rm = TRUE)/sum(VITAL_M1==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Invalid Z Score Measure ^b^" = paste0(
+      format(sum(ONE_MSRE_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ONE_MSRE_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(VITAL_M1==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Functional Denominator" =  paste0(
+      format(sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    ## infant trajectories at one month outcome 
+    "Denominator ^c^" =  paste0(
+      format(sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Underweight (WAZ < -2)" = paste0(
+      format(sum(UNDER_WEIGHT_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(UNDER_WEIGHT_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
+    
+    "Severe underweight (WAZ <-3)" = paste0(
+      format(sum(SEVERE_UNDER_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_UNDER_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+
+    "Wasting (WFL < -2)" = paste0(
+      format(sum(WASTING_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WASTING_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Severe wasting (WFL < -3)" = paste0(
+      format(sum(SEVERE_WASTING_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_WASTING_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Stunting (LAZ <- 2)" = paste0(
+      format(sum(STUNTING_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STUNTING_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Severe Stunting (LAZ <- 3)" = paste0(
+      format(sum(SEVERE_STUNTING_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_STUNTING_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Overweight (WFL > 3)" = paste0(
+      format(sum(OVERWEIGHT_M1 == 1  & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(OVERWEIGHT_M1 == 1  & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Microcephaly (HCZ < -2)" = paste0(
+      format(sum(MICROCEPHALY_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MICROCEPHALY_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) 
+
+```
+
+```{r}
+
+inf_traj_onem_tab <- inf_traj_onem_tab %>%   
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+# replace NA with 0s (this likely means there is not yet data)
+inf_traj_onem_tab[is.na(inf_traj_onem_tab)] <- paste0("0 (0)")
+
+inf_traj_onem_output1 <- tb_theme1(inf_traj_onem_tab) %>% 
+  tab_header(
+    title = md("**Table 11b**")
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness at one month (21 to 42 days)</span>"),
+    rows = 1:7
+  ) %>%
+  
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Infant growth trajectory outcomes in the first month of life</span>"),
+    rows = 8:16
+  ) %>%
+
+  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at one month (21 to 42 days)</span>",
+                             "<span style='font-size: 18px'>Infant growth trajectory outcomes in the first month of life</span>")) %>% 
+    tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator ^a^",
+                 "Denominator ^c^"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator ^a^",
+                 "Denominator ^c^"))) %>% 
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is any infant who have completed any visit within 21 to 42 days.</span>"))%>%
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants who had at least one invalid z-score measure.</span>")
+   ) %>% 
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>c</sup> All living infants with at least completed visits at birth (21 - 42 days) AND have all anthropometric measures AND have valid z-scores.</span>")
+   )
+  
+# inf_traj_onem_tab1 <- inf_traj_onem_tab[1:7,]
+# inf_traj_onem_tab2 <- inf_traj_onem_tab[8:16,]
+# 
+# inf_traj_onem_output1 <- tb_theme1(inf_traj_onem_tab1) %>% 
+#   tab_header(
+#     title = md("**Table 11b**")
+#   ) %>%
+#   tab_row_group(
+#     label = html("<span style='font-size: 18px'>Data completeness at one month (21 to 42 days)</span>"),
+#     rows = 1:7
+#   ) %>%
+# 
+#   row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at one month (21 to 42 days)</span>")) %>% 
+#     tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_body(rows = c(
+#                  "Denominator ^a^"))) %>% 
+#   tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_stub(rows = c(
+#                  "Denominator ^a^"))) %>% 
+#     tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is any infant who have completed any visit within 21 to 42 days.</span>"))%>% 
+#     tab_footnote( 
+#       footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants who had at least one invalid z-score measure.</span>")
+#    ) 
+#     
+#   
+# 
+# inf_traj_onem_output2 <- tb_theme1(inf_traj_onem_tab2) %>% 
+#   tab_header(
+#     title = md("**Table 11b continued**")
+#   ) %>%
+#   tab_row_group(
+#     label = html("<span style='font-size: 18px'>Infant growth trajectory outcomes in the first month of life.</span>"),
+#     rows = 1:9
+#   ) %>%
+# 
+#   row_group_order(groups = c("<span style='font-size: 18px'>Infant growth trajectory outcomes in the first month of life.</span>")) %>% 
+#     tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_body(rows = c(
+#                  "Denominator ^c^"))) %>% 
+#   tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_stub(rows = c(
+#                  "Denominator ^c^"))) %>% 
+#     tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>c</sup> All living infants with at least completed visits at birth (21 - 42 days) AND have all anthropometric measures AND have valid z-scores.</span>")
+#    ) 
+#   
+
+```
+
+```{r, out.width = '100%'}
+inf_traj_onem_output1 <- inf_traj_onem_output1 %>% gtsave("inf_traj_onem_output1.png", expand = 10)
+knitr::include_graphics("inf_traj_onem_output1.png")
+```
+
+```{r, out.width = '100%'}
+# inf_traj_onem_output2 <- inf_traj_onem_output2 %>% gtsave("inf_traj_onem_output2.png", expand = 10)
+# knitr::include_graphics("inf_traj_onem_output2.png")
+```
+
+\newpage
+
+### Table 11c. Infant trajectory outcome at six months
+
+**Denominator:** All living infants with at least completed visits at six months (171 - 192 days)
+ AND have all anthropometric measures AND have valid z-scores.
+
+```{r}
+
+inf_traj_sixm_tab <- infant_trajectory %>% 
+  ## If India-SAS doesn't have data, add empty row here 
+  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  ## Add empty rows for missing SITE values if the specific site doesn't exist
+  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    # data completeness
+
+    "Denominator ^a^" =  paste0(
+      format(sum(VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Missing information on infant length" = paste0(
+      format(sum(LENGTH_MRSRE_M6 == 0 & VITAL_M6 == 1, na.rm= TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LENGTH_MRSRE_M6 == 0 & VITAL_M6 == 1, na.rm= TRUE)/sum(VITAL_M6==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Missing information on infant weight" = paste0(
+      format(sum(WEIGHT_MRSRE_M6 == 0 & VITAL_M6 == 1, na.rm=TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEIGHT_MRSRE_M6 == 0 & VITAL_M6 == 1, na.rm=TRUE)/sum(VITAL_M6==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Missing information on head circumference " = paste0(
+      format(sum(HC_MRSRE_M6 == 0 & VITAL_M6 == 1, na.rm=TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HC_MRSRE_M6 == 0 & VITAL_M6 == 1, na.rm=TRUE)/sum(VITAL_M6==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Missing at least one anthropometry measurement" = paste0(
+      format(sum(MSRE_COMPLT_M6 == 0 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MSRE_COMPLT_M6 == 0 & VITAL_M6 == 1, na.rm = TRUE)/sum(VITAL_M6==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Invalid Z Score Measure ^b^" = paste0(
+      format(sum(ONE_MSRE_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ONE_MSRE_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(VITAL_M6==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Functional Denominator" =  paste0(
+      format(sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    ## infant trajectories at six month outcome 
+    "Denominator ^c^" =  paste0(
+      format(sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Underweight (WAZ < -2)" = paste0(
+      format(sum(UNDER_WEIGHT_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(UNDER_WEIGHT_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
+    
+    "Severe underweight (WAZ <-3)" = paste0(
+      format(sum(SEVERE_UNDER_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_UNDER_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+
+    "Wasting (WFL < -2)" = paste0(
+      format(sum(WASTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WASTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Severe wasting (WFL < -3)" = paste0(
+      format(sum(SEVERE_WASTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_WASTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Stunting (LAZ <- 2)" = paste0(
+      format(sum(STUNTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STUNTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Severe Stunting (LAZ <- 3)" = paste0(
+      format(sum(SEVERE_STUNTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_STUNTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Overweight (WFL > 3)" = paste0(
+      format(sum(OVERWEIGHT_M6 == 1  & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(OVERWEIGHT_M6 == 1  & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+    
+    "Microcephaly (HCZ < -2)" = paste0(
+      format(sum(MICROCEPHALY_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MICROCEPHALY_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) 
+
+```
+
+```{r}
+
+inf_traj_sixm_tab <- inf_traj_sixm_tab %>%   
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+# replace NA with 0s (this likely means there is not yet data)
+inf_traj_sixm_tab[is.na(inf_traj_sixm_tab)] <- paste0("0 (0)")
+
+# inf_traj_sixm_tab1 <- inf_traj_sixm_tab[1:7,]
+# inf_traj_sixm_tab2 <- inf_traj_sixm_tab[8:16,]
+
+inf_traj_sixm_output1 <- tb_theme1(inf_traj_sixm_tab) %>% 
+  tab_header(
+    title = md("**Table 11c**")
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness at six months (171  to 192 days)</span>"),
+    rows = 1:7
+  ) %>%
+  
+tab_row_group(
+    label = html("<span style='font-size: 18px'>Infant growth trajectory outcomes in the first month of life</span>"),
+    rows = 8:16
+  ) %>%
+
+  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at six months (171  to 192 days)</span>",
+                             "<span style='font-size: 18px'>Infant growth trajectory outcomes in the first month of life</span>")) %>% 
+    tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator ^a^",
+                 "Denominator ^c^"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator ^a^",
+                 "Denominator ^c^"))) %>% 
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is any infant who have completed any visit within 171 to 192 days.</span>")
+   ) %>% 
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants who had at least one invalid z-score measure.</span>")
+   ) %>% 
+    tab_footnote(
+      footnote = html("<span style='font-size: 18px'><sup>c</sup> All living infants with at least completed visits at six months (171 - 192 days) AND have all anthropometric measures AND have valid z-scores.</span>")
+   )
+  
+
+
+
+# inf_traj_sixm_output1 <- tb_theme1(inf_traj_sixm_tab1) %>% 
+#   tab_header(
+#     title = md("**Table 11c**")
+#   ) %>%
+#   tab_row_group(
+#     label = html("<span style='font-size: 18px'>Data completeness at six months (171  to 192 days)</span>"),
+#     rows = 1:7
+#   ) %>%
+# 
+#   row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at six months (171  to 192 days)</span>")) %>% 
+#     tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_body(rows = c(
+#                  "Denominator ^a^"))) %>% 
+#   tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_stub(rows = c(
+#                  "Denominator ^a^"))) %>% 
+#     tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is any infant who have completed any visit within 171 to 192 days.</span>")
+#    ) %>% 
+#     tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants who had at least one invalid z-score measure.</span>")
+#    ) 
+#   
+# 
+# 
+# inf_traj_sixm_output2 <- tb_theme1(inf_traj_sixm_tab2) %>% 
+#   tab_header(
+#     title = md("**Table 11a continued**")
+#   ) %>%
+#   tab_row_group(
+#     label = html("<span style='font-size: 18px'>Infant growth trajectory outcomes in the first month of life.</span>"),
+#     rows = 1:9
+#   ) %>%
+# 
+#   row_group_order(groups = c("<span style='font-size: 18px'>Infant growth trajectory outcomes in the first month of life.</span>")) %>% 
+#     tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_body(rows = c(
+#                  "Denominator ^c^"))) %>% 
+#   tab_style(
+#       style = list(
+#         cell_text(weight = "bold")
+#         ),
+#       locations = cells_stub(rows = c(
+#                  "Denominator ^c^"))) %>% 
+#     tab_footnote(
+#       footnote = html("<span style='font-size: 18px'><sup>c</sup> All living infants with at least completed visits at six months (171 - 192 days) AND have all anthropometric measures AND have valid z-scores.</span>")
+#    ) 
+  
+
+```
+
+```{r, out.width = '100%'}
+inf_traj_sixm_output1 <- inf_traj_sixm_output1 %>% gtsave("inf_traj_sixm_output1.png", expand = 10)
+knitr::include_graphics("inf_traj_sixm_output1.png")
+```
+
+```{r, out.width = '100%'}
+# inf_traj_sixm_output2 <- inf_traj_sixm_output2 %>% gtsave("inf_traj_sixm_output2.png", expand = 10)
+# knitr::include_graphics("inf_traj_sixm_output2.png")
+```
+
+\newpage
