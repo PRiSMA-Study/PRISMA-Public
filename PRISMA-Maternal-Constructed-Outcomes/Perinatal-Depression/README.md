@@ -10,6 +10,12 @@ Stata code: Savannah F. O'Malley (savannah.omalley@gwu.edu)
 
 **`MNH25.do` uses MNH25 form to construct perinatal depression
 
+*Note: this code requires three data sets:* 
+1. 'mnh25.csv' which contains depression data 
+2. 'BOE.dta' which is required to calculate visit windows [part 3 of the code]
+3. 'mat_OUTCOMES.dta' which provides variables for pregnancy end date and closeout date [part 3 of the code]
+*Note that data sets #2 and #3 are only for generating denominators for reports [part 3 of the code]; individual sites do not need data sets #2 and #3 to calculate depression summary scores*
+
 This do file will create three data files:
 1. Long data set (per participant - observation) --> useful for monitoring; includes data for non-scheduled visits
 2. Collapsed data set (one row per participant) --> useful for report; ONLY includes data for three visit types (Enrollment/ANC20, ANC32/ANC36, and PNC6)

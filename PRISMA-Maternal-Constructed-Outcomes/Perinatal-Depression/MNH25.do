@@ -10,17 +10,20 @@
 3. Code analytical variables for Maternal Outcomes report data set
 */
 ***********************************
-  
 ***Part 1: Directories and data import
-
+***********************************
 * Set folders:
-global da "Z:\Stacked Data\2024-04-05"
+global da "Z:\Stacked Data\2024-06-14"
 //update with newest data
-global datadate "05-apr-2024"
+global datadate "14-jun-2024"
 //update with data date
 global wrk "Z:\Savannah_working_files\MNH25\data"
 // make sure this is a secure location as we will save data files here
+global outcomes "Z:\Outcome Data\2024-06-14"
+
+//change based on date
 cd "Z:\Savannah_working_files\MNH25\data"
+
 
 **import data - stacked file
 import delimited "$da/mnh25_merged.csv", bindquote(strict) clear 
@@ -82,7 +85,7 @@ foreach var in m25_epds0103_recode m25_epds0106_recode m25_epds0107_recode ///
 */
 **CHANGE SCORES FOR INDIA CMC AND SAS, PAKISTAN AND ZAMBIA - BASED ON CRF
 foreach var in m25_epds0101_recode m25_epds0102_recode m25_epds0104_recode {
-	recode `var' (1=0) (2=1) (3=2) (4=3) (77=.) if site!="Ghana" & site!="Kenya"
+	recode `var' (1=0) (2=1) (3=2) (4=3) (77=.) (55=.) if site!="Ghana" & site!="Kenya"
 	**change score so that the  option #1 == score of 0,  option #2== score of 1, etc.
 	**question 1,2,4 are positively worded
 	**Ghana and Kenya are each a special case
@@ -90,7 +93,7 @@ foreach var in m25_epds0101_recode m25_epds0102_recode m25_epds0104_recode {
 }
 
 foreach var in m25_epds0103_recode m25_epds0105_recode m25_epds0106_recode m25_epds0107_recode m25_epds0108_recode m25_epds0109_recode m25_epds0110_recode {
-	recode `var' (1=3) (2=2) (3=1) (4=0) (77=.) if site!="Ghana"  & site!="Kenya"
+	recode `var' (1=3) (2=2) (3=1) (4=0) (77=.) (55=.) if site!="Ghana"  & site!="Kenya"
 	**change score so that the 1 option == score of 3, 2 option == score of 2, etc.
 	*questions 3, 5-10 are negatively worded
 }
@@ -102,7 +105,7 @@ foreach var in m25_epds0103_recode m25_epds0105_recode m25_epds0106_recode m25_e
 
 **SITES: DO NOT RUN IF SITE ! = "Kenya"
 foreach var in m25_epds0101_recode m25_epds0102_recode m25_epds0103_recode m25_epds0104_recode m25_epds0105_recode m25_epds0106_recode m25_epds0107_recode m25_epds0108_recode m25_epds0109_recode m25_epds0110_recode {
-	recode `var' (1=0)  (2=1) (3=2) (4=3) (77=.) if site=="Kenya"
+	recode `var' (1=0)  (2=1) (3=2) (4=3) (77=.) (55=.) if site=="Kenya"
 	**change score so that the option #1 == score of 0,  option #2 == score of 1, etc.
 }
 
@@ -128,7 +131,7 @@ foreach var in m25_epds0101 m25_epds0102  {
 	*yes, some of the time (positive question)
 	replace `var'_recode=0 if `var'_y ==2 & site=="Ghana"
 	*yes, most of the time (positive question)
-	replace `var'_recode=. if `var' ==77 
+	replace `var'_recode=. if `var' ==77 | `var' ==55
 }
 
 **Questions #3-10 are written in a negative way
@@ -162,8 +165,14 @@ m25_epds0104_recode m25_epds0105_recode m25_epds0106_recode ///
 m25_epds0107_recode m25_epds0108_recode m25_epds0109_recode ///
 m25_epds0110_recode depression_responses
 
+ egen Q_ANSWERED=anycount( m25_epds0101_recode m25_epds0102_recode m25_epds0103_recode m25_epds0104_recode m25_epds0105_recode m25_epds0106_recode m25_epds0107_recode m25_epds0108_recode m25_epds0109_recode m25_epds0110_recode), values(0 1 2 3)
+ //this codes the number of questions that were answered 
+ 
 **GEN SUMMARY VARIABLE
-egen dep_sum=rowtotal( m25_epds0101_recode m25_epds0102_recode m25_epds0103_recode m25_epds0104_recode m25_epds0105_recode m25_epds0106_recode m25_epds0107_recode m25_epds0108_recode m25_epds0109_recode m25_epds0110_recode) , missing 
+egen dep=rowtotal( m25_epds0101_recode m25_epds0102_recode m25_epds0103_recode m25_epds0104_recode m25_epds0105_recode m25_epds0106_recode m25_epds0107_recode m25_epds0108_recode m25_epds0109_recode m25_epds0110_recode) , missing 
+gen dep_sum = (dep/Q_ANSWERED) *10
+
+
 
 gen QUERY_MISS_DEPSCORE=1 if dep_sum==. 
 label var QUERY_MISS_DEPSCORE "Missing depression score"
@@ -174,10 +183,11 @@ gen dep_check = dep_sum - m25_epds01_scorres
 gen QUERY_SCORE_DIFFER = 1 if dep_check!=0 & dep_check!=.
 label var QUERY_SCORE_DIFFER "Manual differs auto score depression"
 
-bysort site: sum dep_check
-  *note any discrepancies by site
+bysort site: sum dep_check    
+**note discrepancies by site
 
 tab site if dep_check!=0 & dep_check!=.
+
 
 **NOTE that India-CMC administered the form differently before and after Dec 8, 2023
 **create a variable for before and after
@@ -306,72 +316,137 @@ save "$wrk/mnh25_collapsed.dta", replace
 ***Part 3: Analytical variables for Maternal Outcomes Data Set
 **************************************************
 
+merge 1:1 momid pregid using "$outcomes/BOE.dta",nogen
+keep if ENROLL == 1
+rename site momid pregid, upper
+merge 1:1 MOMID PREGID using "$outcomes/mat_ENDPOINTS.dta", ///
+gen(merge_PREGEND)
+keep if ENROLL == 1
+****GEN ANC windows
+gen GA_US_WK = GA_US/7
+ label var GA_US_WK "GA_US/7"
+
+ gen uploaddate = "$datadate"
+ gen UploadDate = date(uploaddate, "DMY")
+ format UploadDate %td
+ 
+ gen ENROLL_PASS = cond(ENROLL_ONTIME<UploadDate, 1, 0)
+ gen ANC20_PASS =  cond(ANC20_ONTIME<UploadDate, 1, 0)
+ gen ANC28_PASS =  cond(ANC28_ONTIME<UploadDate, 1, 0)
+ gen ANC32_PASS =  cond(ANC32_ONTIME<UploadDate, 1, 0)
+ gen ANC36_PASS =  cond(ANC36_ONTIME<UploadDate, 1, 0)
+ 
+ gen ENROLL_PASS_LATE = cond(ENROLL_LATE<UploadDate, 1, 0)
+ gen ANC20_PASS_LATE =  cond(ANC20_LATE<UploadDate & GA_US_WK<=17, 1, 0)
+ **note the above matches monitoring report
+ gen ANC20_PASS_LATE_M25 =  cond(ANC20_LATE<UploadDate, 1, 0)
+ gen ANC28_PASS_LATE =  cond(ANC28_LATE<UploadDate, 1, 0)
+ gen ANC32_PASS_LATE =  cond(ANC32_LATE<UploadDate, 1, 0)
+ gen ANC36_PASS_LATE =  cond(ANC36_LATE<UploadDate, 1, 0)
+
+
+
 **********ANC-20***********
 **DENOMINATOR
+gen PC_ANCLESS20_DENOM = 0 
+replace PC_ANCLESS20_DENOM = 1 if ///
+ANC20_LATE < UploadDate & ///
+(PREG_END_GA>160 | PREG_END_GA ==.) & ///
+((CLOSEOUT_DT>ANC20_LATE) | (CLOSEOUT_DT == . )) 
+**note this is adapted from monitoring code using Erin's variables from PREGEND
+label var PC_ANCLESS20_DENOM "Expected number (passed ANC20 late window without closeout or end preg)"
+
 gen DEPR_ANC20_D = 1 if ///
-DEPR_ANC20_STND ==0 | DEPR_ANC20_STND==1
+(DEPR_ANC20_STND ==0 | DEPR_ANC20_STND==1) & PC_ANCLESS20_DENOM==1
 label var DEPR_ANC20_D "Denominator of those who have valid depression score for ANC20"
 **NUMERATORS
-gen DEPR_ANC20_STND_N = 1 if  DEPR_ANC20_STND==1
+gen DEPR_ANC20_STND_N = 1 if DEPR_ANC20_STND==1 & PC_ANCLESS20_DENOM==1
 label var DEPR_ANC20_STND_N ///
 "Numerator of those screening for depression at ANC20, Standard cutoff"
-gen DEPR_ANC20_SITE_N = 1 if  DEPR_ANC20_SITE==1
+gen DEPR_ANC20_SITE_N = 1 if DEPR_ANC20_SITE==1 & PC_ANCLESS20_DENOM==1
 label var DEPR_ANC20_SITE_N ///
 "Numerator of those screening for depression at ANC20, site cutoff"
 **MISSING
 gen DEPR_ANC20_MISS =DEPR_ANC20_STND if DEPR_ANC20_STND<0
+replace DEPR_ANC20_MISS = -2 if PC_ANCLESS20_DENOM ==1 & DEPR_ANC20_STND==.
+replace DEPR_ANC20_MISS = . if PC_ANCLESS20_DENOM !=1
 label define MISS -2"Visit not completed" -1"No summary score"
 label val DEPR_ANC20_MISS MISS
 
+gen DEPR_ANC20_MISS_D = 1 if PC_ANCLESS20_DENOM ==1
+//denominator for data completeness table
+
 **********ANC-32***********
 **DENOMINATOR
+gen PC_ANCOVER31_DENOM = 0 
+replace PC_ANCOVER31_DENOM = 1 if ///
+ANC32_PASS_LATE ==1 & ///
+(PREG_END_GA>237 | PREG_END_GA ==.) & ///
+((CLOSEOUT_DT>ANC32_LATE) | (CLOSEOUT_DT == . )) 
+**note this is from monitoring report code
+label var PC_ANCOVER31_DENOM "Expected number (passed ANC32 late window without closeout or end preg)"
+
 gen DEPR_ANC32_D = 1 if ///
-DEPR_ANC32_STND == 0 | DEPR_ANC32_STND == 1
+(DEPR_ANC32_STND == 0 | DEPR_ANC32_STND == 1) & PC_ANCOVER31_DENOM == 1
 label var DEPR_ANC32_D ///
 "Denominator of those who have valid depression score for ANC32"
 **NUMERATORS
 gen DEPR_ANC32_STND_N =1 if ///
-DEPR_ANC32_STND ==1
+DEPR_ANC32_STND ==1 & PC_ANCOVER31_DENOM == 1
 label var DEPR_ANC32_STND_N ///
 "Numerator of those screening for depression at ANC32, standard cutoff"
 gen DEPR_ANC32_SITE_N =1 if ///
-DEPR_ANC32_SITE ==1
+DEPR_ANC32_SITE ==1 & PC_ANCOVER31_DENOM == 1
 label var DEPR_ANC32_SITE_N ///
 "Numerator of those screening for depression at ANC32, site cutoff"
 **MISSING
 gen DEPR_ANC32_MISS = DEPR_ANC32_STND if DEPR_ANC32_STND<0
+replace DEPR_ANC32_MISS = -2 if  PC_ANCOVER31_DENOM == 1 & DEPR_ANC32_STND==.
+replace  DEPR_ANC32_MISS=. if PC_ANCOVER31_DENOM !=1
 label val DEPR_ANC32_MISS MISS
+gen DEPR_ANC32_MISS_D =1 if PC_ANCOVER31_DENOM == 1
 
 **********PNC-6***********
+gen PC_PNC6_DENOM = 0 
+replace PC_PNC6_DENOM = 1 if ///
+((PREG_END_DATE + 104) < UploadDate)  & ///
+((CLOSEOUT_DT > (PREG_END_DATE + 104)) | CLOSEOUT_DT==.)
+label var PC_PNC6_DENOM "Expected number (passed PNC6 window without closeout)"
+
+
+
 **DENOMINATOR
 gen DEPR_PNC6_D = 1 if ///
-DEPR_PNC6_STND == 0 | DEPR_PNC6_STND == 1
+(DEPR_PNC6_STND == 0 | DEPR_PNC6_STND == 1) & PC_PNC6_DENOM == 1
 label var DEPR_PNC6_D ///
 "Denominator of those who have valid depression scores for PNC6"
 **NUMERATORS
-gen DEPR_PNC6_STND_N = 1 if DEPR_PNC6_STND == 1
+gen DEPR_PNC6_STND_N = 1 if DEPR_PNC6_STND == 1 & PC_PNC6_DENOM == 1
 label var DEPR_PNC6_STND_N ///
 "Numerator of those screening for depression at PNC6, standard cutoff"
-gen DEPR_PNC6_SITE_N = 1 if DEPR_PNC6_SITE == 1
+gen DEPR_PNC6_SITE_N = 1 if DEPR_PNC6_SITE == 1 & PC_PNC6_DENOM == 1
 label var DEPR_PNC6_SITE_N ///
 "Numerator of those screening for depression at PNC6, site cutoff"
 **MISSING 
 gen DEPR_PNC6_MISS = DEPR_PNC6_STND if DEPR_PNC6_STND < 0
+replace DEPR_PNC6_MISS = -2 if PC_PNC6_DENOM ==1 & DEPR_PNC6_STND==.
+replace DEPR_PNC6_MISS = . if PC_PNC6_DENOM!=1
 label val DEPR_PNC6_MISS MISS
 
+gen DEPR_PNC6_MISS_D = 1 if PC_PNC6_DENOM == 1
 
 **********ANC, EVER***********
 gen DEPR_ANC_EVER_D =1 if ///
-DEPR_ANC20_STND ==0  | DEPR_ANC20_STND==1 | ///
-DEPR_ANC32_STND ==0  | DEPR_ANC32_STND==1
+DEPR_ANC20_D ==1 | ///
+DEPR_ANC32_D ==1
 label var DEPR_ANC_EVER_D ///
 "Denominator of those with a valid depression score at ANC20 or 32"
 gen DEPR_ANC_EVER_STND_N = 1 if ///
- DEPR_ANC20_STND ==1 |  DEPR_ANC32_STND ==1
+ DEPR_ANC20_STND_N ==1 |  DEPR_ANC32_STND_N ==1
  label var DEPR_ANC_EVER_STND_N ///
  "Numerator of those with a valid depression score at ANC20 or 32"
 gen DEPR_ANC_EVER_SITE_N = 1 if ///
- DEPR_ANC20_SITE ==1 | DEPR_ANC32_SITE==1
+ DEPR_ANC20_SITE_N ==1 | DEPR_ANC32_SITE_N==1
  label var DEPR_ANC_EVER_SITE_N ///
  "Numerator of those with a valid depression score at ANC20 or 32"
 
@@ -390,11 +465,17 @@ DEPR_ANC_EVER_SITE_N == 1 | DEPR_PNC6_SITE_N == 1
 label var DEPR_EVER_SITE_N ///
 "Numerator of any who screened for possible depression, site cutoff, any time point"
 
-gen SITE=site
-order SITE, before(site)
 
-drop site DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC32_STND DEPR_ANC32_SITE DEPR_PNC6_STND DEPR_PNC6_SITE
+
+*drop site DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC32_STND DEPR_ANC32_SITE DEPR_PNC6_STND DEPR_PNC6_SITE
 order DEPR_ANC32_SCORE, after( DEPR_ANC20_MISS)
 order DEPR_PNC6_SCORE, after( DEPR_ANC32_MISS)
+foreach var in DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC32_STND DEPR_ANC32_SITE DEPR_PNC6_STND DEPR_PNC6_SITE {
+	replace `var'=55 if `var' == -2 | `var' == -1
+}
 
 save "$wrk/mnh25_MaternalOutcomes.dta", replace
+drop ENROLL ESTIMATED_EDD_SCDAT GA_LMP US_EDD_BRTHDAT GA_US BOE_GA_DAYS BOE_GA_WKS US_OHOSTDAT EST_CONCEP_DATE EDD_BOE ENROLL_ONTIME ENROLL_LATE ANC20_ONTIME ANC20_LATE ANC28_ONTIME ANC28_LATE ANC32_ONTIME ANC32_LATE ANC36_ONTIME ANC36_LATE PREG_END PREG_END_GA PREG_END_DATE PREG_LOSS PREG_LOSS_INDUCED PREG_LOSS_DEATH CLOSEOUT CLOSEOUT_DT CLOSEOUT_GA CLOSEOUT_TYPE MAT_DEATH MAT_DEATH_DATE MAT_DEATH_GA STOP_DATE merge_PREGEND GA_US_WK ENROLL_PASS ANC20_PASS ANC28_PASS ANC32_PASS ANC36_PASS ENROLL_PASS_LATE ANC20_PASS_LATE ANC20_PASS_LATE_M25 ANC28_PASS_LATE ANC32_PASS_LATE ANC36_PASS_LATE
+drop uploaddate UploadDate
+
+save "$outcomes/Depression.dta" , replace
