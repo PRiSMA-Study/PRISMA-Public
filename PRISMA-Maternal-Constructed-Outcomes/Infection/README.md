@@ -7,7 +7,7 @@ This folder two coding files that generate PRISMA maternal infection outcomes an
 updated as more outcomes are coded and generated. More information on
 the outcomes coded here can be found in the PRISMA protocol.
 
-#### :pushpin: Updated on 22 May 2024
+#### :pushpin: Updated on 1 July 2024
 
 #### :pushpin: Originally drafted by:
 
@@ -23,6 +23,8 @@ metrics for each of the constructed variables generated in the previous
 code.
 
 ## Outcomes included in this version:
+- This outcome contains both infection prevalence at enrollment and incident infections following enrollment (exclusing enrollment infections).
+
 - STIs
   + HIV
   + Syphilis
