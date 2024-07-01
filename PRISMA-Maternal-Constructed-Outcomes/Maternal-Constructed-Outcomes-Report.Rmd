@@ -50,7 +50,7 @@ preterm_indication <- read_dta(paste0(path_to_data, "PREGEND.dta"))  %>% rename_
 gdm <- read_dta(paste0(path_to_data, "GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combined", ".csv"))
 near_miss <- read_dta(paste0(path_to_data, "near-miss-maternal-outcomes.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
-thy<- read_dta(paste0(path_to_data, "thyr_collapsed.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+thy<- read_dta(paste0(path_to_data, "mat_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
