@@ -2719,6 +2719,13 @@ sti_enroll_tab <- mat_infections_combined %>%
       " (",
       format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HIV_MISSING == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
+  
+    "HIV incidence following enrollment (positive RDT or diagnosed) ^c^" = paste0(
+      format(sum(HIV_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIV_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
 
     "HIV diagnosis and RDT missing ^b^" = paste0(
       format(sum(HIV_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
