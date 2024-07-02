@@ -183,14 +183,14 @@ g_legend <- function(p) {
    group_by(SITE) %>%
    summarise(
 
+    "Any death ^a^, n" = paste0(
+       format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
     "Missing cause of death information, n" = paste0(
        format(sum(MAT_DEATH_MISSCAUSE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Missing date of death information, n" = paste0(
        format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-
-    "Any death ^a^, n" = paste0(
-       format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Pregnancy-related death, n" = paste0(
        format(sum(MAT_DEATH_42 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
@@ -224,21 +224,21 @@ g_legend <- function(p) {
      title = md("**Table 1**")) %>%
    tab_row_group(
      label = html("<span style='font-size: 18px'>Data completeness</span>"),
-     rows = 1:2
+     rows = 2:3
    ) %>%
    tab_row_group(
      label = html("<span style='font-size: 18px'>Maternal death</span>"),
-     rows = 3:7
+     rows = 4:7
    ) %>%
  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
                   "<span style='font-size: 18px'>Maternal death</span>"
                   )) %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes [M23_ACC_DDORRES].</span>")
   ) %>% 
 
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>b</sup> Maternal mortality and late maternal mortality require information on cause of death which is currently unavailable.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>b</sup> Maternal mortality and late maternal mortality currently based on whether the death was due to accidental or incidental causes [M23_ACC_DDORRES]; these outcomes require information on cause of death (from verbal autopsies) which is currently unavailable. These outcomes will be updated as cause of death information becomes available.</span>")
   ) %>% 
    tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>Note</sup> Currently all entries are missing information for cause of death, and a few entries are missing date of death information.</span>")
@@ -2227,16 +2227,16 @@ tab_style(
       ) %>% 
 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Depression, ever (among any woman who has at least one assessment at enrollment, ANC-20, ANC-32, ANC-36, or PNC-6).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Depression, ever (among any woman who has at least one EPDS assessment).</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> ANC, ever (among any woman who has been assessed at enrollment, ANC-20, ANC-32, or ANC-36).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> ANC, ever (among any woman who has at least one EPDS assessment at enrollment, ANC-20, ANC-32, or ANC-36).</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> ANC-20 includes depression assessments conducted at enrollment visit per protocol.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> ANC-20 includes depression assessments conducted at enrollment and ANC20 visit per protocol.</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> ANC-32 includes depression assessments conducted at ANC-36 per protocol.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> ANC-32 includes depression assessments conducted at ANC-32 and ANC-36 per protocol.</span>")
  ) 
 
 ```
@@ -2364,16 +2364,16 @@ tab_style(
       ) %>% 
 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Depression, ever (among any woman who has at least one assessment at enrollment, ANC-20, ANC-32, ANC-36, or PNC-6).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Depression, ever (among any woman who has at least one EPDS assessment).</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> ANC, ever (among any woman who has been assessed at enrollment, ANC-20, ANC-32, or ANC-36).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> ANC, ever (among any woman who has at least one assessment at enrollment, ANC-20, ANC-32, or ANC-36).</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> ANC-20 includes depression assessments conducted at enrollment visit per protocol.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> ANC-20 includes depression assessments conducted at enrollment and ANC20 visit per protocol.</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> ANC-32 includes depression assessments conducted at ANC-36 per protocol.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> ANC-32 includes depression assessments conducted at ANC-20 and ANC-36 per protocol.</span>")
  )  
 
 ```
