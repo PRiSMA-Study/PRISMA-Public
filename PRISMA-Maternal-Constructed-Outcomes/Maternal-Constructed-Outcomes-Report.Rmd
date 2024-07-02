@@ -2016,52 +2016,61 @@ depression_complete_tab <- depression %>%
   summarise(
 
     ## ANC20
-    "Visit not completed^a^, n (%)" = paste0(
+    "Expected denominator^a^" = paste0(
+      format(sum(PC_ANCLESS20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Visit not completed^b^, n (%)" = paste0(
       format(sum(DEPR_ANC20_MISS== -2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_ANC20_MISS== -2, na.rm = TRUE)/sum(DEPR_ANC20_MISS_D == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_ANC20_MISS== -2, na.rm = TRUE)/sum(PC_ANCLESS20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Visit completed but no summary score, n (%)" = paste0(
       format(sum(DEPR_ANC20_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_ANC20_MISS==-1, na.rm = TRUE)/sum(DEPR_ANC20_MISS_D == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_ANC20_MISS==-1, na.rm = TRUE)/sum(PC_ANCLESS20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^b^" = paste0(
-      format(sum(DEPR_ANC20_MISS_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    "Denominator^c^" = paste0(
+      format(sum(DEPR_ANC20_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     ## ANC32
-    "Visit not completed^a^, n (%) " = paste0(
+    "Expected denominator^a^ " = paste0(
+      format(sum([PC_ANCOVER31_DENOM==1==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Visit not completed^b^, n (%) " = paste0(
       format(sum(DEPR_ANC32_MISS== -2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_ANC32_MISS== -2, na.rm = TRUE)/sum(DEPR_ANC32_MISS_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_ANC32_MISS== -2, na.rm = TRUE)/sum([PC_ANCOVER31_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Visit completed but no summary score, n (%) " = paste0(
       format(sum(DEPR_ANC32_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_ANC32_MISS==-1, na.rm = TRUE)/sum(DEPR_ANC32_MISS_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_ANC32_MISS==-1, na.rm = TRUE)/sum(PC_ANCOVER31_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^b^ " = paste0(
-      format(sum(DEPR_ANC32_MISS_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    "Denominator^c^ " = paste0(
+      format(sum(DEPR_ANC32_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     ## PNC6
-    "Visit not completed^a^, n (%)  " = paste0(
+    "Expected denominator^a^  " = paste0(
+      format(sum(PC_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2))
+
+    "Visit not completed^b^, n (%)  " = paste0(
       format(sum(DEPR_PNC6_MISS==-2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_PNC6_MISS== -2, na.rm = TRUE)/sum(DEPR_PNC6_MISS_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_PNC6_MISS== -2, na.rm = TRUE)/sum(PC_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Visit completed but no summary score, n (%)  " = paste0(
       format(sum(DEPR_PNC6_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_PNC6_MISS==-1, na.rm = TRUE)/sum(DEPR_PNC6_MISS_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_PNC6_MISS==-1, na.rm = TRUE)/sum(PC_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^b^  " = paste0(
-      format(sum(DEPR_PNC6_MISS_D==1, na.rm = TRUE), nsmall = 0, digits = 2))
+    "Denominator^c^  " = paste0(
+      format(sum(DEPR_PNC6_D==1, na.rm = TRUE), nsmall = 0, digits = 2))
 
     ) %>%
   t() %>% as.data.frame() %>%
@@ -2081,24 +2090,28 @@ depression_complete_output <- tb_theme1(depression_complete_tab) %>%
     title = md("**Table 5a**")) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data Completeness at ANC-20</span>"),
-        rows = 1:3
+        rows = 1:4
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data Completeness at ANC-32</span>"),
-        rows = 4:6
+        rows = 5:8
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data Completeness at PNC-6</span>"),
-        rows = 7:9
+        rows = 9:12
     ) %>%
  row_group_order(groups = c( "<span style='font-size: 18px'>Data Completeness at ANC-20</span>",
                             "<span style='font-size: 18px'>Data Completeness at ANC-32</span>",
                             "<span style='font-size: 18px'>Data Completeness at PNC-6</span>")) %>%
+
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Visit not completed indicates that the MNH25 form was filled out for that visit type, but the visit was not completed (MAT_VISIT >=3).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who have passed the window, have closed out after the window or have not closed out.</span>")
  )  %>%
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is number of those who have MNH25 filled out for that visit type.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Visit not completed indicates that either the MNH25 form was filled out for that visit type, but the visit was not completed (MAT_VISIT >=3) or the observation was expected and there is no form for that participant.</span>")
+ )  %>%
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is number of those who have passed the window, have closed out after the window or have not closed out, and have MNH25 filled out for that visit type.</span>")
  )
 
 ```
@@ -2238,11 +2251,22 @@ knitr::include_graphics(paste0(path_to_save, "depression_standard_output.png"))
 \newpage
 
 ### 5c. Maternal Depression, using site-specific cutoff score
-**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a site-specific cutoff: (Ghana >= 11; India - CMC >= 8; India - SAS >= 10; Kenya >= 13; Pakistan >= 14; Zambia >= 10). 
+**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a site-specific cutoff: 
+-   Ghana >= 11; 
 
-**Numerator:** Valid depression score >= site-specific cutoff (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25])
+-   India - CMC >= 8; 
 
-**Denominator:**  MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25])
+-   India - SAS >= 10; 
+
+-   Kenya >= 13; 
+
+-   Pakistan >= 14;
+
+-   Zambia >= 10 
+
+**Numerator:** Valid depression score >= site-specific cutoff (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
+
+**Denominator:**  MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
 
 #### Table 5c. Maternal Depression, using site-specific cutoff score
 ```{r}
@@ -4139,9 +4163,9 @@ near_miss_taba <- near_miss %>%
       ")"),     
    
     "Pulmonary edema" = paste0(
-       format(sum(PULM_EDEMA_M19 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+       format(sum(PULMONARY_EDEMA == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
        " (",
-       format(round(sum(PULM_EDEMA_M19 == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+       format(round(sum(PULMONARY_EDEMA == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
    
    )  %>%
@@ -4169,10 +4193,10 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(ICU==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Laparotomy other than C-section (M19)" = paste0(
-      format(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Laparotomy other than C-section" = paste0(
+      format(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Any unplanned hospitalization" = paste0(
@@ -4208,9 +4232,9 @@ near_miss_tabb <- near_miss %>%
       ")"),
     
     "Laparotomy other than C-section (M19)" = paste0(
-      format(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(LAPAROTOMY_M19==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
    
     "Mother needed (M09) and/or received (M19) blood transfusion" = paste0(
@@ -4225,7 +4249,7 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(MAT_DYS ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
    
-    "Met any near miss criteria" = paste0(
+    "Met at least one near miss criteria" = paste0(
       format(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4618,7 +4642,7 @@ thy_tab <- thy %>%
   group_by(SITE) %>% 
   summarise(
     
-     "Expected number at ANC20" = paste0(
+     "Expected number at ANC20^a^" = paste0(
       format(sum(THYR_ANC20_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      
      "Missing" = paste0(
@@ -4627,34 +4651,34 @@ thy_tab <- thy %>%
       format(round(sum(THYR_ANC20 == 55 & THYR_ANC20_EXP == 1, na.rm = TRUE)/sum(THYR_ANC20_EXP == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
      
-    "Denominator at ANC20 (non-missing)" = paste0(
+    "Denominator (non-missing)" = paste0(
       format(sum(THYR_ANC20_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      
-     "Euthyroid at ANC20" = paste0(
+     "Euthyroid" = paste0(
       format(sum(THYR_ANC20 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC20 == 1, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
     
-     "Overt hyperthyroidism at ANC20" = paste0(
+     "Overt hyperthyroidism" = paste0(
       format(sum(THYR_ANC20 == 3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC20 == 3, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-     "Subclinical hyperthyroidism at ANC20" = paste0(
+     "Subclinical hyperthyroidism" = paste0(
       format(sum(THYR_ANC20 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC20 == 2, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-     "Overt hypothyroidism at ANC20" = paste0(
+     "Overt hypothyroidism" = paste0(
       format(sum(THYR_ANC20 == 5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC20 == 5, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-     "Subclinical hypothyroidism at ANC20" = paste0(
+     "Subclinical hypothyroidism" = paste0(
       format(sum(THYR_ANC20 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC20 == 4, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4693,7 +4717,9 @@ thy_tab_output <- tb_theme1(thy_tab) %>%
  row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
                             "<span style='font-size: 18px'>Thyroid function at ANC-20</span>"))  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" ))
+    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" )) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who have passed the late window for ANC20</span>" ))
 
 
 
@@ -4724,7 +4750,7 @@ thy_tab32 <- thy %>%
       format(round(sum(THYR_ANC32 == 55 & THYR_ANC32_EXP == 1, na.rm = TRUE)/sum(THYR_ANC32_EXP == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
      
-    "Denominator at ANC32 (non-missing)" = paste0(
+    "Denominator (non-missing)" = paste0(
       format(sum(THYR_ANC32_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      
      "Euthyroid at ANC32" = paste0(
@@ -4733,25 +4759,25 @@ thy_tab32 <- thy %>%
       format(round(sum(THYR_ANC32 == 1, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
     
-     "Overt hyperthyroidism at ANC32" = paste0(
+     "Overt hyperthyroidism" = paste0(
       format(sum(THYR_ANC32 == 3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 3, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-     "Subclinical hyperthyroidism at ANC32" = paste0(
+     "Subclinical hyperthyroidism" = paste0(
       format(sum(THYR_ANC32 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 2, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-     "Overt hypothyroidism at ANC32" = paste0(
+     "Overt hypothyroidism" = paste0(
       format(sum(THYR_ANC32 == 5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 5, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-     "Subclinical hypothyroidism at ANC32" = paste0(
+     "Subclinical hypothyroidism" = paste0(
       format(sum(THYR_ANC32 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 4, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
