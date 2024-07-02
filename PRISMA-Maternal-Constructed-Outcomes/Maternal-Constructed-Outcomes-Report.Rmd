@@ -42,17 +42,17 @@ path_to_data <- "Z:/Outcome Data/2024-06-14/"
 path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
-mortality <- read_dta(paste0(path_to_data, "mat_MORTALITY.dta")) %>% rename_all(toupper)
+mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
 hemorrhage <- read.csv(paste0(path_to_data, "hemorrhage.csv")) %>% rename_all(toupper)
-depression <- read_dta(paste0(path_to_data, "mat_DEPR.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combined", ".csv"))
-near_miss <- read_dta(paste0(path_to_data, "near-miss-maternal-outcomes.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
-thy<- read_dta(paste0(path_to_data, "mat_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 
@@ -4163,32 +4163,21 @@ ggvenn(data = list(`Fasting glucose` = GDM_pre,
 
 ## 9. Maternal near-miss 
 
-**Definition:** Includes:
+**Definition of near-miss:** 
 
--   A woman who is pregnant, in labor, or within 42 days of the pregnancy end, *AND*
+1.   A woman who is pregnant, in labor, or within 42 days of the pregnancy end, *AND*
 
--   Experienced the PRISMA-near-miss criteria (organ dysfunction, hysterectomy, blood transfusion of any volume, eclampsia with severe features, uterine rupture, sepsis, or laparotomy other than C-section), *AND*
+2.   Experienced the PRISMA-near-miss criteria: **organ dysfunction** [M09_ORG_FAIL_MHOCCUR_1-7,88; M12_ORG_FAIL_MHOCCUR_1-4,88; M19_ORGAN_FAIL_MHTERM_1-7, 88], **hysterectomy** [M09_PPH_FAORRES_5; M12_BIRTH_COMPL_MHTERM_8; M19_TX_PROCCUR_5], **blood transfusion of any volume** [M19_TX_PROCCUR_1; or transfusion to treat PPH], **preeclampsia with severe features/eclampsia** [to be constructed], **uterine rupture**  [constructed outcome, see table 10 of this report], **sepsis**  [to be constructed], **laparotomy other than C-section** [M19_TX_PROCCUR_2-3,5 or hysterectomy], and/or **admission to ICU** [M10_TRANSFER_OHOLOC==1; M10_TRANSFER_OHOLOC==2] *AND*
 
--   Experiences a potentially life-threatening condition (PLTC; postpartum hemorrhage, preeclampsia, eclampsia, sepsis or severe infection, ruptured uterus, admission to ICU, blood transfusion, laparotomy other than C-section, abortion complications, severe hypertension, obstructed labor, prolonged labor, pulmonary edema, placenta accrete, placenta abruption, endometritis, admitted for in-patient care [M19_VISIT_FAORRES == 3] or referred to another institution [M19_VISIT_FAORRES == 4 or M19_ADMIT_DSTERM == 2]), *AND*
+3.   Survives the experience.
 
--   Survives the experience.
+**Denominator for maternal near miss:** 
 
-**Denominator:** 
+-   Expected denominator: women who have passed 42 days postpartum
 
--   Expected denominator: woman has passed 42 days postpartum
+-   Near-miss denominator: passed 42 days postpartum AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND we have seen them on or after 42 days postpartum OR they have experienced PLTC 
 
--   Near-miss denominator: Passed 42 days postpartum AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND we have seen them on or after 42 days postpartum OR they have experienced PLTC 
-
-**Proposed criteria for adjudication:** 
-
--   Woman who meets near-miss criteria but did NOT have PLTC 
-
--   Woman who died (excluding accidental/incidental causes) but did NOT have PLTC
-
--   Woman who has PLTC and dies but did NOT meet near-miss criteria
-
-
-### Table 9. Near-miss 
+### Table 9a. Near-miss data completeness
 ```{r}
 
 near_miss_taba <- near_miss %>% 
@@ -4220,8 +4209,94 @@ near_miss_taba <- near_miss %>%
     "Near miss denominator <sup>a</sup>" = paste0(
       format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
+   )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0")))
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+near_miss_taba[is.na(near_miss_taba)] <- paste0("0 (0)")
+
+near_miss_tab_outputa <- tb_theme1(near_miss_taba) %>% 
+  tab_header(
+    title = md("**Table 9a**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    rows = 1:4
+  ) %>%
+
+  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>"
+                             ))  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Any woman who has passed 42 days postpartum without closeout AND has completed a visit 42+ days postpartum OR she experienced PLTC.</span>")
+ ) 
+
+
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(near_miss_tab_outputa, file = "near_miss_taba.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "near_miss_taba.png"))
+
+```
+
+\newpage
+
+
+**Potentially life-threatening conditions (PLTC):**
+
+-   **postpartum hemorrhage** [see table 6 of this report]
+
+-   **preeclampsia** [to be constructed]
+
+-   **severe hypertension** [to be constructed]
+
+-   **pulmonary edema** [M09_PREECLAMPSIA_CEOCCUR_4]
+
+-   **eclampsia** [to be constructed]
+
+-   **sepsis or severe infection** [to be constructed]
+
+-   **ruptured uterus** [constructed outcome, see table 10 of this report]
+
+-   **blood transfusion of any volume** [M19_TX_PROCCUR_1; or transfusion to treat PPH]
+
+-   **laparotomy other than C-section** [M19_TX_PROCCUR_2-3,5 or hysterectomy]
+
+-   **abortion complications** [M19_EARLY_LOSS_MHTERM==6]
+
+-   **obstructed labor** [constructed]
+
+-   **prolonged labor** [constructed outcome; see table 11]
+
+-   **placenta accrete** [M09_CES_PRINDC_INF1_17 (infants 1-4)]
+
+-   **placenta abruption** [M09_APH_FAORRES_1; M09_CES_PRINDC_INF1_6 (infants 1-4)]
+
+-   **endometritis** [M10_POST_DEL_INF_CEOCCUR_1; M19_INFECTION_MHTERM_16]
+
+-   **any hospitalization** [M19; M04_HOSP_OHOOCCUR; M12_HOSP_LAST_VISIT_OHOOCCUR]
+
+### Table 9b. Potentially life-threatening conditions (PLTC)
+```{r}
+
+near_miss_tabb <- near_miss %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+   
+    "**Near miss denominator** <sup>a</sup>" = paste0(
+      format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
-    "Any potentially life-threatening condition" = paste0(
+ "Any potentially life-threatening condition" = paste0(
       format(sum(PLTC==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PLTC==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4233,22 +4308,22 @@ near_miss_taba <- near_miss %>%
       format(round(sum(HEM_PPH==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Pre-eclampsia *" = paste0(
-      format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Pre-eclampsia without severe features " = paste0(
+      format(sum(PE==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PE==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Eclampsia *" = paste0(
-      format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Pre-clampsia with severe features/Eclampsia " = paste0(
+      format(sum(PE_SEV == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PE_SEV ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Severe hypertension *" = paste0(
-      format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Severe hypertension " = paste0(
+      format(sum(EVER_SEVERE_HIGHBP==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(EVER_SEVERE_HIGHBP==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Sepsis or severe infection *" = paste0(
@@ -4304,20 +4379,25 @@ near_miss_taba <- near_miss %>%
        " (",
        format(round(sum(PULMONARY_EDEMA == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
-   
-   )  %>%
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1) %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0")))
-      
-      
-near_miss_tabb <- near_miss %>% 
-  rowwise() %>% 
-  group_by(SITE) %>% 
-  summarise(      
-    
+ 
+     "Malaria " = paste0(
+       format(sum(MALARIA == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+       " (",
+       format(round(sum(MALARIA == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Tuberculosis " = paste0(
+       format(sum(TB == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+       " (",
+       format(round(sum(TB == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Severe anemia " = paste0(
+       format(sum(ANEMIA_SEV_ANC==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+       " (",
+       format(round(sum(ANEMIA_SEV_ANC==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
     "Mother needed (M09) and/or received (M19) blood transfusion" = paste0(
       format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -4330,7 +4410,7 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(ICU==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Laparotomy other than C-section" = paste0(
+    "Laparotomy other than C-section (M19)" = paste0(
       format(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4342,18 +4422,98 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(HOSP == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    # Near-miss list: 
+   )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0")))
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+near_miss_tabb[is.na(near_miss_tabb)] <- paste0("0 (0)")
+
+near_miss_tab_outputb <- tb_theme1(near_miss_tabb) %>% 
+  tab_header(
+    title = md("**Table 9b**")) %>% 
+tab_row_group(
+    label = html("<span style='font-size: 18px'>Potentially Life-Threatening Conditions (PLTC)</span>"),
+    rows = 1:22
+  ) %>%
+    row_group_order(groups = c("<span style='font-size: 18px'>Potentially Life-Threatening Conditions (PLTC)</span>"))  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>*</sup>These outcomes will be added to PLTC once constructed.</span>")
+ ) 
+
+
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(near_miss_tab_outputb, file = "near_miss_tabb.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "near_miss_tabb.png"))
+
+```
+
+\newpage
+
+### Table 9c. Maternal near-miss
+```{r}
+
+near_miss_tabc <- near_miss %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+   
+    "**Near-miss denominator**" = paste0(
+      format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
+
+      "Met any near-miss criteria^a^" = paste0(
+      format(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  # Near-miss list: 
   
     "Hysterectomy" = paste0(
       format(sum(HYSTERECTOMY == 1 & NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HYSTERECTOMY == 1 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),  
-    
-    "Eclampsia with severe features *" = paste0(
-      format(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      ")"), 
+  
+      "Laparotomy other than C-section (M19)" = paste0(
+      format(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+      "Mother referred to ICU (M10)" = paste0(
+      format(sum(ICU==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ICU==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+  
+      "Near-miss transfusion^b^" = paste0(
+      format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+      "Severe PPH" = paste0(
+      format(sum(HEM_PPH_SEV == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_PPH_SEV==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Preeclampsia with severe features/eclampsia " = paste0(
+      format(sum(PE_SEV == 1 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PE_SEV==1 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
     
    "Uterine rupture" = paste0(
@@ -4367,131 +4527,81 @@ near_miss_tabb <- near_miss %>%
       " (",
       format(round(sum(NEAR_MISS_DENOM ==0 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Laparotomy other than C-section (M19)" = paste0(
-      format(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(LAPAROTOMY==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-   
-    "Mother needed (M09) and/or received (M19) blood transfusion" = paste0(
-      format(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(TRANSFUSION==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
 
-    "Experienced organ dysfunction" = paste0(
+    "Organ dysfunction" = paste0(
       format(sum(MAT_DYS ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAT_DYS ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-   
-    "Met at least one near miss criteria" = paste0(
-      format(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-                    
-    "Met near miss criteria and PLTC and survived" = paste0(
+                   
+    "Met near-miss criteria and survived" = paste0(
       format(sum(MAT_MNM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAT_MNM ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
    
-    # "Woman died *" = paste0(
-    #   format(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(NEAR_MISS_DENOM == 0 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
-   
-    "Adjudication required: Near miss but no PLTC <sup>b</sup>" = paste0(
+    "Near-miss but no PLTC" = paste0(
       format(sum(MISS_PLTC ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MISS_PLTC ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-  )  %>%
+   )  %>%
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1) %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+  mutate_all(funs(str_replace(., "NA", "0")))
 
 
 ```
 
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
-near_miss_taba[is.na(near_miss_taba)] <- paste0("0 (0)")
-near_miss_tabb[is.na(near_miss_tabb)] <- paste0("0 (0)")
+near_miss_tabc[is.na(near_miss_tabc)] <- paste0("0 (0)")
 
-## the table is too long -- split into 2 
-near_miss_tab1 <- near_miss_taba
-near_miss_tab2 <- near_miss_tabb
-
-
-# part 1
-near_miss_tab_output1 <- tb_theme1(near_miss_tab1) %>% 
+near_miss_tab_outputc <- tb_theme1(near_miss_tabc) %>% 
   tab_header(
-    title = md("**Table 9**")) %>% 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness</span>"),
-    rows = 1:5
+    title = md("**Table 9c**")) %>% 
+ tab_row_group(
+    label = html("<span style='font-size: 18px'>Near-miss criteria</span>"),
+    rows = 1:12
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Experienced potentially life-threatening condition (PLTC) </span>"),
-    rows = 5:19
+ tab_row_group(
+    label = html("<span style='font-size: 18px'>Adjudication scenarios</span>"),
+    rows = 13:13
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
-                             "<span style='font-size: 18px'>Experienced potentially life-threatening condition (PLTC) </span>"
+  row_group_order(groups = c("<span style='font-size: 18px'>Near-miss criteria</span>",
+                             "<span style='font-size: 18px'>Adjudication scenarios</span>"
                              ))  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Any woman who has passed 42 days postpartum without closeout AND has completed a visit 42+ days postpartum OR she experienced PLTC.</span>")
- ) %>% 
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Participants may have more than one criteria.</span>") 
+    ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>*</sup> These items will be added to the PLTC criteria or near-miss criteria once available.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup>Mother needed and/or experienced transfusion AND had one of the following: severe anemia, severe postpartum hemorrhage, antepartum hemorrhage, or placental abruption.</span>") 
+ ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>*</sup>These outcomes will be added to near-miss once constructed.</span>") 
  )
 
-# part 2
-near_miss_tab_output2 <- tb_theme1(near_miss_tab2) %>% 
-  tab_header(
-    title = md("**Table 9 (continued)**")) %>% 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Underwent critical intervention</span>"),
-    rows = 1:4
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Maternal near-miss (PRISMA definition)</span>"),
-    rows = 5:12
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Underwent critical intervention</span>",
-                             "<span style='font-size: 18px'>Maternal near-miss (PRISMA definition)</span>"
-                             ))  %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Observations that qualify as a near miss but not as a PLTC require further adjudication.</span>" )  ) %>% 
-     
-       tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>*</sup> These items will be added to the PLTC criteria or near-miss criteria once available.</span>")
- )
+
 
 ```
 
 ```{r, out.width = '100%'}
 
-gtsave(near_miss_tab_output1, file = "near_miss_tab1.png", path = path_to_save, expand = 10)
-knitr::include_graphics(paste0(path_to_save, "near_miss_tab1.png"))
+gtsave(near_miss_tab_outputc, file = "near_miss_tabc.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "near_miss_tabc.png"))
 
 ```
 
-\newpage 
+**Proposed criteria for adjudication:** 
 
-```{r, out.width = '100%'}
+-   Woman who meets near-miss criteria but did NOT have PLTC 
 
-gtsave(near_miss_tab_output2, file = "near_miss_tab2.png", path = path_to_save, expand = 10)
-knitr::include_graphics(paste0(path_to_save, "near_miss_tab2.png"))
+-   Woman who died (excluding accidental/incidental causes) but did NOT have PLTC
 
-```
-
+-   Woman who has PLTC and dies but did NOT meet near-miss criteria
 
 \newpage
 
