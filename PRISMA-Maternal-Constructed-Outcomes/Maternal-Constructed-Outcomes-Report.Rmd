@@ -4206,7 +4206,7 @@ near_miss_taba <- near_miss %>%
        format(round(sum(NEARMISS_NOTSEEN42==1, na.rm = TRUE)/sum(NEARMISS_WINDOW == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
        ")"),
     
-    "Near miss denominator <sup>a</sup>" = paste0(
+    "Near-miss denominator <sup>a</sup> , n" = paste0(
       format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
    )  %>%
@@ -4233,7 +4233,24 @@ near_miss_tab_outputa <- tb_theme1(near_miss_taba) %>%
 
   row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>"
                              ))  %>% 
-  tab_footnote(
+ 
+ # bold denominator 1st and last row
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator, n",
+                 "Near-miss denominator <sup>a</sup> , n"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator, n",
+                 "Near-miss denominator <sup>a</sup> , n"))) %>% 
+
+tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any woman who has passed 42 days postpartum without closeout AND has completed a visit 42+ days postpartum OR she experienced PLTC.</span>")
  ) 
 
@@ -4293,7 +4310,7 @@ near_miss_tabb <- near_miss %>%
   group_by(SITE) %>% 
   summarise(
    
-    "**Near miss denominator** <sup>a</sup>" = paste0(
+    "Near-miss denominator, n" = paste0(
       format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
  "Any potentially life-threatening condition" = paste0(
@@ -4444,7 +4461,24 @@ tab_row_group(
     rows = 1:22
   ) %>%
     row_group_order(groups = c("<span style='font-size: 18px'>Potentially Life-Threatening Conditions (PLTC)</span>"))  %>% 
-  tab_footnote(
+  
+     # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Near-miss denominator, n",
+                 "Near-miss denominator, n"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Near-miss denominator, n",
+                 "Near-miss denominator, n"))) %>% 
+
+tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>*</sup>These outcomes will be added to PLTC once constructed.</span>")
  ) 
 
@@ -4469,7 +4503,7 @@ near_miss_tabc <- near_miss %>%
   group_by(SITE) %>% 
   summarise(
    
-    "**Near-miss denominator**" = paste0(
+    "Near-miss denominator, n" = paste0(
       format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
 
       "Met any near-miss criteria^a^" = paste0(
@@ -4574,7 +4608,24 @@ near_miss_tab_outputc <- tb_theme1(near_miss_tabc) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Near-miss criteria</span>",
                              "<span style='font-size: 18px'>Adjudication scenarios</span>"
                              ))  %>% 
-  tab_footnote(
+
+# bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Near-miss denominator, n",
+                 "Near-miss denominator, n"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Near-miss denominator, n",
+                 "Near-miss denominator, n"))) %>% 
+
+tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup>Participants may have more than one criteria.</span>") 
     ) %>%
   tab_footnote(
