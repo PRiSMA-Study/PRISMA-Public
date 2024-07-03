@@ -410,7 +410,7 @@ allvisit_anthro <- mnh13_constructed %>%
                                  (FHC == 0 & FLEN == 0 & FWFL == 0 & FWEI == 0 & FALL == 0) & MSRE_COMPLT == 1 ~ 0,
                                  TRUE ~ 55))
 
-  write.csv(outcome_all, paste0(path_to_save, "infant_trajectory_long_", UploadDate ,".csv"), row.names=FALSE)
+  write.csv(outcome_all, paste0(path_to_save, "INF_GROWTH_LONG.CSV"), row.names=FALSE)
   
   
   # test <- outcome_all %>%  filter(FHC == 0 & FLEN == 0 & FWFL == 0 & FWEI == 0) 
@@ -475,7 +475,7 @@ allvisit_anthro <- mnh13_constructed %>%
     left_join(six_months_filtered, by = c("MOMID", "PREGID", "INFANTID", "SITE"))
   
   # export data 
-  write.csv(wide_infant_trajectories, paste0(path_to_save, "infant_trajectory_wide_", UploadDate ,".csv"), row.names=FALSE)
+  write.csv(wide_infant_trajectories, paste0(path_to_save, "INF_GROWTH_WIDE.CSV"), row.names=FALSE)
   
   
   
