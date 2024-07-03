@@ -64,23 +64,138 @@ library(data.table)
 library(openxlsx)
 
 ## set upload date
-UploadDate = "2024-05-17"
+UploadDate = "2024-06-28"
 
 ## import data
+# path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
+# path_to_data = paste0("~/Monitoring Report/data/merged/" ,UploadDate)
+
+# mnh04 <- load(paste0(path_to_data,"/", "m04_merged.RData"))
+# mnh04 <- m04_merged
+# 
+# mnh09 <- load(paste0(path_to_data,"/", "m09_merged.RData"))
+# mnh09 <- m09_merged
+# 
+# mnh12 <- load(paste0(path_to_data,"/", "m12_merged.RData"))
+# mnh12 <- m12_merged
+# 
+# mnh19 <- load(paste0(path_to_data,"/", "m19_merged.RData"))
+# mnh19 <- m19_merged
+# 
+# 
+# set path to save 
 path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
-path_to_data = paste0("~/Monitoring Report/data/merged/" ,UploadDate)
+path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
-mnh04 <- load(paste0(path_to_data,"/", "m04_merged.RData"))
-mnh04 <- m04_merged
+# set path to data
+# path_to_data = paste0("Z:/Stacked Data/",UploadDate)
+path_to_data = paste0("~/import/",UploadDate)
 
-mnh09 <- load(paste0(path_to_data,"/", "m09_merged.RData"))
-mnh09 <- m09_merged
+mat_enroll <- read_csv(paste0(path_to_tnt, "MAT_ENROLL" ,".csv" )) %>% select(SITE, MOMID, PREGID, ENROLL) %>% 
+  filter(ENROLL == 1)
 
-mnh12 <- load(paste0(path_to_data,"/", "m12_merged.RData"))
-mnh12 <- m12_merged
+mat_end <- read_dta(paste0(path_to_tnt, "MAT_ENDPOINTS" ,".dta" )) 
 
-mnh19 <- load(paste0(path_to_data,"/", "m19_merged.RData"))
-mnh19 <- m19_merged
+## import forms 
+mnh04 <- read.csv(paste0(path_to_data,"/", "mnh04_merged.csv")) %>% right_join(mat_enroll, by = c("SITE", "MOMID", "PREGID"))
+mnh09 <- read.csv(paste0(path_to_data,"/", "mnh09_merged.csv")) %>% right_join(mat_enroll, by = c("SITE", "MOMID", "PREGID"))
+mnh12 <- read.csv(paste0(path_to_data,"/", "mnh12_merged.csv")) %>% right_join(mat_enroll, by = c("SITE", "MOMID", "PREGID"))
+mnh19 <- read.csv(paste0(path_to_data,"/", "mnh19_merged.csv")) %>% right_join(mat_enroll, by = c("SITE", "MOMID", "PREGID"))
+
+#MNH04
+if (any(duplicated(mnh04[c("SITE", "MOMID", "PREGID",  "M04_TYPE_VISIT")]))) {
+  # extract duplicated ids
+  duplicates_ids_04 <- which(duplicated(mnh04[c("SITE", "MOMID", "PREGID", "M04_TYPE_VISIT", "M04_ANC_OBSSTDAT")]) | 
+                               duplicated(mnh04[c("SITE", "MOMID", "PREGID",  "M04_TYPE_VISIT", "M04_ANC_OBSSTDAT")], fromLast = TRUE))
+  duplicates_ids_04 <- mnh04[duplicates_ids_04, ]
+  
+  print(paste0("n= ",dim(duplicates_ids_04)[1],  " Duplicates in mnh04 exist"))
+  
+  # extract ids from main dataset
+  mnh04 <- mnh04 %>% group_by(SITE, MOMID, PREGID, M04_TYPE_VISIT, M04_ANC_OBSSTDAT) %>% 
+    arrange(desc(M04_ANC_OBSSTDAT)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
+  
+} else {
+  print("No duplicates in mnh04")
+}
+
+#MNH09
+if (any(duplicated(mnh09[c("SITE", "MOMID", "PREGID", "M09_MAT_LD_OHOSTDAT")]))) {
+  # extract duplicated ids
+  duplicates_ids_09 <- which(duplicated(mnh09[c("SITE", "MOMID", "PREGID", "M09_MAT_LD_OHOSTDAT")]) | 
+                               duplicated(mnh09[c("SITE", "MOMID", "PREGID",  "M09_MAT_LD_OHOSTDAT")], fromLast = TRUE))
+  duplicates_ids_09 <- mnh09[duplicates_ids_09, ]
+  
+  print(paste0("n= ",dim(duplicates_ids_09)[1],  " Duplicates in mnh09 exist"))
+  
+  # extract ids from main dataset
+  mnh09 <- mnh09 %>% group_by(SITE, MOMID, PREGID, M09_MAT_LD_OHOSTDAT) %>% 
+    arrange(desc(M09_MAT_LD_OHOSTDAT)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
+  
+  
+} else {
+  print("No duplicates in mnh09")
+}
+
+
+#MNH12
+if (any(duplicated(mnh12[c("SITE", "MOMID", "PREGID", "M12_TYPE_VISIT", "M12_VISIT_OBSSTDAT")]))) {
+  # extract duplicated ids
+  duplicates_ids_12 <- which(duplicated(mnh12[c("SITE", "MOMID", "PREGID", "M12_TYPE_VISIT", "M12_VISIT_OBSSTDAT")]) | 
+                               duplicated(mnh12[c("SITE", "MOMID", "PREGID",  "M12_TYPE_VISIT", "M12_VISIT_OBSSTDAT")], fromLast = TRUE))
+  duplicates_ids_12 <- mnh12[duplicates_ids_12, ]
+  
+  print(paste0("n= ",dim(duplicates_ids_12)[1],  " Duplicates in mnh12 exist"))
+  
+  # extract ids from main dataset
+  mnh12 <- mnh12 %>% group_by(SITE, MOMID, PREGID, M12_VISIT_OBSSTDAT, M12_TYPE_VISIT) %>% 
+    arrange(desc(M12_MAT_LD_OHOSTDAT)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
+  
+  
+} else {
+  print("No duplicates in mnh12")
+}
+
+
+#MNH19
+if (any(duplicated(mnh19[c("SITE", "MOMID", "PREGID", "M19_OBSSTDAT")]))) {
+  # extract duplicated ids
+  duplicates_ids_19 <- which(duplicated(mnh19[c("SITE", "MOMID", "PREGID", "M19_OBSSTDAT")]) | 
+                               duplicated(mnh19[c("SITE", "MOMID", "PREGID",  "M19_OBSSTDAT")], fromLast = TRUE))
+  duplicates_ids_19 <- mnh19[duplicates_ids_19, ]
+  
+  print(paste0("n= ",dim(duplicates_ids_19)[1],  " Duplicates in mnh19 exist"))
+  
+  # extract ids from main dataset
+  mnh19 <- mnh19 %>% group_by(SITE, MOMID, PREGID, M19_OBSSTDAT) %>% 
+    arrange(desc(M19_OBSSTDAT)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
+  
+  
+} else {
+  print("No duplicates in mnh19")
+}
+
+
 
 ################################################################################
 # data generation
@@ -101,37 +216,36 @@ mnh12_out <- mnh12 %>%
 
 # data prep 
 mnh09_out <- mnh09 %>% 
-  # convert to date class
-  mutate(M09_DELIV_DSSTDAT_INF1 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF1, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y"))),
-         M09_DELIV_DSSTDAT_INF2 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF2, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y"))),
-         M09_DELIV_DSSTDAT_INF3 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF3, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y"))),
-         M09_DELIV_DSSTDAT_INF4 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF4, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y")))
-  ) %>% 
-  # pull earliest date of birth 
-  # first replace default value date with NA 
-  mutate(M09_DELIV_DSSTDAT_INF1 = replace(M09_DELIV_DSSTDAT_INF1, M09_DELIV_DSSTDAT_INF1==ymd("1907-07-07"), NA),
-         M09_DELIV_DSSTDAT_INF2 = replace(M09_DELIV_DSSTDAT_INF2, M09_DELIV_DSSTDAT_INF2%in% c(ymd("1907-07-07"), ymd("1905-05-05")), NA),
-         M09_DELIV_DSSTDAT_INF3 = replace(M09_DELIV_DSSTDAT_INF3, M09_DELIV_DSSTDAT_INF3==ymd("1907-07-07"), NA),
-         M09_DELIV_DSSTDAT_INF4 = replace(M09_DELIV_DSSTDAT_INF4, M09_DELIV_DSSTDAT_INF4==ymd("1907-07-07"), NA)) %>% 
-  mutate(DOB = 
-           pmin(M09_DELIV_DSSTDAT_INF1, M09_DELIV_DSSTDAT_INF2, 
-                M09_DELIV_DSSTDAT_INF3, M09_DELIV_DSSTDAT_INF4, na.rm = TRUE)) 
+  right_join(mat_end[c("SITE", "MOMID", "PREGID", "PREG_END", "PREG_END_DATE")], by = c("SITE", "MOMID", "PREGID"))
+  # # convert to date class
+  # mutate(M09_DELIV_DSSTDAT_INF1 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF1, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y"))),
+  #        M09_DELIV_DSSTDAT_INF2 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF2, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y"))),
+  #        M09_DELIV_DSSTDAT_INF3 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF3, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y"))),
+  #        M09_DELIV_DSSTDAT_INF4 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF4, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y")))
+  # ) %>% 
+  # # pull earliest date of birth 
+  # # first replace default value date with NA 
+  # mutate(M09_DELIV_DSSTDAT_INF1 = replace(M09_DELIV_DSSTDAT_INF1, M09_DELIV_DSSTDAT_INF1==ymd("1907-07-07"), NA),
+  #        M09_DELIV_DSSTDAT_INF2 = replace(M09_DELIV_DSSTDAT_INF2, M09_DELIV_DSSTDAT_INF2 %in% c(ymd("1907-07-07"), ymd("1905-05-05")), NA),
+  #        M09_DELIV_DSSTDAT_INF3 = replace(M09_DELIV_DSSTDAT_INF3, M09_DELIV_DSSTDAT_INF3==ymd("1907-07-07"), NA),
+  #        M09_DELIV_DSSTDAT_INF4 = replace(M09_DELIV_DSSTDAT_INF4, M09_DELIV_DSSTDAT_INF4==ymd("1907-07-07"), NA)) %>% 
+  # mutate(DOB = 
+  #          pmin(M09_DELIV_DSSTDAT_INF1, M09_DELIV_DSSTDAT_INF2, 
+  #               M09_DELIV_DSSTDAT_INF3, M09_DELIV_DSSTDAT_INF4, na.rm = TRUE)) 
   
 # merge mnh04, mnh09, and mnh12 together 
 hem <- mnh09_out %>% 
-  select(SITE, MOMID, PREGID,DOB, M09_MAT_LD_OHOSTDAT, contains("PPH"), M09_APH_CEOCCUR) %>% 
+  select(SITE, MOMID, PREGID,PREG_END, PREG_END_DATE, M09_MAT_LD_OHOSTDAT, contains("PPH"), M09_APH_CEOCCUR) %>% 
   mutate(TYPE_VISIT = 6) %>% 
   full_join(mnh04_out[c("SITE", "MOMID", "PREGID","TYPE_VISIT","M04_VISIT_DATE", "M04_APH_CEOCCUR")], by = c("SITE", "MOMID", "PREGID","TYPE_VISIT")) %>% 
   full_join(mnh12_out[c("SITE", "MOMID", "PREGID","TYPE_VISIT", "M12_VAG_BLEED_LOSS_ML", "M12_BIRTH_COMPL_MHTERM_1")], 
             by = c("SITE", "MOMID", "PREGID","TYPE_VISIT")) 
 
-
-
 # Convert hemorrhage dataset to wide format
 # extract smaller datasets by visit type and assign a suffix with the visit type. We can then merge back together 
 # labor and delivery (visit type = 6)
 hem_ld <- hem %>% filter(TYPE_VISIT==6) %>%
-  select(SITE, MOMID, PREGID,DOB, contains("M09")) %>% 
+  select(SITE, MOMID, PREGID,PREG_END, PREG_END_DATE, contains("M09")) %>% 
   rename_with(~paste0(., "_", 6), .cols = c(contains("M09")))  %>% 
   distinct(SITE, MOMID, PREGID, .keep_all = TRUE)  
 
@@ -208,14 +322,17 @@ hem_wide_full <- hem_wide %>%
   full_join(hem_unsched_pnc[c("SITE", "MOMID", "PREGID", "PPH_UNSCHED_ANY")], by = c("SITE", "MOMID", "PREGID")) %>% 
   full_join(mnh19_out[c("SITE", "MOMID", "PREGID", "HEM_HOSP_ANY", "M19_TIMING_OHOCAT")], by = c("SITE", "MOMID", "PREGID"))
 
+test <- hemorrhage %>% group_by(SITE, MOMID, PREGID) %>%filter(PREG_END==1) %>% mutate(n=n()) %>% filter(n>1)
+
 
 ## generate outcomes: 
 hemorrhage <- hem_wide_full %>% 
-  
+  ## filter for participants with a pregnancy endpoint 
+  filter(PREG_END==1) %>%
   ## generate denominator - all participants with a birth reported
-  mutate(HEM_DENOM = case_when(!is.na(DOB) ~ 1, TRUE ~ 0) ## denominator is all participants with a birth reported
+  mutate(HEM_DENOM = case_when(PREG_END==1 ~ 1, TRUE ~ 0) ## denominator is all participants with a birth reported
   ) %>% 
-  
+  distinct(SITE, MOMID, PREGID, .keep_all = TRUE) %>% 
   ## 1. Antepartum Hemorrhage
   mutate(HEM_APH = case_when(HEM_DENOM==1 & (M04_APH_CEOCCUR_1==1 | M04_APH_CEOCCUR_2==1 |M04_APH_CEOCCUR_3==1 | M04_APH_CEOCCUR_4==1 | M04_APH_CEOCCUR_5==1 |
                                APH_UNSCHED_ANY==1 | M09_APH_CEOCCUR_6 == 1 |
@@ -245,13 +362,13 @@ hemorrhage <- hem_wide_full %>%
                                    ) ~ 1, TRUE ~ 0)) %>% 
   ## 4. Any hemorrhage at any time point
   mutate(HEM_ANY = case_when(HEM_APH==1 | HEM_PPH ==1| HEM_PPH_SEV==1~1, TRUE ~ 0)) %>% 
-  select(SITE, MOMID, PREGID,DOB, HEM_DENOM, HEM_APH, HEM_PPH, HEM_PPH_SEV,HEM_ANY,  
+  select(SITE, MOMID, PREGID,PREG_END, PREG_END_DATE, HEM_DENOM, HEM_APH, HEM_PPH, HEM_PPH_SEV,HEM_ANY,  
          M09_PPH_ESTIMATE_FAORRES_6, contains("M09_PPH_FAORRES"), M09_PPH_TRNSFSN_PROCCUR_6, 
          contains("M09_PPH_CMOCCUR"), M09_PPH_CEOCCUR_6,
          HEM_HOSP_ANY, M19_TIMING_OHOCAT, M09_PPH_PEMETHOD_6, 
          M12_BIRTH_COMPL_MHTERM_1_7, M12_BIRTH_COMPL_MHTERM_1_8, M12_BIRTH_COMPL_MHTERM_1_9, M12_BIRTH_COMPL_MHTERM_1_10, M12_BIRTH_COMPL_MHTERM_1_11, M12_BIRTH_COMPL_MHTERM_1_12)
 
-
+table(hemorrhage$PREG_END)
 table(hemorrhage$HEM_DENOM)
 table(hemorrhage$HEM_APH)
 table(hemorrhage$HEM_PPH)
@@ -259,11 +376,15 @@ table(hemorrhage$HEM_PPH_SEV)
 
 # set path to save 
 path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
+path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
+
+MAT_HEMORRHAGE <- hemorrhage
 
 # export data 
 write.csv(hemorrhage, paste0(path_to_save, "hemorrhage" ,".csv"), row.names=FALSE)
 write.xlsx(hemorrhage, paste0(path_to_save, "hemorrhage" ,".xlsx"),na="", rowNames=FALSE)
 
+write.csv(MAT_HEMORRHAGE, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".csv"), na = "",row.names=FALSE)
 
 
 hemorrhage_figs <- hemorrhage %>% 
