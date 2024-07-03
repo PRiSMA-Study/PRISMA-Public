@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 June 18)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 July 3)"
 output:
   pdf_document:
     toc: no
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: 02 April 2024, Stacie Loisate
-#* Last updated: June 18 2024, Erin Oakley
+#* Last updated: July 3 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -38,7 +38,7 @@ library(dplyr)
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-path_to_data <- "Z:/Outcome Data/2024-06-14/" 
+path_to_data <- "Z:/Outcome Data/2024-06-28/" 
 path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
@@ -50,7 +50,7 @@ preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% ren
 labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combined", ".csv"))
+MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
 near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -1122,10 +1122,7 @@ anemia_pph26_tab <- anemia %>%
     #Denominator (for non-missing)
     
     "Denominator (non-missing)" = paste0(
-      format(sum(ANEMIA_PNC26_MISS ==0 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(ANEMIA_PNC26_MISS ==0 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC26_DENOM==1 & ANEMIA_PNC26_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(sum(ANEMIA_PNC26_MISS ==0 & ANEMIA_PNC26_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     #Values: 
 
