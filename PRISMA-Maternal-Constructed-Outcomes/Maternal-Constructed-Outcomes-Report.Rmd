@@ -54,6 +54,7 @@ mat_infections_combined <- read.csv(paste0(path_to_data, "mat_infections_combine
 near_miss <- read_dta(paste0(path_to_data, "near-miss-maternal-outcomes.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 thy<- read_dta(paste0(path_to_data, "mat_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 
 tb_theme1 <- function(matrix){
@@ -5021,9 +5022,9 @@ knitr::include_graphics(paste0(path_to_save, "thy_tab_output32.png"))
 
 **Definitions:**
 
--   ***Chronic hypertension*** includes any participant with a history of chronic hypertension reported at enrollment, those currently taking medication to treat hypertension upon enrollment, those with a new diagnosis of hypertension at an ANC visit at <20 weeks gestation, those with a new medication to treat hypertension at an ANC visit at <20 weeks gestation, and/or those with one or more high blood pressure measures recorded at <20 weeks.
+-   ***Chronic hypertension*** includes any participant with a history of chronic hypertension reported at enrollment, those currently taking medication to treat hypertension upon enrollment, those with a new diagnosis of hypertension at an ANC visit at <20 weeks gestation, those with a new medication to treat hypertension at an ANC visit at <20 weeks gestation, those with one or more severe high blood pressure measures at <20 weeks gestation, and/or those with two or more high blood pressure measures recorded when the first measure occurred at <20 weeks gestation.
 
--   ***Gestational hypertension*** includes any participant with one or more of the following occuring at or after 20 weeks gestation, excluding those with preexisting chronic hypertension: 2 or more high blood pressure measures recorded on separate visits; 1 or more severe high blood pressure measures; 1 or more high blood pressure readings AND the participant starts a medication to treat hypertension; a clinical diagnosis of gestational hypertension at an ANC visit, a hospitalization, or labor and delivery. 
+-   ***Gestational hypertension*** includes any participant with one or more of the following occurring at or after 20 weeks gestation, excluding those with preexisting chronic hypertension: 2 or more high blood pressure measures recorded on separate visits; 1 or more severe high blood pressure measures; 1 or more high blood pressure readings AND the participant starts a medication to treat hypertension; a clinical diagnosis of gestational hypertension at an ANC visit, a hospitalization, or labor and delivery. 
 
 -   ***Preeclampsia without severe features*** includes any participant with gestational hypertension (as described above) AND one or more new onset proteinuria measures at or after 20 weeks gestation. Note that this outcome excludes participants with positive proteinuria results at baseline (<20 weeks gestation), unless proteinuria results increase for the participant over time. This outcome also includes clinical diagnosis of preeclampsia at an ANC visit, a hospitalization, or labor and delivery. 
 
@@ -5047,12 +5048,8 @@ hdp_tab <- hdp %>%
   group_by(SITE) %>% 
   summarise(
     
-     "Total completed pregnancies" = paste0(
-      format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),   
-     
+     "Expected denominator (total completed pregnancies)" = paste0(
+      format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      "Excluded: pregnancy ended prior to 20 weeks" = paste0(
       format(sum(PREG_END== 1 & HDP_GROUP_MISS==3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -5072,10 +5069,7 @@ hdp_tab <- hdp %>%
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No hypertensive disorder" = paste0(
       format(sum(PREG_END==1 & HDP_GROUP ==0, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -5130,25 +5124,48 @@ hdp_tab_output <- tb_theme1(hdp_tab) %>%
   tab_header(
     title = md("**Table 13a**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Denominator for data completeness</span>"),
-        rows = 1:6
+    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
+        rows = 1:4
     ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness</span>"),
-        rows = 2:4
-    ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Denominator for HDPs</span>"),
-    rows = 5:11
-  ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Prevalence of HDPs</span>"),
-    rows = 6:11
+    rows = 5:11
   ) %>%
- row_group_order(groups = c( "<span style='font-size: 18px'>Denominator for data completeness</span>",
-                            "<span style='font-size: 18px'>Data completeness</span>",
-                            "<span style='font-size: 18px'>Denominator for HDPs</span>",
-                            "<span style='font-size: 18px'>Prevalence of HDPs</span>")) 
+    # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+  
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>% 
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
+                            "<span style='font-size: 18px'>Prevalence of HDPs</span>")) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))
 
 ```
 
@@ -5162,22 +5179,16 @@ knitr::include_graphics(paste0(path_to_save, "hdp_tab_output.png"))
 ### Table 13b. Preeclampsia with severe features
 ```{r}
 
+hdp<-left_join(hdp,end)
+hdp<-subset(hdp,PREG_END==1)
+
 hdp_tab2 <- hdp %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
     
     "Total cases of preeclampsia with severe features" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Total cases of preeclampsia with severe features" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(sum(PREG_END==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Eclampsia and/or seizures" = paste0(
       format(sum(SEVERE_FEAT_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -5255,10 +5266,28 @@ hdp_tab2_output <- tb_theme1(hdp_tab2) %>%
   tab_header(
     title = md("**Table 13b**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Preeclampsia with severe features by symptoms</span>"),
+    label = html("<span style='font-size: 18px'>Preeclampsia with severe features by symptoms <sup>a</sup></span>"),
         rows = 1:10
     ) %>%
- row_group_order(groups = c( "<span style='font-size: 18px'>Preeclampsia with severe features by symptoms</span>"))
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Total cases of preeclampsia with severe features",
+                 "Total cases of preeclampsia with severe features"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Total cases of preeclampsia with severe features",
+                 "Total cases of preeclampsia with severe features"))) %>% 
+ row_group_order(groups = c( "<span style='font-size: 18px'>Preeclampsia with severe features by symptoms <sup>a</sup></span>"))  %>%
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Note that participants with preeclampsia with severe features may exhibit one or more of the severe feature symptoms in this table. </span>"))
 
 ```
 
