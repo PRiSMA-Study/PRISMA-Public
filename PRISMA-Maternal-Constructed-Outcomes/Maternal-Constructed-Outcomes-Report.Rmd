@@ -43,7 +43,7 @@ path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
 mortality <- read_dta(paste0(path_to_data, "mat_MORTALITY.dta")) %>% rename_all(toupper)
-hemorrhage <- read.csv(paste0(path_to_data, "hemorrhage.csv")) %>% rename_all(toupper)
+hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
 depression <- read_dta(paste0(path_to_data, "mat_DEPR.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
