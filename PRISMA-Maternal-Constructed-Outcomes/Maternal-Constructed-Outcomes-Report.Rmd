@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 July 3)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 July 5)"
 output:
   pdf_document:
     toc: no
@@ -51,7 +51,7 @@ labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper
 rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
-near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS_INTERIM.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -136,7 +136,7 @@ g_legend <- function(p) {
 
 ```
 
-**Includes data from synapse last updated:** 2024 June 14
+**Includes data from synapse last updated:** 2024 June 28
 
 \setcounter{tocdepth}{6}
 \tableofcontents
@@ -305,7 +305,7 @@ The outcome prioritizes CBC tests where possible, as this is the gold standard m
 
 -   Confirmed enrollment in form MNH02.
 
--   Confirmed pregnancy end date in MNH09.
+-   Confirmed pregnancy end in MNH09 (or MNH04/MNH19 in cases of pregnancy loss). 
 
 **Missingness:** Participants may be considered missing for this outcome if:
 
@@ -413,7 +413,7 @@ anemia_output <- tb_theme1(anemia_tab) %>%
   tab_header(
     title = md("**Table 2a**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
     rows = 1:11
   ) %>%
   tab_row_group(
@@ -424,7 +424,7 @@ anemia_output <- tb_theme1(anemia_tab) %>%
     label = html("<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"),
     rows = 10:11
   ) %>%
- row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
                    "<span style='font-size: 18px'>Anemia prevalence (lowest Hb measure)</span>",
                   "<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"
                   )) %>%
@@ -460,9 +460,12 @@ tab_style(
       locations = cells_stub(rows = c(
                  "Expected denominator (completed pregnancies)",
                  "Expected denominator (completed pregnancies)"))) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))  %>% 
 
    tab_footnote(
-   footnote = html("<span style='font-size: 18px'><sup>Note:</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on CBC measures of hemoglobin or POC measures of hemoglobin that are not within 7 days of a CBC test. For each participant, this table presents the worst anemia status observed during the window of interest.</span>")
+   footnote = html("<span style='font-size: 18px'><sup>Note:</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on CBC measures of hemoglobin or POC measures of hemoglobin that are not within 7 days of a CBC test. For each participant, this table presents the worst anemia status observed during the window of interest.</span>") 
  ) 
 ```
 
@@ -523,7 +526,7 @@ The outcome prioritizes CBC tests where possible, as this is the gold standard m
 
 \newpage
 
-#### Table 2b. Maternal anemia prevalence by trimester of pregnancy, ongoing data collection
+#### Table 2b. Maternal anemia prevalence by trimester of pregnancy
 ```{r}
 ## this is a long table; will need to split into 3 separate tables (anemia_tab_b1 & anemia_tab_b2 & anemia_tab_b3)
 
@@ -1342,7 +1345,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_pph26_output.png"))
 
 **Denominator:** All participants with recorded delivery (including livebirth OR stillbirth) after 20 weeks with:
 
--   Valid gestational age information provided at enrollment visit in MNH01 including: (varname: `US_GA_WKS_AGE_FTS1-4`, `US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`)
+-   Valid gestational age information provided at enrollment visit in MNH01 including: (varname [form]: `US_GA_WKS_AGE_FTS1-4` [MNH01], `US_GA_DAYS_AGE_FTS1-4` [MNH01], `GA_LMP_WEEKS_SCORRES` [MNH01], `US_OHOSTDAT` [MNH01])
 
 -   MNH09 form filled and date of delivery for first fetus/infant provided (varname [form]: `DELIV_DSSTDAT_INF1` [MNH09]).
 
@@ -1939,6 +1942,12 @@ pprom_tab <- preterm_indication %>%
       " (",
       format(round(sum(PPROM_OCCUR_MISS == 4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
+   
+   "Excluded: maternal death before delivery with no information on PPROM" = paste0(
+      format(sum(PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
     
      "Denominator (non-missing)" = paste0(
       format(sum(PREG_END==1 & PPROM_OCCUR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
@@ -1972,11 +1981,11 @@ pprom_tab_output <- tb_theme1(pprom_tab) %>%
     title = md("**Table 4**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
-        rows = 1:5
+        rows = 1:6
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>PPROM prevalence</span>"),
-    rows = 6:8
+    rows = 7:9
   ) %>%
   
     # bold denominator rows 1
@@ -4768,9 +4777,9 @@ uter_rup_tab <- rupture %>%
       ")"),  
     
     "Missing: information for a maternal death prior to delivery" = paste0(
-      format(sum(PREG_END== 1 & MAT_UTER_RUP_MISS==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_LOSS_DEATH== 1 & (MAT_UTER_RUP==55 | MAT_UTER_RUP==77), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & MAT_UTER_RUP_MISS==4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_LOSS_DEATH== 1 & (MAT_UTER_RUP==55 | MAT_UTER_RUP==77), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
