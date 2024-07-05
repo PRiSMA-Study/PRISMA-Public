@@ -41,7 +41,7 @@ library(TCB) ## TCB package
 
 # UPDATE EACH RUN # 
 # set upload date 
-UploadDate = "2024-06-14"
+UploadDate = "2024-06-28"
 
 # set path to data
 path_to_data = paste0("~/Monitoring Report/data/merged/" ,UploadDate)
@@ -474,6 +474,7 @@ timevarying_constructed <- mnh09_long %>%
   select(-LATESTDATE) %>% 
   # calculate age at last seen for live births (age at death for dead)
   mutate(AGE_LAST_SEEN = case_when(DTH_INDICATOR == 0 ~ as.numeric(DATE_LAST_SEEN - DOB), 
+                                   DTH_INDICATOR ==1 & is.na(AGEDEATH_DAYS) ~ as.numeric(DATE_LAST_SEEN - DOB), 
                                    DTH_INDICATOR == 1 ~ AGEDEATH_DAYS,
                                    TRUE ~ NA)) 
 
@@ -865,6 +866,7 @@ write.csv(sga, paste0(path_to_save, "sga" ,".csv"), row.names=FALSE)
 # live birth (mnh11)
 # have to be able to link mnh09 with mnh11
 
+
 mortality <- timevarying_constructed %>% 
   # generate new variable for birth outcome (if they are missing mnh11, then this should be 55)
   # mutate(BIRTH_OUTCOME = case_when(is.na(M11_INF_DSTERM) | M11_INF_DSTERM == 77 ~  55,
@@ -872,12 +874,15 @@ mortality <- timevarying_constructed %>%
   # filter(M09_BIRTH_DSTERM ==1) %>%  # only want live births
   
   ## generate variable if death is reported among live birth but is missing time of death 
-  mutate(DTH_TIME_MISSING = case_when(DTH_INDICATOR==1 & (M24_DTHTIM== "77:77" | is.na(M24_DTHTIM)) ~ 1,
+  mutate(DTH_TIME_MISSING = case_when(M09_BIRTH_DSTERM==1 & DTH_INDICATOR==1 & (M24_DTHTIM%in% c("55:55", "77:77") | is.na(M24_DTHTIM)) ~ 1,
+                                      TRUE ~ 0),
+         DTH_DATE_MISSING = case_when(M09_BIRTH_DSTERM==1 & DTH_INDICATOR==1 & (DTHDAT%in% c(ymd("1905-05-05"), ymd("1907-07-07")) | is.na(DTHDAT)) ~ 1,
                                       TRUE ~ 0)) %>% 
   
   ## generate outcome for neonatal death if infant dies <28 days of life
   mutate(NEO_DTH = case_when((M09_BIRTH_DSTERM==1 & DTH_INDICATOR==1 & is.na(AGEDEATH_DAYS)) | 
-                             (M09_BIRTH_DSTERM==1 & DTH_INDICATOR==1 & AGEDEATH_DAYS < 0) ~ 66,  ## if missing the three criteria, they are missing
+                             (M09_BIRTH_DSTERM==1 & DTH_INDICATOR==1 & AGEDEATH_DAYS < 0) |
+                               DTH_TIME_MISSING ==1 | DTH_DATE_MISSING ==1  ~ 66,  ## if missing the three criteria, they are missing
                               DTH_INDICATOR == 0 ~ 0, 
                               M09_BIRTH_DSTERM == 1 & AGEDEATH_DAYS >= 0 & AGEDEATH_DAYS < 28 ~ 1, ## if live birth AND age of death is <= 28, they get a 1
                               is.na(M09_BIRTH_DSTERM) & is.na(DOB) ~ 55, ## THESE ARE PEOPLE WHO ARE REPORTING A DEATH BUT ARE MISSING OR HAVE INVALID AGE AT DEATH
@@ -885,7 +890,8 @@ mortality <- timevarying_constructed %>%
   
   ## generate outcome for infant death if infant dies <365 days of life
   mutate(INF_DTH = case_when((M09_BIRTH_DSTERM==1 & DTH_INDICATOR==1 & is.na(AGEDEATH_DAYS)) | 
-                             (M09_BIRTH_DSTERM == 1 & DTH_INDICATOR==1 & AGEDEATH_DAYS < 0) ~ 66,  ## if missing the three criteria, they are missing
+                             (M09_BIRTH_DSTERM == 1 & DTH_INDICATOR==1 & AGEDEATH_DAYS < 0) |
+                               DTH_TIME_MISSING ==1 | DTH_DATE_MISSING ==1~ 66,  ## if missing the three criteria, they are missing
                               DTH_INDICATOR == 0 ~ 0, 
                               M09_BIRTH_DSTERM == 1 & AGEDEATH_DAYS < 365 ~ 1, ## if live birth AND age of death is < 365, they get a 1
                               is.na(M09_BIRTH_DSTERM) & is.na(DOB) ~ 55, ## THESE ARE PEOPLE WHO ARE REPORTING A DEATH BUT ARE MISSING OR HAVE INVALID AGE AT DEATH
@@ -904,7 +910,8 @@ mortality <- timevarying_constructed %>%
          DTH_365D = case_when(M09_BIRTH_DSTERM == 1 & DTH_INDICATOR ==1 & AGEDEATH_DAYS >=28 & AGEDEATH_DAYS < 365 ~ 1,
                               TRUE ~ 0)) %>% 
   ## calculate denominators; if you have passed the risk window (age last seen >= risk window) 
-  mutate(DENOM_28d = case_when(AGE_LAST_SEEN >= 28 | (DTH_INDICATOR ==1 & AGEDEATH_DAYS < 28) ~ 1,
+  mutate(DENOM_28d = case_when(AGE_LAST_SEEN >= 28 | (DTH_INDICATOR ==1 & AGEDEATH_DAYS < 28) |
+                                (DTH_INDICATOR==1 & DTH_TIME_MISSING==1) ~ 1,
                                TRUE ~ 0),
          DENOM_365d = case_when(AGE_LAST_SEEN >= 365 ~ 1, ## we have to wait to include infant deaths because we would over estimate if we allowed those who died in the risk window. For now only have those who ahve passed the window for num and denom
                                 TRUE ~ 0)) %>%
@@ -913,7 +920,7 @@ mortality <- timevarying_constructed %>%
   # generate indicator variables where things could go wrong with this outcome
   mutate(ID_MISSING_ENROLLMENT = case_when(PREGID %in% enrolled_ids_vec ~ 0,
                                            TRUE ~ 1),
-         DOB_AFTER_DEATH = case_when(DTHDAT < DOB ~ 1, ## if death comes before dob
+         DOB_AFTER_DEATH = case_when(M09_BIRTH_DSTERM==1 & DEATH_DATETIME < DELIVERY_DATETIME ~ 1, ## if death comes before dob
                                    TRUE ~ 0), 
          MISSING_MNH09 = case_when(is.na(M09_MAT_VISIT_MNH09) ~ 1, ## if mnh09 is missing (we need this for DOB)
                                    TRUE ~ 0), 
@@ -923,9 +930,10 @@ mortality <- timevarying_constructed %>%
                                         TRUE ~ 0) 
   ) %>% 
   select(SITE, MOMID, PREGID, INFANTID, CLOSEOUT, DOB, DELIVERY_DATETIME, M09_BIRTH_DSTERM, DATE_LAST_SEEN, M24_DTHTIM,
-         AGE_LAST_SEEN, DTH_INDICATOR, DTHDAT, DEATH_DATETIME,DTH_TIME_MISSING, AGEDEATH_DAYS, AGEDEATH_HRS,NEO_DTH,INF_DTH, DATA_COMPLETE_DENOM,
+         AGE_LAST_SEEN, DTH_INDICATOR, DTHDAT,DTH_DATE_MISSING, DEATH_DATETIME,DTH_TIME_MISSING, AGEDEATH_DAYS, AGEDEATH_HRS,NEO_DTH,INF_DTH, DATA_COMPLETE_DENOM,
          ID_MISSING_ENROLLMENT,DOB_AFTER_DEATH, contains("MISSING"),contains("DTH"), contains("DENOM"), INVALID_DTH_REPORT, contains("has")) 
 
+# test <-mortality %>% select(SITE, MOMID, PREGID, INFANTID,DTH_INDICATOR,DTHDAT, M24_DTHTIM, DTH_TIME_MISSING,DTH_DATE_MISSING, AGEDEATH_HRS,AGEDEATH_DAYS, NEO_DTH, INF_DTH, AGE_LAST_SEEN,DENOM_28d, DENOM_365d)  
 # export
 write.csv(mortality, paste0(path_to_save, "mortality" ,".csv"), row.names=FALSE)
 
@@ -933,13 +941,16 @@ write.csv(mortality, paste0(path_to_save, "mortality" ,".csv"), row.names=FALSE)
 # a. <24 hours 
 # b. Early neontal mortality: first  7 days 
 # c. Late neonatal mortality: between 7 & 28 days
+test <- neonatal_mortality %>% 
+  filter(DTH_INDICATOR==1) %>% 
+  select(SITE, INFANTID, TOTAL_NEO_DEATHS, NEO_DTH_CAT, AGEDEATH_DAYS,DTH_TIME_MISSING, DELIVERY_DATETIME, DTHDAT, M24_DTHTIM)
 neonatal_mortality <- mortality %>% 
   ## only want live births 
   filter(M09_BIRTH_DSTERM ==1 ) %>%
   # only want participants who have either not had a mortality event OR had a mortality even with age at death <28 days (exclude infant mortality)
   filter(DTH_INDICATOR != 1 | (DTH_INDICATOR ==1 & AGEDEATH_DAYS<28)) %>%
   # generate total neonatal deaths 
-  mutate(TOTAL_NEO_DEATHS = case_when(DTH_INDICATOR ==1 & AGEDEATH_DAYS < 28 ~ 1,
+  mutate(TOTAL_NEO_DEATHS = case_when(DTH_INDICATOR ==1 & AGEDEATH_DAYS < 28 & DTH_TIME_MISSING==0 & DOB_AFTER_DEATH==0~ 1,
                                       TRUE ~ 0)) %>% 
   # generate single timing variables 
   # Death of a liveborn baby within the first 24 hours of life [NEO_DTH_24HR]
@@ -963,8 +974,8 @@ neonatal_mortality <- mortality %>%
                                  NEO_DTH_LATE == 1 ~ 13, 
                                  DTH_INDICATOR != 1 ~ 10, ## no death
                                  # AGEDEATH >= 28 ~ 55, ## this is infant mortality 
-                                 (DTH_INDICATOR==1 & is.na(AGEDEATH_DAYS)) | 
-                                 (DTH_INDICATOR==1 & AGEDEATH_DAYS ==0 & (is.na(AGEDEATH_HRS) | AGEDEATH_HRS <0 | M24_DTHTIM == "77:77")) ~ 55 ## death reporting but missing valid time of death
+                                 (DTH_INDICATOR==1 & is.na(AGEDEATH_DAYS)) | DTH_TIME_MISSING==1 | DOB_AFTER_DEATH==1|
+                                 (DTH_INDICATOR==1 & AGEDEATH_DAYS ==0 & (is.na(AGEDEATH_HRS) | AGEDEATH_HRS <0)) ~ 55 ## death reporting but missing valid time of death
                                  )
          
          )
@@ -1630,6 +1641,12 @@ mnh13_constructed <- mnh13 %>%
   rename(TYPE_VISIT=M13_TYPE_VISIT) %>% 
   # rename visit date and birth outcome variable 
   rename(VISIT_DATE=M13_VISIT_OBSSTDAT) %>%
+  # replace defualt value with NA
+  mutate(M13_BREATH_VSORRES_1 = case_when(SITE == "Ghana" & M13_BREATH_VSORRES_1==77 ~ NA, TRUE ~  M13_BREATH_VSORRES_1),
+         M13_BREATH_VSORRES_2 = case_when(SITE == "Ghana" & M13_BREATH_VSORRES_2==77~ NA, TRUE ~  M13_BREATH_VSORRES_2),
+         M13_TEMP_VSORRES_1 = case_when(SITE == "Ghana" & M13_TEMP_VSORRES_1==77~ NA, TRUE ~  M13_TEMP_VSORRES_1),
+         M13_TEMP_VSORRES_2 = case_when(SITE == "Ghana" & M13_TEMP_VSORRES_2==77~ NA, TRUE ~   M13_TEMP_VSORRES_2),
+         ) %>% 
   # pull psbi classification variables 
   select(SITE, MOMID, PREGID, INFANTID,TYPE_VISIT,VISIT_DATE, AGE_AT_VISIT, M13_POOR_FEED_CEOCCUR, M13_POOR_FEED_CEOCCUR_MR, 
          M13_CONV_CEOCCUR, M13_CONV_CEOCCUR_MR, M13_BREATH_VSORRES_1, M13_BREATH_VSORRES_2, 
@@ -1761,7 +1778,17 @@ psbi_outcome <- psbi %>%
   mutate(INF_PSBI_ANY = if_else(INF_PSBI == 1 & cumsum(INF_PSBI == 1) == 1, 1, 0)) %>% 
   ungroup() %>% 
   group_by(SITE, MOMID, PREGID, INFANTID) %>% 
-  mutate(CHECK = n())
+  mutate(CHECK = n()) %>% 
+  # generate missingness variables for confirmatory RR and temperature measures 
+  mutate(MISSING_TEMP_PNC_HIGH = case_when(M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0 ~ 1, TRUE ~ 0), 
+         MISSING_TEMP_PNC_LOW = case_when((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & M13_TEMP_VSORRES_2 < 0 ~ 1, TRUE ~ 0),
+         MISSING_TEMP_PNC = case_when(MISSING_TEMP_PNC_HIGH==1 | MISSING_TEMP_PNC_LOW==1 ~ 1, TRUE ~ 0)) %>% 
+  ## remove instances of Ghana == 77 for rr
+  mutate(keep_rr = case_when(SITE == "Ghana" & (M13_BREATH_VSORRES_2 == 77 | M13_BREATH_VSORRES_1 == 77) ~ 0, TRUE ~ 1),
+         keep_temp = case_when(SITE == "Ghana" & (M13_TEMP_VSORRES_1 == 77 | M13_TEMP_VSORRES_2 == 77) ~ 0, TRUE ~ 1),
+         )  %>% 
+   filter(keep_rr == 1 & keep_temp == 1)
+
 
 
 # export data 

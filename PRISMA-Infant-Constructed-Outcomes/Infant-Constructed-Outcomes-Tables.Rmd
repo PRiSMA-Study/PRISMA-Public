@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2024 June 24)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2024-07-05)"
 output:
   pdf_document:
     toc: no
@@ -46,7 +46,7 @@ birth_asphyxia <- read.csv(paste0(path_to_data, "birth_asphyxia", ".csv"))
 fetal_death <- read.csv(paste0(path_to_data, "fetal_death", ".csv")) 
 hyperbili_all_crit <- read.csv(paste0(path_to_data, "hyperbili_all_crit", ".csv")) 
 psbi_outcome <- read.csv(paste0(path_to_data, "psbi_outcome", ".csv")) 
-infant_trajectory <- read.csv(paste0("Z:/Outcome Data/2024-06-14/infant_trajectory_wide_2024-06-14.csv"))
+infant_trajectory <- read.csv(paste0("Z:/Outcome Data/2024-06-28/INF_GROWTH_WIDE.csv"))
 
 infant_outcomes <- read.csv(paste0(path_to_data, "infant_outcomes", ".csv")) 
 
@@ -136,8 +136,7 @@ g_legend <- function(p) {
 setwd(paste0(path_to_save))
 ```
 
-**Includes data from synapse last updated:** 2024 June 14 
-
+**Includes data from synapse last updated:** 2024-06-28
 \tableofcontents
 
 \newpage
@@ -1273,9 +1272,11 @@ ggplot(data=mnh01_constructed,
 
 ### Figure 3b. Distribution of gestational age at birth in weeks. 
 ```{r}
+preterm_birth <- preterm_birth %>% mutate(GESTAGEBIRTH_BOE_DAYS = as.numeric(GESTAGEBIRTH_BOE_DAYS)) %>% filter(GESTAGEBIRTH_BOE_DAYS>0) %>% 
+  mutate(GESTAGEBIRTH_BOE_WKS = GESTAGEBIRTH_BOE_DAYS %/% 7)
 
 ggplot(data=preterm_birth,
-       aes(x=GESTAGEBIRTH_BOE)) + 
+       aes(x=GESTAGEBIRTH_BOE_WKS)) + 
   geom_histogram(binwidth = 1, fill = "#317773", color = "black") + 
   facet_grid(vars(SITE), scales = "free") +
   scale_x_continuous(breaks = seq(20,45,1), 
@@ -1512,7 +1513,19 @@ mortality_tab <- mortality %>% ## denominator is anyone with an MNH09 or MNH11 f
       format(sum(MISSING_MNH11 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MISSING_MNH11 == 1, na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
-      ")")
+      ")"),
+    
+    "Death reported but missing date or time of death ^b^" = paste0(
+      format(sum(DTH_TIME_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DTH_TIME_MISSING == 1, na.rm = TRUE)/sum(DTH_INDICATOR == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Death reported but date or time of death is before delivery ^b^" = paste0(
+      format(sum(DOB_AFTER_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DOB_AFTER_DEATH == 1, na.rm = TRUE)/sum(DTH_INDICATOR == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
 
   ) %>% 
   t() %>% as.data.frame() %>% 
@@ -1548,11 +1561,11 @@ neo_mortality_tab <- neonatal_mortality %>% ## denominator is all live births wi
       format(round(sum(NEO_DTH_CAT == 13, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Death reported but missing time of death " = paste0(
-      format(sum(NEO_DTH_CAT == 66, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(NEO_DTH_CAT == 66, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+    # "Death reported but missing time of death " = paste0(
+    #   format(sum(NEO_DTH_CAT == 55, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(NEO_DTH_CAT == 55, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
     
     "Total neonatal deaths " = paste0(
       format(sum(TOTAL_NEO_DEATHS == 1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -1585,12 +1598,12 @@ inf_mortality_tab <- infant_mortality %>% ## denominator is all live births with
       format(round(sum(INF_DTH_CAT == 14 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(DENOM_365d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
     
-    "Death reported but missing time of death  " = paste0(
-      format(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
+    # "Death reported but missing time of death  " = paste0(
+    #   format(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+    # 
     
     "Total infant deaths  " = paste0(
       format(sum(TOTAL_INF_DEATHS == 1 & AGE_LAST_SEEN >= 365, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -1618,28 +1631,31 @@ mortality_output <- tb_theme1(mortality_all_tab) %>%
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data Completeness<sup>a</sup></span>"),
-    rows = 1:3
+    rows = 1:5
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>"),
-    rows = 4:9
+    label = html("<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>c</sup></span>"),
+    rows = 6:10
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of Infant Mortality<sup>c</sup></span>"),
-    rows = 10:13
+    label = html("<span style='font-size: 18px'>Timing of Infant Mortality<sup>d</sup></span>"),
+    rows = 11:13
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Data Completeness<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>",
-                  "<span style='font-size: 18px'>Timing of Infant Mortality<sup>c</sup></span>")
+                  "<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>c</sup></span>",
+                  "<span style='font-size: 18px'>Timing of Infant Mortality<sup>d</sup></span>")
                   ) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all live births.</span>")
  )  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all reported deaths.</span>")
+ )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period with a visit OR died within the risk period (risk period: age = 28days).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period with a visit OR died within the risk period (risk period: age = 28days).</span>")
  )  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period (risk period: age = 365days).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period (risk period: age = 365days).</span>")
  ) %>% 
     tab_style(
       style = list(
