@@ -2049,7 +2049,7 @@ knitr::include_graphics(paste0(path_to_save, "pprom_tab_output.png"))
 
 **2.** Visit type recorded as enrollment, ANC-20, ANC-32, ANC-36, or PNC-6.
 
-a.  ***NOTE:* we are not considering missed visit windows or if non-scheduled routine visit is indicated*
+a.  ***NOTE:* we are not considering if non-scheduled routine visit is indicated*
 
 **3.** Valid responses are calculated from EPDS variables (varname [form]: `EPDS0101` – `EPDS0110` [MNH25])
 
