@@ -143,6 +143,550 @@ g_legend <- function(p) {
 
 \newpage
 
+## Summary 
+
+### Table I. Summary of maternal outcomes
+```{r}
+
+anemia1<-left_join(anemia,end)
+preterm_indication1<-left_join(preterm_indication,end)
+rupture1<-left_join(rupture,end)
+
+# Enrollment Outcomes: 
+
+summary_tab1 <- MAT_INFECTION %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+  ## HIV
+    "HIV prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+      format(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HIV_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    # Syphilis
+    "Syphilis prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+      format(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM ==1 & SYPH_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    ## Malaria
+    "Malaria prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+      format(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & MAL_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    # Hepatitis B
+    "Hep B RDT positive at enrollment ^a^" = paste0(
+      format(sum(HBV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HBV_MEAS_MISSING_ENROLL==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")") ,
+    
+      "Hep C RDT positive at enrollment ^a^" = paste0(
+      format(sum(HCV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HCV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HCV_MEAS_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+   ) %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = MAT_INFECTION %>%
+        plyr::summarise(
+          
+    "HIV prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+      format(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Syphilis prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+      format(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Malaria prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+      format(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Hep B RDT positive at enrollment ^a^" = paste0(
+      format(sum(HBV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Hep C RDT positive at enrollment ^a^" = paste0(
+      format(sum(HCV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+  
+  # Mid-pregnancy outcomes: 
+  
+  summary_tab2 <- gdm %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+  ## GDM
+    "Gestational diabetes (by any test) ^b^" = paste0(
+      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    ) %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = gdm %>%
+        plyr::summarise(
+          
+    "HIV prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+  summary_tab3 <- anemia1 %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+  ## Ever anemia
+     "Any anemia during pregnancy (ever) ^c^" = paste0(
+      format(sum((ANEMIA_ANC == 1 | ANEMIA_ANC == 2 | ANEMIA_ANC == 3) & PREG_END==1 & ANEMIA_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum((ANEMIA_ANC == 1 | ANEMIA_ANC == 2 | ANEMIA_ANC == 3) & PREG_END==1 & ANEMIA_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & ANEMIA_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate/severe anemia during pregnancy (ever) ^c^" = paste0(
+      format(sum((ANEMIA_ANC == 2 | ANEMIA_ANC == 3) & PREG_END==1 & ANEMIA_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum((ANEMIA_ANC == 2 | ANEMIA_ANC == 3) & PREG_END==1 & ANEMIA_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & ANEMIA_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+     
+   )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = anemia1 %>%
+        plyr::summarise(
+          
+    "Any anemia during pregnancy (ever) ^c^" = paste0(
+      format(sum((ANEMIA_ANC == 1 | ANEMIA_ANC == 2 | ANEMIA_ANC == 3) & PREG_END==1 & ANEMIA_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+   "Moderate/severe anemia during pregnancy (ever) ^c^" = paste0(
+      format(sum((ANEMIA_ANC == 2 | ANEMIA_ANC == 3) & PREG_END==1 & ANEMIA_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2)) 
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+  summary_tab4 <- depression %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## Ever depression
+    "Depression during pregnancy (ever) ^d^" = paste0(
+      format(sum(DEPR_ANC_EVER_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_ANC_EVER_STND_N==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")   
+    
+   )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = depression %>%
+        plyr::summarise(
+          
+    "Depression during pregnancy (ever) ^d^" = paste0(
+      format(sum(DEPR_ANC_EVER_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+  # Pregnancy endpoint outcomes: 
+  
+  summary_tab5 <- preterm_indication1 %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## Preterm delivery
+    "Preterm delivery (20 to <37 weeks) ^e^" = paste0(
+      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  ## PPROM
+     "PPROM ^c^" = paste0(
+      format(sum(PPROM_OCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PPROM_OCCUR == 1, na.rm = TRUE)/sum(PREG_END==1 & PPROM_OCCUR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")") 
+    
+   )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = preterm_indication1 %>%
+        plyr::summarise(
+          
+    "Preterm delivery (20 to <37 weeks) ^e^" = paste0(
+      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "PPROM ^c^" = paste0(
+      format(sum(PPROM_OCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+  summary_tab6 <- hemorrhage %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## Antepartum hemorrhage
+    "Antepartum hemorrhage ^c^" = paste0(
+      format(sum(HEM_APH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_APH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    ## Postpartum hemorrhage
+    "Postpartum hemorrhage ^c^" = paste0(
+      format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEM_PPH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = hemorrhage %>%
+        plyr::summarise(
+          
+    "Antepartum hemorrhage ^c^" = paste0(
+      format(sum(HEM_APH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Postpartum hemorrhage ^c^" = paste0(
+      format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+  
+  summary_tab7 <- rupture1 %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## Uterine rupture
+     "Uterine rupture  ^c^" = paste0(
+      format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = rupture1 %>%
+        plyr::summarise(
+          
+    "Uterine rupture  ^c^" = paste0(
+      format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+  summary_tab8 <- hdp %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## Gestational hypertension
+     "Gestational hypertension ^e^" = paste0(
+      format(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  ## Preeclampsia  
+    "Preeclampsia (all categories) ^e^ ^f^" = paste0(
+      format(sum(PREG_END==1 & (HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & (HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+ )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = hdp %>%
+        plyr::summarise(
+          
+    "Gestational hypertension ^e^" = paste0(
+      format(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Preeclampsia (all categories) ^e^ ^f^" = paste0(
+      format(sum(PREG_END==1 & (HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+#Postpartum outcomes: 
+  summary_tab9 <- near_miss %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## Near-Miss
+     "Maternal Near-Miss ^a^" = paste0(
+      format(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = near_miss %>%
+        plyr::summarise(
+          
+    "Maternal Near-Miss ^a^" = paste0(
+      format(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+
+  summary_tab10 <- anemia %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+  ## Anemia
+     "Any postpartum anemia (6-14 weeks) ^b^" = paste0(
+      format(sum((ANEMIA_PNC6 == 1 | ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum((ANEMIA_PNC6 == 1 | ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Moderate/severe postpartum anemia (6-14 weeks) ^b^" = paste0(
+      format(sum((ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum((ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = anemia1 %>%
+        plyr::summarise(
+          
+    "Any postpartum anemia (6-14 weeks) ^b^" = paste0(
+      format(sum((ANEMIA_PNC6 == 1 | ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Moderate/severe postpartum anemia (6-14 weeks) ^b^" = paste0(
+      format(sum((ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  summary_tab11 <- depression %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## Depression
+     "Postpartum Depression (6-14 weeks) ^b^" = paste0(
+       format(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE)/sum(DEPR_PNC6_D==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = depression %>%
+        plyr::summarise(
+          
+   "Postpartum Depression (6-14 weeks) ^b^" = paste0(
+       format(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+
+  
+ summary_tab <- rbind(summary_tab1,summary_tab2,summary_tab3,summary_tab4,
+                      summary_tab5,summary_tab6,summary_tab7,summary_tab8) 
+ 
+ summary_tab_2 <- rbind(summary_tab9,summary_tab10,summary_tab11)
+  
+  
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+summary_tab[is.na(summary_tab)] <- paste0("0 (0)")
+
+summary_tab_2[is.na(summary_tab_2)] <- paste0("0 (0)")
+
+summary_tab_output <- tb_theme1(summary_tab) %>% 
+  tab_header(
+    title = md("**Table I**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Enrollment outcomes</span>"),
+        rows = 1:5
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Mid-pregnancy outcomes</span>"),
+        rows = 6:9
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Pregnancy endpoint outcomes</span>"),
+    rows = 10:16
+  ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Enrollment outcomes</span>",
+                            "<span style='font-size: 18px'>Mid-pregnancy outcomes</span>",
+                            "<span style='font-size: 18px'>Pregnancy endpoint outcomes</span>")) %>% 
+
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
+ ) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants who had pregnancy to 28 weeks gestation (excluding pregnancies ended and withdrawals prior to 28 weeks) AND who have progressed through the ANC-28 visit window (>30 weeks gestation), excluding those with preexisting overt diabetes and those with missing data.</span>")
+ ) %>%
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total completed pregnancies (including all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery), excluding missing data for the outcome.</span>")
+ ) %>% 
+    
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all participants who have at least one EPDS assessment at enrollment, ANC-20, ANC-32, or ANC-36); scoring is based on the standard cut-off.  See Section 5: Perinatal Depression for more details.</span>")
+ ) %>%
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total pregnancies (including all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery), excluding pregnancy losses prior to 20 weeks gestation and those missing data for the outcome.</span>")
+ ) %>% 
+    
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>f</sup> This summary preeclampsia outcome includes all sub-categories of the condition, including preeclampsia without severe features, preeclampsia superimposed on chronic hypertension, and preeclampsia with severe features.</span>")
+ )
+
+
+summary_tab_output2 <- tb_theme1(summary_tab_2) %>% 
+  tab_header(
+    title = md("**Table I, continued**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Postpartum outcomes</span>"),
+        rows = 1:4
+  ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Postpartum outcomes</span>")) %>% 
+
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is participants who passed 42 days postpartum without closeout AND have completed a visit 42+ days postpartum OR experienced potentially life-threatening condition (PLTC).</span>")
+ ) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is participants who have progressed in the study through the PNC-6 window, excluding those with missing data for the outcome.</span>")
+ )
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(summary_tab_output, file = "summary_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "summary_tab_output.png"))
+
+```
+
+
+
+```{r, out.width = '100%'}
+
+gtsave(summary_tab_output2, file = "summary_tab_output2.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
+
+```
+
+
+
+\newpage
+
 ## 1. Maternal mortality
 
 **Definitions:**
