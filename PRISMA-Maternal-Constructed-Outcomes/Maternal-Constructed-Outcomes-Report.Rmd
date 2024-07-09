@@ -247,7 +247,7 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = gdm %>%
         plyr::summarise(
           
-    "HIV prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
+    "Gestational diabetes (by any test) ^b^" = paste0(
       format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
@@ -327,27 +327,57 @@ summary_tab1 <- MAT_INFECTION %>%
       `colnames<-`(c(.[1,])) %>% unlist()
         )
   
-  
-  # Pregnancy endpoint outcomes: 
-  
-  summary_tab5 <- preterm_indication1 %>% 
+  summary_tab5 <- thy %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
   
-  ## Preterm delivery
-    "Preterm delivery (20 to <37 weeks) ^e^" = paste0(
-      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+  ## Ever thryoid dysfunction
+    "Thyroid dysfunction during pregnancy (ever) ^e^" = paste0(
+      format(sum(THYR_EVER==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(round(sum(THYR_EVER==1 , na.rm = TRUE)/sum(THYR_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+      
+      )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = thy %>%
+        plyr::summarise(
+          
+    "Thyroid dysfunction during pregnancy (ever) ^e^" = paste0(
+      format(sum(THYR_EVER==1, na.rm = TRUE), nsmall = 0, digits = 2))
     
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
+  # Pregnancy endpoint outcomes: 
+  
+  summary_tab6 <- preterm_indication1 %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
   ## PPROM
-     "PPROM ^c^" = paste0(
+     "PPROM ^a^" = paste0(
       format(sum(PPROM_OCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PPROM_OCCUR == 1, na.rm = TRUE)/sum(PREG_END==1 & PPROM_OCCUR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")") 
+      ")"),
+    
+  ## Preterm delivery
+    "Preterm delivery (20 to <37 weeks) ^b^" = paste0(
+      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
     
    )  %>%
   t() %>% as.data.frame() %>% 
@@ -357,12 +387,12 @@ summary_tab1 <- MAT_INFECTION %>%
       .before = 1,
     "Total" = preterm_indication1 %>%
         plyr::summarise(
-          
-    "Preterm delivery (20 to <37 weeks) ^e^" = paste0(
-      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "PPROM ^c^" = paste0(
-      format(sum(PPROM_OCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2))
+    "PPROM ^a^" = paste0(
+      format(sum(PPROM_OCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Preterm delivery (20 to <37 weeks) ^b^" = paste0(
+      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
         t() %>%
@@ -371,20 +401,20 @@ summary_tab1 <- MAT_INFECTION %>%
         )
   
   
-  summary_tab6 <- hemorrhage %>% 
+  summary_tab7 <- hemorrhage %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
   
   ## Antepartum hemorrhage
-    "Antepartum hemorrhage ^c^" = paste0(
+    "Antepartum hemorrhage ^a^" = paste0(
       format(sum(HEM_APH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_APH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     ## Postpartum hemorrhage
-    "Postpartum hemorrhage ^c^" = paste0(
+    "Postpartum hemorrhage ^a^" = paste0(
       format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -399,10 +429,10 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = hemorrhage %>%
         plyr::summarise(
           
-    "Antepartum hemorrhage ^c^" = paste0(
+    "Antepartum hemorrhage ^a^" = paste0(
       format(sum(HEM_APH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "Postpartum hemorrhage ^c^" = paste0(
+    "Postpartum hemorrhage ^a^" = paste0(
       format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
@@ -413,13 +443,13 @@ summary_tab1 <- MAT_INFECTION %>%
   
   
   
-  summary_tab7 <- rupture1 %>% 
+  summary_tab8 <- rupture1 %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
   
   ## Uterine rupture
-     "Uterine rupture  ^c^" = paste0(
+     "Uterine rupture  ^a^" = paste0(
       format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -434,7 +464,7 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = rupture1 %>%
         plyr::summarise(
           
-    "Uterine rupture  ^c^" = paste0(
+    "Uterine rupture  ^a^" = paste0(
       format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
@@ -444,20 +474,20 @@ summary_tab1 <- MAT_INFECTION %>%
         )
   
   
-  summary_tab8 <- hdp %>% 
+  summary_tab9 <- hdp %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
   
   ## Gestational hypertension
-     "Gestational hypertension ^e^" = paste0(
+     "Gestational hypertension ^b^" = paste0(
       format(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
   ## Preeclampsia  
-    "Preeclampsia (all categories) ^e^ ^f^" = paste0(
+    "Preeclampsia (all categories) ^b^ ^c^" = paste0(
       format(sum(PREG_END==1 & (HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PREG_END==1 & (HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -472,10 +502,10 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = hdp %>%
         plyr::summarise(
           
-    "Gestational hypertension ^e^" = paste0(
+    "Gestational hypertension ^b^" = paste0(
       format(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "Preeclampsia (all categories) ^e^ ^f^" = paste0(
+    "Preeclampsia (all categories) ^b^ ^c^" = paste0(
       format(sum(PREG_END==1 & (HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
@@ -485,14 +515,45 @@ summary_tab1 <- MAT_INFECTION %>%
         )
   
   
+  summary_tab9b <- labor %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+  
+  ## Prolonged labor
+     "Prolonged labor  ^d^" = paste0(
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+        add_column(
+      .before = 1,
+    "Total" = labor %>%
+        plyr::summarise(
+          
+    "Prolonged labor  ^d^" = paste0(
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2))
+    
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  
 #Postpartum outcomes: 
-  summary_tab9 <- near_miss %>% 
+  summary_tab10 <- near_miss %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
   
   ## Near-Miss
-     "Maternal Near-Miss ^a^" = paste0(
+     "Maternal Near-Miss ^e^" = paste0(
       format(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -507,7 +568,7 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = near_miss %>%
         plyr::summarise(
           
-    "Maternal Near-Miss ^a^" = paste0(
+    "Maternal Near-Miss ^e^" = paste0(
       format(sum(MAT_MNM_CRIT == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
@@ -517,19 +578,19 @@ summary_tab1 <- MAT_INFECTION %>%
         )
   
 
-  summary_tab10 <- anemia %>% 
+  summary_tab11 <- anemia %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
     
   ## Anemia
-     "Any postpartum anemia (6-14 weeks) ^b^" = paste0(
+     "Any postpartum anemia (6-14 weeks) ^f^" = paste0(
       format(sum((ANEMIA_PNC6 == 1 | ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum((ANEMIA_PNC6 == 1 | ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-     "Moderate/severe postpartum anemia (6-14 weeks) ^b^" = paste0(
+     "Moderate/severe postpartum anemia (6-14 weeks) ^f^" = paste0(
       format(sum((ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum((ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -544,10 +605,10 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = anemia1 %>%
         plyr::summarise(
           
-    "Any postpartum anemia (6-14 weeks) ^b^" = paste0(
+    "Any postpartum anemia (6-14 weeks) ^f^" = paste0(
       format(sum((ANEMIA_PNC6 == 1 | ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "Moderate/severe postpartum anemia (6-14 weeks) ^b^" = paste0(
+    "Moderate/severe postpartum anemia (6-14 weeks) ^f^" = paste0(
       format(sum((ANEMIA_PNC6 == 2 | ANEMIA_PNC6 == 3) & ANEMIA_PNC6_DENOM==1 & ANEMIA_PNC6_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
@@ -556,13 +617,13 @@ summary_tab1 <- MAT_INFECTION %>%
       `colnames<-`(c(.[1,])) %>% unlist()
         )
   
-  summary_tab11 <- depression %>% 
+  summary_tab12 <- depression %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
   
   ## Depression
-     "Postpartum Depression (6-14 weeks) ^b^" = paste0(
+     "Postpartum Depression (6-14 weeks) ^f^" = paste0(
        format(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE)/sum(DEPR_PNC6_D==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -577,7 +638,7 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = depression %>%
         plyr::summarise(
           
-   "Postpartum Depression (6-14 weeks) ^b^" = paste0(
+   "Postpartum Depression (6-14 weeks) ^f^" = paste0(
        format(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
@@ -589,9 +650,11 @@ summary_tab1 <- MAT_INFECTION %>%
 
   
  summary_tab <- rbind(summary_tab1,summary_tab2,summary_tab3,summary_tab4,
-                      summary_tab5,summary_tab6,summary_tab7,summary_tab8) 
+                      summary_tab5) 
  
- summary_tab_2 <- rbind(summary_tab9,summary_tab10,summary_tab11)
+ summary_tab_2 <- rbind(summary_tab6,summary_tab7,summary_tab8,
+                      summary_tab9,summary_tab9b,
+                      summary_tab10,summary_tab11,summary_tab12)
   
   
 ```
@@ -599,8 +662,8 @@ summary_tab1 <- MAT_INFECTION %>%
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
 summary_tab[is.na(summary_tab)] <- paste0("0 (0)")
-
 summary_tab_2[is.na(summary_tab_2)] <- paste0("0 (0)")
+
 
 summary_tab_output <- tb_theme1(summary_tab) %>% 
   tab_header(
@@ -611,15 +674,10 @@ summary_tab_output <- tb_theme1(summary_tab) %>%
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Mid-pregnancy outcomes</span>"),
-        rows = 6:9
+        rows = 6:10
     ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Pregnancy endpoint outcomes</span>"),
-    rows = 10:16
-  ) %>%
  row_group_order(groups = c( "<span style='font-size: 18px'>Enrollment outcomes</span>",
-                            "<span style='font-size: 18px'>Mid-pregnancy outcomes</span>",
-                            "<span style='font-size: 18px'>Pregnancy endpoint outcomes</span>")) %>% 
+                            "<span style='font-size: 18px'>Mid-pregnancy outcomes</span>")) %>% 
 
 
   tab_footnote(
@@ -635,15 +693,11 @@ summary_tab_output <- tb_theme1(summary_tab) %>%
  ) %>% 
     
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all participants who have at least one EPDS assessment at enrollment, ANC-20, ANC-32, or ANC-36); scoring is based on the standard cut-off.  See Section 5: Perinatal Depression for more details.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all participants who have at least one EPDS assessment at enrollment, ANC-20, ANC-32, or ANC-36; scoring is based on the standard cut-off across all sites.</span>")
  ) %>%
-  
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total pregnancies (including all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery), excluding pregnancy losses prior to 20 weeks gestation and those missing data for the outcome.</span>")
- ) %>% 
-    
+
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>f</sup> This summary preeclampsia outcome includes all sub-categories of the condition, including preeclampsia without severe features, preeclampsia superimposed on chronic hypertension, and preeclampsia with severe features.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is participants who have progressed past the ANC20 window without closing out or closeout after ANC20 window, who have at least one nonmissing measure at enrollment, ANC20, ANC32, or ANC36; thyroid dysfunction includes subclinical and overt hyper- and hypothyroidism but excludes 'unclassified' (see table for more details).</span>")
  )
 
 
@@ -651,18 +705,39 @@ summary_tab_output2 <- tb_theme1(summary_tab_2) %>%
   tab_header(
     title = md("**Table I, continued**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Postpartum outcomes</span>"),
-        rows = 1:4
+    label = html("<span style='font-size: 18px'>Pregnancy endpoint outcomes</span>"),
+    rows = 1:8
   ) %>%
- row_group_order(groups = c( "<span style='font-size: 18px'>Postpartum outcomes</span>")) %>% 
-
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Postpartum outcomes</span>"),
+        rows = 9:12
+  ) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Pregnancy endpoint outcomes</span>",
+                             "<span style='font-size: 18px'>Postpartum outcomes</span>")
+                            ) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total completed pregnancies (including all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery), excluding missing data for the outcome.</span>")
+ ) %>% 
 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is participants who passed 42 days postpartum without closeout AND have completed a visit 42+ days postpartum OR experienced potentially life-threatening condition (PLTC).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total pregnancies that end in delivery of a livebirth or stillbirth, excluding pregnancy losses prior to 20 weeks gestation, maternal deaths prior to delivery, and those missing data for the outcome.</span>")
+ ) %>% 
+    
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> This summary preeclampsia outcome includes all sub-categories of the condition, including preeclampsia without severe features, preeclampsia superimposed on chronic hypertension, and preeclampsia with severe features.</span>")
+ )  %>% 
+    
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is pregnancies ending in a livebirth or stillbirth (>20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor).</span>")
+ ) %>% 
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is participants who passed 42 days postpartum without closeout AND have completed a visit 42+ days postpartum OR experienced potentially life-threatening condition (PLTC).</span>")
  ) %>% 
   
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is participants who have progressed in the study through the PNC-6 window, excluding those with missing data for the outcome.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>f</sup> Denominator is participants who have progressed in the study through the PNC-6 window, excluding those with missing data for the outcome.</span>")
  )
 
 ```
