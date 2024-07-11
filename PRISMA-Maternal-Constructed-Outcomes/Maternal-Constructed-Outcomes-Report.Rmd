@@ -697,7 +697,7 @@ tab_footnote(
  ) %>%
 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is participants who have progressed past the ANC20 window without closing out or closeout after ANC20 window, who have at least one nonmissing measure at enrollment, ANC20, ANC32, or ANC36; thyroid dysfunction includes subclinical and overt hyper- and hypothyroidism but excludes 'unclassified' (see table for more details).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is participants who have progressed past the ANC20 window without closing out or closeout after ANC20 window, who have at least one nonmissing measure at enrollment, ANC20, ANC32, or ANC36; thyroid dysfunction includes subclinical and overt hyper- and hypothyroidism but excludes 'unclassified' (see tables 12a-b for more details).</span>")
  )
 
 
@@ -4874,9 +4874,16 @@ ggvenn(data = list(`Fasting glucose` = GDM_pre,
 
 **Denominator for maternal near miss:** 
 
--   Expected denominator: women who have passed 42 days postpartum
+-   Expected denominator: all women who have passed 42 days postpartum
 
--   Near-miss denominator: passed 42 days postpartum AND did not closeout during the window AND we have an MNH09/MNH12/MNH19 for that participant AND we have seen them on or after 42 days postpartum OR they have experienced PLTC 
+-   Near-miss denominator: passed 42 days postpartum, MINUS:
+-       "healthy" and closed out during the window
+-       "healthy" and did not have a MNH09/MNH12/MNH19 form 
+-       "healthy" and not seen 42+ days postpartum
+
+
+*Note: "healthy" indicates a woman who is alive, did not experience a potentially life-threatening condition, and did not experience near-miss criteria. Under this definition, a women who e.g., closed out before 42 days postpartum but also experienced a PLTC would still be included in the denominator*
+
 
 ### Table 9a. Near-miss data completeness
 ```{r}
@@ -4889,25 +4896,25 @@ near_miss_taba <- near_miss %>%
     "Expected denominator, n" = paste0(
       format(sum(NEARMISS_WINDOW==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
-    "Closed out during pregnancy or within 42 days of pregnancy end without experiencing a PLTC" = paste0(
+    "Healthy^a^ & closed out during pregnancy or within 42 days of pregnancy end" = paste0(
       format(sum(NEARMISS_CLOSEOUT==1 & NEARMISS_WINDOW == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEARMISS_CLOSEOUT==1 & NEARMISS_WINDOW == 1, na.rm = TRUE)/sum(NEARMISS_WINDOW == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-     "Missing because no MNH09, MNH12, or MNH19 forms" = paste0(
+     "Healthy^a^ and missing because no MNH09, MNH12, or MNH19 forms" = paste0(
        format(sum(NEARMISS_MISSFORMS ==1, na.rm = TRUE), nsmall = 0, digits = 2),
        " (",
        format(round(sum(NEARMISS_MISSFORMS ==1, na.rm = TRUE)/sum(NEARMISS_WINDOW == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
        ")"),
      
-     "Missing because not seen at least 42 days postpartum and did not experience a PLTC" = paste0(
+     "Healthy^a^ and missing because not seen at least 42 days postpartum" = paste0(
        format(sum(NEARMISS_NOTSEEN42==1, na.rm = TRUE), nsmall = 0, digits = 2),
        " (",
        format(round(sum(NEARMISS_NOTSEEN42==1, na.rm = TRUE)/sum(NEARMISS_WINDOW == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
        ")"),
     
-    "Near-miss denominator <sup>a</sup> , n" = paste0(
+    "Near miss denominator, n" = paste0(
       format(sum(NEAR_MISS_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)), 
     
    )  %>%
@@ -4934,25 +4941,24 @@ near_miss_tab_outputa <- tb_theme1(near_miss_taba) %>%
 
   row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>"
                              ))  %>% 
- 
- # bold denominator 1st and last row
+   # bold denominator rows 1
   tab_style(
       style = list(
         cell_text(weight = "bold")
         ),
       locations = cells_body(rows = c(
                  "Expected denominator, n",
-                 "Near-miss denominator <sup>a</sup> , n"))) %>% 
+                 "Near miss denominator, n"))) %>% 
 tab_style(
       style = list(
         cell_text(weight = "bold")
         ),
       locations = cells_stub(rows = c(
                  "Expected denominator, n",
-                 "Near-miss denominator <sup>a</sup> , n"))) %>% 
-
-tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Any woman who has passed 42 days postpartum without closeout AND has completed a visit 42+ days postpartum OR she experienced PLTC.</span>")
+                 "Near miss denominator, n"))) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Healthy indicates a women who is alive, did not experience a potentially life-threatening condition, and did not experience  near-miss criteria.</span>")
  ) 
 
 
@@ -4973,13 +4979,13 @@ knitr::include_graphics(paste0(path_to_save, "near_miss_taba.png"))
 
 -   **postpartum hemorrhage** [see table 6 of this report]
 
--   **preeclampsia** [to be constructed]
+-   **preeclampsia** [see tables 13a-b of this report]
 
--   **severe hypertension** [to be constructed]
+-   **severe hypertension** [see tables 13a-b of this report]
 
 -   **pulmonary edema** [M09_PREECLAMPSIA_CEOCCUR_4]
 
--   **eclampsia** [to be constructed]
+-   **preeclampsia with severe features/eclampsia** [see tables 13a-b of this report]
 
 -   **sepsis or severe infection** [to be constructed]
 
@@ -5161,7 +5167,7 @@ tab_row_group(
     label = html("<span style='font-size: 18px'>Potentially Life-Threatening Conditions (PLTC)</span>"),
     rows = 1:22
   ) %>%
-    row_group_order(groups = c("<span style='font-size: 18px'>Potentially Life-Threatening Conditions (PLTC)</span>"))  %>% 
+    row_group_order(groups = c("<span style='font-size: 18px'>Potentially Life-Threatening Conditions (PLTC)</span>"))  %>%
   
      # bold denominator rows 1
   tab_style(
@@ -5178,8 +5184,8 @@ tab_style(
       locations = cells_stub(rows = c(
                  "Near-miss denominator, n",
                  "Near-miss denominator, n"))) %>% 
-
-tab_footnote(
+  
+  tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>*</sup>These outcomes will be added to PLTC once constructed.</span>")
  ) 
 
@@ -5309,8 +5315,8 @@ near_miss_tab_outputc <- tb_theme1(near_miss_tabc) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Near-miss criteria</span>",
                              "<span style='font-size: 18px'>Adjudication scenarios</span>"
                              ))  %>% 
-
-# bold denominator rows 1
+ 
+  # bold denominator rows 1
   tab_style(
       style = list(
         cell_text(weight = "bold")
@@ -5325,8 +5331,8 @@ tab_style(
       locations = cells_stub(rows = c(
                  "Near-miss denominator, n",
                  "Near-miss denominator, n"))) %>% 
-
-tab_footnote(
+  
+   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup>Participants may have more than one criteria.</span>") 
     ) %>%
   tab_footnote(
