@@ -29,18 +29,15 @@
 # BIRTH_COMPL_MHTERM_1 [MNH12] (Was the mother diagnosed with any of the following birth complications, PPH)
 
 ## Hemorrhage (severe postpartum)
-# ## required variables & logic
-# PPH_CEOCCUR==1 [MNH09] (Did mother experience postpartum hemorrhage)
-# PPH_ESTIMATE_FAORRES >=1000 [MNH09] (Record estimated blood loss)
+## Hemorrhage == 1 AND (PPH_ESTIMATE_FAORRES?=1000 OR Blood transfusion OR any procedure) 
+# PPH_ESTIMATE_FAORRES >=1000 [MNH09] (Record estimated blood loss) 
 # PPH_FAORRES_1==1 [MNH09] (Procedures carried out for PPH, Balloon/condom tamponade)  
 # PPH_FAORRES_2==1 [MNH09] (Procedures carried out for PPH, Surgical interventions) 
 # PPH_FAORRES_3==1 [MNH09] (Procedures carried out for PPH, Brace sutures) 
 # PPH_FAORRES_4==1 [MNH09] (Procedures carried out for PPH, Vessel ligation) 
 # PPH_FAORRES_5==1 [MNH09] (Procedures carried out for PPH, Hysterectomy) 
 # PPH_FAORRES_88==1 [MNH09] (Procedures carried out for PPH, Other) 
-# PPH_TRNSFSN_PROCCUR==1 [MNH09] (Did the mother need a transfusion?) OR
-# (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) [MNH09]
-# BIRTH_COMPL_MHTERM_1 [MNH12] (Was the mother diagnosed with any of the following birth complications, PPH)
+# PPH_TRNSFSN_PROCCUR==1 [MNH09] (Did the mother need a transfusion?) 
 
 
 ## Medications 
@@ -309,31 +306,31 @@ hemorrhage <- hem_wide_full %>%
   
   ## 1. Antepartum Hemorrhage
   mutate(HEM_APH = case_when(HEM_DENOM==1 & (M04_APH_CEOCCUR_1==1 | M04_APH_CEOCCUR_2==1 |M04_APH_CEOCCUR_3==1 | M04_APH_CEOCCUR_4==1 | M04_APH_CEOCCUR_5==1 |
-                               APH_UNSCHED_ANY==1 | M09_APH_CEOCCUR_6 == 1 |
-                               (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==1)) ~ 1, TRUE ~ 0)) %>% 
+                                               APH_UNSCHED_ANY==1 | M09_APH_CEOCCUR_6 == 1 |
+                                               (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==1)) ~ 1, TRUE ~ 0)) %>% 
   ## 2. Postpartum Hemorrhage
   mutate(HEM_PPH = case_when(HEM_DENOM == 1 & (M09_PPH_CEOCCUR_6==1 | M09_PPH_FAORRES_1_6==1 | M09_PPH_FAORRES_2_6==1 |
-                               M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
-                               M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1 |
-                               M09_PPH_TRNSFSN_PROCCUR_6==1 | M09_PPH_ESTIMATE_FAORRES_6 >=500 |
-                               M12_VAG_BLEED_LOSS_ML_7>=500 | M12_VAG_BLEED_LOSS_ML_8>=500 | M12_VAG_BLEED_LOSS_ML_9>=500 | M12_VAG_BLEED_LOSS_ML_10>=500 |
-                               M12_VAG_BLEED_LOSS_ML_11>=500 | M12_VAG_BLEED_LOSS_ML_12>=500 |
-                               M12_BIRTH_COMPL_MHTERM_1_7==1 |  M12_BIRTH_COMPL_MHTERM_1_8==1 | M12_BIRTH_COMPL_MHTERM_1_9==1 | M12_BIRTH_COMPL_MHTERM_1_10==1 |
-                               M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1 |
-                               (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2)
-                               ) ~ 1, TRUE ~ 0)) %>% 
+                                                 M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
+                                                 M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1 |
+                                                 M09_PPH_TRNSFSN_PROCCUR_6==1 | M09_PPH_ESTIMATE_FAORRES_6 >=500 |
+                                                 M12_VAG_BLEED_LOSS_ML_7>=500 | M12_VAG_BLEED_LOSS_ML_8>=500 | M12_VAG_BLEED_LOSS_ML_9>=500 | M12_VAG_BLEED_LOSS_ML_10>=500 |
+                                                 M12_VAG_BLEED_LOSS_ML_11>=500 | M12_VAG_BLEED_LOSS_ML_12>=500 |
+                                                 M12_BIRTH_COMPL_MHTERM_1_7==1 |  M12_BIRTH_COMPL_MHTERM_1_8==1 | M12_BIRTH_COMPL_MHTERM_1_9==1 | M12_BIRTH_COMPL_MHTERM_1_10==1 |
+                                                 M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1 |
+                                                 (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2)
+  ) ~ 1, TRUE ~ 0)) %>% 
+  
   
   ## 3. Severe postpartum hemorrhage
-  mutate(HEM_PPH_SEV = case_when(HEM_DENOM==1 & (M09_PPH_CEOCCUR_6==1 | M09_PPH_FAORRES_1_6==1 | M09_PPH_FAORRES_2_6==1 |
-                                   M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
-                                   M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1 |
-                                   M09_PPH_TRNSFSN_PROCCUR_6==1 | M09_PPH_ESTIMATE_FAORRES_6 >=1000 |
-                                 # M12_VAG_BLEED_LOSS_ML_7>=1000 | M12_VAG_BLEED_LOSS_ML_8>=1000 | M12_VAG_BLEED_LOSS_ML_9>=1000 | M12_VAG_BLEED_LOSS_ML_10>=1000 |
-                                 # M12_VAG_BLEED_LOSS_ML_11>=1000 | M12_VAG_BLEED_LOSS_ML_12>=1000 |
-                                   M12_BIRTH_COMPL_MHTERM_1_7==1 |  M12_BIRTH_COMPL_MHTERM_1_8==1 | M12_BIRTH_COMPL_MHTERM_1_9==1 | M12_BIRTH_COMPL_MHTERM_1_10==1 |
-                                   M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1 |
-                                   (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2)
-                                   ) ~ 1, TRUE ~ 0)) %>% 
+  mutate(HEM_PPH_SEV = case_when(HEM_DENOM==1 & HEM_PPH==1 & (M09_PPH_ESTIMATE_FAORRES_6>=1000 | 
+                                                                M12_VAG_BLEED_LOSS_ML_7>=1000 | M12_VAG_BLEED_LOSS_ML_8>=1000 | M12_VAG_BLEED_LOSS_ML_9>=1000 | M12_VAG_BLEED_LOSS_ML_10>=1000 |
+                                                                M12_VAG_BLEED_LOSS_ML_11>=1000 | M12_VAG_BLEED_LOSS_ML_12>=1000 |
+                                                                M09_PPH_TRNSFSN_PROCCUR_6==1 | 
+                                                                M09_PPH_FAORRES_1_6==1 | M09_PPH_FAORRES_2_6==1 |
+                                                                M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
+                                                                M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1) ~ 1, TRUE ~0)
+  ) %>% 
+  
   ## 4. Any hemorrhage at any time point
   mutate(HEM_ANY = case_when(HEM_APH==1 | HEM_PPH ==1| HEM_PPH_SEV==1~1, TRUE ~ 0)) %>% 
   select(SITE, MOMID, PREGID,PREG_END,PREG_END_DATE, HEM_DENOM, HEM_APH, HEM_PPH, HEM_PPH_SEV,HEM_ANY,  
