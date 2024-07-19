@@ -3571,11 +3571,12 @@ ggplot() +
 
 **-** Missing diagnosed or measured data. 
 
-### Table 7a. STIs at enrollment
+
+### Table 7a. STIs
 ```{r}
 
 ## reorder to be output vars and then missing vars 
-sti_enroll_tab <- MAT_INFECTION%>% 
+sti_enroll_tab <- mat_infection%>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -3837,10 +3838,10 @@ knitr::include_graphics(paste0(path_to_save, "sti_enroll_output2.png"))
 ```
 
 
-### Table 7b. Malaria at enrollment
+### Table 7b. Malaria
 ```{r}
 
-malaria_tab <- MAT_INFECTION %>% 
+malaria_tab <- mat_infection %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -3923,11 +3924,11 @@ knitr::include_graphics(paste0(path_to_save, "malaria_tab_output.png"))
 
 ```
 
-### Table 7c. Hepatitis at enrollment
+### Table 7c. Hepatitis
 
 ```{r}
 
-hepatitis_tab <- MAT_INFECTION %>% 
+hepatitis_tab <- mat_infection %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -3971,7 +3972,36 @@ hepatitis_tab <- MAT_INFECTION %>%
       format(sum(HCV_MEAS_MISSING_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HCV_MEAS_MISSING_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    # Hepatitis E
+  "N with at least one expansion test performed" = paste0(
+      format(sum(ENROLL_EXPANSION == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Hep E IgM positive at enrollment ^d^" = paste0(
+      format(sum(HEV_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEV_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & HEV_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Hep E IgG positive at enrollment ^d^" = paste0(
+      format(sum(HEV_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEV_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & HEV_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    # "Hep E incidence following enrollment (IgM or IgG) ^b^" = paste0(
+    #   format(sum(HEV_IGM_POSITIVE_ANY_VISIT == 1|HEV_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(HEV_IGM_POSITIVE_ANY_VISIT == 1|HEV_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+
+    "Hep E missing at enrollment (IgG or IgM) ^e^" = paste0(
+      format(sum(HEV_IGM_MISSING_ENROLL == 1 | HEV_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEV_IGM_MISSING_ENROLL == 1 | HEV_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
+
 
   )  %>%
   t() %>% as.data.frame() %>% 
@@ -3991,11 +4021,23 @@ hepatitis_tab_output <- tb_theme1(hepatitis_tab) %>%
   tab_header(
     title = md("**Table 7c**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Hepatitis, n (%)</span>"),
-    rows = 2:7
+    label = html("<span style='font-size: 18px'>Hep B, n (%)</span>"),
+    rows = 2:4
+  ) %>%
+  
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Hep C, n (%)</span>"),
+    rows = 5:7
+  ) %>%
+  
+ tab_row_group(
+    label = html("<span style='font-size: 18px'>Hep E, n (%)</span>"),
+    rows = 8:11
   ) %>%
   row_group_order(groups = c(NA,
-                             "<span style='font-size: 18px'>Hepatitis, n (%)</span>"
+                             "<span style='font-size: 18px'>Hep B, n (%)</span>",
+                             "<span style='font-size: 18px'>Hep C, n (%)</span>",
+                             "<span style='font-size: 18px'>Hep E, n (%)</span>"
                            )) %>% 
   # bold denominator rows
   tab_style(
@@ -4003,13 +4045,15 @@ hepatitis_tab_output <- tb_theme1(hepatitis_tab) %>%
         cell_text(weight = "bold")
         ),
       locations = cells_body(rows = c(
-                  "N with enrollment visit"))) %>% 
+                  "N with enrollment visit",
+                  "N with at least one expansion test performed"))) %>% 
   tab_style(
       style = list(
         cell_text(weight = "bold")
         ),
       locations = cells_stub(rows = c(
-                  "N with enrollment visit"))) %>% 
+                  "N with enrollment visit",
+                  "N with at least one expansion test performed"))) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
  ) %>% 
@@ -4018,7 +4062,24 @@ hepatitis_tab_output <- tb_theme1(hepatitis_tab) %>%
  ) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with an enrollment visit.</span>")
+ ) %>% 
+    tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with an enrollment visit and at least one HEV/ZCD/Lepto expansion test performed excluding missing (missing defined as default values reported for test results).</span>")
+ ) %>% 
+    tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with an enrollment visit and at least one HEV/ZCD/Lepto expansion test performed.</span>")
  ) 
+
+ #  tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with an enrollment visit following HEV/ZCD/Lepto expansion excluding missing (missing defined as default values reported for test results).</span>")
+ # ) %>% 
+ #    tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with an enrollment visit following HEV/ZCD/Lepto expansion.</span>")
+ # ) 
+
+
+
+
 ```
 
 ```{r, out.width = '100%'}
@@ -4030,11 +4091,11 @@ knitr::include_graphics(paste0(path_to_save, "hepatitis_tab_output.png"))
 
 \newpage
 
-### Table 7d. TB at enrollment
+### Table 7d. TB
 
 ```{r}
 
-tb_tab <- MAT_INFECTION %>% 
+tb_tab <- mat_infection %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -4133,12 +4194,208 @@ knitr::include_graphics(paste0(path_to_save, "tb_tab_output.png"))
 
 ```
 
+### Table 7e. Arboviruses + Leptospirosis
 
-### Table 7e. All infections combined at enrollment
+```{r}
+
+zcd_tab <- mat_infection %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+  # N with enrollment visit (following HEV/ZCD/Lepto expansion)
+    
+  "N with at least one expansion test performed" = paste0(
+      format(sum(ENROLL_EXPANSION == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  
+  # Zika
+      "Zika IgM positive at enrollment ^a^" = paste0(
+      format(sum(ZIK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ZIK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & ZIK_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Zika IgG positive at enrollment ^a^" = paste0(
+      format(sum(ZIK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ZIK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & ZIK_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    # "Zika incidence following enrollment (IgM or IgG) ^b^" = paste0(
+    #   format(sum(ZIK_IGM_POSITIVE_ANY_VISIT == 1|ZIK_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(ZIK_IGM_POSITIVE_ANY_VISIT == 1|ZIK_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+  
+    "Zika missing at enrollment (IgG or IgM) ^b^" = paste0(
+      format(sum(ZIK_IGM_MISSING_ENROLL == 1 | ZIK_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ZIK_IGM_MISSING_ENROLL == 1 | ZIK_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    # Dengue
+      "Dengue IgM positive at enrollment^a^" = paste0(
+      format(sum(DEN_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEN_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & DEN_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Dengue IgG positive at enrollment ^a^" = paste0(
+      format(sum(DEN_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEN_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & DEN_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    # "Dengue incidence following enrollment (IgM or IgG) ^b^" = paste0(
+    #   format(sum(DEN_IGM_POSITIVE_ANY_VISIT == 1|DEN_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(DEN_IGM_POSITIVE_ANY_VISIT == 1|DEN_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+
+    "Dengue missing at enrollment (IgG or IgM) ^b^" = paste0(
+      format(sum(DEN_IGM_MISSING_ENROLL == 1 | DEN_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEN_IGM_MISSING_ENROLL == 1 | DEN_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    # Chikungunya
+      "Chikungunya IgM positive at enrollment ^a^" = paste0(
+      format(sum(CHK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & CHK_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Chikungunya IgG positive at enrollment ^a^" = paste0(
+      format(sum(CHK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & CHK_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    
+    # "Chikungunya incidence following enrollment (IgM or IgG) ^b^" = paste0(
+    #   format(sum(CHK_IGM_POSITIVE_ANY_VISIT == 1|CHK_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(CHK_IGM_POSITIVE_ANY_VISIT == 1|CHK_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+  
+    "Chikungunya missing at enrollment (IgG or IgM) ^b^" = paste0(
+      format(sum(CHK_IGM_MISSING_ENROLL == 1 | CHK_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHK_IGM_MISSING_ENROLL == 1 | CHK_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+  
+  # Leptospirosis 
+      "Leptospirosis  IgM positive at enrollment ^a^" = paste0(
+      format(sum(LEP_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LEP_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & LEP_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Leptospirosis  IgG positive at enrollment ^a^" = paste0(
+      format(sum(LEP_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LEP_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & LEP_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    # "Leptospirosis incidence following enrollment (IgM or IgG) ^b^" = paste0(
+    #   format(sum(LEP_IGM_POSITIVE_ANY_VISIT == 1|LEP_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(sum(LEP_IGM_POSITIVE_ANY_VISIT == 1|LEP_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   ")"),
+
+    "Leptospirosis missing at enrollment (IgG or IgM) ^b^" = paste0(
+      format(sum(LEP_IGM_MISSING_ENROLL == 1 | LEP_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LEP_IGM_MISSING_ENROLL == 1 | LEP_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+zcd_tab[is.na(zcd_tab)] <- paste0("0 (0)")
+
+zcd_tab_output <- tb_theme1(zcd_tab) %>% 
+  tab_header(
+    title = md("**Table 7e**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Zika, n (%)</span>"),
+    rows = 2:4
+  ) %>%
+  
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Dengue, n (%)</span>"),
+    rows = 5:7
+  ) %>%
+  
+ tab_row_group(
+    label = html("<span style='font-size: 18px'>Chikungunya, n (%)</span>"),
+    rows = 8:10
+  ) %>%
+  
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Leptospirosis, n (%)</span>"),
+    rows = 11:13
+  ) %>%
+  row_group_order(groups = c(NA,
+                             "<span style='font-size: 18px'>Zika, n (%)</span>",
+                             "<span style='font-size: 18px'>Dengue, n (%)</span>",
+                             "<span style='font-size: 18px'>Chikungunya, n (%)</span>",
+                             "<span style='font-size: 18px'>Leptospirosis, n (%)</span>"
+                           )) %>% 
+  # bold denominator rows
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                  "N with at least one expansion test performed"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                  "N with at least one expansion test performed"))) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit and at least one HEV/ZCD/Lepto expansion test performed excluding missing (missing defined as default values reported for test results).</span>")
+ ) %>% 
+ #    tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit following HEV/ZCD/Lepto expansion excluding missing (missing defined as default values reported for test results).</span>")
+ # ) %>% 
+ #  tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with at least one MNH04 OR MNH06 during ANC. Excludes cases reported at enrollment.</span>")
+ # ) %>% 
+    tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit and at least one HEV/ZCD/Lepto expansion test performed excluding missing (missing defined as default values reported for test results)</span>")
+ )# %>% 
+ #    tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit following HEV/ZCD/Lepto expansion.</span>")
+ # ) 
+```
+
+```{r, out.width = '100%'}
+
+gtsave(zcd_tab_output, file = "zcd_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "zcd_tab_output.png"))
+
+```
+
+\newpage
+
+### Table 7f. All infections combined at enrollment
 ```{r}
 
 ## reorder to be output vars and then missing vars 
-all_infection_tab <- MAT_INFECTION %>% 
+all_infection_tab <- mat_infection %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -4177,7 +4434,7 @@ all_infection_tab[is.na(all_infection_tab)] <- paste0("0 (0)")
 
 all_infection_output <- tb_theme1(all_infection_tab) %>% 
   tab_header(
-    title = md("**Table 7e**")) %>% 
+    title = md("**Table 7f**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Any infection at enrollment <sup>a</sup>, n (%)</span>"),
     rows = 2:4
