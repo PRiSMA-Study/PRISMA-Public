@@ -4215,7 +4215,7 @@ knitr::include_graphics(paste0(path_to_save, "all_infection_output.png"))
 
 **Definition:** Diabetes outcomes are assessed as follows:
 
--   *Overt diabetes* is measured by HbA1c level as assessed at enrollment. If this datapoint is missing at enrollment, we rely on HbA1c level as reported in a subsequent visit (unscheduled or ANC-20), if the result is taken at <20 weeks GA. Overt diabetes is defined as HbA1c >=6.5%. 
+-   *Overt diabetes* is measured by HbA1c level as assessed at enrollment. If this datapoint is missing at enrollment, we rely on HbA1c level as reported in a subsequent visit (unscheduled or ANC-20), if the result is taken at <20 weeks GA. Overt diabetes is defined as HbA1c >=6.5%. We also include participants who report a pre-existing diagnosis of overt diabetes, regardless of HbA1c measure.
 
 -   *Gestational diabetes* is measured by three blood glucose tests as assessed at ANC-28 visit. If this datapoint is missing at ANC-28, we rely on the test result reported at subsequent visits. Gestational diabetes is defined as pretest fasting glucose >=5.1 mmol/L or oral glucose-tolerance test (OGTT) 1-hour result >=10.0 mmol/L or OGTT 2-hour result >=8.5 mmol/L. Gestational diabetes outcomes exclude any participants with Overt Diabetes at enrollment.
 
@@ -4265,7 +4265,7 @@ overt_diabetes <- gdm %>%
       format(round(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Overt diabetes (>=6.5% HbA1c)" = paste0(
+    "Overt diabetes (>=6.5% HbA1c or previous diagnosis)" = paste0(
       format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4353,7 +4353,7 @@ pretest_fast_diabetes <- gdm %>%
     "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
       format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "Excluded: Overt diabetes (>=6.5% HbA1c)" = paste0(
+    "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
       format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4468,7 +4468,7 @@ ogtt_diabetes <- gdm %>%
     "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
       format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "Excluded: Overt diabetes (>=6.5% HbA1c)" = paste0(
+    "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
       format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4585,7 +4585,7 @@ ogtt2_diabetes <- gdm %>%
    "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
       format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
    
-    "Excluded: Overt diabetes (>=6.5% HbA1c)" = paste0(
+    "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
       format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4704,7 +4704,7 @@ any_test_diabetes <- gdm %>%
    "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
       format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
    
-    "Excluded: Overt diabetes (>=6.5% HbA1c)" = paste0(
+    "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
       format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
