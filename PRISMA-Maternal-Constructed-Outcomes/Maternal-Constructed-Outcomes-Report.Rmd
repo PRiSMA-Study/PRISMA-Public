@@ -55,7 +55,7 @@ near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS_INTERIM.dta")) %>% ren
 thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-
+highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -6154,7 +6154,7 @@ knitr::include_graphics(paste0(path_to_save, "thy_tab_output32.png"))
 
 -   ***Preeclampsia superimposed on chronic hypertension*** includes participants with preexisting, chronic hypertension (as described above) AND one or more new onset proteinuria measures at or after 20 weeks gestation. Note that this outcome excludes participants with positive proteinuria results at baseline (<20 weeks gestation), unless proteinuria results increase for the participant over time. This outcome also includes clinical diagnosis of preeclampsia at an ANC visit, a hospitalization, or labor and delivery for those with preexisting chronic hypertension at baseline. 
 
--   ***Preeclampsia with severe features*** includes participants with any of the following scenarios: clinical diagnosis of eclampsia/seizures at an ANC visit, a hospitalization, or at labor and delivery; clinical diagnosis of HELLP syndrome at a hospitalization or at labor and delivery; a participant with gestational hypertension (as described above) AND experiences organ dysfunction at a hospitalization or at labor and delivery or postpartum; a participant with preeclampsia (including preeclampsia superimposed on chronic hypertension) AND one or more of the following severe symptoms: severe high blood pressure (measured), clinical diagnosis of severe high blood pressure, organ dysfunction, pulmonary edema, visual symptoms, epigastric pain, and/or severe headaches. 
+-   ***Preeclampsia with severe features*** includes participants with any of the following scenarios: clinical diagnosis of eclampsia/seizures at an ANC visit, a hospitalization, or at labor and delivery; clinical diagnosis of HELLP syndrome at a hospitalization or at labor and delivery; clinical diagnosis of postpartum eclampsia at a PNC visit or at hospitailzation; a participant with gestational hypertension (as described above) AND experiences organ dysfunction at a hospitalization or at labor and delivery or postpartum; a participant with preeclampsia (including preeclampsia superimposed on chronic hypertension) AND one or more of the following severe symptoms: severe high blood pressure (measured), clinical diagnosis of severe high blood pressure, organ dysfunction, pulmonary edema, visual symptoms, epigastric pain, and/or severe headaches. 
 
 
 **To be included as "non-missing" for this outcome, a participant must have:**
@@ -6326,6 +6326,12 @@ hdp_tab2 <- hdp %>%
       format(round(sum(SEVERE_FEAT_HELLP==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
+    "Postpartum eclampsia" = paste0(
+      format(sum(SEVERE_FEAT_POSTP_ECLAMPSIA==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_FEAT_POSTP_ECLAMPSIA==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
     "Organ dysfunction" = paste0(
       format(sum(SEVERE_FEAT_ORGAN==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -6391,7 +6397,7 @@ hdp_tab2_output <- tb_theme1(hdp_tab2) %>%
     title = md("**Table 13b**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Preeclampsia with severe features by symptoms <sup>a</sup></span>"),
-        rows = 1:10
+        rows = 1:11
     ) %>%
   # bold denominator rows 2
   tab_style(
@@ -6424,5 +6430,333 @@ knitr::include_graphics(paste0(path_to_save, "hdp_tab2_output.png"))
 
 
 
+\newpage
+
+
+## 14. Postpartum high blood pressure 
+
+**Definition:** New onset high blood pressure (diasolic >90 and/or systolic >140 mmHg) among postpartum participants. This outcome identifies all participants with at least one high blood pressure measure in the postpartum window of interest. This outcome excludes participants within preexisting chronic hypertension at enrollment. 
+
+**Denominator:** All participants who have finished the postpartum window of interest (PNC 6: 6-14 weeks; PNC26: 26-39 weeks; and PNC52: 52-64 weeks) and/or who have at least one blood pressure measure recorded in the window.
+
+### Table 14a. Postpartum high blood pressure at 6-14 weeks
+```{r}
+
+highbp6_tab <- highbp %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Expected denominator ^a^" = paste0(
+      format(sum(POSTP_HTN_PNC6_DENOM== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+     "Missing blood pressure measure" = paste0(
+      format(sum(POSTP_HTN_PNC6_DENOM== 1 & POSTP_HTN_PNC6== 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC6_DENOM== 1 & POSTP_HTN_PNC6== 55, na.rm = TRUE)/sum(POSTP_HTN_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(POSTP_HTN_PNC6== 1 | POSTP_HTN_PNC6==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "High blood pressure ^b^" = paste0(
+      format(sum(POSTP_HTN_PNC6== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC6== 1, na.rm = TRUE)/sum(POSTP_HTN_PNC6== 1 | POSTP_HTN_PNC6== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "No high blood pressure" = paste0(
+      format(sum(POSTP_HTN_PNC6== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC6== 0, na.rm = TRUE)/sum(POSTP_HTN_PNC6== 1 | POSTP_HTN_PNC6== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+highbp6_tab[is.na(highbp6_tab)] <- paste0("0 (0)")
+
+highbp6_tab_output <- tb_theme1(highbp6_tab) %>% 
+  tab_header(
+    title = md("**Table 14a**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:2
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>High blood pressure at 6-14 weeks postpartum</span>"),
+    rows = 3:5
+  ) %>%
+    # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+  
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator ^a^",
+                 "Expected denominator ^a^"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator ^a^",
+                 "Expected denominator ^a^"))) %>% 
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                           "<span style='font-size: 18px'>High blood pressure at 6-14 weeks postpartum</span>"))  %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator is all participants whose pregnancies have ended AND who have remained in the study through the PNC-6 late visit window and/or have a valid blood pressure measure recorded during the window. The denominator excludes participants with preexisting chronic hypertension at enrollment. </span>")) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants are considered to have high blood pressure based on one or more high blood pressure readings, recorded as either: the mean of three blood pressure readings taken by PRISMA staff during the PNC-6 visit window and/or any blood pressure reading(s) recorded during hospitalization in the PNC-6 visit window. </span>"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(highbp6_tab_output, file = "highbp6_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "highbp6_tab_output.png"))
+
+```
+
+\newpage
+
+
+### Table 14b. Postpartum high blood pressure at 6 months (29-39 weeks)
+```{r}
+
+highbp26_tab <- highbp %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Expected denominator ^a^" = paste0(
+      format(sum(POSTP_HTN_PNC26_DENOM== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+     "Missing blood pressure measure" = paste0(
+      format(sum(POSTP_HTN_PNC26_DENOM== 1 & POSTP_HTN_PNC26== 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC26_DENOM== 1 & POSTP_HTN_PNC26== 55, na.rm = TRUE)/sum(POSTP_HTN_PNC26_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(POSTP_HTN_PNC26== 1 | POSTP_HTN_PNC26==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "High blood pressure ^b^" = paste0(
+      format(sum(POSTP_HTN_PNC26== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC26== 1, na.rm = TRUE)/sum(POSTP_HTN_PNC26== 1 | POSTP_HTN_PNC26== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "No high blood pressure" = paste0(
+      format(sum(POSTP_HTN_PNC26== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC26== 0, na.rm = TRUE)/sum(POSTP_HTN_PNC26== 1 | POSTP_HTN_PNC26== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+highbp26_tab[is.na(highbp26_tab)] <- paste0("0 (0)")
+
+highbp26_tab_output <- tb_theme1(highbp26_tab) %>% 
+  tab_header(
+    title = md("**Table 14b**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:2
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>High blood pressure at 26-39 weeks postpartum</span>"),
+    rows = 3:5
+  ) %>%
+    # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+  
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator ^a^",
+                 "Expected denominator ^a^"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator ^a^",
+                 "Expected denominator ^a^"))) %>% 
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                           "<span style='font-size: 18px'>High blood pressure at 26-39 weeks postpartum</span>"))  %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator is all participants whose pregnancies have ended AND who have remained in the study through the PNC-26 late visit window and/or have a valid blood pressure measure recorded during the window. The denominator excludes participants with preexisting chronic hypertension at enrollment. </span>")) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants are considered to have high blood pressure based on one or more high blood pressure readings, recorded as either: the mean of three blood pressure readings taken by PRISMA staff during the PNC-26 visit window and/or any blood pressure reading(s) recorded during hospitalization in the PNC-26 visit window. </span>"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(highbp26_tab_output, file = "highbp26_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "highbp26_tab_output.png"))
+
+```
+
+
+
+### Table 14c. Postpartum high blood pressure at 1 year (52-64 weeks)
+```{r}
+
+highbp52_tab <- highbp %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Expected denominator ^a^" = paste0(
+      format(sum(POSTP_HTN_PNC52_DENOM== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+     "Missing blood pressure measure" = paste0(
+      format(sum(POSTP_HTN_PNC52_DENOM== 1 & POSTP_HTN_PNC52== 55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC52_DENOM== 1 & POSTP_HTN_PNC52== 55, na.rm = TRUE)/sum(POSTP_HTN_PNC52_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(POSTP_HTN_PNC52== 1 | POSTP_HTN_PNC52==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "High blood pressure ^b^" = paste0(
+      format(sum(POSTP_HTN_PNC52== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC52== 1, na.rm = TRUE)/sum(POSTP_HTN_PNC52== 1 | POSTP_HTN_PNC52== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "No high blood pressure" = paste0(
+      format(sum(POSTP_HTN_PNC52== 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(POSTP_HTN_PNC52== 0, na.rm = TRUE)/sum(POSTP_HTN_PNC52== 1 | POSTP_HTN_PNC52== 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+highbp52_tab[is.na(highbp52_tab)] <- paste0("0 (0)")
+
+highbp52_tab_output <- tb_theme1(highbp52_tab) %>% 
+  tab_header(
+    title = md("**Table 14c**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:2
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>High blood pressure at 52-64 weeks postpartum</span>"),
+    rows = 3:5
+  ) %>%
+    # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+  
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator ^a^",
+                 "Expected denominator ^a^"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator ^a^",
+                 "Expected denominator ^a^"))) %>% 
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                           "<span style='font-size: 18px'>High blood pressure at 52-64 weeks postpartum</span>"))  %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator is all participants whose pregnancies have ended AND who have remained in the study through the PNC-52 late visit window and/or have a valid blood pressure measure recorded during the window. The denominator excludes participants with preexisting chronic hypertension at enrollment. </span>")) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants are considered to have high blood pressure based on one or more high blood pressure readings, recorded as either: the mean of three blood pressure readings taken by PRISMA staff during the PNC-52 visit window and/or any blood pressure reading(s) recorded during hospitalization in the PNC-52 visit window. </span>"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(highbp52_tab_output, file = "highbp52_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "highbp52_tab_output.png"))
+
+```
 
 
