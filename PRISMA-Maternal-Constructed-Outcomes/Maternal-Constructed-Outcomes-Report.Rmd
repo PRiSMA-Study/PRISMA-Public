@@ -3555,7 +3555,7 @@ ggplot() +
 
 \newpage
 
-## 7. Maternal infection at enrollment
+## 7. Maternal infection
 
 **Definition:** Any infection identified during enrollment ANC. 
 
