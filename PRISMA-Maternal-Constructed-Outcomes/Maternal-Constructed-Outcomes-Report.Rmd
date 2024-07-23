@@ -5125,7 +5125,7 @@ ggvenn(data = list(`Fasting glucose` = GDM_pre,
 
 1.   A woman who is pregnant, in labor, or within 42 days of the pregnancy end, *AND*
 
-2.   Experienced the PRISMA-near-miss criteria: **organ dysfunction** [M09_ORG_FAIL_MHOCCUR_1-7,88; M12_ORG_FAIL_MHOCCUR_1-4,88; M19_ORGAN_FAIL_MHTERM_1-7, 88], **hysterectomy** [M09_PPH_FAORRES_5; M12_BIRTH_COMPL_MHTERM_8; M19_TX_PROCCUR_5], **blood transfusion of any volume** [M19_TX_PROCCUR_1; or transfusion to treat PPH], **preeclampsia with severe features/eclampsia** [to be constructed], **uterine rupture**  [constructed outcome, see table 10 of this report], **sepsis**  [to be constructed], **laparotomy other than C-section** [M19_TX_PROCCUR_2-3,5 or hysterectomy], and/or **admission to ICU** [M10_TRANSFER_OHOLOC==1; M10_TRANSFER_OHOLOC==2] *AND*
+2.   Experienced the PRISMA-near-miss criteria: **organ dysfunction** [M09_ORG_FAIL_MHOCCUR_1-7,88; M12_ORG_FAIL_MHOCCUR_1-4,88; M19_ORGAN_FAIL_MHTERM_1-7, 88]; **hysterectomy** [M09_PPH_FAORRES_5; M12_BIRTH_COMPL_MHTERM_8; M19_TX_PROCCUR_5]; **blood transfusion of any volume** [M19_TX_PROCCUR_1; or transfusion to treat PPH] **and** women experienced antepartum hemorrhage, severe postpartum hemorrhage, severe anemia, or placental abruption; **preeclampsia with severe features/eclampsia** [see tables 13a-b of this report], **uterine rupture**  [constructed outcome, see table 10 of this report], **sepsis**  [to be constructed], **laparotomy other than C-section** [M19_TX_PROCCUR_2-3,5 or hysterectomy], and/or **admission to ICU** [M10_TRANSFER_OHOLOC==1; M10_TRANSFER_OHOLOC==2] *AND*
 
 3.   Survives the experience.
 
@@ -5614,7 +5614,7 @@ knitr::include_graphics(paste0(path_to_save, "near_miss_tabc.png"))
 
 -   Woman who meets near-miss criteria but did NOT have PLTC 
 
--   Woman who died (excluding accidental/incidental causes) but did NOT have PLTC
+-   Woman who died (excluding accidental/incidental causes) but did NOT have PLTC and/or did NOT meet near-miss criteria
 
 -   Woman who has PLTC and dies but did NOT meet near-miss criteria
 
