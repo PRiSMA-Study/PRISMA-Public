@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 July 5)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 July 23)"
 output:
   pdf_document:
     toc: no
@@ -35,11 +35,11 @@ library(dplyr)
 # set path to save 
 # Stacie's path:
 # path_to_data <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
-# path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
+path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
 path_to_data <- "Z:/Outcome Data/2024-06-28/" 
-path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+# path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
 mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
@@ -136,7 +136,7 @@ g_legend <- function(p) {
 
 ```
 
-**Includes data from synapse last updated:** 2024 June 28
+**Includes data from synapse last updated:** 2024 July 23
 
 \setcounter{tocdepth}{6}
 \tableofcontents
@@ -2688,18 +2688,18 @@ depression_complete_tab <- depression %>%
 
     ## ANC20
     "Expected denominator^a^" = paste0(
-      format(sum(PC_ANCLESS20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DEPR_ANC20_MISS_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Visit not completed^b^, n (%)" = paste0(
       format(sum(DEPR_ANC20_MISS== -2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_ANC20_MISS== -2, na.rm = TRUE)/sum(PC_ANCLESS20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_ANC20_MISS== -2, na.rm = TRUE)/sum(DEPR_ANC20_MISS_D == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Visit completed but no summary score, n (%)" = paste0(
       format(sum(DEPR_ANC20_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_ANC20_MISS==-1, na.rm = TRUE)/sum(PC_ANCLESS20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_ANC20_MISS==-1, na.rm = TRUE)/sum(DEPR_ANC20_MISS_D == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Denominator^c^" = paste0(
@@ -2707,18 +2707,18 @@ depression_complete_tab <- depression %>%
     
     ## ANC32
     "Expected denominator^a^ " = paste0(
-      format(sum(PC_ANCOVER31_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DEPR_ANC32_MISS_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Visit not completed^b^, n (%) " = paste0(
       format(sum(DEPR_ANC32_MISS== -2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_ANC32_MISS== -2, na.rm = TRUE)/sum(PC_ANCOVER31_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_ANC32_MISS== -2, na.rm = TRUE)/sum(DEPR_ANC32_MISS_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Visit completed but no summary score, n (%) " = paste0(
       format(sum(DEPR_ANC32_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_ANC32_MISS==-1, na.rm = TRUE)/sum(PC_ANCOVER31_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_ANC32_MISS==-1, na.rm = TRUE)/sum(DEPR_ANC32_MISS_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Denominator^c^ " = paste0(
@@ -2726,18 +2726,18 @@ depression_complete_tab <- depression %>%
 
     ## PNC6
     "Expected denominator^a^  " = paste0(
-      format(sum(PC_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DEPR_PNC6_MISS_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Visit not completed^b^, n (%)  " = paste0(
       format(sum(DEPR_PNC6_MISS==-2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_PNC6_MISS== -2, na.rm = TRUE)/sum(PC_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_PNC6_MISS== -2, na.rm = TRUE)/sum(DEPR_PNC6_MISS_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Visit completed but no summary score, n (%)  " = paste0(
       format(sum(DEPR_PNC6_MISS==-1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_PNC6_MISS==-1, na.rm = TRUE)/sum(PC_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_PNC6_MISS==-1, na.rm = TRUE)/sum(DEPR_PNC6_MISS_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Denominator^c^  " = paste0(
@@ -3576,7 +3576,7 @@ ggplot() +
 ```{r}
 
 ## reorder to be output vars and then missing vars 
-sti_enroll_tab <- mat_infection%>% 
+sti_enroll_tab <- MAT_INFECTION%>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -3841,7 +3841,7 @@ knitr::include_graphics(paste0(path_to_save, "sti_enroll_output2.png"))
 ### Table 7b. Malaria
 ```{r}
 
-malaria_tab <- mat_infection %>% 
+malaria_tab <- MAT_INFECTION %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -3912,9 +3912,8 @@ malaria_tab_output <- tb_theme1(malaria_tab) %>%
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with at least one MNH04 OR MNH06 during ANC. Excludes cases reported at enrollment.</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with an enrollment visit.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with an enrollment visit. Missing accounts for sites that have stopped malaria testing. </span>")
  )  
-
 ```
 
 ```{r, out.width = '100%'}
@@ -3928,7 +3927,7 @@ knitr::include_graphics(paste0(path_to_save, "malaria_tab_output.png"))
 
 ```{r}
 
-hepatitis_tab <- mat_infection %>% 
+hepatitis_tab <- MAT_INFECTION %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -4095,7 +4094,7 @@ knitr::include_graphics(paste0(path_to_save, "hepatitis_tab_output.png"))
 
 ```{r}
 
-tb_tab <- mat_infection %>% 
+tb_tab <- MAT_INFECTION %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -4198,7 +4197,7 @@ knitr::include_graphics(paste0(path_to_save, "tb_tab_output.png"))
 
 ```{r}
 
-zcd_tab <- mat_infection %>% 
+zcd_tab <- MAT_INFECTION %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -4395,7 +4394,7 @@ knitr::include_graphics(paste0(path_to_save, "zcd_tab_output.png"))
 ```{r}
 
 ## reorder to be output vars and then missing vars 
-all_infection_tab <- mat_infection %>% 
+all_infection_tab <- MAT_INFECTION %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
