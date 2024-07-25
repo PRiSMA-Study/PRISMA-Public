@@ -35,11 +35,11 @@ library(dplyr)
 # set path to save 
 # Stacie's path:
 # path_to_data <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
-path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
+# path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
 path_to_data <- "Z:/Outcome Data/2024-06-28/" 
-# path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
 mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
@@ -2668,7 +2668,7 @@ knitr::include_graphics(paste0(path_to_save, "pprom_tab_output.png"))
 
 **2.** Visit type recorded as enrollment, ANC-20, ANC-32, ANC-36, or PNC-6.
 
-a.  ***NOTE:* we are not considering if non-scheduled routine visit is indicated*
+    a.  ***NOTE:* we are not considering if non-scheduled routine visit is indicated*
 
 **3.** Valid responses are calculated from EPDS variables (varname [form]: `EPDS0101` – `EPDS0110` [MNH25])
 
@@ -3044,7 +3044,7 @@ tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>c</sup> ANC-20 includes depression assessments conducted at enrollment and ANC20 visit per protocol.</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> ANC-32 includes depression assessments conducted at ANC-20 and ANC-36 per protocol.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> ANC-32 includes depression assessments conducted at ANC-32 and ANC-36 per protocol.</span>")
  )  
 
 ```
@@ -4491,6 +4491,8 @@ knitr::include_graphics(paste0(path_to_save, "all_infection_output.png"))
 ### Table 8a. Overt diabetes 
 ```{r}
 
+gdm$DIAB_OVERT_DX<-ifelse(is.na(gdm$DIAB_OVERT_DX),55,gdm$DIAB_OVERT_DX)
+
 ## reorder to be output vars and then missing vars 
 overt_diabetes <- gdm %>% 
   rowwise() %>% 
@@ -4516,15 +4518,15 @@ overt_diabetes <- gdm %>%
       format(sum(DIAB_OVERT_MISS==0 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No overt diabetes (<6.5% HbA1c)" = paste0(
-      format(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & (DIAB_OVERT_DX==0 | DIAB_OVERT_DX==55), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & (DIAB_OVERT_DX==0 | DIAB_OVERT_DX==55), na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Overt diabetes (>=6.5% HbA1c or previous diagnosis)" = paste0(
-      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -4610,36 +4612,36 @@ pretest_fast_diabetes <- gdm %>%
       format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
-      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
       
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing pretest fasting glucose test result at ANC-28 (and not provided in any other visit)" = paste0(
-      format(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1& DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_GEST_FASTING_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_FASTING_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No gestational diabetes(<5.1 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 &  DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=5.1 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -4725,36 +4727,36 @@ ogtt_diabetes <- gdm %>%
       format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
-      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
       
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing  1-hr OGTT result at ANC-28 (and not provided in any other visit)" = paste0(
-      format(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_GEST_1HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_1HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No gestational diabetes (<10.0 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=10.0 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -4842,36 +4844,36 @@ ogtt2_diabetes <- gdm %>%
       format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
    
     "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
-      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
       
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_2HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing 2-hr OGTT result at ANC-28 (and not provided in any other visit)" = paste0(
-      format(sum(DIAB_GEST_2HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_GEST_2HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_2HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No gestational diabetes (<8.5 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=8.5 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -4961,36 +4963,36 @@ any_test_diabetes <- gdm %>%
       format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
    
     "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
-      format(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
       
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing test result(s) at ANC-28 (and not provided in any other visit)" = paste0(
-      format(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_GEST_ANY_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_ANY_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No gestational diabetes (across all 3 tests)" = paste0(
-      format(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (by any test)" = paste0(
-      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -6200,6 +6202,12 @@ hdp_tab <- hdp %>%
       format(round(sum(PREG_END==1 & HDP_GROUP ==0, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
+     "Any hypertensive disorder of pregnancy" = paste0(
+      format(sum(PREG_END==1 & (HDP_GROUP ==1 | HDP_GROUP ==2 | HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & (HDP_GROUP ==1 | HDP_GROUP ==2 | HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
      "Chronic hypertension (<20 weeks GA)" = paste0(
       format(sum(PREG_END==1 & HDP_GROUP ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -6212,7 +6220,7 @@ hdp_tab <- hdp %>%
       format(round(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Preeclampsia (without severe features" = paste0(
+    "Preeclampsia (without severe features)" = paste0(
       format(sum(PREG_END==1 & HDP_GROUP ==3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PREG_END==1 & HDP_GROUP ==3, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -6252,7 +6260,7 @@ hdp_tab_output <- tb_theme1(hdp_tab) %>%
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Prevalence of HDPs</span>"),
-    rows = 5:11
+    rows = 5:12
   ) %>%
     # bold denominator rows 1
   tab_style(
@@ -6285,6 +6293,41 @@ tab_style(
       locations = cells_stub(rows = c(
                  "Expected denominator (total completed pregnancies)",
                  "Expected denominator (total completed pregnancies)"))) %>% 
+  
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>% 
+  
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>% 
+  
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>% 
+  
+  tab_style(
+      style = list(
+        cell_text(indent = px(5), style = "italic")
+        ),
+      locations = cells_stub(rows = c('Chronic hypertension (<20 weeks GA)',
+                 "Gestational hypertension (onset >=20 weeks)",
+                 "Preeclampsia (without severe features)",
+                 "Preeclampsia superimposed on chronic hypertension",
+                 "Preeclampsia with severe features"))
+      ) %>% 
  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
                             "<span style='font-size: 18px'>Prevalence of HDPs</span>")) %>%
   tab_footnote(
