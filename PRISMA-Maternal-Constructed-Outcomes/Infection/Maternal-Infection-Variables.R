@@ -31,13 +31,17 @@ library(lubridate)
 
 # UPDATE EACH RUN # 
 # set upload date 
-UploadDate = "2024-06-14"
+UploadDate = "2024-06-28"
 
 # set path to save 
 path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
+path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
 # set path to data
 path_to_data = paste0("Z:/Stacked Data/",UploadDate)
+
+mat_enroll <- read_csv(paste0(path_to_tnt, "MAT_ENROLL" ,".csv" )) %>% select(SITE, MOMID, PREGID, ENROLL) %>% 
+  filter(ENROLL == 1)
 
 # # import forms 
 mnh02 <- read.csv(paste0(path_to_data,"/", "mnh02_merged.csv"))
@@ -55,15 +59,21 @@ if (any(duplicated(mnh02[c("SITE","SCRNID", "MOMID", "PREGID", "M02_SCRN_OBSSTDA
   print(paste0("n= ",dim(duplicates_ids_02)[1],  " Duplicates in mnh02 exist"))
   
   # extract ids from main dataset
-  mnh02 <- mnh02 %>% group_by(SITE,SCRNID, MOMID, PREGID, M02_SCRN_OBSSTDAT) %>% mutate(n = n()) %>% 
-    filter(n == 1) %>% select(-n) %>% ungroup()
-  
+  mnh02 <- mnh02 %>% 
+    group_by(SITE,SCRNID, MOMID, PREGID, M02_SCRN_OBSSTDAT) %>%
+    arrange(desc(M02_SCRN_OBSSTDAT)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
+ 
 } else {
   print("No duplicates in mnh02")
 }
 
   #MNH04
-  if (any(duplicated(mnh04[c("SITE", "MOMID", "PREGID",  "M04_TYPE_VISIT", "M04_ANC_OBSSTDAT")]))) {
+  if (any(duplicated(mnh04[c("SITE", "MOMID", "PREGID",  "M04_TYPE_VISIT")]))) {
     # extract duplicated ids
     duplicates_ids_04 <- which(duplicated(mnh04[c("SITE", "MOMID", "PREGID", "M04_TYPE_VISIT", "M04_ANC_OBSSTDAT")]) | 
                               duplicated(mnh04[c("SITE", "MOMID", "PREGID",  "M04_TYPE_VISIT", "M04_ANC_OBSSTDAT")], fromLast = TRUE))
@@ -72,15 +82,20 @@ if (any(duplicated(mnh02[c("SITE","SCRNID", "MOMID", "PREGID", "M02_SCRN_OBSSTDA
     print(paste0("n= ",dim(duplicates_ids_04)[1],  " Duplicates in mnh04 exist"))
     
     # extract ids from main dataset
-    mnh04 <- mnh04 %>% group_by(SITE, MOMID, PREGID, M04_TYPE_VISIT, M04_ANC_OBSSTDAT) %>% mutate(n = n()) %>% 
-      filter(n == 1) %>% select(-n) %>% ungroup() 
+    mnh04 <- mnh04 %>% group_by(SITE, MOMID, PREGID, M04_TYPE_VISIT) %>% 
+      arrange(desc(M04_ANC_OBSSTDAT)) %>% 
+      slice(1) %>% 
+      mutate(n=n()) %>% 
+      ungroup() %>% 
+      select(-n) %>% 
+      ungroup()
     
   } else {
     print("No duplicates in mnh04")
   }
 
 #MNH06
-if (any(duplicated(mnh06[c("SITE", "MOMID", "PREGID", "M06_TYPE_VISIT", "M06_DIAG_VSDAT")]))) {
+if (any(duplicated(mnh06[c("SITE", "MOMID", "PREGID", "M06_TYPE_VISIT")]))) {
   # extract duplicated ids
   duplicates_ids_06 <- which(duplicated(mnh06[c("SITE", "MOMID", "PREGID", "M06_TYPE_VISIT", "M06_DIAG_VSDAT")]) | 
                                duplicated(mnh06[c("SITE", "MOMID", "PREGID",  "M06_TYPE_VISIT", "M06_DIAG_VSDAT")], fromLast = TRUE))
@@ -89,8 +104,14 @@ if (any(duplicated(mnh06[c("SITE", "MOMID", "PREGID", "M06_TYPE_VISIT", "M06_DIA
   print(paste0("n= ",dim(duplicates_ids_06)[1],  " Duplicates in mnh06 exist"))
   
   # extract ids from main dataset
-  mnh06 <- mnh06 %>% group_by(SITE, MOMID, PREGID, M06_TYPE_VISIT, M06_DIAG_VSDAT) %>% mutate(n = n()) %>% 
-    filter(n == 1) %>% select(-n) %>% ungroup()
+  mnh06 <- mnh06 %>% group_by(SITE, MOMID, PREGID, M06_TYPE_VISIT) %>% 
+    arrange(desc(M06_DIAG_VSDAT)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
+
   
 } else {
   print("No duplicates in mnh06")
@@ -98,7 +119,7 @@ if (any(duplicated(mnh06[c("SITE", "MOMID", "PREGID", "M06_TYPE_VISIT", "M06_DIA
 
 
 #MNH08
-if (any(duplicated(mnh08[c("SITE", "MOMID", "PREGID", "M08_TYPE_VISIT", "M08_LBSTDAT")]))) {
+if (any(duplicated(mnh08[c("SITE", "MOMID", "PREGID", "M08_TYPE_VISIT")]))) {
   # extract duplicated ids
   duplicates_ids_08 <- which(duplicated(mnh08[c("SITE", "MOMID", "PREGID", "M08_TYPE_VISIT", "M08_LBSTDAT")]) | 
                                duplicated(mnh08[c("SITE", "MOMID", "PREGID", "M08_TYPE_VISIT", "M08_LBSTDAT")], fromLast = TRUE))
@@ -107,8 +128,13 @@ if (any(duplicated(mnh08[c("SITE", "MOMID", "PREGID", "M08_TYPE_VISIT", "M08_LBS
   print(paste0("n= ",dim(duplicates_ids_08)[1],  " Duplicates in mnh08 exist"))
   
   # extract ids from main dataset
-  mnh08 <- mnh08 %>% group_by(SITE, MOMID, PREGID, M08_TYPE_VISIT, M08_LBSTDAT) %>% mutate(n = n()) %>% 
-    filter(n == 1) %>% select(-n) %>% ungroup()
+  mnh08 <- mnh08 %>% group_by(SITE, MOMID, PREGID, M08_TYPE_VISIT) %>% 
+    arrange(desc(M08_LBSTDAT)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
   
 } else {
   print("No duplicates in mnh08")
@@ -119,21 +145,21 @@ if (any(duplicated(mnh08[c("SITE", "MOMID", "PREGID", "M08_TYPE_VISIT", "M08_LBS
 # ENROLLED = meet eligibility criteria in MNH02; Section A; Questions 4-8
 #*****************************************************************************
 
-enrolled_ids <- mnh02 %>% 
-  mutate(ENROLL = ifelse(M02_AGE_IEORRES == 1 & 
-                           M02_PC_IEORRES == 1 & 
-                           M02_CATCHMENT_IEORRES == 1 & 
-                           M02_CATCH_REMAIN_IEORRES == 1 & 
-                           M02_CONSENT_IEORRES == 1, 1, 0)) %>% 
-  select(SITE, SCRNID, MOMID, PREGID,ENROLL, M02_AGE_IEORRES, M02_PC_IEORRES, M02_CATCHMENT_IEORRES,M02_CATCH_REMAIN_IEORRES, M02_CONSENT_IEORRES) %>% 
-  filter(ENROLL == 1) %>% 
-  select(SITE, MOMID, PREGID, ENROLL) %>%
-  distinct()
-
-enrolled_ids_vec <- as.vector(enrolled_ids$PREGID)
+# enrolled_ids <- mnh02 %>% 
+#   mutate(ENROLL = ifelse(M02_AGE_IEORRES == 1 & 
+#                            M02_PC_IEORRES == 1 & 
+#                            M02_CATCHMENT_IEORRES == 1 & 
+#                            M02_CATCH_REMAIN_IEORRES == 1 & 
+#                            M02_CONSENT_IEORRES == 1, 1, 0)) %>% 
+#   select(SITE, SCRNID, MOMID, PREGID,ENROLL, M02_AGE_IEORRES, M02_PC_IEORRES, M02_CATCHMENT_IEORRES,M02_CATCH_REMAIN_IEORRES, M02_CONSENT_IEORRES) %>% 
+#   filter(ENROLL == 1) %>% 
+#   select(SITE, MOMID, PREGID, ENROLL) %>%
+#   distinct()
+# 
+# enrolled_ids_vec <- as.vector(enrolled_ids$PREGID)
 
 # extract enrolled ids for all datasets
-mnh04_all_visits = mnh04 %>% full_join(enrolled_ids, by = c("SITE", "MOMID", "PREGID")) %>% 
+mnh04_all_visits = mnh04 %>% right_join(mat_enroll, by = c("SITE", "MOMID", "PREGID")) %>% 
   # only want enrolled participants
   filter(ENROLL ==1) %>% 
   rename("TYPE_VISIT" = "M04_TYPE_VISIT") %>% 
@@ -141,7 +167,7 @@ mnh04_all_visits = mnh04 %>% full_join(enrolled_ids, by = c("SITE", "MOMID", "PR
   # Is there a form available for this participant? Defined by having any visit status
   mutate(M04_FORM_COMPLETE = ifelse(!is.na(M04_MAT_VISIT_MNH04), 1, 0)) 
 
-mnh06_all_visits = mnh06 %>% full_join(enrolled_ids, by = c("SITE", "MOMID", "PREGID")) %>% 
+mnh06_all_visits = mnh06 %>% right_join(mat_enroll, by = c("SITE", "MOMID", "PREGID")) %>% 
   # only want enrolled participants
   filter(ENROLL ==1) %>% 
   rename("TYPE_VISIT" = "M06_TYPE_VISIT") %>%
@@ -150,7 +176,7 @@ mnh06_all_visits = mnh06 %>% full_join(enrolled_ids, by = c("SITE", "MOMID", "PR
   mutate(M06_FORM_COMPLETE = ifelse(!is.na(M06_MAT_VISIT_MNH06), 1, 0)) 
 
 
-mnh08_all_visits = mnh08 %>% full_join(enrolled_ids, by = c("SITE", "MOMID", "PREGID")) %>% 
+mnh08_all_visits = mnh08 %>% right_join(mat_enroll, by = c("SITE", "MOMID", "PREGID")) %>% 
   # only want enrolled participants
   filter(ENROLL ==1) %>% 
   rename("TYPE_VISIT" = "M08_TYPE_VISIT") %>%
@@ -172,6 +198,7 @@ mnh08_all_visits = mnh08 %>% full_join(enrolled_ids, by = c("SITE", "MOMID", "PR
 #*#*****************************************************************************
 #### STIs ####
 #*****************************************************************************
+
 mat_infection_sti <- mnh04_all_visits %>% 
   select(SITE, MOMID, PREGID, TYPE_VISIT,M04_FORM_COMPLETE, M04_SYPH_MHOCCUR,M04_HIV_EVER_MHOCCUR, M04_HIV_MHOCCUR,
          M04_OTHR_STI_MHOCCUR, M04_GONORRHEA_MHOCCUR, M04_CHLAMYDIA_MHOCCUR, M04_GENULCER_MHOCCUR, M04_STI_OTHR_MHOCCUR) %>% 
@@ -267,7 +294,6 @@ mat_infection_sti <- mnh04_all_visits %>%
   select(SITE, MOMID, PREGID, ends_with("_ENROLL"), contains("_ANY_VISIT"), contains("DENOM"))
   
   
-table(mat_infection_sti$STI_ANY_METHOD_ENROLL , mat_infection_sti_any_visit$SITE)
 
 
 #*****************************************************************************
@@ -401,9 +427,9 @@ mat_other_infection <- mnh04_all_visits %>%
 #### All infections combined NEW ####
 #*****************************************************************************
 
-mat_infection <- full_join(mat_infection_sti, mat_other_infection, by = c("SITE", "MOMID", "PREGID")) %>% 
+MAT_INFECTION <- full_join(mat_infection_sti, mat_other_infection, by = c("SITE", "MOMID", "PREGID")) %>% 
     # merge in enrollment indicator
-    full_join(enrolled_ids, by = c("SITE", "MOMID", "PREGID")) %>% 
+    full_join(mat_enroll, by = c("SITE", "MOMID", "PREGID")) %>% 
   # generate variables for any infection diagnosed 
   mutate(ANY_INFECTION_DIAGNOSED_ENROLL = case_when(ANY_DIAG_STI_ENROLL == 1 | OTHER_INFECTION_DIAG_ANY_ENROLL==1~1, TRUE ~0),
          # generate variables for any infection diagnosed 
@@ -415,10 +441,11 @@ mat_infection <- full_join(mat_infection_sti, mat_other_infection, by = c("SITE"
   mutate(INFECTION_ENROLL_DENOM = case_when(ENROLL==1 ~ 1, TRUE ~ 0)) %>% # INFECTION_ANY_METHOD_DENOM = 1
   select(-ENROLL, -OTHER_INFECTION_DIAG_ANY_ENROLL, -OTHER_INFECTION_MEAS_ANY_ENROLL, -OTHER_INFECTION_LAB_ANY_ENROLL)
 
-print(sum(mat_infection$INFECTION_ENROLL_DENOM))
-print(dim(enrolled_ids)[1])
+print(sum(MAT_INFECTION$INFECTION_ENROLL_DENOM))
+print(dim(mat_enroll)[1])
 
 # save data set; this will get called into the report
-write.csv(mat_infection, paste0(path_to_save, "mat_infection" ,".csv"), row.names=FALSE)
+write.csv(MAT_INFECTION, paste0(path_to_save, "MAT_INFECTION" ,".csv"), na="", row.names=FALSE)
+write.csv(MAT_INFECTION, paste0(path_to_tnt, "MAT_INFECTION" ,".csv"), na="", row.names=FALSE)
 
 
