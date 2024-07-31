@@ -35,6 +35,7 @@ code.
 - Perinatal Birth Asphyxia
 - Hyperbilirubinemia
 - PSBI
+- Infant growth trajectories (WAZ, WFL, LAZ, HCZ, WFL) 
 
 
 ## What data is required:
