@@ -86,15 +86,7 @@ foreach var in EPDS0101 EPDS0102 EPDS0103 EPDS0104 EPDS0105 EPDS0106 EPDS0107 EP
 	**creates a "_recode" variable so we can make changes but preserve the original data 
 }
 
-/*
-foreach var in m25_epds0103_recode m25_epds0106_recode m25_epds0107_recode ///
- m25_epds0108_recode m25_epds0109_recode m25_epds0110_recode {
-	replace `var'="77" if `var'=="NA"
-	**replace with numbers to allow for destring
-	**note that SITEs should only be using 77
-	destring `var' , replace
-}
-*/
+
 **CHANGE SCORES FOR INDIA CMC AND SAS, PAKISTAN AND ZAMBIA - BASED ON CRF
 foreach var in EPDS0101_R EPDS0102_R EPDS0104_R {
 	recode `var' (1=0) (2=1) (3=2) (4=3) (77=.) (55=.) if SITE!="Ghana" & SITE!="Kenya"
@@ -440,8 +432,6 @@ save "$wrk/mnh25_collapsed.dta", replace
 	"Numerator of any who ever screened for possible depression, SITE cutoff"
 
 
-
-
 *drop SITE DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC32_STND DEPR_ANC32_SITE DEPR_PNC6_STND DEPR_PNC6_SITE
 order DEPR_ANC32_SCORE, after( DEPR_ANC20_MISS)
 order DEPR_PNC6_SCORE, after( DEPR_ANC32_MISS)
@@ -452,7 +442,5 @@ foreach var in DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC32_STND DEPR_ANC32_SITE D
 save "$wrk/mnh25_MaternalOutcomes.dta", replace
 
 keep SITE MOMID PREGID DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC20_SCORE DEPR_ANC32_STND DEPR_ANC32_SITE DEPR_PNC6_STND DEPR_PNC6_SITE  DEPR_ANC20_D DEPR_ANC20_STND_N DEPR_ANC20_SITE_N DEPR_ANC20_MISS DEPR_ANC32_SCORE DEPR_ANC20_MISS_D  DEPR_ANC32_D DEPR_ANC32_STND_N DEPR_ANC32_SITE_N DEPR_ANC32_MISS DEPR_PNC6_SCORE DEPR_ANC32_MISS_D  DEPR_PNC6_D DEPR_PNC6_STND_N DEPR_PNC6_SITE_N DEPR_PNC6_MISS DEPR_PNC6_MISS_D DEPR_ANC_EVER_D DEPR_ANC_EVER_STND_N DEPR_ANC_EVER_SITE_N DEPR_EVER_D DEPR_EVER_STND_N DEPR_EVER_SITE_N
-
-
 
 save "$outcomes/MAT_DEPR.dta" , replace
