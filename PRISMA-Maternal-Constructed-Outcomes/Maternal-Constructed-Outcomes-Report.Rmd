@@ -5241,7 +5241,7 @@ knitr::include_graphics(paste0(path_to_save, "near_miss_taba.png"))
 
 -   **severe hypertension** [see tables 13a-b of this report]
 
--   **pulmonary edema** [M09_PREECLAMPSIA_CEOCCUR_4]
+-   **pulmonary edema** [[M12_PULM_EDEMA_MHOCCUR, M19_DX_OTHR_MHTERM_4; **pulmonary edema in the context of HDP:** M09_PREECLAMPSIA_CEOCCUR_4, M19_PREECLAMPSIA_CEOCCUR_4, M19_HTN_MHTERM_8]
 
 -   **preeclampsia with severe features/eclampsia** [see tables 13a-b of this report]
 
@@ -5249,7 +5249,7 @@ knitr::include_graphics(paste0(path_to_save, "near_miss_taba.png"))
 
 -   **ruptured uterus** [constructed outcome, see table 10 of this report]
 
--   **blood transfusion of any volume** [M19_TX_PROCCUR_1; or transfusion to treat PPH]
+-   **blood transfusion of any volume** [mother *needed* transfusion: M09_PPH_TRNSFSN_PROCCUR; mother *received* transfusion: M19_TX_PROCCUR_1]
 
 -   **laparotomy other than C-section** [M19_TX_PROCCUR_2-3,5 or hysterectomy]
 
