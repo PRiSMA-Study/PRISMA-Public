@@ -7026,4 +7026,3 @@ knitr::include_graphics(paste0(path_to_save, "highbp52_tab_output.png"))
 
 ```
 
-
