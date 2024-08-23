@@ -3,6 +3,7 @@
 #* Drafted: 21 September 2023, Stacie Loisate
 #* Last updated: 23 August 2024
 
+
 # If you copy and paste the following, it will take you to that section: 
 # 1. Low birth-weight 
 # 2. Pre-term birth 
@@ -13,7 +14,8 @@
 # 7. Fetal death 
 # 8. Birth asphyxia 
 # 9. Hyperbili & Jaundice
-# 10. psbi
+# 10. PSBI  
+
 
 #The first section, CONSTRUCTED VARIABLES GENERATION, below, the code generates datasets for 
 #each form with additional variables that will be used for multiple outcomes. For example, mnh01_constructed 
@@ -143,7 +145,6 @@ delivered_infantids <- mnh09 %>%
   filter(PREGID %in% as.vector(mat_enroll$PREGID))
 
 enrolled_ids_vec <- as.vector(mat_enroll$PREGID)
-
 #*****************************************************************************
 #* CONSTRUCTED VARIABLES GENERATION:
 # Add constructed vars to forms that will be used across outcomes
@@ -168,9 +169,6 @@ select(SITE, MOMID, PREGID, M01_US_OHOSTDAT)
 
 mnh04_constructed <- mnh04 %>% 
   select(SITE, MOMID, PREGID,M04_ANC_OBSSTDAT,M04_TYPE_VISIT, M04_MAT_VISIT_MNH04, M04_PRG_DSDECOD, M04_FETAL_LOSS_DSSTDAT, M04_FETAL_LOSS_DSDECOD) %>% ## select only fetal loss variables
-  # group_by(SITE, MOMID, PREGID) %>% 
-  # arrange(M04_ANC_OBSSTDAT) %>%
-  # distinct(MOMID, PREGID, M04_TYPE_VISIT, .keep_all = TRUE) %>%
   ## calculate the gestational age at fetal loss 
   # first join in EST_CONCEP_DATE from mnh01_constructed 
   left_join(mat_enroll[c("SITE", "MOMID", "PREGID", "EST_CONCEP_DATE")], by = c("SITE", "MOMID", "PREGID")) %>% 
@@ -197,8 +195,8 @@ mnh09_constructed <- mnh09 %>%
          M09_DELIV_DSSTDAT_INF3 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF3, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y"))),
          M09_DELIV_DSSTDAT_INF4 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF4, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y")))
   ) %>% 
-  # pull earliest date of birth 
-  # first replace default value date with NA 
+    # pull earliest date of birth 
+    # first replace default value date with NA 
   mutate(M09_DELIV_DSSTDAT_INF1 = replace(M09_DELIV_DSSTDAT_INF1, M09_DELIV_DSSTDAT_INF1==ymd("1907-07-07"), NA),
          M09_DELIV_DSSTDAT_INF2 = replace(M09_DELIV_DSSTDAT_INF2, M09_DELIV_DSSTDAT_INF2%in% c(ymd("1907-07-07"), ymd("1905-05-05")), NA),
          M09_DELIV_DSSTDAT_INF3 = replace(M09_DELIV_DSSTDAT_INF3, M09_DELIV_DSSTDAT_INF3==ymd("1907-07-07"), NA),
@@ -206,7 +204,7 @@ mnh09_constructed <- mnh09 %>%
   mutate(DOB = 
            pmin(M09_DELIV_DSSTDAT_INF1, M09_DELIV_DSSTDAT_INF2, 
                 M09_DELIV_DSSTDAT_INF3, M09_DELIV_DSSTDAT_INF4, na.rm = TRUE)) %>% 
-  # generate indicator variable for having a birth outcome; if a birth outcome has been reported (M09_BIRTH_DSTERM =1 or 2), then BIRTH_OUTCOME_REPORTED ==1
+    # generate indicator variable for having a birth outcome; if a birth outcome has been reported (M09_BIRTH_DSTERM =1 or 2), then BIRTH_OUTCOME_REPORTED ==1
   mutate(BIRTH_OUTCOME_REPORTED = ifelse(M09_BIRTH_DSTERM_INF1 == 1 | M09_BIRTH_DSTERM_INF1 == 2 | 
                                            M09_BIRTH_DSTERM_INF2 == 1 | M09_BIRTH_DSTERM_INF2 == 2 | 
                                            M09_BIRTH_DSTERM_INF3 == 1 | M09_BIRTH_DSTERM_INF3 == 2 |
@@ -287,7 +285,8 @@ m09_INF3$M09_DELIV_DSSTTIM = as.character(m09_INF3$M09_DELIV_DSSTTIM) ## data ho
 # m09_INF4$M09_DELIV_DSSTTIM = as.character(m09_INF4$M09_DELIV_DSSTTIM) ## data housekeeping here for time issues in data
 
 mnh09_long <- bind_rows(m09_INF1, m09_INF2, m09_INF3) %>%
-  mutate(DOB = ymd(DOB)) %>%
+  mutate(DOB = ymd(DOB),
+         GESTAGEBIRTH_BOE= as.numeric(GESTAGEBIRTH_BOE)) %>%
   ## EXTRACT UNIQUE INFANTIDS FROM DELIVERY
   filter(INFANTID %in% as.vector(delivered_infantids$INFANTID)) %>% 
   mutate(GESTAGEBIRTH_BOE=as.numeric(GESTAGEBIRTH_BOE))
@@ -343,7 +342,6 @@ mnh24_constructed <- mnh24 %>%
   # concatenate death date time 
   mutate(M24_DTHDAT = replace(M24_DTHDAT, M24_DTHDAT==ymd("1907-07-07"), NA), # replace default value date with NA 
          M24_DTHTIM = replace(M24_DTHTIM, is.na(M24_DTHTIM), "12:30:00"), # replace default value time with NA 
-         # M24_DTHTIM = replace(M24_DTHTIM, M24_DTHTIM=="07:07", NA), # replace default value time with NA 
          DEATH_DATETIME = paste(M24_DTHDAT, M24_DTHTIM), # concatenate date and time of birth 
          DEATH_DATETIME = as.POSIXct(DEATH_DATETIME, format= "%Y-%m-%d %H:%M")) %>% # assign time field type for time of birth
   mutate(DTHDAT = M24_DTHDAT) %>%
@@ -361,16 +359,7 @@ mnh24_constructed <- mnh24 %>%
          MISSING_TIME_DEATH = ifelse(DTH_INDICATOR==1 & is.na(M24_DTHTIM) | M24_DTHTIM == "77:77", 1, 0),
          CLOSEOUTID_MISSING_MNH02 = ifelse(PREGID %in% enrolled_ids_vec, 0, 1)) # NOT ENROLLED
 
-## remove duplicate for zambia: 
-mnh24_constructed <- mnh24_constructed %>% group_by(SITE, INFANTID) %>% 
-  arrange(desc(M24_DTHDAT)) %>% 
-  slice(1) %>% 
-  mutate(n=n()) %>% 
-  ungroup() %>% 
-  select(-n) %>% 
-  ungroup()
-
-#*****************************************************************************
+#****************************************************************************
 #* Generate dataset with core infant variables (IDs, DOB, US date, BOE, Birth outcome (MNH09))
 
 # Forms and variables needed: 
@@ -499,9 +488,6 @@ timevarying_constructed <- inf_baseline %>%
 # BWEIGHT_PRISMA [mnh11_constructed]
 # BWEIGHT_ANY [mnh11_constructed]
 #*****************************************************************************
-## QUESTION: for missing prisma -- currently we have it as missing prisma but haVe facility; should we change to be just missing prisma (same goes for facility)
-## this will make the numbers add up a bit better 
-
 lowbirthweight <- inf_baseline %>% 
   select(SITE, MOMID, PREGID, INFANTID, BIRTH_OUTCOME, LIVEBIRTH) %>% 
   left_join(mnh11_constructed, by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>%
@@ -832,6 +818,7 @@ preterm_birth <- inf_baseline %>%
   mutate(DATA_COMPLETE_DENOM = case_when((LIVEBIRTH ==1 | STILLBIRTH_20WK ==1) ~ 1, TRUE ~ 0))  %>% 
   mutate(BIRTH_OUTCOME_REPORTED = case_when((BIRTH_OUTCOME ==1 | BIRTH_OUTCOME ==2) ~ 1, TRUE ~ 0))
 
+
 #*****************************************************************************
 #* 3. Size for Gestational Age (SGA)
 # a. Size for gestational age - categorical. [varname: SGA_CAT]
@@ -854,6 +841,7 @@ sga <- inf_baseline %>%
   select(SITE,INFANTID, MOMID, PREGID, GESTAGEBIRTH_ANY,GESTAGEBIRTH_ANY_DAYS, LIVEBIRTH, BIRTH_OUTCOME)  %>% 
   left_join(mnh09_long[c("SITE", "MOMID", "PREGID", "INFANTID", "M09_BIRTH_DSTERM", "M09_SEX", "M09_INFANTS_FAORRES")],
             by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
+
   ## merge with mnh11 
   left_join(mnh11_constructed %>% select(-c(M09_BIRTH_DSTERM)), by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
   ## convert weight from grams to kg 
@@ -913,9 +901,9 @@ sga <- inf_baseline %>%
 #*****************************************************************************
 #* Mortality
 #  4. Neonatal mortality 
-# a. <24 hours 
-# b. Early neontal mortality: first  7 days 
-# c. Late neonatal mortality: between 7 & 28 days
+    # a. <24 hours 
+    # b. Early neontal mortality: first  7 days 
+    # c. Late neonatal mortality: between 7 & 28 days
 
 # 5. Infant mortality: death during the first year of life 
 
@@ -932,6 +920,7 @@ sga <- inf_baseline %>%
 # live birth (mnh11)
 # have to be able to link mnh09 with mnh11
 
+
 mortality <- inf_baseline %>% 
   select(SITE,INFANTID, MOMID, PREGID,LIVEBIRTH, CLOSEOUT, PREG_END_DATE,DOB,TIME_BIRTH,  DELIVERY_DATETIME, FETAL_LOSS, 
          GESTAGEBIRTH_ANY,GESTAGEBIRTH_ANY_DAYS, BIRTH_OUTCOME) %>% 
@@ -939,7 +928,7 @@ mortality <- inf_baseline %>%
                                       "DTH_INDICATOR", "DEATHTIME_MNH24", "DEATHDATE_MNH24", "DEATH_DATETIME", "AGEDEATH_DAYS",
                                       "AGEDEATH_HRS", "DATE_LAST_SEEN", "AGE_LAST_SEEN")],
             by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
-  
+
   ## generate variable if death is reported among live birth but is missing time of death 
   mutate(DTH_TIME_MISSING = case_when(BIRTH_OUTCOME==1 & DTH_INDICATOR==1 & (DEATHTIME_MNH24%in% c("55:55", "77:77") | is.na(DEATHTIME_MNH24)) ~ 1,
                                       TRUE ~ 0),
@@ -1009,12 +998,6 @@ mortality <- inf_baseline %>%
          AGE_LAST_SEEN, DTH_INDICATOR,DTH_DATE_MISSING, DEATH_DATETIME,DTH_TIME_MISSING, AGEDEATH_DAYS, AGEDEATH_HRS,NEO_DTH,INF_DTH, DATA_COMPLETE_DENOM,
          ID_MISSING_ENROLLMENT,DOB_AFTER_DEATH, contains("MISSING"),contains("DTH"), contains("DENOM"), INVALID_DTH_REPORT, contains("has")) 
 
-table(mortality$DENOM_28d2, mortality$SITE)
-table(mortality$DENOM_28d, mortality$SITE)
-
-test <- mortality %>% filter(DTH_365D==1) %>% select(SITE, MOMID, PREGID, INFANTID, DTH_INDICATOR, 
-                                                     BIRTH_OUTCOME, DEATHDATE_MNH24,DATE_LAST_SEEN, 
-                                                     AGE_LAST_SEEN,ESTIMATED_AGE_AT_UPLOAD,AGEDEATH_DAYS, DTH_365D, DENOM_365d)
 # export
 # write.csv(mortality, paste0(path_to_save, "mortality" ,".csv"), row.names=FALSE)
 
@@ -1053,10 +1036,6 @@ neonatal_mortality <- mortality %>%
   )
   )
 
-
-table(neonatal_mortality$TOTAL_NEO_DEATHS, neonatal_mortality$SITE)
-table(neonatal_mortality$NEO_DTH_CAT, neonatal_mortality$SITE)
-
 # export
 # write.csv(neonatal_mortality, paste0(path_to_save, "neonatal_mortality" ,".csv"), row.names=FALSE)
 
@@ -1078,17 +1057,9 @@ infant_mortality <- mortality %>%
 mutate(TOTAL_INF_DEATHS = case_when(BIRTH_OUTCOME == 1 & DTH_INDICATOR ==1 & (AGEDEATH_DAYS < 365) ~ 1,
                                     TRUE ~ 0))
 
-table(infant_mortality$TOTAL_INF_DEATHS, infant_mortality$SITE)
-table(infant_mortality$INF_DTH, infant_mortality$SITE)
-
-
-
-test <- mortality %>% filter(INF_DTH == 1)
-table(mortality$INF_DTH, mortality$SITE)
 
 # export
 # write.csv(infant_mortality, paste0(path_to_save, "infant_mortality" ,".csv"), row.names=FALSE)
-
 
 #*****************************************************************************
 #* 7. Fetal Death
@@ -1372,8 +1343,8 @@ hyperbili_crit1 <- hyperbili_wide %>%
 # test_gha <- hyperbili %>% filter(SITE == "Ghana")     ## mg/dl 
 # test_zam <- hyperbili %>% filter(SITE == "Zambia")    ## umol/L --> mg/dl  
 # test_cmc <- hyperbili %>% filter(SITE == "India-CMC") ## mg/dl 
-test_zam <- hyperbili %>% filter(SITE == "Zambia")      ## mg/dl 
-summary(test_zam$M14_TCB_UMOLL_LBORRES)
+# test_zam <- hyperbili %>% filter(SITE == "Zambia")      ## mg/dl 
+# summary(test_zam$M14_TCB_UMOLL_LBORRES)
 
 # Criteria 2. TCB >AAP time-specific cutoff (serum bilirubin threshold minus 3 for each GA+age group)
 hyperbili_crit2 <- hyperbili_wide %>%
@@ -1559,7 +1530,6 @@ hyperbili_all_crit <- hyperbili_crit1 %>%
 ## INF_HYPERBILI_AAP_ANY: any hyperbilirubin defined by TCB >AAP time-specific cutoff (serum bili threshold minus 3 for each GA+age group)
 ## INF_JAUN_ANY: jaundice at any timepoint defined by IMCI jaundice criteria (YELLOW_CEOCCUR, JAUND_CEOCCUR, JAUND_CESTDAT)
 
-
 #*****************************************************************************
 #* 9. PSBI 
 #* Presence of any clinical signs or symptoms as defined by the WHO IMCI criteria, 
@@ -1606,8 +1576,8 @@ mnh13_constructed <- inf_baseline %>%
          M13_CONV_CEOCCUR, M13_CONV_CEOCCUR_MR, M13_BREATH_VSORRES_1, M13_BREATH_VSORRES_2, 
          M13_BREATH_CEOCCUR_MR, M13_CHEST_CEOCCUR, M13_TEMP_VSORRES_1, M13_TEMP_VSORRES_2, M13_FEVER_CEOCCUR_MR, 
          M13_HYPO_CEOCCUR_MR, M13_BLD_CULT_LBPERF, M13_BLD_CULT_LBORRES)
-
-table(mnh13$M13_BLD_CULT_LBPERF, mnh13$SITE) ## only have n=30 blood cultures in mnh13 (we only ask for this if a patient has been diagnosed with sepsis)
+ 
+# table(mnh13$M13_BLD_CULT_LBPERF, mnh13$SITE) ## only have n=30 blood cultures in mnh13 (we only ask for this if a patient has been diagnosed with sepsis)
 
 mnh20_constructed <- inf_baseline %>%
   # only want live births 
@@ -1630,10 +1600,11 @@ mnh20_constructed <- inf_baseline %>%
          M20_FEVER_CEOCCUR, M20_HYPO_CEOCCUR,M20_BLD_CULT_LBPERF, M20_BLD_CULT_LBORRES)
 
 
-table(mnh20$M20_BLD_CULT_LBPERF, mnh20$SITE) ## only have n=20 blood cultures in hospitalization
+# table(mnh20$M20_BLD_CULT_LBPERF, mnh20$SITE) ## only have n=20 blood cultures in hospitalization
 
 ## only want live births for mnh11 
 # mnh11_constructed_livebirths <- mnh11_constructed %>% filter(INFANTID %in% livebirths) 
+
 # table(mnh11$M11_CULTURE_LBPERF, mnh11$SITE) 
 
 psbi_long <-  inf_baseline %>%
@@ -1713,8 +1684,10 @@ psbi_pnc <- psbi_long %>%
 #        M13_CHEST_CEOCCUR, M13_TEMP_VSORRES_1, M13_TEMP_VSORRES_2)
 
 
+# bind all visits together
 psbi <- bind_rows(psbi_ipc, psbi_pnc, psbi_hos)
 
+# further data cleaning
 psbi_outcome <- psbi %>% 
   # generate variables for psbi by visit
   mutate(INF_PSBI_IPC = case_when(TYPE_VISIT==6 & INF_PSBI==1 ~ 1, TRUE ~ 0), 
@@ -1725,24 +1698,26 @@ psbi_outcome <- psbi %>%
          INF_PSBI_UNSCHED = case_when(TYPE_VISIT==14 & INF_PSBI==1 ~ 1, TRUE ~ 0),
          INF_PSBI_HOSPITAL = case_when(TYPE_VISIT==15 & INF_PSBI==1 ~ 1, TRUE ~ 0)
   ) %>% 
-  # generate denominators (denominator is all livebirths aged 0-59 days) 
+  # generate denominators (denominator is all livebirths aged 0-59 days); since we already filtered data above, we can just use the remaining live births in the dataset as the denom
   group_by(SITE, MOMID, PREGID, INFANTID) %>% 
   mutate(INF_PSBI_DENOM = case_when(BIRTH_OUTCOME==1 ~ 1, TRUE ~ 0)) %>% 
   # in the event an infant has multiple psbi diagnoses, we want to generate a single variable for diagnosis at ANY ONE time point to avoid overcounting
   mutate(INF_PSBI_ANY = if_else(INF_PSBI == 1 & cumsum(INF_PSBI == 1) == 1, 1, 0)) %>% 
   ungroup() %>% 
   group_by(SITE, MOMID, PREGID, INFANTID) %>% 
-  mutate(CHECK = n()) %>% 
+  # data check: mutate(CHECK = n()) %>% 
   # generate missingness variables for confirmatory RR and temperature measures 
-  mutate(MISSING_TEMP_PNC_HIGH = case_when(M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0 ~ 1, TRUE ~ 0), 
-         MISSING_TEMP_PNC_LOW = case_when((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & M13_TEMP_VSORRES_2 < 0 ~ 1, TRUE ~ 0),
+  mutate(MISSING_TEMP_PNC_HIGH = case_when(M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0 ~ 1, TRUE ~ 0), # first reading is high and second reading is not available
+         MISSING_TEMP_PNC_LOW = case_when((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & M13_TEMP_VSORRES_2 < 0 ~ 1, TRUE ~ 0), # first reading is low and second reading is not available
+         # composite variable if either of the 2 above are 1 
          MISSING_TEMP_PNC = case_when(MISSING_TEMP_PNC_HIGH==1 | MISSING_TEMP_PNC_LOW==1 ~ 1, TRUE ~ 0)) %>% 
-  ## remove instances of Ghana == 77 for rr
+  ## remove instances of Ghana == 77 for rr (incorrect default value use; should be -7)
   mutate(keep_rr = case_when(SITE == "Ghana" & (M13_BREATH_VSORRES_2 == 77 | M13_BREATH_VSORRES_1 == 77) ~ 0, TRUE ~ 1),
          keep_temp = case_when(SITE == "Ghana" & (M13_TEMP_VSORRES_1 == 77 | M13_TEMP_VSORRES_2 == 77) ~ 0, TRUE ~ 1),
   )  %>% 
   filter(keep_rr == 1 & keep_temp == 1)
 
+# make data wide so one row for each baby
 psbi_outcome_wide <- psbi_outcome %>% 
   group_by(SITE, MOMID, PREGID, INFANTID) %>% 
   # Summarize to ensure any 1 is captured within the group
@@ -1764,6 +1739,105 @@ psbi_outcome_wide <- psbi_outcome %>%
 
 # export data (long data will need to be called in separately)
 # write.csv(psbi_outcome, paste0(path_to_save, "INF_PSBI_LONG" ,".csv"), row.names=FALSE)
+
+#*****************************************************************************
+#* MERGE ALL OUTCOMES TOGETHER TO FORM AN OUTCOME DATASET 
+#* outcomes included: 
+# 1. Low birth-weight 
+# 2. Pre-term birth
+# 3. Size for Gestational Age (SGA)
+# 4. Neonatal Mortality
+# 5. Infant mortality 
+# 6. Stillbirth
+# 7. Fetal death
+# 8. Birth Asphyxia
+# 9. Hyperbili
+# 10. PSBI 
+#*****************************************************************************
+infant_outcomes <- mnh09_long %>% 
+  select(SITE, INFANTID, MOMID, PREGID) %>% 
+  full_join(lowbirthweight[c("SITE", "INFANTID", "MOMID","PREGID",
+                             "BWEIGHT_PRISMA", "BWEIGHT_ANY", "LBW2500_PRISMA", "LBW1500_PRISMA",
+                             "LBW2500_ANY", "LBW1500_ANY","LBW_CAT_PRISMA", "LBW_CAT_ANY")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
+  
+  full_join(preterm_birth[c("SITE", "INFANTID", "MOMID", "PREGID","M01_US_OHOSTDAT",
+                            "PRETERMBIRTH_LT37", "PRETERMBIRTH_LT34", "PRETERMBIRTH_LT32", "PRETERMBIRTH_LT28", "PRETERMBIRTH_CAT",
+                            "PRETERMDELIV_LT37", "PRETERMDELIV_LT34", "PRETERMDELIV_LT32", "PRETERMDELIV_LT28", "PRETERMDELIV_CAT")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
+  
+  full_join(sga[c("SITE", "INFANTID", "MOMID", "PREGID",
+                  "INF_SGA_PRETERM", "INF_AGA_PRETERM", "INF_SGA_TERM", "INF_AGA_TERM",
+                  "SGA_CENTILE", "SGA_CAT")], by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
+  
+  full_join(neonatal_mortality[c("SITE", "INFANTID", "MOMID", "PREGID",
+                                 "NEO_DTH_24HR", "NEO_DTH_EAR", "NEO_DTH_LATE", "NEO_DTH_CAT", "NEO_DTH")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
+  
+  full_join(infant_mortality[c("SITE", "INFANTID", "MOMID", "PREGID", "INF_DTH")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
+  
+  full_join(mortality[c("SITE", "INFANTID", "MOMID", "PREGID", "DEATH_DATETIME")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
+  
+  full_join(stillbirth[c("SITE", "INFANTID", "MOMID", "PREGID", 
+                         "STILLBIRTH_SIGNS_LIFE","GA_AT_BIRTH_ANY","FETAL_LOSS_DATE", "STILLBIRTH_20WK", "STILLBIRTH_22WK", 
+                         "STILLBIRTH_24WK", "STILLBIRTH_28WK", "STILLBIRTH_TIMING", "STILLBIRTH_GESTAGE_CAT")], 
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>% 
+  
+  full_join(fetal_death[c("SITE", "INFANTID", "MOMID", "PREGID", 
+                          "INF_ABOR_SPN", "INF_ABOR_IND", "INF_FETAL_DTH")], 
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>% 
+  
+  full_join(birth_asphyxia[c("SITE", "INFANTID", "MOMID", "PREGID", "INF_ASPH")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>% 
+  
+  full_join(hyperbili_all_crit[c("SITE", "INFANTID", "MOMID", "PREGID",
+                                 "INF_HYPERBILI_TCB15_24HR", "INF_HYPERBILI_TCB15_5DAY", "INF_HYPERBILI_TCB15_14DAY",
+                                 "INF_HYPERBILI_AAP_24HR", "INF_HYPERBILI_AAP_5DAY", "INF_HYPERBILI_AAP_14DAY",
+                                 "INF_JAUN_NON_SEV_ANY", "INF_JAUN_SEV_24HR", "INF_JAUN_SEV_GREATER_24HR")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>% 
+  full_join(psbi_outcome_wide[c("SITE", "INFANTID", "MOMID", "PREGID",
+                                "INF_PSBI_IPC", "INF_PSBI_PNC0",
+                                "INF_PSBI_PNC1", "INF_PSBI_PNC4", "INF_PSBI_PNC6",
+                                "INF_PSBI_UNSCHED", "INF_PSBI_HOSPITAL", "INF_PSBI_DENOM")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) 
+
+
+## data cleaning - recode missing 
+infant_outcomes <- infant_outcomes %>% 
+  mutate(STILLBIRTH_20WK = ifelse(STILLBIRTH_20WK==99 | (STILLBIRTH_20WK==55 & GA_AT_BIRTH_ANY<20), 66, STILLBIRTH_20WK),
+         STILLBIRTH_TIMING = ifelse(STILLBIRTH_TIMING==99, 66, STILLBIRTH_TIMING),
+         INF_ASPH = ifelse(INF_ASPH==66,55, INF_ASPH)) %>% 
+  rename(ENROLL_US_DATE = "M01_US_OHOSTDAT") %>% 
+  select(-GA_AT_BIRTH_ANY) %>%
+  relocate(ENROLL_US_DATE, .after = PREGID)
+
+# # export data to local
+# write.csv(infant_outcomes, paste0(path_to_save, "infant_outcomes" ,".csv"), row.names=FALSE)
+# 
+# 
+# # save data set; this will get called into the report
+# write.csv(infant_outcomes, paste0(path_to_tnt, "INF_OUTCOMES" ,".csv"), na="", row.names=FALSE)
+# write.xlsx(infant_outcomes, paste0(path_to_tnt, "INF_OUTCOMES" ,".xlsx"), na="", row.names=FALSE)
+
+
+# 3. set working directory
+#first need to make subfolder with upload date
+maindir <- paste0("Z:/Outcome Data", sep = "")
+subdir = UploadDate
+dir.create(file.path(maindir, subdir), showWarnings = FALSE)
+
+# export data to tnt drive
+write.csv(infant_outcomes, paste0("Z:/Outcome Data/",UploadDate, "/INF_OUTCOMES" ,".csv"), row.names=FALSE)
+
+## data check to see how many infants across sites 
+for (i in unique(mnh09_long$SITE)) {
+  df <- mnh09_long %>% filter(SITE == i)
+  print(paste0(i, " infants, n", "=", length(unique(df$INFANTID))))
+}
+
+table(mnh09_long$M09_BIRTH_DSTERM, mnh09_long$SITE)
 
 
 ### DATA CHECKS BELOW: 
@@ -2106,7 +2180,6 @@ zam <- infant_outcomes %>%
 #   )
 # table(sepsis_check_m13$NO_PSBI_REPORTED, sepsis_check_m13$SITE) # where NO_PSBI_REPORTED = 1 indicates sepsis checked and not psbi reported
 # table(sepsis_check_m13$CONFIRMED, sepsis_check_m13$SITE) # where CONFIRMED = 1 indicates sepsis checked and psbi reported
-# 
 # test <- sepsis_check_m13 %>% filter(NO_PSBI_REPORTED==1)
 # test2 <- psbi_outcome_wide %>% filter(PREGID %in% as.vector(test$PREGID) & SITE == "Zambia")
 # ## n = 3 for zambia
@@ -2128,3 +2201,6 @@ zam <- infant_outcomes %>%
 #   ) ## only 41 infants had a hospitalization visit 
 # table(test$HOSP)
 #   
+
+
+
