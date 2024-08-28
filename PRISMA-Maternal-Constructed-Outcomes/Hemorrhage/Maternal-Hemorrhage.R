@@ -1,6 +1,6 @@
 #*****************************************************************************
 #* PRISMA Maternal Hemorrhage
-#* Last updated: 21 May 2024
+#* Last updated: 23 August 2024
  
 #The first section, CONSTRUCTED VARIABLES GENERATION, below, the code generates datasets for 
 #each form with additional variables that will be used for multiple outcomes. For example, mnh01_constructed 
@@ -29,7 +29,7 @@
 # BIRTH_COMPL_MHTERM_1 [MNH12] (Was the mother diagnosed with any of the following birth complications, PPH)
 
 ## Hemorrhage (severe postpartum)
-## Hemorrhage == 1 AND (PPH_ESTIMATE_FAORRES?=1000 OR Blood transfusion OR any procedure) 
+## Hemorrhage == 1 AND (PPH_ESTIMATE_FAORRES=1000 OR Blood transfusion OR any procedure) 
 # PPH_ESTIMATE_FAORRES >=1000 [MNH09] (Record estimated blood loss) 
 # PPH_FAORRES_1==1 [MNH09] (Procedures carried out for PPH, Balloon/condom tamponade)  
 # PPH_FAORRES_2==1 [MNH09] (Procedures carried out for PPH, Surgical interventions) 
@@ -72,11 +72,13 @@ path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 # path_to_data = paste0("Z:/Stacked Data/",UploadDate)
 path_to_data <- paste0("D:/Users/stacie.loisate/Documents/import/", UploadDate)
 
-mat_enroll <- read_csv(paste0(path_to_tnt, "MAT_ENROLL" ,".csv" )) %>% select(SITE, MOMID, PREGID, ENROLL) %>% 
+mat_enroll <- read_csv(paste0(path_to_tnt, "MAT_ENROLL" ,".csv" )) %>% select(SITE, MOMID, PREGID, ENROLL, EST_CONCEP_DATE) %>% 
   filter(ENROLL == 1)
 
-mat_end <- read_dta(paste0(path_to_tnt, "MAT_ENDPOINTS" ,".dta" )) 
-
+mat_end <- read_dta(paste0(path_to_tnt, "MAT_ENDPOINTS" ,".dta" )) %>% 
+  ## only want all pregnancy endpoints excluding moms who have died before delivery and induced abortions
+  filter(PREG_END ==1 & MAT_DEATH==0 & PREG_LOSS_INDUCED==0)
+  
 # # import forms 
 mnh04 <- read.csv(paste0(path_to_data,"/", "mnh04_merged.csv"))
 mnh09 <- read.csv(paste0(path_to_data,"/", "mnh09_merged.csv"))
@@ -127,7 +129,6 @@ if (any(duplicated(mnh09[c("SITE", "MOMID", "PREGID", "M09_MAT_LD_OHOSTDAT")])))
 } else {
   print("No duplicates in mnh09")
 }
-
 
 #MNH12
 if (any(duplicated(mnh12[c("SITE", "MOMID", "PREGID",  "M12_TYPE_VISIT", "M12_VISIT_OBSSTDAT")]))) {
@@ -248,32 +249,69 @@ hem_unsched_pnc <- hem_unsched_pnc %>%
                                        M12_VAG_BLEED_LOSS_ML_14 >= 500, TRUE ~ 0))%>% 
   filter(PPH_UNSCHED_ANY==1)
 
+
+## to calculate age at hospitalization, use either date mother presented for care/treatment (OHOSTDAT) or best estimate of date mother presented for care (MAT_EST_OHOSTDAT)
 mnh19_out <- mnh19 %>% 
-  # merge in mat_endpoints dataset
-  full_join(mat_end[c("SITE", "MOMID", "PREGID", "PREG_END")], by = c("SITE", "MOMID", "PREGID")) %>% 
-  select(SITE, MOMID,  PREGID, PREG_END, M19_TIMING_OHOCAT,M19_VAG_BLEED_CEOCCUR, M19_LD_COMPL_MHTERM_4,
-         M19_LD_COMPL_ML, M19_LD_COMPL_MHTERM_5, M19_TX_PROCCUR_1,  M19_OBSSTDAT) %>% 
-  # only want particpants who have had a pregancy endpoint 
+  ## merge in mat_endpoints dataset
+  left_join(mat_end[c("SITE", "MOMID", "PREGID", "PREG_END", "PREG_END_DATE")], by = c("SITE", "MOMID", "PREGID")) %>% 
+  select(SITE, MOMID,  PREGID, PREG_END, PREG_END_DATE, M19_TIMING_OHOCAT, M19_VAG_BLEED_CEOCCUR, M19_LD_COMPL_MHTERM_4,
+         M19_LD_COMPL_ML, M19_LD_COMPL_MHTERM_5, M19_TX_PROCCUR_1,  M19_OBSSTDAT, M19_OHOSTDAT, M19_MAT_EST_OHOSTDAT) %>% 
+  left_join(mat_enroll[c("SITE", "MOMID", "PREGID", "EST_CONCEP_DATE")], by = c("SITE", "MOMID", "PREGID")) %>% 
+  ## only want participants who have had a pregnancy endpoint 
   filter(PREG_END == 1) %>% 
-  select(-PREG_END) %>% 
-  mutate(HEM_HOSP_ANY = case_when(M19_VAG_BLEED_CEOCCUR ==1 |
-                                    M19_LD_COMPL_MHTERM_4 ==1 |
-                                    M19_LD_COMPL_MHTERM_5 == 1 | 
-                                    M19_LD_COMPL_ML >= 500 | 
-                                    M19_TX_PROCCUR_1 == 1 ~ 1, 
+  # select(-PREG_END) %>% 
+  mutate(HEM_HOSP_ANY = case_when(
+                                  # M19_VAG_BLEED_CEOCCUR ==1 |
+                                  M19_LD_COMPL_MHTERM_4 ==1 |
+                                  M19_LD_COMPL_MHTERM_5 == 1 | 
+                                  M19_LD_COMPL_ML >= 500 ~ 1, 
                                   TRUE ~ 0)) %>% 
+  ## calculate age at hospitalization 
+  mutate(AGE_AT_HOSP = case_when( # anc (if hopsitalization comes before pregnancy end date, then ANC)
+                                  (!ymd(M19_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) & ymd(M19_OHOSTDAT) < ymd(PREG_END_DATE) ~  as.numeric(ymd(M19_OHOSTDAT) - ymd(EST_CONCEP_DATE)),
+                                  # ymd(PREG_END_DATE) < ymd(M19_OBSSTDAT) & (!ymd(M19_OBSSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) ~  as.numeric(ymd(M19_OBSSTDAT) - ymd(EST_CONCEP_DATE)),
+                                  (!ymd(M19_MAT_EST_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) & ymd(M19_MAT_EST_OHOSTDAT) < ymd(PREG_END_DATE) ~  as.numeric(ymd(M19_MAT_EST_OHOSTDAT) - ymd(EST_CONCEP_DATE)),
+                                  
+                                  # pnc (if hopsitalization comes on or after pregnancy end date, then PNC)
+                                  (!ymd(M19_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) & ymd(M19_OHOSTDAT) >= ymd(PREG_END_DATE) ~  as.numeric(ymd(M19_OHOSTDAT) - ymd(PREG_END_DATE)),
+                                 # ymd(PREG_END_DATE) >= ymd(M19_OBSSTDAT) & (!ymd(M19_OBSSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) ~  as.numeric(ymd(PREG_END_DATE) - ymd(M19_OBSSTDAT)),
+                                  (!ymd(M19_MAT_EST_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) & ymd(M19_MAT_EST_OHOSTDAT) >= ymd(PREG_END_DATE) ~  as.numeric(ymd(M19_MAT_EST_OHOSTDAT) - ymd(PREG_END_DATE)),
+                                  TRUE ~ NA
+                                 ),
+         AGE_AT_HOSP_WKS = AGE_AT_HOSP %/% 7,
+         DATE_HOSPITAL = case_when(!ymd(M19_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05")) ~ ymd(M19_OHOSTDAT),
+                                   !ymd(M19_MAT_EST_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05")) ~ ymd(M19_MAT_EST_OHOSTDAT),
+                                   TRUE ~ NA
+                                   )
+         ) %>% 
+  # generate ANC and PNC variables, where 2= pnc and 1=anc
+  mutate(TIMING_HOSP = case_when(
+                                (!ymd(M19_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) & ymd(M19_OHOSTDAT) < ymd(PREG_END_DATE) ~  1,
+                                # ymd(PREG_END_DATE) < ymd(M19_OBSSTDAT) & (!ymd(M19_OBSSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) ~  1,
+                                (!ymd(M19_MAT_EST_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) & ymd(M19_MAT_EST_OHOSTDAT) < ymd(PREG_END_DATE) ~  1,
+                                
+                                (!ymd(M19_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) & ymd(M19_OHOSTDAT) >= ymd(PREG_END_DATE) ~  2,
+                                 # ymd(PREG_END_DATE) >= ymd(M19_OBSSTDAT) & (!ymd(M19_OBSSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) ~  2,
+                                (!ymd(M19_MAT_EST_OHOSTDAT) %in% c(ymd("1907-07-07"), ymd("1905-05-05"))) & ymd(M19_MAT_EST_OHOSTDAT) >= ymd(PREG_END_DATE) ~  2,
+                                TRUE ~ NA
+  )) %>% 
+  
   ## if a participant has multiple hospitalizations during ANC or PNC, take the earliest incident of APH or PPH
     group_by(MOMID, PREGID) %>% 
-    arrange(M19_OBSSTDAT) %>% 
+    arrange(DATE_HOSPITAL) %>% 
     mutate(
-      KEEP_ANC = if_else(M19_TIMING_OHOCAT == 1 & HEM_HOSP_ANY == 1, 1, 0),
-      KEEP_PNC = if_else(M19_TIMING_OHOCAT == 2 & HEM_HOSP_ANY == 1, 1, 0)
+      KEEP_ANC = if_else(TIMING_HOSP == 1 & HEM_HOSP_ANY == 1, 1, 0),
+      KEEP_PNC = if_else(TIMING_HOSP == 2 & HEM_HOSP_ANY == 1, 1, 0)
     ) %>% 
     filter(
       KEEP_ANC == 1 | KEEP_PNC == 1
     ) %>% 
     slice(1) %>% 
-    ungroup()
+    ungroup() %>% 
+  select(SITE, MOMID, PREGID, EST_CONCEP_DATE, PREG_END_DATE, M19_OHOSTDAT, M19_MAT_EST_OHOSTDAT,DATE_HOSPITAL,
+         AGE_AT_HOSP, TIMING_HOSP,M19_TIMING_OHOCAT, HEM_HOSP_ANY ,
+         M19_TX_PROCCUR_1, M19_VAG_BLEED_CEOCCUR, M19_LD_COMPL_MHTERM_4, M19_LD_COMPL_MHTERM_5, M19_LD_COMPL_ML)
+  
 
 # Remove the specified data frames from the list
 hem_visit_list <- hem_visit_list[setdiff(names(hem_visit_list), remove_names)]
@@ -290,12 +328,12 @@ hem_wide <- hem_visit_list %>% reduce(full_join, by =  c("SITE", "MOMID", "PREGI
 ## merge unscheduled and hospitalization information into the wide dataset 
 hem_wide_full <-  mat_end %>% 
   select(SITE, MOMID, PREGID, PREG_END, PREG_END_DATE) %>%
-  # filter for participants who have had a pregancy outcome
+  # filter for participants who have had a pregnancy outcome
   filter(PREG_END==1) %>% 
   full_join(hem_wide, by = c("SITE", "MOMID", "PREGID")) %>% 
   full_join(hem_unsched_anc[c("SITE", "MOMID", "PREGID", "APH_UNSCHED_ANY")], by = c("SITE", "MOMID", "PREGID")) %>% 
   full_join(hem_unsched_pnc[c("SITE", "MOMID", "PREGID", "PPH_UNSCHED_ANY")], by = c("SITE", "MOMID", "PREGID")) %>% 
-  full_join(mnh19_out[c("SITE", "MOMID", "PREGID", "HEM_HOSP_ANY", "M19_TIMING_OHOCAT")], by = c("SITE", "MOMID", "PREGID"))
+  full_join(mnh19_out[c("SITE", "MOMID", "PREGID", "HEM_HOSP_ANY","M19_LD_COMPL_ML", "TIMING_HOSP")], by = c("SITE", "MOMID", "PREGID"))
 
 ## generate outcomes: 
 hemorrhage <- hem_wide_full %>% 
@@ -307,39 +345,40 @@ hemorrhage <- hem_wide_full %>%
   ## 1. Antepartum Hemorrhage
   mutate(HEM_APH = case_when(HEM_DENOM==1 & (M04_APH_CEOCCUR_1==1 | M04_APH_CEOCCUR_2==1 |M04_APH_CEOCCUR_3==1 | M04_APH_CEOCCUR_4==1 | M04_APH_CEOCCUR_5==1 |
                                                APH_UNSCHED_ANY==1 | M09_APH_CEOCCUR_6 == 1 |
-                                               (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==1)) ~ 1, TRUE ~ 0)) %>% 
-  ## 2. Postpartum Hemorrhage
+                                              (HEM_HOSP_ANY==1 & TIMING_HOSP==1)) ~ 1, TRUE ~ 0)) %>% 
+  ## 2. Postpartum Hemorrhage; 
   mutate(HEM_PPH = case_when(HEM_DENOM == 1 & (M09_PPH_CEOCCUR_6==1 | M09_PPH_FAORRES_1_6==1 | M09_PPH_FAORRES_2_6==1 |
                                                  M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
-                                                 M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1 |
+                                                 M09_PPH_FAORRES_5_6==1 | 
                                                  M09_PPH_TRNSFSN_PROCCUR_6==1 | M09_PPH_ESTIMATE_FAORRES_6 >=500 |
                                                  M12_VAG_BLEED_LOSS_ML_7>=500 | M12_VAG_BLEED_LOSS_ML_8>=500 | M12_VAG_BLEED_LOSS_ML_9>=500 | M12_VAG_BLEED_LOSS_ML_10>=500 |
                                                  M12_VAG_BLEED_LOSS_ML_11>=500 | M12_VAG_BLEED_LOSS_ML_12>=500 |
                                                  M12_BIRTH_COMPL_MHTERM_1_7==1 |  M12_BIRTH_COMPL_MHTERM_1_8==1 | M12_BIRTH_COMPL_MHTERM_1_9==1 | M12_BIRTH_COMPL_MHTERM_1_10==1 |
                                                  M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1 |
-                                                 (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2)
-  ) ~ 1, TRUE ~ 0)) %>% 
+                                                 (HEM_HOSP_ANY==1 & TIMING_HOSP==2)) ~ 1, TRUE ~ 0)) %>% 
   
   
   ## 3. Severe postpartum hemorrhage
   mutate(HEM_PPH_SEV = case_when(HEM_DENOM==1 & HEM_PPH==1 & (M09_PPH_ESTIMATE_FAORRES_6>=1000 | 
                                                                 M12_VAG_BLEED_LOSS_ML_7>=1000 | M12_VAG_BLEED_LOSS_ML_8>=1000 | M12_VAG_BLEED_LOSS_ML_9>=1000 | M12_VAG_BLEED_LOSS_ML_10>=1000 |
                                                                 M12_VAG_BLEED_LOSS_ML_11>=1000 | M12_VAG_BLEED_LOSS_ML_12>=1000 |
+                                                                (M19_LD_COMPL_ML >=1000  & TIMING_HOSP == 2) | 
                                                                 M09_PPH_TRNSFSN_PROCCUR_6==1 | 
                                                                 M09_PPH_FAORRES_1_6==1 | M09_PPH_FAORRES_2_6==1 |
                                                                 M09_PPH_FAORRES_3_6==1 | M09_PPH_FAORRES_4_6==1 |
-                                                                M09_PPH_FAORRES_5_6==1 | M09_PPH_FAORRES_88_6==1) ~ 1, TRUE ~0)
+                                                                M09_PPH_FAORRES_5_6==1) ~ 1, TRUE ~0)
   ) %>% 
   
   ## 4. Any hemorrhage at any time point
   mutate(HEM_ANY = case_when(HEM_APH==1 | HEM_PPH ==1| HEM_PPH_SEV==1~1, TRUE ~ 0)) %>% 
   select(SITE, MOMID, PREGID,PREG_END,PREG_END_DATE, HEM_DENOM, HEM_APH, HEM_PPH, HEM_PPH_SEV,HEM_ANY,  
-         M09_PPH_ESTIMATE_FAORRES_6, contains("M09_PPH_FAORRES"), M09_PPH_TRNSFSN_PROCCUR_6, 
+         M09_PPH_ESTIMATE_FAORRES_6, contains("M09_PPH_FAORRES"), contains("VAG_BLEED_LOSS_ML"),
+         M09_PPH_SPFY_FAORRES_6, M09_PPH_SPFY_6, M09_PPH_TRNSFSN_PROCCUR_6, 
          contains("M09_PPH_CMOCCUR"), M09_PPH_CEOCCUR_6,
-         HEM_HOSP_ANY, M19_TIMING_OHOCAT, M09_PPH_PEMETHOD_6, 
+         HEM_HOSP_ANY, TIMING_HOSP, M09_PPH_PEMETHOD_6, 
          M12_BIRTH_COMPL_MHTERM_1_7, M12_BIRTH_COMPL_MHTERM_1_8, M12_BIRTH_COMPL_MHTERM_1_9, M12_BIRTH_COMPL_MHTERM_1_10, M12_BIRTH_COMPL_MHTERM_1_11, M12_BIRTH_COMPL_MHTERM_1_12)
 
-table(hemorrhage$PREG_END)
+table(hemorrhage$TIMING_HOSP)
 table(hemorrhage$HEM_APH)
 table(hemorrhage$HEM_PPH)
 table(hemorrhage$HEM_PPH_SEV)
@@ -350,7 +389,6 @@ write.xlsx(hemorrhage, paste0(path_to_save, "MAT_HEMORRHAGE" ,".xlsx"),na="", ro
 
 write.csv(hemorrhage, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".csv"), na="",row.names=FALSE)
 write.xlsx(hemorrhage, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".xlsx"),na="", rowNames=FALSE)
-
 
 hemorrhage_figs <- hemorrhage %>% 
   select(SITE, MOMID, PREGID, M09_PPH_ESTIMATE_FAORRES_6,HEM_PPH, HEM_PPH_SEV) %>% 
