@@ -786,13 +786,13 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
 
 **3.** Form indicates that visit not completed because the woman died (varname [form]: `MAT_VITAL_MNHxx`==8 [MNH04, MNH10, MNH12]).
 
-**4.** *For maternal and late maternal mortality:*  Cause of death is not due to accidental or incidental causes  (`ACC_DDORRES` [MNH23, MNH04]) but is due to pregnancy or management of pregnancy [MNH27].
+**4.** *For maternal and late maternal mortality:*  Cause of death is not due to accidental or incidental causes but is due to pregnancy or management of pregnancy [MNH27].
 
 **Common causes for a participant to be marked as "Missing":**
 
-**-** Cause of death is unknown: (`ACC_DDORRES` [MNH23, MNH04]) is 77, Not applicable; and analysis of verbal autopsy data [MNH27] is forthcoming.
+**-** Cause of death is unknown: analysis of verbal autopsy data [MNH27] is forthcoming.
 
-**-** Missing date of maternal death.
+**-** Missing date of maternal death (cannot classify as early or late death)
 
 ### Table 1. Maternal mortality
 ```{r}
@@ -802,34 +802,92 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
    rowwise() %>%
    group_by(SITE) %>%
    summarise(
-
     "Any death ^a^, n" = paste0(
        format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Missing cause of death information, n" = paste0(
-       format(sum(MAT_DEATH_MISSCAUSE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-
-    "Missing date of death information, n" = paste0(
+    "Missing date of death^b^, n" = paste0(
        format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Pregnancy-related death, n" = paste0(
+    "Pregnancy-related death^c^, n" = paste0(
        format(sum(MAT_DEATH_42 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Late pregnancy-related death, n" = paste0(
+    "Maternal mortality ^d^, n" = paste0(
+       format(sum(MAT_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      
+    "Death not due to pregnancy, n" = paste0(
+       format(sum(MAT_MORTALITY == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Cause of death unknown, n" = paste0(
+       format(sum(MAT_MORTALITY == 3, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Cause of death missing, n" = paste0(
+       format(sum(MAT_MORTALITY == 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Late pregnancy-related death^e^, n" = paste0(
        format(sum(MAT_DEATH_42 == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Maternal mortality ^b^, n" = paste0(
-       format(sum(MAT_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-
-    "Later maternal mortality ^b^, n" = paste0(
-       format(sum(MAT_LATE_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2))
+    "Late maternal mortality^f^, n" = paste0(
+       format(sum(MAT_LATE_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+      "Death not due to pregnancy, n  " = paste0(
+       format(sum(MAT_LATE_MORTALITY == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+      "Cause of death unknown, n  " = paste0(
+       format(sum(MAT_LATE_MORTALITY == 3, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+      "Cause of death missing, n  " = paste0(
+       format(sum(MAT_LATE_MORTALITY == 55, na.rm = TRUE), nsmall = 0, digits = 2))
 
    ) %>%
    t() %>% as.data.frame() %>%
    `colnames<-`(c(.[1,])) %>%
    slice(-1)  %>%
-   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
-   mutate_all(funs(str_replace(., "NA", "0")))
+   add_column(
+      .before = 1,
+    "Total" = mortality %>%
+      summarise(
+        "Any death ^a^, n" = paste0(
+       format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Missing date of death^b^, n" = paste0(
+       format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Pregnancy-related death^c^, n" = paste0(
+       format(sum(MAT_DEATH_42 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Maternal mortality ^d^, n" = paste0(
+       format(sum(MAT_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      
+    "Death not due to pregnancy, n" = paste0(
+       format(sum(MAT_MORTALITY == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Cause of death unknown, n" = paste0(
+       format(sum(MAT_MORTALITY == 3, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Cause of death missing, n" = paste0(
+       format(sum(MAT_MORTALITY == 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Late pregnancy-related death^e^, n" = paste0(
+       format(sum(MAT_DEATH_42 == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Late maternal mortality^f^, n" = paste0(
+       format(sum(MAT_LATE_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+      "Death not due to pregnancy, n  " = paste0(
+       format(sum(MAT_LATE_MORTALITY == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+      "Cause of death unknown, n  " = paste0(
+       format(sum(MAT_LATE_MORTALITY == 3, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+      "Cause of death missing, n  " = paste0(
+       format(sum(MAT_LATE_MORTALITY == 55, na.rm = TRUE), nsmall = 0, digits = 2))
+
+   ) %>%
+        t() %>% as.data.frame() %>%
+        `colnames<-`(c(.[1,])) %>% unlist()
+    )
+   #mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   #mutate_all(funs(str_replace(., "NA", "0")))
 
 
 
@@ -844,41 +902,74 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
      title = md("**Table 1**")) %>%
    tab_row_group(
      label = html("<span style='font-size: 18px'>Data completeness</span>"),
-     rows = 1:3
+     rows = 1:2
    ) %>%
-   tab_row_group(
-     label = html("<span style='font-size: 18px'>Maternal death</span>"),
-     rows = 4:7
+    tab_row_group(
+     label = html("<span style='font-size: 18px'>Deaths occurring during pregnancy up to 42 days postpartum</span>"),
+     rows = 3:7
+   ) %>%
+      tab_row_group(
+     label = html("<span style='font-size: 18px'>Deaths occurring 42-365 days postpartum</span>"),
+     rows = 8:12
    ) %>%
  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
-                  "<span style='font-size: 18px'>Maternal death</span>"
+                   "<span style='font-size: 18px'>Deaths occurring during pregnancy up to 42 days postpartum</span>",
+                   "<span style='font-size: 18px'>Deaths occurring 42-365 days postpartum</span>"
                   )) %>%
-   
-  # bold denominator rows 1
+ 
+    ## indent
+  tab_style(
+      style = list(
+        cell_text(indent = px(40), size = 24)
+        ),
+      locations = cells_stub(rows = c("Maternal mortality ^d^, n",
+                                      "Death not due to pregnancy, n",
+                                      "Cause of death unknown, n",
+                                      "Cause of death missing, n",
+                                      
+                                      "Late maternal mortality^f^, n",
+                                      "Death not due to pregnancy, n  ",
+                                      "Cause of death unknown, n  ",
+                                      "Cause of death missing, n  "
+                                      )) 
+      )%>%
+         
+    # bold rows any death, pregnancy related deaths
   tab_style(
       style = list(
         cell_text(weight = "bold")
         ),
       locations = cells_body(rows = c(
                  "Any death ^a^, n",
-                 "Any death ^a^, n"))) %>% 
+                "Pregnancy-related death^c^, n",
+                "Late pregnancy-related death^e^, n"))) %>% 
 tab_style(
       style = list(
         cell_text(weight = "bold")
         ),
       locations = cells_stub(rows = c(
                  "Any death ^a^, n",
-                 "Any death ^a^, n"))) %>% 
-   
+                 "Pregnancy-related death^c^, n",
+                 "Late pregnancy-related death^e^, n"))) %>% 
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes [M23_ACC_DDORRES].</span>")
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes.</span>")
   ) %>% 
-
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>b</sup> Maternal mortality and late maternal mortality currently based on whether the death was due to accidental or incidental causes [M23_ACC_DDORRES]; these outcomes require information on cause of death (from verbal autopsies) which is currently unavailable. These outcomes will be updated as cause of death information becomes available.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Date of death missing;  date of death has been estimated as the midpoint between when the woman was last seen alive and when her death was reported.</span>")
+  ) %>% 
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>c</sup>Pregnancy-related deaths are those occuring during pregnancy and up to 42 days postpartum, for any reason.</span>")
   ) %>% 
    tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>Note</sup> Currently all entries are missing information for cause of death, and a few entries are missing date of death information.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>d</sup>Maternal mortality: death during pregnancy and up to 42 days postpartum, due to causes related to pregnancy or its management.</span>")
+  )  %>% 
+
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>e</sup>Late pregnancy-related deaths are those occuring 42-365 days postpartum, for any reason.</span>")
+  )  %>% 
+
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>f</sup>Late maternal mortality: deaths occurring 42-365 days postpartum, due to causes related to pregnancy or its management.</span>")
   )
 
 ```
