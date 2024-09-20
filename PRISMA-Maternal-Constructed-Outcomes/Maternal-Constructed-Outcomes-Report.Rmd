@@ -6253,7 +6253,7 @@ knitr::include_graphics(paste0(path_to_save, "prolong_tab_output.png"))
 -   Abnormal TSH result + missing free T4 [THYROID_FREET4_LBORRES]
 
 
-### Table 12a. Thyroid Dysfunction at ANC-20
+### Table 12a. Thyroid Dysfunction at Enrollment
 ```{r}
 
 thy_tab <- thy %>% 
@@ -6261,7 +6261,7 @@ thy_tab <- thy %>%
   group_by(SITE) %>% 
   summarise(
     
-     "Expected number at ANC20^a^" = paste0(
+     "Expected number at Enrollment^a^" = paste0(
       format(sum(THYR_ANC20_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      
      "Missing" = paste0(
@@ -6330,11 +6330,11 @@ thy_tab_output <- tb_theme1(thy_tab) %>%
         rows = 1:2
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Thyroid function at ANC-20</span>"),
+    label = html("<span style='font-size: 18px'>Thyroid function at Enrollment</span>"),
         rows = 3:9
     ) %>%
  row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
-                            "<span style='font-size: 18px'>Thyroid function at ANC-20</span>"))  %>% 
+                            "<span style='font-size: 18px'>Thyroid function at Enrollment</span>"))  %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" )) %>% 
   tab_footnote(
