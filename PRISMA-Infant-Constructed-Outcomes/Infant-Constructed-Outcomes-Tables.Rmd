@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Infant Outcomes -- TABLES 
 #* Drafted: 01 January 2024, Stacie Loisate
-#* Last updated: 13 May 2024
+#* Last updated: 11 October 2024
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -31,7 +31,7 @@ library(RColorBrewer)
 library(gt) ## for table gen
 library(webshot2)  ## for table gen
 
-UploadDate = "2024-08-23"
+UploadDate = "2024-10-04"
 path_to_data <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/data/"
 path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/output/"
 path_to_save_figures <- "D:/Users/stacie.loisate/Documents"
@@ -334,12 +334,11 @@ sga_sum <- infant_outcomes %>%
       `colnames<-`(c(.[1,])) %>% unlist()
 )
 
-# neonatal mortality (no missing here)
-neo_mort_sum <- infant_outcomes %>% 
+# neonatal mortality (no missing here)infant_outcomes
+neo_mort_sum <- neonatal_mortality %>% 
   ## If india-SAS doesn't have data, add emprty row here 
   mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -356,7 +355,7 @@ neo_mort_sum <- infant_outcomes %>%
   slice(-1) %>% 
         add_column(
       .before = 1,
-    "Total" = infant_outcomes %>%
+    "Total" = neonatal_mortality %>%
         plyr::summarise(
         
     "Neonatal mortality, n per 1000^a^" = paste0(
