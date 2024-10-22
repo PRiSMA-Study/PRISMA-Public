@@ -56,6 +56,7 @@ thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -7117,4 +7118,90 @@ knitr::include_graphics(paste0(path_to_save, "highbp52_tab_output.png"))
 
 ```
 
+\newpage
 
+## 15. Placental Disorders
+
+**Placenta previa:** Placenta partially or fully covers the cervix. Placenta previa is a risk factor for maternal hemorrhage. Identified by ultrasound [M01_PREVIA_PERES_FTS#==3] and at labor and delivery [as an indication for C-section, M09_CES_PRINDC_INF#_18 == 1; as a contributor to antepartum hemorrhage, M09_APH_FAORRES_2 == 1] 
+
+**Placental abruption:** Placenta separates from the wall of the uterus before delivery. Placental abruption can cause maternal hemorrhage and disrupt supply of nutrients and oxygen to the baby. Identified at labor and delivery [as an indication for C-section, M09_CES_PRINDC_INF#_17 == 1; as a contributor to antepartum hemorrhage, M09_APH_FAORRES_1==1].
+
+**Placenta accreta:** Placenta grows too deeply into the wall of the uterus. Placenta accreta can cause the placenta from not detaching completely after delivery, and often causes maternal hemorrhage. Identified at labor and delivery [as an indication for C-section, M09_CES_PRINDC_INF1_17] 
+
+
+
+\newpage
+
+### Table 15. Placental disorders
+```{r}
+
+placenta_tab <- placenta %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "All livebirths and stillbirths" = paste0(
+      format(sum(SB_LB == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+      "Deliveries by Cesarean" = paste0(
+      format(sum(CES_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),    
+     
+     "Placenta previa" = paste0(
+      format(sum(PREVIA == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREVIA == 1, na.rm = TRUE)/sum(SB_LB == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+     "Placental abruption" = paste0(
+      format(sum(PLACENTA_ABRUPTION_M09 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PLACENTA_ABRUPTION_M09 == 1, na.rm = TRUE)/sum(SB_LB == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     
+     "Placenta accreta indicated as reason for C-section^a^" = paste0(
+      format(sum(PLACENTA_ACCRETE_M09 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PLACENTA_ACCRETE_M09 == 1, na.rm = TRUE)/sum(CES_ANY == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+placenta_tab[is.na(placenta_tab)] <- paste0("0 (0)")
+
+placenta_tab_output <- tb_theme1(placenta_tab) %>% 
+  tab_header(
+    title = md("**Table 15**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness</span>"),
+        rows = 1:2
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Placental disorders</span>"),
+        rows = 3:5
+    ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Placental disorders</span>"))  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Denominator is deliveries by Cesarean</span>" ))
+
+
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(placenta_tab_output, file = "placenta_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "placenta_tab_output.png"))
+
+```
