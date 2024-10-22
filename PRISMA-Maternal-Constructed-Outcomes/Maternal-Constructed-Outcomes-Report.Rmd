@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 July 23)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 July 25)"
 output:
   pdf_document:
     toc: no
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: 02 April 2024, Stacie Loisate
-#* Last updated: July 3 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
+#* Last updated: July 25 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -136,7 +136,7 @@ g_legend <- function(p) {
 
 ```
 
-**Includes data from synapse last updated:** 2024 July 23
+**Includes data from synapse last updated:** 2024 June 28
 
 \setcounter{tocdepth}{6}
 \tableofcontents
