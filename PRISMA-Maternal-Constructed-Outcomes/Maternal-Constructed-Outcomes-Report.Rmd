@@ -5383,15 +5383,15 @@ near_miss_tabb <- near_miss %>%
       ")"),
     
     "Pre-eclampsia without severe features " = paste0(
-      format(sum(PE==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PE==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Pre-clampsia with severe features/Eclampsia " = paste0(
-      format(sum(PE_SEV == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_SEV == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PE_SEV ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_SEV ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Severe hypertension " = paste0(
@@ -5522,15 +5522,15 @@ near_miss_tabb <- near_miss %>%
       ")"),
     
     "Pre-eclampsia without severe features " = paste0(
-      format(sum(PE==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PE==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Pre-clampsia with severe features/Eclampsia " = paste0(
-      format(sum(PE_SEV == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_SEV == 1 & NEAR_MISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PE_SEV ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_SEV ==1 & NEAR_MISS_DENOM == 1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Severe hypertension " = paste0(
@@ -5741,9 +5741,9 @@ near_miss_tabc <- near_miss %>%
       ")"),
   
     "Preeclampsia with severe features/eclampsia " = paste0(
-      format(sum(PE_SEV == 1 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_SEV == 1 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PE_SEV==1 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_SEV==1 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
     
    "Uterine rupture" = paste0(
@@ -5827,9 +5827,9 @@ near_miss_tabc <- near_miss %>%
       ")"),
   
     "Preeclampsia with severe features/eclampsia " = paste0(
-      format(sum(PE_SEV == 1 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_SEV == 1 & NEAR_MISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PE_SEV==1 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_SEV==1 & NEAR_MISS_DENOM ==1, na.rm = TRUE)/sum(NEAR_MISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
     
    "Uterine rupture" = paste0(
