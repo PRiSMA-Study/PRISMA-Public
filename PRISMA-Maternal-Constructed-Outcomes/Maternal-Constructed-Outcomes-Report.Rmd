@@ -7213,3 +7213,242 @@ gtsave(placenta_tab_output, file = "placenta_tab_output.png", path = path_to_sav
 knitr::include_graphics(paste0(path_to_save, "placenta_tab_output.png"))
 
 ```
+
+
+
+
+
+\newpage
+
+
+## 16. Induced Labor
+
+**Definition:** Induced labor, including induction by artificial rupture of membranes, oxytocin, misoprostol, foley, and/or another method, as reported in MNH09 form)
+
+**Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA). 
+
+### Table 16a. Induced Labor
+```{r}
+
+induced<-left_join(labor,end)
+
+induced_tab <- induced %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Expected denominator (total completed pregnancies)" = paste0(
+      format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+     "Excluded: Pregnancy losses <20 weeks GA or induced abortion" = paste0(
+      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==3 & PREG_LOSS_DEATH==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==3 & PREG_LOSS_DEATH==0, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+     
+    "Excluded: Maternal deaths at <20 weeks GA" = paste0(
+      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==3 & PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==3 & PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Excluded: Pregnancies >=20 weeks that ended without labor AND without attempted induction" = paste0(
+      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+     "Missing: unknown if labor occurred" = paste0(
+      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+    "Missing: unknown if induced" = paste0(
+      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==2, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Denominator (non-missing)" = paste0(
+      format(sum(PREG_END_DELIV==1 & MAT_INDUCED_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Spontaneous labor" = paste0(
+      format(sum(PREG_END_DELIV==1 & MAT_INDUCED_MISS==0 & MAT_INDUCED==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END_DELIV==1 & MAT_INDUCED_MISS==0 & MAT_INDUCED==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & MAT_INDUCED_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Induced labor" = paste0(
+      format(sum(PREG_END_DELIV==1 & MAT_INDUCED_MISS==0 & MAT_INDUCED==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END_DELIV==1 & MAT_INDUCED_MISS==0 & MAT_INDUCED==1, na.rm = TRUE)/sum(PREG_END_DELIV==1 & MAT_INDUCED_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+induced_tab[is.na(induced_tab)] <- paste0("0 (0)")
+
+induced_tab_output <- tb_theme1(induced_tab) %>% 
+  tab_header(
+    title = md("**Table 16a**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
+        rows = 1:6
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Induced labor prevalence</span>"),
+    rows = 7:9
+  ) %>%
+    # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>% 
+  
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>% 
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
+                           "<span style='font-size: 18px'>Induced labor prevalence</span>"))  %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(induced_tab_output, file = "induced_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "induced_tab_output.png"))
+
+```
+
+
+
+### Table 16b. Induced Labor Scenarios
+```{r}
+
+induced_tab2 <- labor %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Total cases of induced labor" = paste0(
+      format(sum(MAT_INDUCED==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Induced by artificial rupture of membranes" = paste0(
+      format(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==1, na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Induced by another method, prior to rupture of membranes" = paste0(
+      format(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==2, na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Induced labor following PROM or PPROM" = paste0(
+      format(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==3, na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Unknown induction method" = paste0(
+      format(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==4, na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+    "Unknown timing of induction" = paste0(
+      format(sum(MAT_INDUCED==1 & (MAT_INDUCED_TYPE==5 | MAT_INDUCED_TYPE==6), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_INDUCED==1 & (MAT_INDUCED_TYPE==5 | MAT_INDUCED_TYPE==6), na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+induced_tab2[is.na(induced_tab2)] <- paste0("0 (0)")
+
+induced_tab2_output <- tb_theme1(induced_tab2) %>% 
+  tab_header(
+    title = md("**Table 16b**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Induction of Labor Scenarios <sup>a</sup> </span>"),
+        rows = 1:6
+    ) %>%
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Total cases of induced labor",
+                 "Total cases of induced labor"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Total cases of induced labor",
+                 "Total cases of induced labor"))) %>% 
+ row_group_order(groups = c( "<span style='font-size: 18px'>Induction of Labor Scenarios <sup>a</sup> </span>"))  %>%
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Note that participants induced prior to rupture of membranes are considered to be provider-initiated deliveries; participants with induced labor after spontaneous rupture of membranes (PROM or PPROM) are considered to be non-provider-initiated deliveries. </span>"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(induced_tab2_output, file = "induced_tab2_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "induced_tab2_output.png"))
+
+```
+
+
+
+
