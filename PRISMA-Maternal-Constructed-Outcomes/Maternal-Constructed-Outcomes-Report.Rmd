@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 July 25)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 October 22)"
 output:
   pdf_document:
     toc: no
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: 02 April 2024, Stacie Loisate
-#* Last updated: July 25 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
+#* Last updated: October 22 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -38,11 +38,11 @@ library(dplyr)
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-path_to_data <- "Z:/Outcome Data/2024-06-28/" 
+path_to_data <- "Z:/Outcome Data/2024-09-20/" 
 path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
-mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
+#mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
 hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
 depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -51,7 +51,7 @@ labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper
 rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
-near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+#near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -2117,15 +2117,15 @@ preterm_tab <- preterm_indication %>%
       format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
      
      "Excluded: pregnancy losses <20 weeks GA or induced abortion" = paste0(
-      format(sum(PREG_END== 1 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & PREG_END_DELIV==0 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & PREG_END_DELIV==0 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
      
      "Excluded: maternal deaths prior to delivery" = paste0(
-      format(sum(PREG_END== 1 & PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & PREG_END_DELIV==0 & PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & PREG_END_DELIV==0 & PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
     
     "Missing: Gestational age information unavailable [MNH01]" = paste0(
@@ -2141,9 +2141,9 @@ preterm_tab <- preterm_indication %>%
       ")"),
 
     "Missing: information on labor onset or rupture of membranes [MNH09]" = paste0(
-      format(sum(PRETERM_PROV_MISS== 4 & PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PRETERM_PROV_MISS== 4 & PREG_END== 1 & PREG_END_DELIV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_MISS== 4 & PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PRETERM_PROV_MISS== 4 & PREG_END== 1 & PREG_END_DELIV==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
@@ -2648,16 +2648,16 @@ pprom_tab <- preterm_indication %>%
       format(round(sum(PPROM_OCCUR_MISS == 3, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-   "Excluded: pregnancy loss at <20 weeks with no information on PPROM" = paste0(
+   "Missing information for pregnancy loss at <20 weeks [no MNH09]" = paste0(
       format(sum(PPROM_OCCUR_MISS == 4, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PPROM_OCCUR_MISS == 4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
    
-   "Excluded: maternal death before delivery with no information on PPROM" = paste0(
-      format(sum(PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+   "Excluded: induced abortion" = paste0(
+      format(sum(PPROM_OCCUR_MISS == 5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPROM_OCCUR_MISS == 5, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Denominator (non-missing)" = paste0(
@@ -2737,7 +2737,7 @@ tab_style(
                             "<span style='font-size: 18px'>PPROM prevalence</span>"))   %>% 
   
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. The denominator excludes induced abortions. </span>"))
 
 ```
 
@@ -6092,21 +6092,21 @@ prolong_tab <- labor %>%
       format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      
      "Excluded: Pregnancy losses <20 weeks GA or induced abortion" = paste0(
-      format(sum(PREG_END== 1 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & (PRO_LABOR_MISS==4), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & (PREG_LOSS==1 | PREG_LOSS_INDUCED==1), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==4), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
      
-    "Excluded: Maternal deaths prior to delivery" = paste0(
-      format(sum(PREG_END== 1 & (PREG_LOSS_DEATH==1), na.rm = TRUE), nsmall = 0, digits = 2),
+    "Excluded: Maternal deaths at <20 weeks GA" = paste0(
+      format(sum(PREG_END== 1 & (PRO_LABOR_MISS==5), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & (PREG_LOSS_DEATH==1 & PRO_LABOR_MISS!=0), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==5), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Excluded: Pregnancies >=20 weeks that ended without labor" = paste0(
-      format(sum(PREG_END== 1 & (PRO_LABOR_MISS==5 & PREG_LOSS_DEATH!=1), na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & (PRO_LABOR_MISS==6), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==5 & PREG_LOSS_DEATH!=1), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==6), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
      "Missing: unknown if labor occurred" = paste0(
@@ -6466,13 +6466,13 @@ knitr::include_graphics(paste0(path_to_save, "thy_tab_output32.png"))
 
 -   ***Chronic hypertension*** includes any participant with a history of chronic hypertension reported at enrollment, those currently taking medication to treat hypertension upon enrollment, those with a new diagnosis of hypertension at an ANC visit at <20 weeks gestation, those with a new medication to treat hypertension at an ANC visit at <20 weeks gestation, those with one or more severe high blood pressure measures at <20 weeks gestation, and/or those with two or more high blood pressure measures recorded when the first measure occurred at <20 weeks gestation.
 
--   ***Gestational hypertension*** includes any participant with one or more of the following occurring at or after 20 weeks gestation, excluding those with preexisting chronic hypertension: 2 or more high blood pressure measures recorded on separate visits; 1 or more severe high blood pressure measures; 1 or more high blood pressure readings AND the participant starts a medication to treat hypertension; a clinical diagnosis of gestational hypertension at an ANC visit, a hospitalization, or labor and delivery. 
+-   ***Gestational hypertension*** includes any participant with one or more of the following occurring at or after 20 weeks gestation, excluding those with preexisting chronic hypertension: 2 or more high blood pressure measures recorded on separate visits; 1 or more high blood pressure readings AND the participant starts a medication to treat hypertension; a clinical diagnosis of gestational hypertension at an ANC visit, a hospitalization, or labor and delivery. 
 
 -   ***Preeclampsia without severe features*** includes any participant with gestational hypertension (as described above) AND one or more new onset proteinuria measures at or after 20 weeks gestation. Note that this outcome excludes participants with positive proteinuria results at baseline (<20 weeks gestation), unless proteinuria results increase for the participant over time. This outcome also includes clinical diagnosis of preeclampsia at an ANC visit, a hospitalization, or labor and delivery. 
 
 -   ***Preeclampsia superimposed on chronic hypertension*** includes participants with preexisting, chronic hypertension (as described above) AND one or more new onset proteinuria measures at or after 20 weeks gestation. Note that this outcome excludes participants with positive proteinuria results at baseline (<20 weeks gestation), unless proteinuria results increase for the participant over time. This outcome also includes clinical diagnosis of preeclampsia at an ANC visit, a hospitalization, or labor and delivery for those with preexisting chronic hypertension at baseline. 
 
--   ***Preeclampsia with severe features*** includes participants with any of the following scenarios: clinical diagnosis of eclampsia/seizures at an ANC visit, a hospitalization, or at labor and delivery; clinical diagnosis of HELLP syndrome at a hospitalization or at labor and delivery; clinical diagnosis of postpartum eclampsia at a PNC visit or at hospitailzation; a participant with gestational hypertension (as described above) AND experiences organ dysfunction at a hospitalization or at labor and delivery or postpartum; a participant with preeclampsia (including preeclampsia superimposed on chronic hypertension) AND one or more of the following severe symptoms: severe high blood pressure (measured), clinical diagnosis of severe high blood pressure, organ dysfunction, pulmonary edema, visual symptoms, epigastric pain, and/or severe headaches. 
+-   ***Preeclampsia with severe features*** includes participants with any of the following scenarios: clinical diagnosis of eclampsia/seizures at an ANC visit, a hospitalization, or at labor and delivery; clinical diagnosis of HELLP syndrome at a hospitalization or at labor and delivery; clinical diagnosis of postpartum eclampsia at a PNC visit or at hospitalization; 1 or more severe high blood pressure measures or a clinical diagnosis of severe high blood pressure at or after 20 weeks gestation; a participant with gestational hypertension (as described above) AND experiences organ dysfunction at a hospitalization or at labor and delivery or postpartum; a participant with preeclampsia (including preeclampsia superimposed on chronic hypertension) AND one or more of the following severe symptoms: organ dysfunction, pulmonary edema, visual symptoms, epigastric pain, and/or severe headaches. 
 
 
 **To be included as "non-missing" for this outcome, a participant must have:**
