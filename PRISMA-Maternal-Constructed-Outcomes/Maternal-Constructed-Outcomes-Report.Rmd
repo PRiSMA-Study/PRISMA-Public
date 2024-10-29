@@ -3663,12 +3663,11 @@ ggplot() +
 
 **-** Missing diagnosed or measured data. 
 
-
 ### Table 7a. STIs
 ```{r}
 
 ## reorder to be output vars and then missing vars 
-sti_enroll_tab <- MAT_INFECTION%>% 
+sti_enroll_tab <- MAT_INFECTION %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -3684,9 +3683,9 @@ sti_enroll_tab <- MAT_INFECTION%>%
       ")"),
   
     "HIV incidence following enrollment (positive RDT or diagnosed) ^b^" = paste0(
-      format(sum(HIV_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HIV_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HIV_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HIV_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
 
@@ -3705,11 +3704,17 @@ sti_enroll_tab <- MAT_INFECTION%>%
       ")"),
   
     "Syphilis incidence following enrollment (positive RDT or diagnosed) ^b^" = paste0(
-      format(sum(SYPH_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(SYPH_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SYPH_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(SYPH_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
+    "Syphilis incidence following pregnancy (positive RDT or diagnosed)" = paste0(
+      format(sum(SYPH_POSITIVE_ANY_PNC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SYPH_POSITIVE_ANY_PNC == 1, na.rm = TRUE)/sum(PREG_END == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
     "Syphilis diagnosis and RDT missing at enrollment ^c^" = paste0(
       format(sum(SYPH_MISSING_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3717,16 +3722,16 @@ sti_enroll_tab <- MAT_INFECTION%>%
       ")"),
 
   # Gonorrhea
-    "Gonorrhea diagnosed positive at enrollment ^d^" = paste0(
+    "Gonorrhea diagnosed positive at enrollment ^a^" = paste0(
       format(sum(GON_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(GON_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & GON_DIAG_MISSING_ENROLL==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Gonorrhea incidence following enrollment (diagnosed) ^b^" = paste0(
-      format(sum(GON_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(GON_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(GON_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(GON_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Gonorrhea diagnosis missing at enrollment ^c^" = paste0(
@@ -3737,16 +3742,16 @@ sti_enroll_tab <- MAT_INFECTION%>%
     
   
   # Chlamydia
-    "Chlamydia diagnosed positive at enrollment ^d^" = paste0(
+    "Chlamydia diagnosed positive at enrollment ^a^" = paste0(
       format(sum(CHL_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(CHL_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & CHL_DIAG_MISSING_ENROLL==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Chlamydia incidence following enrollment (diagnosed) ^b^" = paste0(
-      format(sum(CHL_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(CHL_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(CHL_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(CHL_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Chlamydia diagnosis missing at enrollment ^c^" = paste0(
@@ -3756,16 +3761,16 @@ sti_enroll_tab <- MAT_INFECTION%>%
       ")"),
   
     # Genital ulcers
-      "Genital ulcers diagnosed positive at enrollment ^d^" = paste0(
+      "Genital ulcers diagnosed positive at enrollment ^a^" = paste0(
       format(sum(GENU_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(GENU_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & GENU_DIAG_MISSING_ENROLL ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
       "Genital ulcers incidence following enrollment (diagnosed) ^b^" = paste0(
-      format(sum(GENU_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(GENU_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(GENU_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(GENU_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Genital ulcers diagnosis missing at enrollment ^c^" = paste0(
@@ -3775,16 +3780,16 @@ sti_enroll_tab <- MAT_INFECTION%>%
       ")"),
 
   # Other STIs
-    "Other STIs diagnosed positive at enrollment ^d^" = paste0(
+    "Other STIs diagnosed positive at enrollment ^a^" = paste0(
       format(sum(OTHR_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(OTHR_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & OTHR_DIAG_MISSING_ENROLL==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Other STIs incidence following enrollment (diagnosed) ^b^" = paste0(
-      format(sum(OTHR_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(OTHR_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(OTHR_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(OTHR_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Other STIs diagnosis missing at enrollment ^c^" = paste0(
@@ -3825,8 +3830,8 @@ sti_enroll_tab <- MAT_INFECTION%>%
 sti_enroll_tab[is.na(sti_enroll_tab)] <- paste0("0 (0)")
 
 ## the table is too long -- split into 2 
-sti_enroll_tab1 <- sti_enroll_tab[1:7,]
-sti_enroll_tab2 <- sti_enroll_tab[8:22,]
+sti_enroll_tab1 <- sti_enroll_tab[1:8,]
+sti_enroll_tab2 <- sti_enroll_tab[9:23,]
 
 ## first half of table 
 sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>% 
@@ -3839,7 +3844,7 @@ sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>%
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Syphilis, n (%)</span>"),
-    rows = 5:7
+    rows = 5:8
   ) %>%
   row_group_order(groups = c(NA,
                             "<span style='font-size: 18px'>HIV, n (%)</span>",
@@ -3865,7 +3870,10 @@ sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>%
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with at least one MNH04 OR MNH06 during ANC. Excludes cases reported at enrollment.</span>")
  )  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with an enrollment visit.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with a pregnancy outcome.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with an enrollment visit.</span>")
  ) 
 
 
@@ -3891,18 +3899,27 @@ sti_enroll_output2 <- tb_theme1(sti_enroll_tab2) %>%
     rows = 10:12
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>STIs by method at enrollment <sup>a</sup>, n (%)</span>"),
+    label = html("<span style='font-size: 18px'>STIs by method at enrollment <sup>d</sup>, n (%)</span>"),
     rows = 13:15
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Gonorrhea, n (%)</span>",
                              "<span style='font-size: 18px'>Chlamydia, n (%)</span>",
                              "<span style='font-size: 18px'>Genital ulcers, n (%)</span>",
                              "<span style='font-size: 18px'>Other STIs, n (%)</span>",
-                             "<span style='font-size: 18px'>STIs by method at enrollment <sup>a</sup>, n (%)</span>"
+                             "<span style='font-size: 18px'>STIs by method at enrollment <sup>d</sup>, n (%)</span>"
                              )) %>% 
+ #  tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
+ # )  %>% 
+ #  tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with at least one MNH04 OR MNH06 during ANC. Excludes cases reported at enrollment.</span>")
+ # ) %>% 
+ #  tab_footnote(
+ #    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with an enrollment visit.</span>")
+ # ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
- )  %>% 
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants who reported having an 'other' STI (`OTHR_STI_MHOCCUR=1`) AND a valid test (`TEST_VAR=1 or 0`) OR who reported not having an 'other' STI (`OTHR_STI_MHOCCUR=0`).</span>")
+ ) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with at least one MNH04 OR MNH06 during ANC. Excludes cases reported at enrollment.</span>")
  ) %>% 
@@ -3910,10 +3927,11 @@ sti_enroll_output2 <- tb_theme1(sti_enroll_tab2) %>%
     footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is total participants with an enrollment visit.</span>")
  ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants who reported having an 'other' STI (`OTHR_STI_MHOCCUR=1`) AND a valid test (`TEST_VAR=1 or 0`) OR who reported not having an 'other' STI (`OTHR_STI_MHOCCUR=0`).</span>")
- )
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
+ )  
 
 ```
+
 
 ```{r, out.width = '100%'}
 
@@ -3950,9 +3968,9 @@ malaria_tab <- MAT_INFECTION %>%
   
     
     "Malaria incidence following enrollment (positive RDT or diagnosed) ^b^" = paste0(
-      format(sum(MAL_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAL_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAL_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAL_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
 
@@ -4035,9 +4053,9 @@ hepatitis_tab <- MAT_INFECTION %>%
       ")"),
 
     "Hep B incidence following enrollment (positive RDT) ^b^" = paste0(
-      format(sum(HBV_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HBV_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HBV_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HBV_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Hep B RDT missing at enrollment ^c^" = paste0(
@@ -4054,9 +4072,9 @@ hepatitis_tab <- MAT_INFECTION %>%
       ")"),
   
     "Hep C incidence following enrollment (positive RDT) ^b^" = paste0(
-      format(sum(HCV_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HCV_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HCV_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HCV_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Hep C RDT missing at enrollment ^c^" = paste0(
@@ -4082,9 +4100,9 @@ hepatitis_tab <- MAT_INFECTION %>%
       ")"),
   
     # "Hep E incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(HEV_IGM_POSITIVE_ANY_VISIT == 1|HEV_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   format(sum(HEV_IGM_POSITIVE_ANY_ANC == 1|HEV_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(HEV_IGM_POSITIVE_ANY_VISIT == 1|HEV_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(HEV_IGM_POSITIVE_ANY_ANC == 1|HEV_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
 
     "Hep E missing at enrollment (IgG or IgM) ^e^" = paste0(
@@ -4202,9 +4220,9 @@ tb_tab <- MAT_INFECTION %>%
       ")"),
     
     "TB symptoms incidence following enrollment ^b^" = paste0(
-      format(sum(TB_SYMP_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(TB_SYMP_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(TB_SYMP_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(TB_SYMP_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Missing all TB symptoms at enrollment ^c^" = paste0(
@@ -4220,9 +4238,9 @@ tb_tab <- MAT_INFECTION %>%
       ")"),
     
     "TB sputum incidence following enrollment ^b^" = paste0(
-      format(sum(TB_SPUTUM_POSITIVE_ANY_VISIT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(TB_SPUTUM_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(TB_SPUTUM_POSITIVE_ANY_VISIT == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(TB_SPUTUM_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   )  %>%
@@ -4313,9 +4331,9 @@ zcd_tab <- MAT_INFECTION %>%
       ")"),
 
     # "Zika incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(ZIK_IGM_POSITIVE_ANY_VISIT == 1|ZIK_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   format(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1|ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(ZIK_IGM_POSITIVE_ANY_VISIT == 1|ZIK_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1|ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
   
     "Zika missing at enrollment (IgG or IgM) ^b^" = paste0(
@@ -4338,9 +4356,9 @@ zcd_tab <- MAT_INFECTION %>%
       ")"),
   
     # "Dengue incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(DEN_IGM_POSITIVE_ANY_VISIT == 1|DEN_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   format(sum(DEN_IGM_POSITIVE_ANY_ANC == 1|DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(DEN_IGM_POSITIVE_ANY_VISIT == 1|DEN_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(DEN_IGM_POSITIVE_ANY_ANC == 1|DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
 
     "Dengue missing at enrollment (IgG or IgM) ^b^" = paste0(
@@ -4364,9 +4382,9 @@ zcd_tab <- MAT_INFECTION %>%
 
     
     # "Chikungunya incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(CHK_IGM_POSITIVE_ANY_VISIT == 1|CHK_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   format(sum(CHK_IGM_POSITIVE_ANY_ANC == 1|CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(CHK_IGM_POSITIVE_ANY_VISIT == 1|CHK_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(CHK_IGM_POSITIVE_ANY_ANC == 1|CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
   
     "Chikungunya missing at enrollment (IgG or IgM) ^b^" = paste0(
@@ -4390,9 +4408,9 @@ zcd_tab <- MAT_INFECTION %>%
       ")"),
   
     # "Leptospirosis incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(LEP_IGM_POSITIVE_ANY_VISIT == 1|LEP_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   format(sum(LEP_IGM_POSITIVE_ANY_ANC == 1|LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(LEP_IGM_POSITIVE_ANY_VISIT == 1|LEP_IGG_POSITIVE_ANY_VISIT==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(LEP_IGM_POSITIVE_ANY_ANC == 1|LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
 
     "Leptospirosis missing at enrollment (IgG or IgM) ^b^" = paste0(
@@ -4546,7 +4564,7 @@ all_infection_output <- tb_theme1(all_infection_tab) %>%
       locations = cells_stub(rows = c(
                   "N with enrollment visit"))) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with an enrollment visit.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit.</span>")
  ) 
 
 ```
