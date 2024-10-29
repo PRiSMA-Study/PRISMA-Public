@@ -759,8 +759,6 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
 
 ```
 
-
-
 \newpage
 
 ## 1. Maternal mortality
@@ -787,7 +785,9 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
 
 **3.** Form indicates that visit not completed because the woman died (varname [form]: `MAT_VITAL_MNHxx`==8 [MNH04, MNH10, MNH12]).
 
-**4.** *For maternal and late maternal mortality:*  Cause of death is not due to accidental or incidental causes but is due to pregnancy or management of pregnancy [MNH27].
+**4.** Form indicates non default value for maternal death date.
+
+**5.** *For maternal and late maternal mortality:*  Cause of death is not due to accidental or incidental causes but is due to pregnancy or management of pregnancy [MNH27].
 
 **Common causes for a participant to be marked as "Missing":**
 
@@ -803,8 +803,12 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
    rowwise() %>%
    group_by(SITE) %>%
    summarise(
-    "Any death ^a^, n" = paste0(
-       format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Any death^a^,n (per 100,000)" = paste0(
+      format(sum(MAT_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_DEATH==1, na.rm = TRUE)/sum(PREG_END==1, na.rm = TRUE)*100000, 2), nsmall = 0, digits = 2),
+      ")"),
 
     "Missing date of death^b^, n" = paste0(
        format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
@@ -847,8 +851,12 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
       .before = 1,
     "Total" = mortality %>%
       summarise(
-        "Any death ^a^, n" = paste0(
-       format(sum(MAT_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+      "Any death^a^,n (per 100,000)" = paste0(
+      format(sum(MAT_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_DEATH==1, na.rm = TRUE)/sum(PREG_END==1, na.rm = TRUE)*100000, 2), nsmall = 0, digits = 2),
+      ")"),
 
     "Missing date of death^b^, n" = paste0(
        format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
@@ -941,7 +949,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
         cell_text(weight = "bold")
         ),
       locations = cells_body(rows = c(
-                 "Any death ^a^, n",
+                "Any death^a^,n (per 100,000)",
                 "Pregnancy-related death^c^, n",
                 "Late pregnancy-related death^e^, n"))) %>% 
 tab_style(
@@ -949,11 +957,11 @@ tab_style(
         cell_text(weight = "bold")
         ),
       locations = cells_stub(rows = c(
-                 "Any death ^a^, n",
+                 "Any death^a^,n (per 100,000)",
                  "Pregnancy-related death^c^, n",
                  "Late pregnancy-related death^e^, n"))) %>% 
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes. Denominator: number of pregnancy end points.</span>")
   ) %>% 
   tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>b</sup>Date of death missing;  date of death has been estimated as the midpoint between when the woman was last seen alive and when her death was reported.</span>")
@@ -981,7 +989,10 @@ knitr::include_graphics(paste0(path_to_save, "mortality_output.png"))
 ```
 
 
+
 \newpage
+
+
 
 ## 2. Maternal anemia
 
