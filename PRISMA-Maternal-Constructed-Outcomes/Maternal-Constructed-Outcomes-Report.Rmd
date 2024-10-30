@@ -6191,7 +6191,7 @@ prolong_tab[is.na(prolong_tab)] <- paste0("0 (0)")
 
 prolong_tab_output <- tb_theme1(prolong_tab) %>% 
   tab_header(
-    title = md("**Table 10**")) %>% 
+    title = md("**Table 11**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
         rows = 1:7
@@ -7167,10 +7167,6 @@ knitr::include_graphics(paste0(path_to_save, "highbp52_tab_output.png"))
 
 **Placenta accreta:** Placenta grows too deeply into the wall of the uterus. Placenta accreta can cause the placenta from not detaching completely after delivery, and often causes maternal hemorrhage. Identified at labor and delivery [as an indication for C-section, M09_CES_PRINDC_INF1_17] 
 
-
-
-\newpage
-
 ### Table 15. Placental disorders
 ```{r}
 
@@ -7386,7 +7382,7 @@ tab_style(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))  %>% 
   
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> This denominator is restricted to pregnancies ending in a delivery at/after 20 weeks gestation AND included labor or attempted labor induction. Pregnancies ending in a c-section prior to labor initiation and withou any attempted induction are excluded. </span>"))
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> This denominator is restricted to pregnancies ending in a delivery at/after 20 weeks gestation AND included labor or attempted labor induction. Pregnancies ending in a c-section prior to labor initiation and without any attempted induction are excluded. </span>"))
 
 ```
 
