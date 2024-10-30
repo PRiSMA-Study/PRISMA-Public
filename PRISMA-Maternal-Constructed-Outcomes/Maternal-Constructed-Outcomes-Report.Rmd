@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 October 22)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 October 30)"
 output:
   pdf_document:
     toc: no
@@ -8,6 +8,9 @@ output:
     keep_tex: false
 include-in-header:
 - \usepackage{booktabs,longtable}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -18,7 +21,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: 02 April 2024, Stacie Loisate
-#* Last updated: October 22 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
+#* Last updated: October 29 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -42,7 +45,7 @@ path_to_data <- "Z:/Outcome Data/2024-09-20/"
 path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
-#mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
+mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
 hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
 depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -51,7 +54,7 @@ labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper
 rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
-#near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -117,8 +120,9 @@ tb_theme1 <- function(matrix){
       )
     ) %>%
     fmt_markdown(columns = everything()) %>%
-    tab_options(table.width = pct(100)) %>%
+    tab_options(table.width = pct(100), table.align = "center") %>%
     cols_width(1 ~ px(300))
+  
 }
  
 
@@ -137,7 +141,7 @@ g_legend <- function(p) {
 
 ```
 
-**Includes data from synapse last updated:** 2024 June 28
+**Includes data from synapse last updated:** 2024 September 20
 
 \setcounter{tocdepth}{6}
 \tableofcontents
@@ -660,6 +664,7 @@ summary_tab1 <- MAT_INFECTION %>%
   
 ```
 
+
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
 summary_tab[is.na(summary_tab)] <- paste0("0 (0)")
@@ -730,7 +735,7 @@ tab_footnote(
  )  %>% 
     
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is pregnancies ending in a livebirth or stillbirth (>20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is pregnancies ending in a livebirth or stillbirth (>=20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor).</span>")
  ) %>% 
 
   tab_footnote(
@@ -745,7 +750,7 @@ tab_footnote(
 
 ```{r, out.width = '100%'}
 
-gtsave(summary_tab_output, file = "summary_tab_output.png", path = path_to_save, expand = 10)
+gtsave(summary_tab_output, file = "summary_tab_output.png", path = path_to_save, expand=10)
 knitr::include_graphics(paste0(path_to_save, "summary_tab_output.png"))
 
 ```
@@ -1193,7 +1198,7 @@ tab_style(
 
 ```{r, out.width = '100%'}
 
-gtsave(anemia_output, file = "anemia_output.png", path = path_to_save, expand = 10)
+gtsave(anemia_output, file = "anemia_output.png", path = path_to_save, expand=10)
 knitr::include_graphics(paste0(path_to_save, "anemia_output.png"))
 
 ```
@@ -3318,11 +3323,11 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),   
     
         "PPH reported in MNH09/12/19" = paste0(
-            format(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) |
+            format(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & TIMING_HOSP==2) |
                          M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
                          M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE), nsmall = 0, digits = 2),
             " (",
-            format(round(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & M19_TIMING_OHOCAT==2) |
+            format(round(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & TIMING_HOSP==2) |
                          M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
                          M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
             ")"),
@@ -6105,7 +6110,7 @@ knitr::include_graphics(paste0(path_to_save, "uter_rup_tab_output.png"))
 
 **Definition:** Labor lasting >24 hours (from the time of labor onset to the time of infant birth, as reported in MNH09 form)
 
-**Denominator:** Pregnancies ending in a livebirth or stillbirth (>20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor). 
+**Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor). 
 
 ### Table 11. Prolonged labor
 ```{r}
@@ -6766,6 +6771,11 @@ hdp_tab2 <- hdp %>%
       format(round(sum(SEVERE_FEAT_HEAD==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
+    "Postpartum seizures (within 7 days of delivery)" = paste0(
+      format(sum(SEVERE_FEAT_POSTP_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SEVERE_FEAT_POSTP_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
   
     ) %>% 
   t() %>% as.data.frame() %>% 
@@ -6785,7 +6795,7 @@ hdp_tab2_output <- tb_theme1(hdp_tab2) %>%
     title = md("**Table 13b**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Preeclampsia with severe features by symptoms <sup>a</sup></span>"),
-        rows = 1:11
+        rows = 1:12
     ) %>%
   # bold denominator rows 2
   tab_style(
@@ -7254,7 +7264,7 @@ knitr::include_graphics(paste0(path_to_save, "placenta_tab_output.png"))
 
 **Definition:** Induced labor, including induction by artificial rupture of membranes, oxytocin, misoprostol, foley, and/or another method, as reported in MNH09 form)
 
-**Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA). 
+**Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA), excluding pregnancies that ended in a c-section prior to labor. 
 
 ### Table 16a. Induced Labor
 ```{r}
@@ -7335,7 +7345,7 @@ induced_tab_output <- tb_theme1(induced_tab) %>%
         rows = 1:6
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Induced labor prevalence</span>"),
+    label = html("<span style='font-size: 18px'>Induced labor prevalence <sup>b</sup></span>"),
     rows = 7:9
   ) %>%
     # bold denominator rows 1
@@ -7370,10 +7380,13 @@ tab_style(
                  "Expected denominator (total completed pregnancies)",
                  "Expected denominator (total completed pregnancies)"))) %>% 
  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
-                           "<span style='font-size: 18px'>Induced labor prevalence</span>"))  %>% 
+                           "<span style='font-size: 18px'>Induced labor prevalence <sup>b</sup></span>"))  %>% 
   
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))  %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> This denominator is restricted to pregnancies ending in a delivery at/after 20 weeks gestation AND included labor or attempted labor induction. Pregnancies ending in a c-section prior to labor initiation and withou any attempted induction are excluded. </span>"))
 
 ```
 
