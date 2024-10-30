@@ -37,17 +37,16 @@ library(dplyr)
 
 # set path to save 
 # Stacie's path:
-# path_to_data <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
-# path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
+path_to_data <- "D:/Users/stacie.loisate/Documents/import/2024-09-20/"
+path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-path_to_data <- "Z:/Outcome Data/2024-09-20/" 
-path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
-
+# path_to_data <- "Z:/Outcome Data/2024-09-20/" 
+# path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
 hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
-depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper) %>% filter(SITE != "")
 anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
