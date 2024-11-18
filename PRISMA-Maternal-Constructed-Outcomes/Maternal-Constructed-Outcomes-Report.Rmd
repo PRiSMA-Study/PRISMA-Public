@@ -304,7 +304,7 @@ summary_tab1 <- MAT_INFECTION %>%
   summarise(
   
   ## Ever depression
-    "Depression during pregnancy (ever) ^d^" = paste0(
+    "Depressive symptoms during pregnancy (ever) ^d^" = paste0(
       format(sum(DEPR_ANC_EVER_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_ANC_EVER_STND_N==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2755,11 +2755,12 @@ knitr::include_graphics(paste0(path_to_save, "pprom_tab_output.png"))
 
 ```
 
+
 \newpage
 
 ## 5. Perinatal depression
 
-**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a standard cutoff across sites (score >= 11) (Table 5b) or site-specific cutoff (Table 5c).
+**Definition:** Screening for *possible* major depression using Edinburgh Postnatal Depression Scale (EPDS) using a standard cutoff across sites (score $\geq$ 11) (Table 5b) or site-specific cutoff (Table 5c).
 
 **To be included as "non-missing" for this outcome, a participant must have:**
 
@@ -2767,7 +2768,7 @@ knitr::include_graphics(paste0(path_to_save, "pprom_tab_output.png"))
 
 **2.** Visit type recorded as enrollment, ANC-20, ANC-32, ANC-36, or PNC-6.
 
-    a.  ***NOTE:* we are not considering if non-scheduled routine visit is indicated*
+*NOTE: we are not considering if non-scheduled routine visit is indicated*
 
 **3.** Valid responses are calculated from EPDS variables (varname [form]: `EPDS0101` – `EPDS0110` [MNH25])
 
@@ -2893,13 +2894,13 @@ knitr::include_graphics(paste0(path_to_save, "depression_complete_output.png"))
 
 \newpage
 
-### 5b. Maternal depression, using standard cutoff score (>=11)
+### 5b. Suspected maternal depression, using standard cutoff score (>= 11)
 
-**Numerator:** Valid depression score >=11 (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
+**Numerator:** Valid depression score $\geq$ 11 (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
 
 **Denominator:** MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
 
-#### Table 5b. Maternal depression, using standard cutoff score
+#### Table 5b. Suspected maternal depression, using standard cutoff score
 ```{r}
 ## to update denominators as needed!! 
 
@@ -2908,7 +2909,7 @@ depression_standard_tab <- depression %>%
   group_by(SITE) %>% 
   summarise(
     
-    "Depression ever^a^, n (%)" = paste0(
+    "Depressive symptoms ever, n (%)^a^" = paste0(
       format(sum(DEPR_EVER_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_EVER_STND_N==1, na.rm = TRUE)/sum(DEPR_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2917,7 +2918,7 @@ depression_standard_tab <- depression %>%
     "Denominator, n" = paste0(
       format(sum(DEPR_EVER_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "ANC, ever^b^, n (%)" = paste0(
+    "Depressive symptoms, ANC ever, n (%)^b^" = paste0(
       format(sum(DEPR_ANC_EVER_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_ANC_EVER_STND_N==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2926,7 +2927,7 @@ depression_standard_tab <- depression %>%
     "Denominator, n " = paste0(
       format(sum(DEPR_ANC_EVER_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "ANC-20^c^, n (%)" = paste0(
+    "Depressive symptoms, ANC-20, n (%)^c^" = paste0(
       format(sum(DEPR_ANC20_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_ANC20_STND_N==1, na.rm = TRUE)/sum(DEPR_ANC20_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2935,7 +2936,7 @@ depression_standard_tab <- depression %>%
     "Denominator, n  " = paste0(
       format(sum(DEPR_ANC20_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "ANC-32^d^, n (%)" = paste0(
+    "Depressive symptoms, ANC-32, n (%)^d^" = paste0(
       format(sum(DEPR_ANC32_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_ANC32_STND_N==1, na.rm = TRUE)/sum(DEPR_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2944,7 +2945,7 @@ depression_standard_tab <- depression %>%
     "Denominator, n   " = paste0(
       format(sum(DEPR_ANC32_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
         
-    "PNC-6, n (%)" = paste0(
+    "Depressive symptoms, PNC-6, n (%)" = paste0(
       format(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE)/sum(DEPR_PNC6_D==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2971,19 +2972,42 @@ depression_standard_output <- tb_theme1(depression_standard_tab) %>%
   tab_header(
     title = md("**Table 5b**")) %>% 
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Depression assessment (MNH25)</span>"),
-        rows = 1:10
+    label = html("<span style='font-size: 18px'>Depressive symptoms, ever</span>"),
+        rows = 1:2
     ) %>%
- row_group_order(groups = c( "<span style='font-size: 18px'>Depression assessment (MNH25)</span>")) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, ANC ever</span>"),
+        rows = 3:4
+    ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, ANC-20</span>"),
+        rows = 5:6
+    ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, ANC-32</span>"),
+        rows = 7:8
+    ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, PNC-6</span>"),
+        rows = 9:10
+    ) %>%
+  
+
+ row_group_order(groups = c( "<span style='font-size: 18px'>Depressive symptoms, ever</span>",
+                             "<span style='font-size: 18px'>Depressive symptoms, ANC ever</span>",
+                             "<span style='font-size: 18px'>Depressive symptoms, ANC-20</span>",
+                             "<span style='font-size: 18px'>Depressive symptoms, ANC-32</span>",
+                             "<span style='font-size: 18px'>Depressive symptoms, PNC-6</span>"
+                ) ) %>% 
 tab_style(
       style = list(
         cell_text(indent = px(0))
         ),
-      locations = cells_stub(rows = c('Depression ever^a^, n (%)',
-                 "ANC, ever^b^, n (%)",
-                 "ANC-20^c^, n (%)", 
-                 "ANC-32^d^, n (%)", 
-                 "PNC-6, n (%)")) 
+      locations = cells_stub(rows = c('Depressive symptoms ever, n (%)^a^',
+                 "Depressive symptoms, ANC ever, n (%)^b^",
+                 "Depressive symptoms, ANC-20, n (%)^c^", 
+                 "Depressive symptoms, ANC-32, n (%)^d^", 
+                 "Depressive symptoms, PNC-6, n (%)")) 
 ) %>% 
   tab_style(
       style = list(
@@ -2997,7 +3021,7 @@ tab_style(
       ) %>% 
 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Depression, ever (among any woman who has at least one EPDS assessment).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> EPDS score at or above 11, ever (among any woman who has at least one EPDS assessment).</span>")
  )  %>% 
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> ANC, ever (among any woman who has at least one EPDS assessment at enrollment, ANC-20, ANC-32, or ANC-36).</span>")
@@ -3020,24 +3044,26 @@ knitr::include_graphics(paste0(path_to_save, "depression_standard_output.png"))
 
 \newpage
 
-### 5c. Maternal Depression, using site-specific cutoff score
+### 5c. Maternal depressive symptoms, using site-specific cutoff score
 **Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a site-specific cutoff: 
--   Ghana >= 11; 
 
--   India - CMC >= 8; 
+-   Ghana $\geq$ 11; 
 
--   India - SAS >= 10; 
+-   India - CMC $\geq$ 8; 
 
--   Kenya >= 13; 
+-   India - SAS $\geq$ 10; 
 
--   Pakistan >= 14;
+-   Kenya $\geq$ 13; 
 
--   Zambia >= 10 
+-   Pakistan $\geq$ 14;
 
-**Numerator:** Valid depression score >= site-specific cutoff (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
+-   Zambia $\geq$ 10 
+
+**Numerator:** Valid depression score $\geq$ site-specific cutoff (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
 
 **Denominator:**  MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
 
+\newpage
 #### Table 5c. Maternal Depression, using site-specific cutoff score
 ```{r}
 depression_site_tab <- depression %>% 
@@ -3045,7 +3071,7 @@ depression_site_tab <- depression %>%
   group_by(SITE) %>% 
   summarise(
     
-    "Depression ever^a^, n (%)" = paste0(
+    "Depressive symptoms ever, n (%)^a^" = paste0(
       format(sum(DEPR_EVER_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_EVER_SITE_N==1, na.rm = TRUE)/sum(DEPR_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3054,7 +3080,7 @@ depression_site_tab <- depression %>%
     "Denominator, n" = paste0(
       format(sum(DEPR_EVER_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "ANC, ever^b^, n (%)" = paste0(
+    "Depressive symptoms, ANC ever, n (%)^b^" = paste0(
       format(sum(DEPR_ANC_EVER_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_ANC_EVER_SITE_N==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3063,7 +3089,7 @@ depression_site_tab <- depression %>%
     "Denominator, n " = paste0(
       format(sum(DEPR_ANC_EVER_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "ANC-20^c^, n (%)" = paste0(
+    "Depressive symptoms, ANC-20, n (%)^c^" = paste0(
       format(sum(DEPR_ANC20_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_ANC20_SITE_N==1, na.rm = TRUE)/sum(DEPR_ANC20_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3072,7 +3098,7 @@ depression_site_tab <- depression %>%
     "Denominator, n  " = paste0(
       format(sum(DEPR_ANC20_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "ANC-32^d^, n (%)" = paste0(
+    "Depressive symptoms, ANC-32, n (%)^d^" = paste0(
       format(sum(DEPR_ANC32_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_ANC32_SITE_N==1, na.rm = TRUE)/sum(DEPR_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3081,7 +3107,7 @@ depression_site_tab <- depression %>%
     "Denominator, n   " = paste0(
       format(sum(DEPR_ANC32_D==1, na.rm = TRUE), nsmall = 0, digits = 2)),
         
-    "PNC-6, n (%)" = paste0(
+    "Depressive symptoms, PNC-6, n (%)" = paste0(
       format(sum(DEPR_PNC6_SITE_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_PNC6_SITE_N==1, na.rm = TRUE)/sum(DEPR_PNC6_D==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3107,20 +3133,43 @@ depression_site_tab[is.na(depression_site_tab)] <- paste0("0 (0)")
 depression_site_output <- tb_theme1(depression_site_tab) %>% 
   tab_header(
     title = md("**Table 5c**")) %>% 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Depression assessment (MNH25)</span>"),
-        rows = 1:10
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, ever</span>"),
+        rows = 1:2
     ) %>%
- row_group_order(groups = c( "<span style='font-size: 18px'>Depression assessment (MNH25)</span>")) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, ANC ever</span>"),
+        rows = 3:4
+    ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, ANC-20</span>"),
+        rows = 5:6
+    ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, ANC-32</span>"),
+        rows = 7:8
+    ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Depressive symptoms, PNC-6</span>"),
+        rows = 9:10
+    ) %>%
+  
+
+ row_group_order(groups = c( "<span style='font-size: 18px'>Depressive symptoms, ever</span>",
+                             "<span style='font-size: 18px'>Depressive symptoms, ANC ever</span>",
+                             "<span style='font-size: 18px'>Depressive symptoms, ANC-20</span>",
+                             "<span style='font-size: 18px'>Depressive symptoms, ANC-32</span>",
+                             "<span style='font-size: 18px'>Depressive symptoms, PNC-6</span>"
+                ) ) %>% 
 tab_style(
       style = list(
         cell_text(indent = px(0))
         ),
-      locations = cells_stub(rows = c('Depression ever^a^, n (%)',
-                 "ANC, ever^b^, n (%)",
-                 "ANC-20^c^, n (%)", 
-                 "ANC-32^d^, n (%)", 
-                 "PNC-6, n (%)")) 
+      locations = cells_stub(rows = c('Depressive symptoms ever, n (%)^a^',
+                 "Depressive symptoms, ANC ever, n (%)^b^",
+                 "Depressive symptoms, ANC-20, n (%)^c^", 
+                 "Depressive symptoms, ANC-32, n (%)^d^", 
+                 "Depressive symptoms, PNC-6, n (%)")) 
 ) %>% 
   tab_style(
       style = list(
@@ -3134,7 +3183,7 @@ tab_style(
       ) %>% 
 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Depression, ever (among any woman who has at least one EPDS assessment).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> EPDS score at or above the cutoff score for that site, ever (among any woman who has at least one EPDS assessment).</span>")
  )  %>% 
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> ANC, ever (among any woman who has at least one assessment at enrollment, ANC-20, ANC-32, or ANC-36).</span>")
@@ -3271,6 +3320,7 @@ ggsave(paste0("dep_pnc6", ".pdf"), path = path_to_data,
 
 knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
 ```
+
 
 \newpage
 
@@ -7152,55 +7202,55 @@ knitr::include_graphics(paste0(path_to_save, "highbp52_tab_output.png"))
 
 ## 15. Placental Disorders
 
-**Placenta previa:** Placenta partially or fully covers the cervix. Placenta previa is a risk factor for maternal hemorrhage. Identified by ultrasound [M01_PREVIA_PERES_FTS#==3] and at labor and delivery [as an indication for C-section, M09_CES_PRINDC_INF#_18 == 1; as a contributor to antepartum hemorrhage, M09_APH_FAORRES_2 == 1] 
+**Placenta previa:** Placenta partially or fully covers the cervix. Placenta previa is a risk factor for maternal hemorrhage. Identified by ultrasound [`M01_PREVIA_PERES_FTS#`==3] and at labor and delivery [as an indication for C-section, `M09_CES_PRINDC_INF#_18` == 1; as a contributor to antepartum hemorrhage, `M09_APH_FAORRES_2` == 1]
 
-**Placental abruption:** Placenta separates from the wall of the uterus before delivery. Placental abruption can cause maternal hemorrhage and disrupt supply of nutrients and oxygen to the baby. Identified at labor and delivery [as an indication for C-section, M09_CES_PRINDC_INF#_17 == 1; as a contributor to antepartum hemorrhage, M09_APH_FAORRES_1==1].
+**Placental abruption:** Placenta separates from the wall of the uterus before delivery. Placental abruption can cause maternal hemorrhage and disrupt supply of nutrients and oxygen to the baby. Identified at labor and delivery [as an indication for C-section, `M09_CES_PRINDC_INF#_17` == 1; as a contributor to antepartum hemorrhage, `M09_APH_FAORRES_1`==1].
 
-**Placenta accreta:** Placenta grows too deeply into the wall of the uterus. Placenta accreta can cause the placenta from not detaching completely after delivery, and often causes maternal hemorrhage. Identified at labor and delivery [as an indication for C-section, M09_CES_PRINDC_INF1_17] 
+**Placenta accreta:** Placenta grows too deeply into the wall of the uterus. Placenta accreta can cause the placenta from not detaching completely after delivery, and often causes maternal hemorrhage. Identified at labor and delivery [as an indication for C-section, `M09_CES_PRINDC_INF1_17`]
 
 ### Table 15. Placental disorders
 ```{r}
 
-placenta_tab <- placenta %>% 
-  rowwise() %>% 
-  group_by(SITE) %>% 
+placenta_tab <- placenta %>%
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
+
 
      "Denominator^a^" = paste0(
       format(sum(SB_LB == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-     
+
       "Women who delivered by Cesarean" = paste0(
 
-      format(sum(CES_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),    
-     
-     "Placenta previa" = paste0(
+      format(sum(CES_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+     "Observed or suspected placenta previa" = paste0(
       format(sum(PREVIA == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PREVIA == 1, na.rm = TRUE)/sum(SB_LB == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),  
-    
-     "Placental abruption" = paste0(
+      ")"),
+
+     "Suspected placental abruption" = paste0(
       format(sum(PLACENTA_ABRUPTION_M09 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PLACENTA_ABRUPTION_M09 == 1, na.rm = TRUE)/sum(SB_LB == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
 
-     
-     "Placenta accreta indicated as reason for C-section^b^" = paste0(
+
+     "Suspected placenta accreta indicated as reason for C-section^b^" = paste0(
       format(sum(PLACENTA_ACCRETE_M09 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PLACENTA_ACCRETE_M09 == 1, na.rm = TRUE)/sum(CES_ANY == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-  
-    ) %>% 
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)  %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
 
 ```
 
@@ -7209,9 +7259,9 @@ placenta_tab <- placenta %>%
 # replace NA with 0s (this likely means there is not yet data)
 placenta_tab[is.na(placenta_tab)] <- paste0("0 (0)")
 
-placenta_tab_output <- tb_theme1(placenta_tab) %>% 
+placenta_tab_output <- tb_theme1(placenta_tab) %>%
   tab_header(
-    title = md("**Table 15**")) %>% 
+    title = md("**Table 15**")) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness</span>"),
         rows = 1:2
@@ -7221,7 +7271,7 @@ placenta_tab_output <- tb_theme1(placenta_tab) %>%
         rows = 3:5
     ) %>%
  row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
-                            "<span style='font-size: 18px'>Placental disorders</span>"))  %>% 
+                            "<span style='font-size: 18px'>Placental disorders</span>"))  %>%
 
    tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup>Denominator is women with a pregnancy end point, minus pregnancy losses and maternal death</span>" )) %>%
@@ -7239,10 +7289,6 @@ gtsave(placenta_tab_output, file = "placenta_tab_output.png", path = path_to_sav
 knitr::include_graphics(paste0(path_to_save, "placenta_tab_output.png"))
 
 ```
-
-
-
-
 
 \newpage
 
