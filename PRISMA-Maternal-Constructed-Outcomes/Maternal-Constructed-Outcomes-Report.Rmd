@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 October 31)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2024 November 18)"
 output:
   pdf_document:
     toc: no
@@ -139,7 +139,7 @@ g_legend <- function(p) {
 
 ```
 
-**Includes data from synapse last updated:** 2024 September 20
+**Includes data from synapse last updated:** 2024 November 18
 
 \setcounter{tocdepth}{6}
 \tableofcontents
@@ -988,8 +988,6 @@ knitr::include_graphics(paste0(path_to_save, "mortality_output.png"))
 
 \newpage
 
-
-
 ## 2. Maternal anemia
 
 ### 2a. Maternal anemia any time in pregnancy
@@ -1490,8 +1488,6 @@ anemia_tab_tri3 <- anemia %>%
 
 
 ```
-
-
 
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
