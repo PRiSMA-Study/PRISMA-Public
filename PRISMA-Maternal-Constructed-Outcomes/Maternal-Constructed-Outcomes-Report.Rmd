@@ -628,7 +628,7 @@ summary_tab1 <- MAT_INFECTION %>%
   summarise(
   
   ## Depression
-     "Postpartum Depression (6-14 weeks) ^f^" = paste0(
+     "Depressive symptoms, postpartum (6-14 weeks) ^f^" = paste0(
        format(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE)/sum(DEPR_PNC6_D==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -643,7 +643,7 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = depression %>%
         plyr::summarise(
           
-   "Postpartum Depression (6-14 weeks) ^f^" = paste0(
+   "Depressive symptoms, postpartum (6-14 weeks) ^f^" = paste0(
        format(sum(DEPR_PNC6_STND_N==1, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
