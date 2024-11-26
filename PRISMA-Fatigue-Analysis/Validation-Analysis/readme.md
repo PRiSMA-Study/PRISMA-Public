@@ -2,7 +2,7 @@
 
 ## Description
 
-This folder contains R code to visualize the answer distribution for each question in fatigue form and also the distribution of subscale score by site.
+This folder contains Stata and R code to analyze validity of FACIT-fatigue scale by site
 
 #### :pushpin: Updated on 2024-11-26
 #### :pushpin: Originally drafted by: Savannah O'Malley (savannah.omalley@gwu.edu)
