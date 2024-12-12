@@ -1,0 +1,234 @@
+---
+title: "Depression form (MNH25) analysis"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    latex_engine: xelatex
+    keep_tex: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%", fig.align = "center") 
+
+library(tidyverse)
+library(flextable)
+library(officer)
+library(scales) 
+library(patchwork)
+
+load("derived_data/df_depress.rda")
+
+#table format
+tb_flextable <- function(data, caption, seq_id, bkm) { 
+  tb <- qflextable(data)
+  tb <- set_table_properties(
+    tb, width = 0.8, layout = "autofit",
+    opts_pdf = list(tabcolsep = 3))
+  tb <- set_caption(tb,
+    caption = as_paragraph(
+as_chunk(caption, props = fp_text_default(font.family = "Arial"))
+),
+    word_stylename = "Table Caption",
+    autonum = run_autonum(seq_id = seq_id, bkm = bkm)
+  )
+  tb <- bold(tb, bold = FALSE, part = "header")
+  tb
+}
+```
+
+### Includes data from synapse last updated: {.unlisted .unnumbered}
+### Pakistan : 2023-10-13 {.unlisted .unnumbered}
+### Kenya : 2023-10-13 {.unlisted .unnumbered}
+### Ghana : 2023-10-13 {.unlisted .unnumbered}
+### Zambia : 2023-10-13 {.unlisted .unnumbered}
+### India-CMC : 2023-10-13 {.unlisted .unnumbered}
+
+\newpage
+
+## Part I. Depression score distribution by site
+
+Depression score range is 0-30. The higher the score, the higher likelihood of depression. Please refer to the cutoff line for each site.
+
+```{r}
+plot_depress_k <- df_depress %>%   
+  filter(!is.na(dep_score)) %>% 
+  filter(SITE == "Kenya")
+
+plot_depress_p <- df_depress %>%   
+  filter(!is.na(dep_score)) %>% 
+  filter(SITE == "Pakistan")
+
+plot_depress_g <- df_depress %>%   
+  filter(!is.na(dep_score)) %>% 
+  filter(SITE == "Ghana")
+
+plot_depress_i <- df_depress %>%   
+  filter(!is.na(dep_score)) %>% 
+  filter(SITE == "India-CMC")
+
+plot_depress_z <- df_depress %>%   
+  filter(!is.na(dep_score)) %>% 
+  filter(SITE == "Zambia")
+
+df_vline <- data.frame(
+  vline = c(13,11,14,8,10),
+  SITE = c("Kenya","Ghana","Pakistan","India-CMC","Zambia"))
+
+p_k <- ggplot(plot_depress_k, aes(x = dep_score, fill = ..x..)) +
+  geom_histogram(alpha=0.8, position="identity", binwidth = 1) +
+  scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,31))+
+  xlab("") +
+  ylab("Kenya")+
+  theme_bw() +
+  theme(strip.background=element_rect(fill="white"),
+        axis.text.x = element_blank(),
+        legend.position="right",
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9),
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.236,"cm"),
+        plot.margin = unit(c(0,0,0,0), "pt"),
+        axis.ticks.x = element_blank()
+        ) +
+  geom_vline(data=df_vline, aes(xintercept = 13), color = "red",size=0.15) +
+  scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                       values = c(0, 13/30, (13/30+1)/2, 1))
+
+
+p_g <- ggplot(plot_depress_g, aes(x = dep_score, fill = ..x..)) +
+  geom_histogram(alpha=0.8, position="identity", binwidth = 1) +
+  scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,31))+
+  xlab("") +
+  ylab("Ghana")+
+  theme_bw() +
+  theme(strip.background=element_rect(fill="white"),
+        axis.text.x = element_blank(),
+        legend.position="right",
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9),
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.236,"cm"),
+        plot.margin = unit(c(0,0,0,0), "pt"),
+                axis.ticks.x = element_blank()
+        ) +
+  geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
+   scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                        values = c(0, 11/30, (11/30+1)/2, 1))
+
+p_i <- ggplot(plot_depress_i, aes(x = dep_score, fill = ..x..)) +
+  geom_histogram(alpha=0.8, position="identity", binwidth = 1) +
+  scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,31))+
+  xlab(" ") +
+  ylab("India-CMC")+
+  theme_bw() +
+  theme(strip.background=element_rect(fill="white"),
+        axis.text.x = element_blank(),
+        legend.position="right",
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9),
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.236,"cm"),
+        plot.margin = unit(c(0,0,0,0), "pt"),
+        axis.ticks.x = element_blank()
+        ) +
+  geom_vline(data=df_vline, aes(xintercept = 8), color = "red",size=0.15) +
+ scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                      values = c(0, 8/30, (8/30+1)/2, 1))
+
+p_p <- ggplot(plot_depress_p, aes(x = dep_score, fill = ..x..)) +
+  geom_histogram(alpha=0.8, position="identity", binwidth = 1) +
+  scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,31))+
+  xlab("") +
+  ylab("Pakistan")+
+  theme_bw() +
+  theme(strip.background=element_rect(fill="white"),
+        axis.text.x = element_blank(),
+        legend.position="right",
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9),
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.236,"cm"),
+        plot.margin = unit(c(0,0,0,0), "pt"),
+        axis.ticks.x = element_blank()
+        ) +
+  geom_vline(aes(xintercept = 14), color = "red",size=0.15) +
+ scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                      values = c(0, 14/30, (14/30+1)/2, 1))
+
+p_z <- ggplot(plot_depress_z, aes(x = dep_score, fill = ..x..)) +
+  geom_histogram(alpha=0.8, position="identity", binwidth = 1) +
+  scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,31))+
+  xlab("Depression Score") +
+  ylab("Zambia")+
+  theme_bw() +
+  theme(strip.background=element_rect(fill="white"),
+        axis.text.x = element_text(angle = 0, vjust = 1, hjust=1),
+        legend.position="right",
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9),
+        legend.text = element_text(size = 6),
+        legend.key.size = unit(0.236,"cm"), 
+        plot.margin = unit(c(0,0,0,0), "pt")
+        ) +
+  geom_vline(data=df_vline, aes(xintercept = 10), color = "red",size=0.15) +
+   scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                        values = c(0, 10/30, (10/30+1)/2, 1))
+
+wrap_plots(list(p_g,plot_spacer(),p_i,plot_spacer(),p_k,plot_spacer(),p_p,plot_spacer(),p_z), ncol = 1,heights = 50) +
+  plot_layout(heights = c(7,-2.7,7,-2.7,7,-2.7,7,-2.7,7),guides = "keep") 
+
+
+```
+
+\textcolor{red}{|} indicates the cutoff score for depression likelihood in each site. And percent of mom who has higher than cutoff score are shown below.
+
+```{r}
+tb_depress <- df_depress %>%
+  group_by(SITE) %>%
+  summarise(
+    "Possible Depression, n (%)" = paste0(
+      format(sum(dep_lh == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(dep_lh == 1, na.rm = TRUE)/n()*100, 2), nsmall = 2, digits = 2),
+      ")")
+  ) %>% 
+  ungroup() 
+
+  tb_flextable(tb_depress, "Percent of possibly depressed mom", seq_id = "tb", bkm = "tb1")
+```
+
+## PartII. Suicidal intent by site
+```{r}
+plot_suicidal <- df_depress 
+
+plot_suicidal %>%
+  ggplot(aes(x = visit_window, fill=suicidal)) +
+    geom_bar(alpha = 0.9, aes(y = (..count..)/sum(..count..)), position = "fill") +
+     scale_y_continuous(labels=percent) +
+    scale_fill_manual(
+      values = c("#c93212", "#00755e" , "grey"),  
+      drop = FALSE) + 
+    xlab("") + 
+    ylab("") +
+    facet_grid(~SITE, scales = "free_y", margins = FALSE) + 
+    theme_bw() +  
+theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1),
+      strip.background=element_rect(fill="white"),
+        legend.position="right",
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 9),
+        axis.title = element_text(size = 8))
+```

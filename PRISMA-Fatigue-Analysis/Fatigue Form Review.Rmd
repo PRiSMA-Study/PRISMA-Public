@@ -1,0 +1,256 @@
+---
+title: "Fatigue Assessment (MNH26) Variable Review"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    latex_engine: xelatex
+    keep_tex: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%", fig.align = "center") 
+
+library(tidyverse)
+
+load("derived_data/df_ftg.rda")
+load("derived_data/df_ftg_long.rda")
+
+```
+
+### Includes data from synapse last updated: {.unlisted .unnumbered}
+### Pakistan : 2023-10-13 {.unlisted .unnumbered}
+### Kenya : 2023-10-13 {.unlisted .unnumbered}
+### Ghana : 2023-10-13 {.unlisted .unnumbered}
+### Zambia : 2023-10-13 {.unlisted .unnumbered}
+### India-CMC : 2023-10-13 {.unlisted .unnumbered}
+
+\newpage
+
+# Part I. Within Site Report
+
+```{r define function for site}
+plot_site <- function(site){
+  df_ftg_long <- df_ftg_long %>% 
+    filter(SITE == site)
+  
+  ggplot(df_ftg_long, aes(x = Variable, fill = Value)) +
+    geom_bar(alpha = 0.9, position = "fill") +
+    scale_fill_manual(
+      values = c("lightgrey", "#F0833A", "#FFCBA4", 
+                 "#FEEFCE", "darkseagreen2", "#70B23F"),
+      drop = FALSE) + 
+    xlab("") + 
+    ylab("") +
+    facet_grid(M26_TYPE_VISIT~., scales = "free_y", margins = TRUE) + 
+    theme_bw() +  
+    theme(legend.title = element_blank()) +
+    theme(strip.background=element_rect(fill="white")) 
+}
+
+```
+
+## Variable list
+* Q1. Feel tired (FTGE_AN2).
+* Q2. Feel fatigued (FTGE_HI7).
+* Q3. Feel weak (FTGE_HI12).
+* Q4. Feel listless ("washed out") (FTGE_AN1V).
+* Q5. Have trouble starting things because of the tiredness (FTGE_AN3).
+* Q6. Have trouble finishing things because of the tiredness (FTGE_AN4).
+* Q7. Have no energy (FTGE_AN5).
+    + FTGE_AN5 is "Have energy" with answer choices "0, Not at all; 1, A little bit; 2, Somewhat; 3, Quite a bit; 4, Very much". In order to be aligned with the rest questions in a sense of fatigue level, we derived Q7 by flipping the answer choices of FTGE_AN5 and labeled it as "Have no energy". 
+* Q8. Unable to do usual activities (FTGE_AN7).
+    + FTGE_AN7 is "Able to do usual activities" with answer choices "0, Not at all; 1, A little bit; 2, Somewhat; 3, Quite a bit; 4, Very much". In order to be aligned with the rest questions in a sense of fatigue level, we derived Q8 by flipping the answer choices of FTGE_AN7 and labeled it as "Unable to do usual activities". 
+* Q9. Need to sleep during the day (FTGE_AN8).
+* Q10. Too tired to eat (FTGE_AN12).
+* Q11. Need help doing usual activities (FTGE_AN14).
+* Q12. Frustrated by being too tired to do the things want to do (FTGE_AN15).
+* Q13. Have to limit social activity because of the tiredness (FTGE_AN16).
+
+  -- Note that NA means variable values are not one of the response options, such as -5, -7, 55, 77, etc. 
+    
+## Site 1. Pakistan
+
+```{r}
+plot_site("Pakistan")
+
+```
+
+## Site 2. Kenya
+
+```{r}
+plot_site("Kenya")
+
+```
+
+## Site 3. Ghana
+
+```{r}
+plot_site("Ghana")
+
+```
+
+## Site 4. Zambia
+
+```{r}
+plot_site("Zambia")
+
+```
+
+## Site 5. India-CMC
+
+```{r}
+plot_site("India-CMC")
+
+```
+
+\newpage
+
+# Part II. Between Site Report
+
+```{r define function for question}
+plot_q <- function(n){
+  ggplot(df_ftg, 
+         aes(x = SITE, 
+             fill = eval(parse(text=paste0("Q", n))))) +
+    geom_bar(alpha = 0.9, position = "fill") +
+    scale_fill_manual(
+      values = c("lightgrey", "#F0833A", "#FFCBA4", 
+                 "#FEEFCE", "darkseagreen2", "#70B23F"), 
+      drop = FALSE) + 
+    xlab("") + 
+    ylab("") +
+    facet_grid(M26_TYPE_VISIT~., scales = "free_y", margins = TRUE) + 
+    theme_bw() +  
+    theme(legend.title = element_blank()) +
+    theme(strip.background=element_rect(fill="white"))
+}
+
+```
+
+## Q1. Feel tired (FTGE_AN2).
+
+```{r}
+plot_q(1)
+
+```
+
+## Q2. Feel fatigued (FTGE_HI7).
+
+```{r}
+plot_q(2)
+
+```
+
+## Q3. Feel weak (FTGE_HI12).
+
+```{r}
+plot_q(3)
+
+```
+
+## Q4. Feel listless ("washed out") (FTGE_AN1V).
+
+```{r}
+plot_q(4)
+
+```
+
+## Q5. Have trouble starting things because of the tiredness (FTGE_AN3).
+
+```{r}
+plot_q(5)
+
+```
+
+## Q6. Have trouble finishing things because of the tiredness (FTGE_AN4).
+
+```{r}
+plot_q(6)
+
+```
+
+## Q7. Have no energy (FTGE_AN5).
+
+```{r}
+plot_q(7)
+
+```
+
+## Q8. Unable to do usual activities (FTGE_AN7).
+
+```{r}
+plot_q(8)
+
+```
+
+## Q9. Need to sleep during the day (FTGE_AN8).
+
+```{r}
+plot_q(9)
+
+```
+
+## Q10. Too tired to eat (FTGE_AN12).
+
+```{r}
+plot_q(10)
+
+```
+
+## Q11. Need help doing usual activities (FTGE_AN14).
+
+```{r}
+plot_q(11)
+
+```
+
+## Q12. Frustrated by being too tired to do the things want to do (FTGE_AN15).
+
+```{r}
+plot_q(12)
+
+```
+
+## Q13. Have to limit social activity because of the tiredness (FTGE_AN16).
+
+```{r}
+plot_q(13)
+
+```
+\newpage
+# III. Part 3 Fatigue subscale score by site
+
+Fatigue Subscale Scoring is calculated according to FACIT-Fatigue Subscale Scoring Guidelines (Version 4). Score range is 0-52.
+Instructions:
+1. Record answers in "item response" column. If missing, mark with an X
+2. Perform reversals as indicated and sum individual items to obtain a score.
+3. Multiply the sum of the item scores by the number of items in the subscale, then divide by the number of items answered.  This produces the subscale score.
+4. **The higher the score, the better the QOL.**
+
+
+```{r}
+plot_ftg_score <- df_ftg %>%   
+  filter(!is.na(ftg_score))  
+
+plot_ftg_score %>%
+  ggplot(aes(x = ftg_score, fill = ..x..)) +
+  geom_histogram( alpha=0.9, position="identity", binwidth = 1) +
+  scale_x_continuous(breaks=seq(0,52,1))+
+  xlab("Fatigue Subscale Score") +
+  ylab("Frequency")+
+  facet_grid(SITE~., scales = "free_y", margins = FALSE) +
+  theme_bw() +
+  theme(strip.background=element_rect(fill="white"),
+        axis.text.x = element_text(angle = 90, vjust = 1, hjust=1),
+        legend.position="bottom",
+        legend.title = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 8),
+        axis.title = element_text(size = 9),
+        legend.text = element_text(size = 8)) +
+scale_fill_gradient(low='red', high='green')
+
+```
+
