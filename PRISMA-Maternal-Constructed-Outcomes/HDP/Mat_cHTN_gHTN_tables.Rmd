@@ -1,12 +1,11 @@
 ---
-title:  "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Hypertensive Disorders of Pregnancy) (Issued: `r Sys.Date()`)"
-author: "Author: Fouzia Farooq"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Hypertensive Disorders of Pregnancy) (Issued: `r Sys.Date()`)"
+author: 'Author: Fouzia Farooq'
 output:
   html_document:
     df_print: paged
     toc: yes
     toc_depth: 4
- 
 
 ---
 
@@ -17,7 +16,10 @@ output:
 
 
 ##### **Includes data from synapse last updated:** {.unlisted .unnumbered}
-#####  2023-10-13 {.unlisted .unnumbered}
+#####  **Ghana: 2023-10-13** {.unlisted .unnumbered}
+#####  **Kenya: 2023-10-13** {.unlisted .unnumbered}
+#####  **Pakistan: 2023-10-13** {.unlisted .unnumbered}
+#####  **Zambia: 2023-10-13** {.unlisted .unnumbered}
 
 
 ```{css, echo=FALSE}
@@ -48,14 +50,13 @@ library(RColorBrewer)
 
 ```{r}
 # AMONG WOMEN WHO HAVE DELIVERED
-htn_df2 <- read.csv('../data_out/mat_htn_tables_20231017.csv', header = TRUE)
+htn_df2 <- read.csv('../data_out/mat_HDP_tables_20231030.csv', header = TRUE)
 df <- htn_df2 
 
-missing_mnh08_df <- read.csv('../data_out/missing_mnh08_df_delivered_20231017.csv')
+missing_mnh08_df <- read.csv('../data_out/missing_mnh08_df_delivered_20231026.csv')
 chtn_diag_df <- read.csv('../data_out/chtn_diag_df.csv', header=TRUE)
 ```
-**Denominator used for analysis:**
-Enrolled women who have a completed pregnancy
+
 <br>
 <br>
 <br>
@@ -116,7 +117,7 @@ chtn_table <- df %>%
   slice(-1)
 ```
 
-#### **Table 1a. Total number of BP measurements across visits until delivery (from MNH06) (including the enrollment visit)**
+#### **Table 1a. Total number of BP measurements across visits until delivery (from MNH06)**
 ```{r}
 chtn_table  %>% 
   `rownames<-` (c(
@@ -136,7 +137,7 @@ chtn_table  %>%
   kable_styling(font_size = 14) %>%
   row_spec(0, extra_css = "border-bottom: 0px white;") %>%
   
-  pack_rows("Blood Pressure measurements from VISIT 1-6, n (%)", 1, 7, label_row_css = "color: steelblue;")
+  pack_rows("Blood Pressure measurements, n (%)", 1, 7, label_row_css = "color: steelblue;")
 ```
 
 \newpage
@@ -151,9 +152,9 @@ missing_mnh08_df2 <- missing_mnh08_df %>%
   summarise(
     # Missing MNH08 at enrollment among those who delivered and have passed their Enrollment visit window
     "Missing MNH08 at enrollment, n (%)" =
-      paste0(sum(M08_MAT_VISIT_FORM_COMPLETED_1==0 & ENROLL_PASS==1, na.rm = TRUE),
+      paste0(sum(M08_MAT_VISIT_FORM_COMPLETED_1 %in% c(0, NA) & ENROLL_PASS==1, na.rm = TRUE),
              " (",
-             format(round(sum(M08_MAT_VISIT_FORM_COMPLETED_1==0 & ENROLL_PASS==1, na.rm = TRUE)/(sum(ENROLL_PASS==1, na.rm=TRUE))*100, 2),nsmall=2, digits=3),
+             format(round(sum(M08_MAT_VISIT_FORM_COMPLETED_1 %in% c(0, NA) & ENROLL_PASS==1, na.rm = TRUE)/(sum(ENROLL_PASS==1, na.rm=TRUE))*100, 2),nsmall=2, digits=3),
              ")"),
     
     # Missing MNH08 at ANC32 among those who delivered and have passed their ANC32 visit window
@@ -161,6 +162,12 @@ missing_mnh08_df2 <- missing_mnh08_df %>%
       paste0(sum(M08_MAT_VISIT_FORM_COMPLETED_3==0 & ANC32_PASS==1, na.rm = TRUE),
              " (",
              format(round(sum(M08_MAT_VISIT_FORM_COMPLETED_3==0 & ANC32_PASS==1, na.rm = TRUE)/(sum(ANC32_PASS==1, na.rm=TRUE))*100, 2),nsmall=2, digits=3),
+             ")"),
+    
+    "Missing MNH08 at ANC36 , n (%)" =
+      paste0(sum(M08_MAT_VISIT_FORM_COMPLETED_4==0 & ANC36_PASS==1, na.rm = TRUE),
+             " (",
+             format(round(sum(M08_MAT_VISIT_FORM_COMPLETED_4==0 & ANC36_PASS==1, na.rm = TRUE)/(sum(ANC36_PASS==1, na.rm=TRUE))*100, 2),nsmall=2, digits=3),
              ")")) %>%
   
   t() %>% as.data.frame() %>%
@@ -190,53 +197,50 @@ other_missing <- df %>%
              " (",
              format(round(sum(is.na(PROTEINURIA_ANC_IPC))/n()*100, 2),nsmall=2, digits=3),
              ")"),
+  
     
-    "Missing Hb (CBC and POC) at ANC32, n (%)" =
+    "Missing Hb (CBC and POC) at ANC32 and ANC36, n (%)" =
       # MISSING Anemia at ANC-32 among those who have a completed ANC32 form (VISIT 4)
-      paste0(sum(is.na(MAT_ANEMIA_MEAS4) & ANC32_PASS==1, na.rm = TRUE),
+      paste0(sum((is.na(MAT_ANEMIA_MEAS4) & ANC32_PASS==1) & (is.na(MAT_ANEMIA_MEAS5) & ANC36_PASS==1), na.rm = TRUE),
              " (",
-             format(round(sum(is.na(MAT_ANEMIA_MEAS4) & 
-                                ANC32_PASS==1, na.rm = TRUE)/(sum(ANC32_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
+             format(round(sum((is.na(MAT_ANEMIA_MEAS4) & ANC32_PASS==1) & (is.na(MAT_ANEMIA_MEAS5) & ANC36_PASS==1), na.rm = TRUE)/(sum(ANC32_PASS==1 & ANC36_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
              ")"),
     
-    "Missing Bilirubin at ANC32, n (%)" =
+    "Missing Bilirubin at ANC32 and ANC36, n (%)" =
       # MISSING Bilirubin at ANC-32 among those who have a completed ANC32 form (VISIT 4)
-      paste0(sum(is.na(M08_IBILIRUBIN_LBORRES_4) & ANC32_PASS==1, na.rm = TRUE),
+      paste0(sum((is.na(M08_IBILIRUBIN_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_IBILIRUBIN_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE),
              " (",
-             format(round(sum(is.na(M08_IBILIRUBIN_LBORRES_4) & 
-                                ANC32_PASS==1, na.rm = TRUE)/(sum(ANC32_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
+             format(round(sum((is.na(M08_IBILIRUBIN_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_IBILIRUBIN_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE)/(sum(ANC32_PASS==1 & ANC36_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
              ")"),
     
-    "Missing AST at ANC32, n (%)" =
+    "Missing AST at ANC32 and ANC36, n (%)" =
       # MISSING AST at ANC-32 among those who have a completed ANC32 form (VISIT 4)
-      paste0(sum(is.na(M08_AST_UL_LBORRES_4) & ANC32_PASS==1, na.rm = TRUE),
+      paste0(sum((is.na(M08_AST_UL_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_AST_UL_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE),
              " (",
-             format(round(sum(is.na(M08_AST_UL_LBORRES_4) & 
-                                ANC32_PASS==1, na.rm = TRUE)/(sum(ANC32_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
+             format(round(sum((is.na(M08_AST_UL_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_AST_UL_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE)/(sum(ANC32_PASS==1 & ANC36_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
              ")"),
     
-    "Missing ALT at ANC32, n (%)" =
+    "Missing ALT at ANC32 and ANC36, n (%)" =
       # MISSING AST at ANC-32 among those who have a completed ANC32 form (VISIT 4)
-      paste0(sum(is.na(M08_ALT_UL_LBORRES_4) & ANC32_PASS==1, na.rm = TRUE),
+      paste0(sum((is.na(M08_ALT_UL_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_ALT_UL_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE),
              " (",
-             format(round(sum(is.na(M08_ALT_UL_LBORRES_4) & 
-                                ANC32_PASS==1, na.rm = TRUE)/(sum(ANC32_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
+             format(round(sum((is.na(M08_ALT_UL_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_ALT_UL_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE)/(sum(ANC32_PASS==1 & ANC36_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
              ")"),
- #TODO Why is this more than 100%   
-    "Missing PLATELETS at ANC32, n (%)" =
-      # MISSING AST at ANC-32 among those who have a completed ANC32 form (VISIT 4)
-      paste0(sum(is.na(M08_CBC_PLATE_LBORRES_4) & ANC32_PASS==1, na.rm = TRUE),
-             " (",
-             format(round(sum(is.na(M08_CBC_PLATE_LBORRES_4) &
-                                ANC32_PASS==1, na.rm = TRUE)/(sum(ANC32_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
-             ")"),
+  
     
-    "Missing CREATININE at ANC32, n (%)" =
+    "Missing PLATELETS at ANC32 and ANC36, n (%)" =
       # MISSING AST at ANC-32 among those who have a completed ANC32 form (VISIT 4)
-      paste0(sum(is.na(M08_CREAT_UMOLL_LBORRES_4) & ANC32_PASS==1, na.rm = TRUE),
+      paste0(sum((is.na(M08_CBC_PLATE_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_CBC_PLATE_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE),
              " (",
-             format(round(sum(is.na(M08_CREAT_UMOLL_LBORRES_4) & 
-                                ANC32_PASS==1, na.rm = TRUE)/(sum(ANC32_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
+             format(round(sum((is.na(M08_CBC_PLATE_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_CBC_PLATE_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE)/(sum(ANC32_PASS==1 & ANC36_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
+             ")"),
+
+    
+    "Missing CREATININE at ANC32 and ANC36, n (%)" =
+      # MISSING AST at ANC-32 among those who have a completed ANC32 form (VISIT 4)
+      paste0(sum((is.na(M08_CREAT_UMOLL_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_CREAT_UMOLL_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE),
+             " (",
+             format(round(sum((is.na(M08_CREAT_UMOLL_LBORRES_4) & ANC32_PASS==1) & (is.na(M08_CREAT_UMOLL_LBORRES_5) & ANC36_PASS==1), na.rm = TRUE)/(sum(ANC32_PASS==1 & ANC36_PASS==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3),
              ")")) %>%
   
   t() %>% as.data.frame() %>%
@@ -249,6 +253,7 @@ other_missing <- df %>%
 chtn_table <- rbind(missing_mnh08_df2, other_missing)
 ```
 
+
 #### **Table 1b. Data Missingness (forms and variables)**
 ```{r}
 
@@ -260,14 +265,15 @@ chtn_table  %>%
   `rownames<-` (c(
     "Missing MNH08 at enrollment, n (%)",
     "Missing MNH08 at ANC32, n (%)",
+    "Missing MNH08 at ANC36, n (%)",
     "Missing Proteinuria at <20 weeks' gestation (baseline), n (%)",
     "Missing Proteinuria at >=20 weeks' gestation, n (%)",
-    "Missing Hemoglobin (CBC and POC) at ANC32, n (%)",
-    "Missing Indirect Bilirubin at ANC32, n (%)",
-    "Missing AST at ANC32, n (%)",
-    "Missing ALT at ANC32, n (%)",
-    "Missing Platelets at ANC32, n (%)",
-    "Missing Creatinine at ANC32, n (%)")) %>% 
+    "Missing Hemoglobin (CBC and POC) at ANC32 or ANC36, n (%)",
+    "Missing Indirect Bilirubin at ANC32 or ANC36, n (%)",
+    "Missing AST at ANC32 or ANC36, n (%)",
+    "Missing ALT at ANC32 or ANC36, n (%)",
+    "Missing Platelets at ANC32 or ANC36, n (%)",
+    "Missing Creatinine at ANC32 or ANC36, n (%)")) %>% 
     
      mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
   kbl(caption = "", booktabs = TRUE) %>%
@@ -276,21 +282,26 @@ chtn_table  %>%
               latex_options = c("repeat_header", "HOLD_position")) %>% 
   
     pack_rows("Missing MNH08 at enrollment among those who delivered", 1, 1, label_row_css = "color: steelblue;") %>%
-  pack_rows("Missing MNH08 at ANC32 among those who delivered and have passed their ANC32 visit window", 2, 2, label_row_css = "color: steelblue;") %>%
-    pack_rows("Additinal missing variables among those who have delivered and have passed their ANC32 window", 3, 10, label_row_css = "color: steelblue;")
-  
+  pack_rows("Missing MNH08 forms at ANC32 and ANC 36", 2, 3, label_row_css = "color: steelblue;") %>%
+    pack_rows("Missing Proteinuria variables", 4, 5, label_row_css = "color: steelblue;") %>%
+  pack_rows("Missing MNH08 at ANC32 (GA >=34 weeks) and ANC 36 (GA >=38 weeks) among those who delivered", 6, 11, label_row_css = "color: steelblue;") 
+
 ```
-<br>
+
 \newpage
 
 ### Onset of hypertension prior to 20 weeks gestation:
-**Definition:** at least one measure of blood pressure >=140/90 <20 weeks gestation AND a second blood pressure >=140/90 at any gestational age OR
+**Definition:** 
+<br>
+<ul>
+<li>At least one measure of systolic blood pressure (SBP) >=140 or diastolic blood pressure (DBP) >=90 <20 weeks gestation AND a SBP >=140 or DBP>=90 at any gestational age OR</li>
+<li>At least one measure of SBP >=140 or DPB >=90 <20 weeks gestation AND use of anti-hypertensive medication among those who were clinically diagnosed before pregnancy or <20 weeks gestation" OR</li>
+<li>SPB ≥160 or DBP>=110 mmHg before pregnancy or <20 weeks’ gestation once (severe hypertension) </li>
+</ul>
+<br>
 <br>
 
-"At least one measure of blood pressure >=140/90 <20 weeks gestation AND use of anti-hypertensive medication among those who were clinically diagnosed before pregnancy or <20 weeks gestation" OR
-<br>
-
-Blood pressure ≥160/110 mmHg before pregnancy or <20 weeks’ gestation once
+\newpage 
 
 ```{r}    
 chtn_table <- df %>%
@@ -455,21 +466,23 @@ chtn_table  %>%
   pack_rows("Chronic Hypertension - clinical diagnosis", 7, 9, label_row_css = "color: steelblue;") %>%
  pack_rows("Chronic Hypertension with treatment among those with clinical diagnosis", 10, 12, label_row_css = "color: steelblue;") %>%
   pack_rows("Onset of high BP <20 weeks' gestation - 1 BP measurement + on treatment", 13, 15, label_row_css = "color: steelblue;") %>%
-  pack_rows("Onset of severely high BP < 20 weeks gestation", 16, 18, label_row_css = "color: steelblue;")
+  pack_rows("Onset of severely high BP <20 weeks gestation", 16, 18, label_row_css = "color: steelblue;")
   
 ```
-<br>
 
-### New onset of hypertension after 20 weeks' gestation
+\newpage
+
+
+### New onset of hypertension at or after 20 weeks' gestation
 **Definition:** 
 <br>
-a) Two measures of BP >=140/90 at gestational age >=20 weeks OR 
+<ul>
+<li>Two measures of SBP>=140 mmHg or DBP>=90 mmHg at gestational age >=20 weeks OR</li>
+<li>One measure of BP>=140 mmHg or DBP>=90 mmHg at gestational age >=20 weeks AND use of anti-hypertensive medications >= 20 weeks OR</li>
+<li>One measure of BP>=160 mmHg or DBP>=110 mmHg (severe hypertension)</li>
+</ul>
 <br>
-b) One measure of BP >=140/90 at gestational age >=20 weeks AND use of anti-hypertensive medications >= 20 weeks OR 
 <br>
-c) One measure of BP >= 160/110 (severe hypertension)
-<br>
-
 
 ```{r}
 # HTN >=20 weeks
@@ -597,18 +610,25 @@ chtn_table  %>%
 ```
 <br>
 
+\newpage
+
 ### Proteinuria
-**Proteinuria at baseline:**
+**Proteinuria at baseline**
 <br>
 **Definition:** 
-Urine dipstick 1+ or 2+ at enrollment <20 weeks
 <br>
+<ul>
+<li>Urine dipstick 1+, 2+ 3+ or 4+ at enrollment <20 weeks.</li>
+</ul>
 
-**Gestational proteinuria:**
+**Gestational proteinuria**
+<br>
 **Definition:** 
-Urine dipstick 1+ or 2+ >=20 weeks' gestation or IPC among those who did not have baseline proteinuria
 <br>
-
+<ul>
+<li>Urine dipstick 1+, 2+ 3+ or 4+ >=20 weeks' gestation or IPC among those who did not have baseline proteinuria.</li>
+</ul>
+<br>
 
 
 ```{r}
@@ -658,7 +678,7 @@ chtn_table <- df %>%
 
 ```
 
-#### **Table 2c. Proteinuria**
+#### **Table 2c. Proteinuria**   
 ```{r}
 chtn_table  %>% 
   `rownames<-` (c(
@@ -680,60 +700,88 @@ chtn_table  %>%
   pack_rows("Gestational Proteinuria (gestational age >=20 weeks among those without baseline proteinuria)", 4, 6, label_row_css = "color: steelblue;") 
 ```
 
+\newpage
+
 ### Severe features of PE
 **Definition:** 
 <br>
-BP≥160/100 mmHg OR
+<ul>
+<li>Severe hypertension: SBP>=160 mmHg or DBP>=110 mmHg once at GA >=20 weeks OR</li>
+<li>Hemolysis: severe anemia (hemoglobin <7g/dL) AND indirect bilirubin ≥20.52 &micro;mol/L at ANC32 or ANC36 OR</li>
+<li>Creatinine >97.25 &micro;mol/dL at ANC-32 or ANC-36 OR</li>
+<li>AST ≥90 units/L at ANC-32 or ANC-36 OR</li>
+<li>ALT ≥120 units/L at ANC-32 or ANC-36OR</li>
+<li>Platelets <100X10^3^ /mm^3^ at ANC-32 or ANC-36</li>
+</ul>
+
+**Severe features only**
 <br>
-Hemolysis (severe anemia (hemoglobin <7g/dL) + bilirubin ≥20.52 &micro;mol/L) OR 
+<ul>
+<li>ONLY severe features as defined above (do not have Chronic hypertension, gestational hypertension or preeclampsia).</li>
 <br>
-Creatinine >97.25 &micro;mol/dL OR 
-<br>
-AST ≥90 units/L OR 
-<br>
-ALT ≥120 units/L OR 
-<br>
-Platelets <100X10^3^ /mm^3^
-<br>
+</ul>
 
 **Variables used for Severe Features:**
 <br>
-Proteinuria: [M08_UA_PROT_LBORRES] from MNH08 and [UA_PROT_LBORRES] from MNH19
+1) Proteinuria: [M08_UA_PROT_LBORRES] from MNH08 and [UA_PROT_LBORRES] from MNH19
 <br>
-Hemoglobin: [HB_POC_LBORRES and CBC_HB_LBORRES] from MNH08 at ANC32
+2) Hemoglobin: [HB_POC_LBORRES and CBC_HB_LBORRES] from MNH08 at ANC32 or ANC36
 <br>
-Indirect bilirubin: [IBILIRUBIN_LBORRES] from MNH08 at ANC32
+3) Indirect bilirubin: [IBILIRUBIN_LBORRES] from MNH08 at ANC32
 <br>
-Creatinine: [CREAT_UMOLL_LBORRES] from MNH08 at ANC32 and [CREAT_LBORRESU] from MNH19
+4) Creatinine: [CREAT_UMOLL_LBORRES] from MNH08 at ANC32 or ANC36 and [CREAT_LBORRESU] from MNH19
 <br>
-Platelets: [CBC_PLATE_LBORRES] from MNH08 at ANC32 and [CBC_PLATELET_LBORRES] from MNH19
+5) Platelets: [CBC_PLATE_LBORRES] from MNH08 at ANC32 or ANC36 and [CBC_PLATELET_LBORRES] from MNH19
 <br>
-AST: [AST_UL_LBORRES] from MNH08 at ANC32 and [AST_UL_LBORRES] from MNH19 
+6) AST: [AST_UL_LBORRES] from MNH08 at ANC32 or ANC36 and [AST_UL_LBORRES] from MNH19 
 <br>
-ALT: [ALT_UL_LBORRES] from MNH08 at ANC 32 and [ALT_UL_LBORRES] from MNH19
+7) ALT: [ALT_UL_LBORRES] from MNH08 at ANC 32 or ANC36 and [ALT_UL_LBORRES] from MNH19
 <br>
+<br>
+
+\newpage 
 
 ```{r}
 chtn_table <- df %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
-    # SEVERE FEATURES
-            "Severe features = Yes " =
-      paste0(sum(MAT_PE_SEV_MEAS == 1, na.rm = TRUE),
+    # PE with SEVERE FEATURES
+            "PE with Severe features = Yes " =
+      paste0(sum(MAT_PE_SEV_FEAT_2ND == 1, na.rm = TRUE),
              " (",
-             format(round(sum(MAT_PE_SEV_MEAS == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+             format(round(sum(MAT_PE_SEV_FEAT_2ND == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
              ")"),
-        "Severe features = No " =
-      paste0(sum(MAT_PE_SEV_MEAS == 0, na.rm = TRUE),
+        "PE with Severe features = No " =
+      paste0(sum(MAT_PE_SEV_FEAT_2ND == 0, na.rm = TRUE),
              " (",
-             format(round(sum(MAT_PE_SEV_MEAS == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+             format(round(sum(MAT_PE_SEV_FEAT_2ND == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
              ")"),
-    "Severe features = Missing " =
-      paste0(sum(is.na(MAT_PE_SEV_MEAS)),
+    "PE with Severe features = Missing " =
+      paste0(sum(is.na(MAT_PE_SEV_FEAT_2ND)),
              " (",
-             format(round(sum(is.na(MAT_PE_SEV_MEAS))/n()*100,2), nsmall=2, digits=3),
+             format(round(sum(is.na(MAT_PE_SEV_FEAT_2ND))/n()*100,2), nsmall=2, digits=3),
              ")"),
+    
+    # # SEVERE FEATURES "ONLY"
+    #           "Severe features only = Yes " =
+    #   paste0(sum(SEV_FEAT_ONLY == 1 & MAT_PE_SEV_MEAS==1, na.rm = TRUE),
+    #          " (",
+    #          format(round(sum(SEV_FEAT_ONLY == 1 & MAT_PE_SEV_MEAS==1, 
+    #                           na.rm = TRUE)/sum(MAT_PE_SEV_MEAS==1, na.rm = TRUE)*100,2), nsmall=2, digits=3),
+    #          ")"),
+    #     "Severe features only = No " =
+    #   paste0(sum(SEV_FEAT_ONLY == 0 & MAT_PE_SEV_MEAS==1, na.rm = TRUE),
+    #          " (",
+    #          format(round(sum(SEV_FEAT_ONLY == 0 & MAT_PE_SEV_MEAS==1, 
+    #                           na.rm = TRUE)/sum(MAT_PE_SEV_MEAS==1, na.rm = TRUE)*100,2), nsmall=2, digits=3),
+    #          ")"),
+    # #Missing I can keep as NA.
+    # "Severe features only = Missing " =
+    #   paste0(sum(is.na(SEV_FEAT_ONLY) & MAT_PE_SEV_MEAS==1),
+    #          " (",
+    #          format(round(sum(is.na(SEV_FEAT_ONLY)& MAT_PE_SEV_MEAS==1)/sum(is.na(MAT_PE_SEV_MEAS==1))*100,2), nsmall=2, digits=3),
+    #          ")"),
     
     # CATEGORY: SEVERE HTN
        "High BP>=160/110 = Yes " =
@@ -861,6 +909,7 @@ chtn_table <- df %>%
     
 ```
 
+
 #### **Table 2d. Severe features and components**
 ```{r}
 chtn_table  %>% 
@@ -868,6 +917,10 @@ chtn_table  %>%
     "Severe features = Yes ",
     "Severe features = No ",
     "Severe features = Missing ",
+    
+    # "Severe features only = Yes ",
+    # "Severe features only = No ",
+    # "Severe features only = Missing ",
     
     "High BP>=160/110 = Yes ",
     "High BP>=160/110 = No ",
@@ -903,7 +956,8 @@ chtn_table  %>%
               full_width = T, html_font = "Cambria", position = "left",
               latex_options = c("repeat_header", "HOLD_position")) %>% 
   
-  pack_rows("Severe Features", 1, 3, label_row_css = "color: steelblue;") %>%
+  pack_rows("Severe features (any)", 1, 3, label_row_css = "color: steelblue;") %>%
+ #   pack_rows("Severe features only^a^", 4, 6, label_row_css = "color: steelblue;") %>% #^a^Missing when cHTN or gHTN or PE is missing.
   pack_rows("Severely high BP >=20 weeks gestation", 4, 6, label_row_css = "color: steelblue;") %>%
   pack_rows("Severe anemia (Hb <7g/dl)", 7,9, label_row_css = "color: steelblue;") %>%
   pack_rows("Bilirubin >=20.52", 10, 12, label_row_css = "color: steelblue;") %>%
@@ -914,23 +968,108 @@ chtn_table  %>%
 
 ```
 <br>
+
+\newpage
+### Preeclampsia Diagnosed (during L&D)
+```{r}
+chtn_table <- df %>%
+  rowwise() %>%
+  group_by(SITE) %>%
+  summarise(
+    # PE DIAGNOSED:
+     "PE Diagnosed = Yes " =
+      paste0(sum(MAT_PE_DIAG == 1, na.rm = TRUE),
+             " (",
+             format(round(sum(MAT_PE_DIAG == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+             ")"),
+        "PE Diagnosed = No " =
+      paste0(sum(MAT_PE_DIAG == 0, na.rm = TRUE),
+             " (",
+             format(round(sum(MAT_PE_DIAG == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+             ")"),
+    "PE Diagnosed = Missing " =
+      paste0(sum(is.na(MAT_PE_DIAG)),
+             " (",
+             format(round(sum(is.na(MAT_PE_DIAG))/n()*100,2), nsmall=2, digits=3),
+             ")"),
+    
+    # # DIAGNOSED FEATURES:
+    #      "PE Diagnosed severe features = Yes " =
+    #   paste0(sum(MAT_PE_ADDITIONAL_FEAT_TYPE == 1, na.rm = TRUE),
+    #          " (",
+    #          format(round(sum(MAT_PE_DIAG == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+    #          ")"),
+    #     "PE Diagnosed = No " =
+    #   paste0(sum(MAT_PE_DIAG == 0, na.rm = TRUE),
+    #          " (",
+    #          format(round(sum(MAT_PE_DIAG == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+    #          ")"),
+    # "PE Diagnosed = Missing " =
+    #   paste0(sum(is.na(MAT_PE_DIAG)),
+    #          " (",
+    #          format(round(sum(is.na(MAT_PE_DIAG))/n()*100,2), nsmall=2, digits=3),
+    #          ")"),
+    # 
+    # MAT_PE_ADDITIONAL_FEAT_TYPE
+    
+    ) %>%
+  
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)
+    
+```
+
+#### Table 2e. PE diagnosed during L&D*
+```{r}
+chtn_table  %>% 
+  `rownames<-` (c(
+    "PE Diagnosed = Yes ",
+    "PE Diagnosed = No ",
+    "PE Diagnosed = Missing ")) %>% 
+    
+     mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  kbl(caption = "", booktabs = TRUE) %>%
+  kable_paper(bootstrap_options = "striped", 
+              full_width = T, html_font = "Cambria", position = "left",
+              latex_options = c("repeat_header", "HOLD_position"))# %>% 
+  
+ # pack_rows("Preeclampsia diagnosed during L&D", 1, 3, label_row_css = "color: steelblue;")
+
+    
+```
+*Currently not included in primary outcome definition.
+<br>
+
 \newpage
 
 ### Hypertensive Disorders of Pregnancy 
-**Getational hypertension**
-**Definition:** BP >=140/90 >=20 weeks' gestation among those without cHTN
+**Chronic hypertension**
 <br>
-
-**Preeclampsia (PE)**
 **Definition:**
 <br>
-BP ≥140/90 ≥20 weeks gestation AND gestational proteinuria OR
+<ul>
+<li>SBP>=140 or DBP >=90 <20 weeks' gestation.</li>
+</ul>
+
+**Gestational hypertension**
 <br>
-BP ≥140/90 ≥20 weeks gestation AND severe features OR
+**Definition:** 
 <br>
-BP ≥140/90 <20 weeks gestation AND gestational proteinuria OR
+<ul>
+<li>SBP >=140 or DBP >=90 >=20 weeks' gestation among those without cHTN.</li>
+</ul>
+
+**Preeclampsia (PE)**
 <br>
-BP ≥140/90 <20 weeks gestation AND severe features
+**Definition:**
+<br>
+<ul>
+<li>SBP >=140 or DBP >=90 >=20 weeks' AND gestational proteinuria OR</li>
+<li>SBP >=140 or DBP >=90 >=20 weeks' AND severe features OR</li>
+<li>SBP >=140 or DBP >=90 <20 weeks' gestation AND gestational proteinuria OR</li>
+<li>SBP >=140 or DBP >=90 <20 weeks' gestation AND severe features</li>
+</ul>
 <br>
 
 ```{r}
@@ -939,17 +1078,18 @@ chtn_table <- df %>%
   group_by(SITE) %>%
   summarise(
     # HDP
+            "Preeclampsia (PE)" =
+      paste0(sum(HDP=="PE", na.rm = TRUE),
+             " (",
+             format(round(sum(HDP=="PE", na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+             ")"),
+      
     "PE with severe features" =
       paste0(sum(HDP=="PE with severe features", na.rm = TRUE),
              " (",
              format(round(sum(HDP=="PE with severe features", na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
              ")"),
     
-        "PE" =
-      paste0(sum(HDP=="PE", na.rm = TRUE),
-             " (",
-             format(round(sum(HDP=="PE", na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
-             ")"),
     
         "PE superimposed on cHTN" =
       paste0(sum(HDP=="PE superimposed on cHTN", na.rm = TRUE),
@@ -991,8 +1131,8 @@ chtn_table <- df %>%
 ```{r}
 chtn_table  %>% 
   `rownames<-` (c(
+    "Preeclampsia ",
     "Preeclampisa with severe features",
-    "Preeclampsia",
     "Preeclampsia superimposed on chronic hypertension",
     "Gestational hypertension",
     "Chronic Hypertension",
@@ -1007,500 +1147,3 @@ chtn_table  %>%
 
 ```
 
-<br>
-
-<!-- ``` -->
-
-<!-- ```{r} -->
-
-<!-- temp.df <- df %>% select(MOMID, SITE, M06_BP_SYS_VSORRES_1_2, M06_BP_SYS_VSORRES_2_2, M06_BP_SYS_VSORRES_3_2, -->
-<!--                              M06_BP_DIA_VSORRES_1_2, M06_BP_DIA_VSORRES_2_2, M06_BP_DIA_VSORRES_3_2, meanSBP_ANC20, meanDBP_ANC20) %>%  -->
-<!--   filter(SITE=="Pakistan") -->
-
-<!-- chtn_table <- df %>% -->
-<!--  # rowwise() %>% -->
-<!--   group_by(SITE) %>% -->
-<!--   summarise( -->
-<!--     # SBP at enrollment (ANC LT20) -->
-<!--     "Missing SBP Enrollment, n (%)" = -->
-<!--       paste0(sum(is.na(meanSBP_ANC_LT20)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanSBP_ANC_LT20))/sum(M06_MAT_VISIT_FORM_COMPLETED_1==1)*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # DBP at enrollment (ANC LT20) -->
-<!--     "Missing DBP Enrollment, n (%)" = -->
-<!--       paste0(sum(is.na(meanDBP_ANC_LT20)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanDBP_ANC_LT20)) -->
-<!--                           /sum(M06_MAT_VISIT_FORM_COMPLETED_1==1)*100, 2),nsmall=2, digits=3), #TODO: This DBP number is not coming out right. -->
-<!--              ")")) %>% -->
-
-<!--   t() %>% as.data.frame() %>% -->
-<!--   `colnames<-`(c(.[1,])) %>% -->
-<!--   slice(-1) -->
-<!-- ``` -->
-
-<!-- Table 1a. Missingness: -->
-<!-- ```{r} -->
-<!-- chtn_table  %>%  -->
-<!--   `rownames<-` (c( -->
-<!--     "Missing SBP Enrollment, n (%)", -->
-<!--     "Missing DBP Enrollment, n (%)")) %>%  -->
-
-<!--      mutate_all(funs(str_replace(., "NaN", "0"))) %>%  -->
-<!--   kbl(caption = "", booktabs = TRUE) %>% -->
-<!--   kable_paper(bootstrap_options = "striped",  -->
-<!--               full_width = T, html_font = "Cambria", position = "left", -->
-<!--               latex_options = c("repeat_header", "HOLD_position")) %>%  -->
-<!--   kable_styling(font_size = 14) %>% -->
-<!--   row_spec(0, extra_css = "border-bottom: 0px white;") %>% -->
-
-<!--   pack_rows("Missing SBP and DBP variables (average of 3 measurements), n (%)", 1, 2, label_row_css = "color: steelblue;") -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-
-<!--   chtn_table2 <- chtn_diag_df %>% -->
-<!--   rowwise() %>% -->
-<!--   group_by(SITE) %>% -->
-<!--   summarise( -->
-<!--     # CHRON_HYPER_TREAT -->
-<!--     "cHTN Treatment = Yes " = -->
-<!--       paste0(sum(CHRON_HYPER_TREAT == 1, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(CHRON_HYPER_TREAT == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     "cHTN Treatment = No " = -->
-<!--       paste0(sum(CHRON_HYPER_TREAT == 0, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(CHRON_HYPER_TREAT == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     "cHTN Treatment = Missing " = -->
-<!--       paste0(sum(is.na(CHRON_HYPER_TREAT)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(CHRON_HYPER_TREAT))/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")")) %>% -->
-
-<!--   t() %>% as.data.frame() %>% -->
-<!--   `colnames<-`(c(.[1,])) %>% -->
-<!--   slice(-1) -->
-
-
-<!-- chtn_table2$Ghana <- NA -->
-<!-- chtn_table2$Pakistan <- NA -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- chtn_table3 <- rbind(chtn_table, chtn_table2) -->
-<!-- ``` -->
-
-
-<!-- ```{r} -->
-<!-- chtn_table3  %>%  -->
-<!--   `rownames<-` (c( -->
-<!--     "Missing SBP Enrollment, n (%)", -->
-<!--     "Missing DBP Enrollment, n (%)", -->
-<!--     "Yes, n (%)", # CHRON_HYPER DIAG + MEASURED + TREAT -->
-<!--     "No, n (%)", #  -->
-<!--     "Missing (Measured & Treatment & Clinical Diagnosis), n (%)", -->
-<!--     " Measured Yes, n (%)", # MEASURED -->
-<!--     "Measured No, n (%)", -->
-<!--     "Measured Missing, n (%)", -->
-<!--     "Diagnosed Yes, n (%)", # diagnosed -->
-<!--     "Diagnosed No, n (%)", -->
-<!--     "Diagnosed Missing, n (%)", -->
-<!--     "Treatment Yes, n (%)", # TREATMENT -->
-<!--     "Treatment No, n (%)", -->
-<!--     "Treatment Missing, n (%)")) %>% -->
-
-
-<!--   mutate_all(funs(str_replace(., "NaN", "0"))) %>%  -->
-<!--   kbl(caption = "", booktabs = TRUE) %>% -->
-<!--   kable_paper(bootstrap_options = "striped",  -->
-<!--               full_width = T, html_font = "Cambria", position = "left", -->
-<!--               latex_options = c("repeat_header", "HOLD_position")) %>%  -->
-<!--   kable_styling(font_size = 14) %>% -->
-<!--   row_spec(0, extra_css = "border-bottom: 0px white;") %>% -->
-
-<!--   pack_rows("Missing SBP and DBP variables (average of 3 measurements), n (%)", 1, 2, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("Chronic Hypertension, n (%)", 3, 5, label_row_css = "color: steelblue;") %>% # WHAT DOES 5,6 HERE SAY?  -->
-<!--   pack_rows("Measured Chronic Hypertension at Enrollment, n (%)", 6, 8, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("Clinical Diagnosis at Enrollment, n (%)", 9, 11, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("On Treatment for Chronic Hypertension at Enrollment*, n (%)", 12, 14, label_row_css = "color: steelblue;") -->
-
-<!-- ``` -->
-<!-- ***Note:** Category: "On Treatment for Chronic Hypertension" is among those who are diagnosed with chronic hypertension -->
-<!-- <br> -->
-<!-- <br> -->
-<!-- <br> -->
-<!-- \newpage -->
-
-<!-- ### Gestational Hypertension -->
-<!-- **Definition:** A systolic blood pressure (SBP) ≥140 mm Hg or diastolic blood pressure (DBP) ≥90 mm Hg on two occasions at least 1 hour apart after 20 weeks' gestation among participants without chronic hypertension (cHTN) OR  -->
-<!-- <br> -->
-<!-- SBP≥140 mmHg or DBP≥90 mmHg at one occasion after 20 weeks' gestation AND treatment with medication among participants without cHTN OR  -->
-<!-- <br>  -->
-<!-- SBP≥160 mmHg or DBP≥90 mmHg at one occasion after 20 weeks' gestation among participants without cHTN -->
-
-<!-- <br> -->
-
-<!-- **Denominator:** Enrolled women have a completed pregnancy -->
-<!-- <br> -->
-<!-- <br> -->
-<!-- <br> -->
-
-<!-- **Table 2a. Missingness of Blood Pressure and Protein Measures** -->
-<!-- ```{r} -->
-<!-- missing_ghtn_table <- df %>% -->
-<!--   rowwise() %>% -->
-<!--   group_by(SITE) %>% -->
-<!--   summarise( -->
-<!--      # SBP AT ANC20 -->
-<!--     "Missing SBP ANC20**, n (%)" = -->
-<!--       paste0(sum(is.na(meanSBP_ANC20)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanSBP_ANC20))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # DBP AT ANC20 -->
-<!--     "Missing DBP ANC20**, n (%)" = -->
-<!--       paste0(sum(is.na(meanDBP_ANC20)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanDBP_ANC20))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # SBP AT ANC28 -->
-<!--     "Missing SBP ANC28, n (%)" = -->
-<!--       paste0(sum(is.na(meanSBP_ANC28)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanSBP_ANC28))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # DBP AT ANC28 -->
-<!--     "Missing DBP ANC28, n (%)" = -->
-<!--       paste0(sum(is.na(meanDBP_ANC28)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanDBP_ANC28))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # SBP AT ANC32 -->
-<!--     "Missing SBP ANC32, n (%)" = -->
-<!--       paste0(sum(is.na(meanSBP_ANC32)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanSBP_ANC32))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # DBP AT ANC32 -->
-<!--     "Missing DBP ANC32, n (%)" = -->
-<!--       paste0(sum(is.na(meanDBP_ANC32)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanDBP_ANC32))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # SBP AT ANC36 -->
-<!--     "Missing SBP ANC36, n (%)" = -->
-<!--       paste0(sum(is.na(meanSBP_ANC36)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanSBP_ANC36))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # DBP AT ANC36 -->
-<!--     "Missing DBP ANC36, n (%)" = -->
-<!--       paste0(sum(is.na(meanDBP_ANC36)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanDBP_ANC36))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # SBP AT IPC -->
-<!--     "Missing SBP IPC, n (%)" = -->
-<!--       paste0(sum(is.na(meanSBP_IPC)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanSBP_IPC))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # DBP AT IPC -->
-<!--     "Missing DBP IPC, n (%)" = -->
-<!--       paste0(sum(is.na(meanDBP_IPC)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(meanDBP_IPC))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # PROTEINURIA ANC20 -->
-<!--     "Missing Proteinuria ANC20, n (%)" = -->
-<!--       paste0(sum(is.na(M08_UA_PROT_LBORRES_2)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(M08_UA_PROT_LBORRES_2))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # PROTEINURIA ANC28 -->
-<!--     "Missing Proteinuria ANC28, n (%)" = -->
-<!--       paste0(sum(is.na(M08_UA_PROT_LBORRES_3)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(M08_UA_PROT_LBORRES_3))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # PROTEINURIA ANC32 -->
-<!--     "Missing Proteinuria ANC32, n (%)" = -->
-<!--       paste0(sum(is.na(M08_UA_PROT_LBORRES_4)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(M08_UA_PROT_LBORRES_4))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     # PROTEINURIA ANC36 -->
-<!--     "Missing Proteinuria ANC36, n (%)" = -->
-<!--       paste0(sum(is.na(M08_UA_PROT_LBORRES_5)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(M08_UA_PROT_LBORRES_5))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     #   # PROTEINURIA ANC Hospitalization -->
-<!--     # "Missing Proteinuria ANC Hospitalization, n (%)" = -->
-<!--     #   paste0(sum(is.na(M08_UA_PROT_LBORRES_13)), -->
-<!--     #          " (", -->
-<!--     #          format(round(sum(is.na(M08_UA_PROT_LBORRES_13))/n()*100, 2),nsmall=2, digits=3), -->
-<!--     #          ")"), -->
-
-<!--         # PROTEINURIA IPC -->
-<!--     "Missing Proteinuria IPC, n (%)" = -->
-<!--       paste0(sum(is.na(M08_UA_PROT_LBORRES_6)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(M08_UA_PROT_LBORRES_6))/n()*100, 2),nsmall=2, digits=3), -->
-<!--              ")")) %>% -->
-
-<!--   t() %>% as.data.frame() %>%  -->
-<!--   `colnames<-`(c(.[1,])) %>%  -->
-<!--   slice(-1) -->
-
-
-<!--         # AT HOSPITALIZATION ALL ARE MISSING - DON'T SHOW. -->
-<!--     # # SBP AT ANC HOSP -->
-<!--     # "Missing SBP ANC Hospitalization, n (%)" = -->
-<!--     #   paste0(sum(is.na(meanSBP_Hosp_ANC)), -->
-<!--     #          " (", -->
-<!--     #          format(round(sum(is.na(meanSBP_Hosp_ANC))/n()*100, 2),nsmall=2, digits=3), -->
-<!--     #          ")"), -->
-<!--     #  -->
-<!--     # # DBP AT ANC HOSP -->
-<!--     # "Missing DBP ANC Hospitalization, n (%)" = -->
-<!--     #   paste0(sum(is.na(meanDBP_Hosp_ANC)), -->
-<!--     #          " (", -->
-<!--     #          format(round(sum(is.na(meanDBP_Hosp_ANC))/n()*100, 2),nsmall=2, digits=3), -->
-<!--     #          ")"), -->
-
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- missing_ghtn_table  %>%  -->
-<!--   `rownames<-` (c( -->
-<!--     "Missing SBP ANC20, n (%)", -->
-<!--     "Missing DBP ANC20, n (%)", -->
-<!--     "Missing SBP ANC28, n (%)", -->
-<!--     "Missing DBP ANC28, n (%)", -->
-<!--     "Missing SBP ANC32, n (%)", -->
-<!--     "Missing DBP ANC32, n (%)", -->
-<!--     "Missing SBP ANC36, n (%)", -->
-<!--     "Missing DBP ANC36, n (%)", -->
-<!--     "Missing SBP IPC, n (%)", -->
-<!--     "Missing DBP IPC, n (%)", -->
-<!--     "Missing Proteinuria ANC20, n (%)", -->
-<!--     "Missing Proteinuria ANC28, n (%)", -->
-<!--     "Missing Proteinuria ANC32, n (%)", -->
-<!--     "Missing Proteinuria ANC36, n (%)", -->
-<!--     #"Missing Proteinuria ANC Hospitalization, n (%)", -->
-<!--     "Missing Proteinuria IPC, n (%)")) %>% -->
-
-
-<!--   mutate_all(funs(str_replace(., "NaN", "0"))) %>%  -->
-<!--   kbl(caption = "", booktabs = TRUE) %>% -->
-<!--   kable_paper(bootstrap_options = "striped",  -->
-<!--               full_width = T, html_font = "Cambria", position = "left", -->
-<!--               latex_options = c("repeat_header", "HOLD_position")) %>%  -->
-<!--   kable_styling(font_size = 14) %>% -->
-<!--   row_spec(0, extra_css = "border-bottom: 0px white;") %>% -->
-
-<!--   pack_rows("Missing SBP and DBP variables (average of 3 measurements), n (%)", 1, 10, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("Missing Proteinuria labs, n (%)", 11, 15, label_row_css = "color: steelblue;") -->
-
-<!-- ``` -->
-<!-- **Note:** **ANC20 BP not required if enrolled at weeks 18/19. -->
-<!-- <br> -->
-<!-- <br> -->
-<!-- <br> -->
-<!-- \newpage -->
-
-
-
-<!-- ```{r} -->
-<!-- ghtn_table  %>%  -->
-<!--   `rownames<-` (c( -->
-<!--     "gHTN = Yes", # OERALL gHTN -->
-<!--     "gHTN = No", -->
-<!--     "gHTN = Missing", -->
-<!--     "gHTN w/o Proteinuria = Yes", -->
-<!--     "gHTN w/o Proteinuria = No", -->
-<!--     "gHTN w/o Proteinuria = Missing")) %>% -->
-
-<!--    mutate_all(funs(str_replace(., "NaN", "0"))) %>%  -->
-<!--   kbl(caption = "", booktabs = TRUE) %>% -->
-<!--   kable_paper(bootstrap_options = "striped",  -->
-<!--               full_width = T, html_font = "Cambria", position = "left", -->
-<!--               latex_options = c("repeat_header", "HOLD_position")) %>%  -->
-<!--   kable_styling(font_size = 14) %>% -->
-<!--   row_spec(0, extra_css = "border-bottom: 0px white;") %>% -->
-
-<!--   pack_rows("Gestational Hypertension including Proteinuria, n (%)", 1, 3, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("Gestational Hypertension excluding Proteinuria, n (%)", 4, 6, label_row_css = "color: steelblue;") -->
-
-<!-- ``` -->
-<!--  <br> -->
-<!--  <br> -->
-<!--  <br> -->
-<!--  \newpage -->
-
-<!-- **Table 2c. Prevalence of Each Component Contributing to Gestational Hypertension** -->
-<!-- ```{r}    -->
-
-<!-- vars_ghtn_table <- df %>% -->
-<!--   rowwise() %>% -->
-<!--   group_by(SITE) %>% -->
-<!--   summarise( -->
-<!--         # gHNT MEASURED 2+  CATEGORIES: -->
-<!--     #Measured gHTN at 2 visits after 20 weeks gestation, at ANC hosp. and at L&D -->
-<!--     " gHTN (Measured 2+) = Yes " =  -->
-<!--       paste0(sum(GEST_HYPER_MEAS_ANY2 == 1, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(GEST_HYPER_MEAS_ANY2 == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     "gHTN (Measured 2+) = No " =  -->
-<!--       paste0(sum(GEST_HYPER_MEAS_ANY2 == 0, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(GEST_HYPER_MEAS_ANY2 == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--         "gHTN (Measured 2+) = Missing " =  -->
-<!--       paste0(sum(is.na(GEST_HYPER_MEAS_ANY2)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(GEST_HYPER_MEAS_ANY2))/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--         # gHNT MEASURED 1 CATEGORIES: -->
-<!--     #Measured gHTN at 1 visit after 20 weeks gestation, at ANC hosp. and at L&D -->
-<!--     " gHTN (Measured 1+) = Yes " =  -->
-<!--       paste0(sum(GEST_HYPER_MEAS_ANY1 == 1, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(GEST_HYPER_MEAS_ANY1 == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     "gHTN (Measured 1+) = No " =  -->
-<!--       paste0(sum(GEST_HYPER_MEAS_ANY1 == 0, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(GEST_HYPER_MEAS_ANY1 == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--         "gHTN (Measured 1+) = Missing " =  -->
-<!--       paste0(sum(is.na(GEST_HYPER_MEAS_ANY1)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(GEST_HYPER_MEAS_ANY1))/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--             # gHTN TREATED CATEGORIES: -->
-<!--     #Treatment assessed after 20 weeks gestation, at ANC hosp. and at L&D -->
-
-<!--      "gHTN (Treatment) = Yes " =  -->
-<!--       paste0(sum(GEST_HYPER_TREAT == 1, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(GEST_HYPER_TREAT == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     "gHTN (Treatment) = No " =  -->
-<!--       paste0(sum(GEST_HYPER_TREAT == 0, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(GEST_HYPER_TREAT == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--         "gHTN (Treatment) = Missing " =  -->
-<!--       paste0(sum(is.na(GEST_HYPER_TREAT)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(GEST_HYPER_TREAT))/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--                 # gHTN MEASURED 1 + TREATED CATEGORIES: -->
-<!--     #Treatment assessed after 20 weeks gestation, at ANC hosp. and at L&D -->
-<!--     "gHTN (Measured 1 + Treatment) = Yes " =  -->
-<!--       paste0(sum(GEST_HYPER_MEAS1_TREAT == 1, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(GEST_HYPER_MEAS1_TREAT == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--     "gHTN (Measured 1 + Treatment) = No " =  -->
-<!--       paste0(sum(GEST_HYPER_MEAS1_TREAT == 0, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(GEST_HYPER_MEAS1_TREAT == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-
-<!--         "gHTN (Measured 1 + Treatment) = Missing " =  -->
-<!--       paste0(sum(is.na(GEST_HYPER_MEAS1_TREAT)), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(GEST_HYPER_MEAS1_TREAT))/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-<!--  "Proteinuria = Yes " =  -->
-<!--    paste0(sum(PROTEINURIA_ANC_IPC == 1, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(PROTEINURIA_ANC_IPC == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-<!--   "Proteinuria = No " =  -->
-<!--    paste0(sum(PROTEINURIA_ANC_IPC == 0, na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(PROTEINURIA_ANC_IPC == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")"), -->
-<!--   "Proteinuria = Missing " =  -->
-<!--    paste0(sum(is.na(PROTEINURIA_ANC_IPC), na.rm = TRUE), -->
-<!--              " (", -->
-<!--              format(round(sum(is.na(PROTEINURIA_ANC_IPC), na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), -->
-<!--              ")")) %>% -->
-
-<!--   t() %>% as.data.frame() %>%  -->
-<!--   `colnames<-`(c(.[1,])) %>%  -->
-<!--   slice(-1) -->
-
-<!-- ``` -->
-
-
-<!-- ```{r} -->
-<!-- vars_ghtn_table  %>%  -->
-<!--   `rownames<-` (c( -->
-<!--     "gHTN (Measured 2+) = Yes n (%)", -->
-<!--     "gHTN (Measured 2+) = No n (%)", -->
-<!--     "gHTN (Measured 2+) = Missing n (%)", -->
-<!--     "gHTN (Measured 1+) = Yes n (%)", -->
-<!--     "gHTN (Measured 1+) = No n (%)", -->
-<!--     "gHTN (Measured 1+) = Missing n (%)", -->
-<!--     "gHTN (Treatment) = Yes n (%)", -->
-<!--     "gHTN (Treatment) = No n (%)", -->
-<!--     "gHTN (Treatment) = Missing n (%)", -->
-<!--     "gHTN (Measured 1 + & Treatment) = Yes n (%)", -->
-<!--     "gHTN (Measured 1 + & Treatment) = No n (%)", -->
-<!--     "gHTN (Measured 1 + & Treatment) = Missing n (%)", -->
-<!--     "Proteinuria = Yes n (%)", -->
-<!--     "Proteinuria = No n (%)", -->
-<!--     "Proteinuria = Missing n (%)")) %>% -->
-
-<!--   mutate_all(funs(str_replace(., "NaN", "0"))) %>%  -->
-<!--   kbl(caption = "", booktabs = TRUE) %>% -->
-<!--   kable_paper(bootstrap_options = "striped",  -->
-<!--               full_width = T, html_font = "Cambria", position = "left", -->
-<!--               latex_options = c("repeat_header", "HOLD_position")) %>%  -->
-<!--   kable_styling(font_size = 14) %>% -->
-<!--   row_spec(0, extra_css = "border-bottom: 0px white;") %>% -->
-
-<!--   pack_rows("Measured gestational hypertension  (Measured 2+), n (%)", 1, 3, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("Measured gestational hypertension  (Measured 1+), n (%)", 4, 6, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("Measured gestational hypertension  (Treatment), n (%)", 7, 9, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("Measured gestational hypertension  (Measured 1+ & Treatment), n (%)", 10, 12, label_row_css = "color: steelblue;") %>% -->
-<!--   pack_rows("Proteinuria, n (%)", 13, 14, label_row_css = "color: steelblue;") -->
-
-<!-- ``` -->
