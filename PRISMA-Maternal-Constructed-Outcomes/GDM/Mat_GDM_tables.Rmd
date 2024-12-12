@@ -17,7 +17,7 @@ output:
 
 
 ##### **Includes data from synapse last updated:** {.unlisted .unnumbered}
-#####  2023-10-13 {.unlisted .unnumbered}
+#####  2024-03-15 {.unlisted .unnumbered}
 
 
 
@@ -47,14 +47,20 @@ library(kableExtra)
 
 ```{r}
 # AMONG WOMEN WHO HAVE A VISIT 3 (ANC28)
-diabetes_df <- read.csv('../data_out/mat_diabetes_fortables_20231017.csv', header = TRUE)
+diabetes_df <- read.csv('../data_out/mat_diabetes_fortables_20240315_data.csv', header = TRUE)
 df <- diabetes_df # the file that is generated in 'Mat_GDM_analysis.Rmd' -- run that first but make sure to subset on VISIT 3.
 
-missing_mnh08_diab_df <- read.csv( '../data_out/missing_mnh08_df_diab_20231017.csv')
+missing_mnh08_diab_df <- read.csv( '../data_out/missing_mnh08_df_diab_20240315_data.csv')
 ```
 \newpage
 
-**Denominator:** Enrolled women who have a gestational age>=20 wks and have an ANC-28 (VISIT 3) among women without overt diabetes.
+<br>
+<br>
+**Denominator:** 
+<br>
+<ul>
+<li>Enrolled women who have a gestational age >=20 wks and have an ANC-28 (Visit 3) among women without overt diabetes.</li>
+</ul>
 <br>
 <br>
 
@@ -98,7 +104,7 @@ if(CONVERT_NA ==TRUE){
 }
 ```
 
-### MNH08 and lab missingness
+### **MNH08 and lab missingness**  
 
 ```{r}
 # missing_mnh08_diab_df %>% filter(SITE=="Pakistan") %>% filter(ENROLL_PASS==1) %>% count(M08_MAT_VISIT_FORM_COMPLETED_1)
@@ -128,14 +134,11 @@ missing_mnh08 <- missing_mnh08_diab_df %>%
 
 
 ```{r}
-test.df <- df %>% 
-  select(MOMID, PREGID, SITE, M08_MAT_VISIT_FORM_COMPLETED_1, M08_HBA1C_PRCNT_1) # most of Ghana's data is -5 in the csv raw also.
-
 missing_vars <- df %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
-   
+    
     # HBA1C IS MEASURED AT ENROLLMENT
     "Missing HbA1c: M08_HBA1C_PRCNT_1^b^, n (%)" =
       paste0(sum(is.na(M08_HBA1C_PRCNT_1) & M08_MAT_VISIT_FORM_COMPLETED_1==1, na.rm = TRUE), # & COMPLETED FORM DIVIDED BY EVERYONE WITH FORM COMPLETED. 
@@ -143,41 +146,51 @@ missing_vars <- df %>%
              format(round(sum(is.na(M08_HBA1C_PRCNT_1) & M08_MAT_VISIT_FORM_COMPLETED_1==1, na.rm = TRUE)/(sum(M08_MAT_VISIT_FORM_COMPLETED_1==1, na.rm = TRUE))*100, 2),nsmall=2, digits=3), # this is total missing the variable out of those who have completed the form.
              ")"),
     
+    #   QUESTION: KEEPING MISSING HBA1C WHEN LOOKING AT FASTING, OGTT 1, 2 Hr.   
     "Missing ANC28 Pretest Fasting Glucose: M08_BGLUC_PRETEST_MMOLL_LBORRES_3 ^d^, n (%)" =
-      paste0(sum(is.na(M08_BGLUC_PRETEST_MMOLL_LBORRES_3) & M08_HBA1C_PRCNT_1<6.5 & M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE),
+      paste0(sum(is.na(M08_BGLUC_PRETEST_MMOLL_LBORRES_3) & 
+                   (M08_HBA1C_PRCNT_1<6.5 | is.na(M08_HBA1C_PRCNT_1)) &
+                   M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE),
              " (",
-             format(round(sum(is.na(M08_BGLUC_PRETEST_MMOLL_LBORRES_3) & M08_HBA1C_PRCNT_1<6.5 & 
+             format(round(sum(is.na(M08_BGLUC_PRETEST_MMOLL_LBORRES_3) & 
+                                (M08_HBA1C_PRCNT_1<6.5  | is.na(M08_HBA1C_PRCNT_1)) &
                                 M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE)/sum(M08_MAT_VISIT_FORM_COMPLETED_3==1 & M08_HBA1C_PRCNT_1<6.5, na.rm = TRUE)*100, 2),nsmall=2, digits=3),
              ")"),
     
     # when fasting OGTT is high, then 1-hr (_2) or 2-hr (-3) should be also high 
     # 1-hr (_2) test:
     "Missing ANC28 1-hr OGTT: M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3^d^, n (%)" =
-      paste0(sum(is.na(M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3) & M08_HBA1C_PRCNT_1<6.5 & M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE),
+      paste0(sum(is.na(M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3) & 
+                   (M08_HBA1C_PRCNT_1<6.5 | is.na(M08_HBA1C_PRCNT_1)) & 
+                   M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE),
              " (",
-             format(round(sum(is.na(M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3) & M08_HBA1C_PRCNT_1<6.5 & 
+             format(round(sum(is.na(M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3) & 
+                                (M08_HBA1C_PRCNT_1<6.5 | is.na(M08_HBA1C_PRCNT_1)) & 
                                 M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE)/sum(M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE)*100, 2),nsmall=2, digits=3),
              ")"),
     
     # 2-hr (_3) test:
     " Missing ANC28 2-hr OGTT: M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3^d^, n (%)" =
-      paste0(sum(is.na(M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3) & M08_HBA1C_PRCNT_1<6.5 & M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE),
+      paste0(sum(is.na(M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3) & 
+                   (M08_HBA1C_PRCNT_1<6.5 | is.na(M08_HBA1C_PRCNT_1)) & 
+                   M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE),
              " (",
-             format(round(sum(is.na(M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3) & M08_HBA1C_PRCNT_1<6.5 & 
+             format(round(sum(is.na(M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3) &
+                                (M08_HBA1C_PRCNT_1<6.5 | is.na(M08_HBA1C_PRCNT_1)) & 
                                 M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE)/sum(M08_MAT_VISIT_FORM_COMPLETED_3==1, na.rm = TRUE)*100, 2),nsmall=2, digits=3),
              ")")) %>%
-
+  
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1)
 ```
 
 ```{r}
-missing_mnh08 <- missing_mnh08 %>% select(-`India-CMC`)
+missing_mnh08 <- missing_mnh08 %>% select(-`India-SAS`)
 diabetes_table <- rbind(missing_mnh08, missing_vars)
 ```
 
-#### **Table 1: Data missingness**
+### Table 1: Data missingness  
 ```{r}
 diabetes_table  %>% 
   `rownames<-` (c(
@@ -208,42 +221,45 @@ diabetes_table  %>%
 
 \newpage
 
-### Gestational Diabetes 
-**Definition:** Diabetes first diagnosed during pregnancy (at ≥20 weeks’ gestation), characterized by insulin resistance and high blood sugar. 
+### **Gestational Diabetes**   
+**Definition:** 
 <br>
-Thresholds for 75g oral glucose tolerance test (OGTT) per the 2010 International Association Of Diabetes And Pregnancy Study Groups (IADPSG) guidelines:
-<br>
-Fasting Glucose >= 5.1 mmol/L
-<br>
-1-hr OGTT >= 10.0 mmol/L
-<br>
-2-hr OGTT >= 8.5 mmol/L
+<ul>
+<li>Diabetes first diagnosed during pregnancy (at ≥20 weeks’ gestation), characterized by insulin resistance and high blood sugar.</li>
+<li>Thresholds for 75g oral glucose tolerance test (OGTT) per the 2010 International Association Of Diabetes And Pregnancy Study Groups (IADPSG) guidelines:</li>
+<ul> 
+ <li>Fasting glucose >= 5.1 mmol/L</li>
+ <li>1-hr OGTT >= 10.0 mmol/L</li>
+ <li>2-hr OGTT >= 8.5 mmol/L</li>
+</ul>
 <br>
 <br>
 
-#### **Table 2a. Prevalence of gestational diabetes (any method)**
+\newpage  
+
+### Table 2a. Prevalence of hyperglycemia in pregnancy (any method)^a^  
 ```{r}
 diabetes_table <- df %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
     # GDM CATEGORIES:
-    "GDM = Yes " = 
+    "Hyperglycemia = Yes " = 
       paste0(sum(GEST_DIAB_MEAS == 1, na.rm = TRUE),
              " (",
-             format(round(sum(GEST_DIAB_MEAS == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), # this is among those who have passed the ANC28 window. I could do this as those who have completed the form. 
+             format(round(sum(GEST_DIAB_MEAS==1, na.rm = TRUE)/sum(!is.na(GEST_DIAB_MEAS))*100,2), nsmall=2, digits=3), # this is among those who have passed the ANC28 window. I could do this as those who have completed the form. #was using n() to divide here before removing missing. 
              ")"),
     
-    "GDM = No " = 
+    "Hyperglycemia = No " = 
       paste0(sum(GEST_DIAB_MEAS == 0, na.rm = TRUE),
              " (",
-             format(round(sum(GEST_DIAB_MEAS == 0, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+             format(round(sum(GEST_DIAB_MEAS == 0, na.rm = TRUE)/sum(!is.na(GEST_DIAB_MEAS))*100,2), nsmall=2, digits=3), #was using n() to divide here before removing missing. 
              ")"),
     
-        "GDM = Missing " = 
+        "Hyperglycemia = Missing " = 
       paste0(sum(is.na(GEST_DIAB_MEAS)),
              " (",
-             format(round(sum(is.na(GEST_DIAB_MEAS))/n()*100,2), nsmall=2, digits=3),
+             format(round(sum(is.na(GEST_DIAB_MEAS))/n()*100,2), nsmall=2, digits=3), #was using n() to divide here before removing missing. 
              ")")) %>%
 
   t() %>% as.data.frame() %>% 
@@ -268,8 +284,15 @@ diabetes_table  %>%
   
   pack_rows("Gestational Diabetes (Any method), n (%)", 1, 3, label_row_css = "color: steelblue;")
 ```
+^a^Among women who have a gestational age >=20 wks, have an ANC-28 (Visit 3) and have an HbA1c<6.5% or no HbA1c.
+<br>
 
-#### **Table 2c. Prevalence of gestational diabetes by each method**
+\newpage
+
+<br>
+<br>
+
+### Table 2b. Prevalence of hyperglycemia by each method  
 ```{r}
 
 diabetes_table <- df %>%
@@ -280,7 +303,7 @@ diabetes_table <- df %>%
      "Overt Diabetes = Yes " =
       paste0(sum(OVERT_DIA == 1, na.rm = TRUE),
              " (",
-             format(round(sum(OVERT_DIA == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3),
+             format(round(sum(OVERT_DIA == 1, na.rm = TRUE)/n()*100,2), nsmall=2, digits=3), # divided by n() before
              ")"),
 
          "Overt Diabetes = No " =
@@ -384,16 +407,25 @@ diabetes_table  %>%
   kable_styling(font_size = 14) %>%
   row_spec(0, extra_css = "border-bottom: 0px white;") %>%
   
-  pack_rows("HbA1c [HBA1C_PRCNT] (>=6.5%), n (%)", 1, 3, label_row_css = "color: steelblue;") %>%
-  pack_rows("Fasting Glucose [BGLUC_PRETEST_MMOLL_LBORRES] (>=5.1 mmol/L), n (%)", 4, 6, label_row_css = "color: steelblue;") %>%
-  pack_rows("OGTT 1-hr [BGLUC_ORAL_1HR_MMOLL_LBORRES] (>=10.0 mmol/L), n (%)", 7, 9, label_row_css = "color: steelblue;") %>%
-  pack_rows("OGTT 2-hr [BGLUC_ORAL_2HR_MMOLL_LBORRES] (>=8.5 mmol/L), n (%)", 10, 12, label_row_css = "color: steelblue;")
+  pack_rows("HbA1c [HBA1C_PRCNT] (>=6.5%), n (%)^a^", 1, 3, label_row_css = "color: steelblue;") %>%
+  pack_rows("Fasting Glucose [BGLUC_PRETEST_MMOLL_LBORRES] (>=5.1 mmol/L), n (%)^b^", 4, 6, label_row_css = "color: steelblue;") %>%
+  pack_rows("OGTT 1-hr [BGLUC_ORAL_1HR_MMOLL_LBORRES] (>=10.0 mmol/L), n (%)^b^", 7, 9, label_row_css = "color: steelblue;") %>%
+  pack_rows("OGTT 2-hr [BGLUC_ORAL_2HR_MMOLL_LBORRES] (>=8.5 mmol/L), n (%)^b^", 10, 12, label_row_css = "color: steelblue;")
   
 ```
+^a^Among women who have a gestational age >=20 wks and have an ANC-28 (Visit 3).
+<br>
+^b^Among women who have a gestational age >=20 wks, have an ANC-28 (Visit 3) and have an HbA1c<6.5% or no HbA1c.
+<br>
+<br>
 
 \newpage
-### Distributions
-#### **Figure 1. Histogram of HbA1c % across sites**
+
+### **Distributions** 
+<br>
+
+### Figure 1. Histogram of HbA1c % across sites  
+<br>
 ```{r fig1}
 
 hba1c_nomissing <- df %>% filter(!is.na(M08_HBA1C_PRCNT_1)) %>% filter(M08_HBA1C_PRCNT_1!=-5 & M08_HBA1C_PRCNT_1!=-7)
@@ -417,7 +449,8 @@ ggplot(data=hba1c_nomissing,
 
 ```
 
-#### **Figure 2a. Histogram of Fasting Glucose across sites**
+### Figure 2a. Histogram of Fasting Glucose across sites  
+<br>
 ```{r fig2a}
 
 fasting_gluc_nomissing <- df %>% 
@@ -443,7 +476,8 @@ ggplot(data=fasting_gluc_nomissing,
 
 ```
 
-#### **Figure 2b. Histogram of OGTT 1hr across sites**
+### Figure 2b. Histogram of OGTT 1hr across sites    
+<br>
 ```{r fig2b}
 
 OGTT1hr_nomissing <- df %>% filter(!is.na(M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3)) %>%
@@ -468,7 +502,8 @@ ggplot(data=OGTT1hr_nomissing,
 
 ```
 
-#### **Figure 2c. Histogram of OGTT 2-hr across sites**
+### Figure 2c. Histogram of OGTT 2-hr across sites  
+<br>
 ```{r fig2c}
 
 OGTT2hr_nomissing <- df %>% filter(!is.na(M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3)) %>% 
