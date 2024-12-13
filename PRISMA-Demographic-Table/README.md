@@ -4,7 +4,7 @@
 
 This project mainly show the demographic characteristics of pariticipants.
 
-#### :pushpin: Updated on 2024-08-19
+#### :pushpin: Updated on 2024-12-13
 #### :pushpin: Originally drafted by: Xiaoyan Hu (xyh@gwu.edu)
 
 ## File structure

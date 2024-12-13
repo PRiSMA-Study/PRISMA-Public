@@ -8,8 +8,9 @@ library(tidyverse)
 library(lubridate)
 library(naniar)
 library(haven)
+library(openxlsx)
 
-UploadDate = "2024-10-18"
+UploadDate = "2024-11-29"
 
 #load MAT_ENROLL
 MAT_ENROLL <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENROLL.dta"))
@@ -155,10 +156,10 @@ df_demo <- prep_demo %>%
     #Age
     age_temp = ifelse(!is.na(M02_SCRN_OBSSTDAT) & !is.na(M00_BRTHDAT), as.numeric(ymd(M02_SCRN_OBSSTDAT) - ymd(M00_BRTHDAT)) %/% 365, NA_real_), 
     age = case_when(
-      (SITE %in% c("Ghana", "Pakistan", "Zambia") & age_temp >= 15) | #remove outlivers (not meet age requirement)
-        (SITE %in% c("India-CMC", "India-SAS", "Kenya") & age_temp >= 18) ~ age_temp,
-      (SITE %in% c("Ghana", "Pakistan", "Zambia") & as.numeric(M00_ESTIMATED_AGE) >= 15) |
-        (SITE %in% c("India-CMC", "India-SAS", "Kenya") & as.numeric(M00_ESTIMATED_AGE) >= 18) ~ as.numeric(M00_ESTIMATED_AGE),
+      (SITE %in% c("Ghana", "Pakistan", "Zambia") & age_temp %in% c(15:77)) | #remove outlivers (not meet age requirement)
+        (SITE %in% c("India-CMC", "India-SAS", "Kenya") & age_temp %in% c(18:77)) ~ age_temp,
+      (SITE %in% c("Ghana", "Pakistan", "Zambia") & as.numeric(M00_ESTIMATED_AGE) %in% c(15:77)) |
+        (SITE %in% c("India-CMC", "India-SAS", "Kenya") & as.numeric(M00_ESTIMATED_AGE) %in% c(18:77)) ~ as.numeric(M00_ESTIMATED_AGE),
       TRUE ~ NA_real_
     ),
     #age below 18 
@@ -366,3 +367,5 @@ df_demo <- prep_demo %>%
 save(df_maternal, file = "derived_data/df_maternal.rda")
 save(df_demo, file = "derived_data/df_demo.rda")
 write.csv(df_demo, file = "derived_data/MAT_DEMOGRAPHIC.csv", row.names = FALSE)
+write.xlsx(df_demo, file = "derived_data/MAT_DEMOGRAPHIC.xlsx")
+write_dta(df_demo, path = "derived_data/MAT_DEMOGRAPHIC.dta")
