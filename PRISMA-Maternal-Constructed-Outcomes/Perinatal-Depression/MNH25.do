@@ -23,7 +23,7 @@
 ***Part 1: Directories and data import
 ***********************************
 * Set folders:
-global datadate "2024-06-28"
+global datadate "2024-10-04"
 //update with data date
 
 global da "Z:\Stacked Data/$datadate"
@@ -79,6 +79,9 @@ label define MAT_VISIT 					///
 label val MAT_VISIT_MNH25 MAT_VISIT
 label var MAT_VISIT_MNH25 "Was the visit completed?"
 
+gen DATE = date(OBSSTDAT, "YMD")
+format DATE %td
+
 **# Code depression score
 foreach var in EPDS0101 EPDS0102 EPDS0103 EPDS0104 EPDS0105 EPDS0106 EPDS0107 EPDS0108 EPDS0109 EPDS0110 {
 	gen `var'_R = `var'
@@ -86,7 +89,15 @@ foreach var in EPDS0101 EPDS0102 EPDS0103 EPDS0104 EPDS0105 EPDS0106 EPDS0107 EP
 	**creates a "_recode" variable so we can make changes but preserve the original data 
 }
 
-
+/*
+foreach var in m25_epds0103_recode m25_epds0106_recode m25_epds0107_recode ///
+ m25_epds0108_recode m25_epds0109_recode m25_epds0110_recode {
+	replace `var'="77" if `var'=="NA"
+	**replace with numbers to allow for destring
+	**note that SITEs should only be using 77
+	destring `var' , replace
+}
+*/
 **CHANGE SCORES FOR INDIA CMC AND SAS, PAKISTAN AND ZAMBIA - BASED ON CRF
 foreach var in EPDS0101_R EPDS0102_R EPDS0104_R {
 	recode `var' (1=0) (2=1) (3=2) (4=3) (77=.) (55=.) if SITE!="Ghana" & SITE!="Kenya"
@@ -109,7 +120,7 @@ foreach var in EPDS0103_R EPDS0105_R EPDS0106_R EPDS0107_R EPDS0108_R EPDS0109_R
 
 **SITES: DO NOT RUN IF SITE ! = "Kenya"
 foreach var in EPDS0101_R EPDS0102_R EPDS0103_R EPDS0104_R EPDS0105_R EPDS0106_R EPDS0107_R EPDS0108_R EPDS0109_R EPDS0110_R {
-	recode `var' (1=0)  (2=1) (3=2) (4=3) (77=.) (55=.) if SITE=="Kenya"
+	recode `var' (1=0)  (2=1) (3=2) (4=3) (77=.) (55=.) (777=.) if SITE=="Kenya"
 	**change score so that the option #1 == score of 0,  option #2 == score of 1, etc.
 }
 
@@ -312,11 +323,18 @@ gen DEPR_ANC20_SCORE=dep_sum if TYPE_VISIT<=2
 	gen DEPR_PNC6_SCORE = dep_sum if TYPE_VISIT==10 
 
 
-save "$wrk/mnh25_update.dta", replace
+save "$wrk/mnh25.dta", replace
+drop if dep_sum==.
+bysort MOMID PREGID DATE (TYPE_VISIT) : gen VISNUM=_n
+keep if VISNUM==1
+drop VISNUM
+save "$wrk/mnh25_nomissing.dta", replace
 
 **COLLAPSE to get one row per participant
+ use "$wrk/mnh25.dta",clear
 **We want to keep only the highest score
 collapse (max) DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC20_SCORE DEPR_ANC32_STND DEPR_ANC32_SITE DEPR_ANC32_SCORE DEPR_PNC6_STND DEPR_PNC6_SITE DEPR_PNC6_SCORE, by(SITE MOMID PREGID)
+ 
 
 save "$wrk/mnh25_collapsed.dta", replace
 
@@ -324,7 +342,7 @@ save "$wrk/mnh25_collapsed.dta", replace
 **************************************************
 **# Part 3: Analytical variables for maternal outcomes data set
 **************************************************
-	rename MOMID PREGID, upper
+	
 	merge 1:1 MOMID PREGID using "$outcomes/MAT_ENROLL.dta",nogen
 	keep if ENROLL == 1
 
@@ -410,11 +428,11 @@ save "$wrk/mnh25_collapsed.dta", replace
 	gen DEPR_ANC_EVER_STND_N = 1 if ///
 	 DEPR_ANC20_STND_N ==1 |  DEPR_ANC32_STND_N ==1
 	 label var DEPR_ANC_EVER_STND_N ///
-	 "Numerator of those with a valid depression score at ANC20 or 32"
+	 "Numerator of those screening for depression (stnd score) at ANC20 or 32"
 	gen DEPR_ANC_EVER_SITE_N = 1 if ///
 	 DEPR_ANC20_SITE_N ==1 | DEPR_ANC32_SITE_N==1
 	 label var DEPR_ANC_EVER_SITE_N ///
-	 "Numerator of those with a valid depression score at ANC20 or 32"
+	 "Numerator of those screening for depression(site score) at ANC20 or 32"
 
 
 **********EVER***********
@@ -432,6 +450,8 @@ save "$wrk/mnh25_collapsed.dta", replace
 	"Numerator of any who ever screened for possible depression, SITE cutoff"
 
 
+
+
 *drop SITE DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC32_STND DEPR_ANC32_SITE DEPR_PNC6_STND DEPR_PNC6_SITE
 order DEPR_ANC32_SCORE, after( DEPR_ANC20_MISS)
 order DEPR_PNC6_SCORE, after( DEPR_ANC32_MISS)
@@ -443,4 +463,39 @@ save "$wrk/mnh25_MaternalOutcomes.dta", replace
 
 keep SITE MOMID PREGID DEPR_ANC20_STND DEPR_ANC20_SITE DEPR_ANC20_SCORE DEPR_ANC32_STND DEPR_ANC32_SITE DEPR_PNC6_STND DEPR_PNC6_SITE  DEPR_ANC20_D DEPR_ANC20_STND_N DEPR_ANC20_SITE_N DEPR_ANC20_MISS DEPR_ANC32_SCORE DEPR_ANC20_MISS_D  DEPR_ANC32_D DEPR_ANC32_STND_N DEPR_ANC32_SITE_N DEPR_ANC32_MISS DEPR_PNC6_SCORE DEPR_ANC32_MISS_D  DEPR_PNC6_D DEPR_PNC6_STND_N DEPR_PNC6_SITE_N DEPR_PNC6_MISS DEPR_PNC6_MISS_D DEPR_ANC_EVER_D DEPR_ANC_EVER_STND_N DEPR_ANC_EVER_SITE_N DEPR_EVER_D DEPR_EVER_STND_N DEPR_EVER_SITE_N
 
+
+
 save "$outcomes/MAT_DEPR.dta" , replace
+	
+/*
+**Generate an enrollment depression data set
+	**for risk factors analysis
+	
+	use "$wrk/mnh25.dta" 
+
+	//keep only enrollment & ANC-20
+	drop if TYPE_VISIT>=3
+	//drop if visit not completed
+	drop if MAT_VISIT_MNH25>=3
+	
+	duplicates tag PREGID, gen(dup)
+	tab dup
+	
+	gen ENROLL_DEPR_STND = 0 if DEPR_ANC20_STND == 0
+	replace ENROLL_DEPR_STND =1 if  DEPR_ANC20_STND == 1
+	
+	gen ENROLL_DEPR_SITE = 0 if DEPR_ANC20_SITE == 0
+	replace ENROLL_DEPR_SITE = 1 if DEPR_ANC20_SITE == 1
+
+	sort SITE MOMID PREGID m25_obsstdat
+
+	collapse (firstnm) ENROLL_DEPR_STND ENROLL_DEPR_SITE, ///
+	by(SITE MOMID PREGID)
+	
+	label var ENROLL_DEPR_STND ///
+	"Depr. screening standard cutoff"
+	label var ENROLL_DEPR_SITE ///
+	"Depr screening, SITE cutoff"
+	
+	save "$wrk/DEPR_ENROLL.dta", replace
+*/
