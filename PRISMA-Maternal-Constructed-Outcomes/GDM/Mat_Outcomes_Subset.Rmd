@@ -50,10 +50,10 @@ library(kableExtra)
 
 # path_to_data <- 'Z:/Stacked Data/2023-09-15/' # - for AWS data
 
-path_to_data <-  'D:/Users/fouziafarooq/Documents/PRISMA_constructed-outcomes/data/2023-10-06/'# - for AWS data that
+path_to_data <-  'D:/Users/fouziafarooq/Documents/PRISMA_constructed-outcomes/data/2023-10-13/'# - for AWS data that
 
 # path_to_data <- 'data' # for Mac R.
-UploadDate = "2023-10-06"
+UploadDate = "2023-10-13"
 
 uploadDate <- as.Date(UploadDate, format = "%Y-%m-%d")
 ```
@@ -80,34 +80,12 @@ print(toc - tic)
 
 # mnh_list <- readRDS(paste0("MNH_list_", basename(path_to_data), ".RDS"))  #read in the RDS objects with all the MNH files as a massive list.
 
-mnh_list <- readRDS(file = 'MNH_list_2023-10-06.RDS')
+mnh_list <- readRDS(file = 'MNH_list_2023-10-13.RDS')
 ```
 
 ```{r}
 # mnh01_df <- mnh_list[["mnh01"]]
 # df <- mnh01_df %>% filter(SITE=="Zambia")
-```
-
-For SAS files from **Test data**.
-```{r echo=FALSE}
-########################################################################################
- # recreate_mnh_list <- FALSE #if I want to recreate the big data list then set this to TRUE
-########################################################################################
-# 
-# if(recreate_mnh_list == TRUE){
-#   mnh_list <- list() # create an empty list first.
-#   list_mnh <- dir(path = path_to_data, pattern = "*.sas7bdat", full.names = TRUE) #creates a list of all the csv files in the directory
-#   for (data_file in list_mnh[]) { #can test by just bringing in a small number (add 1:2 inside the bracket to do so)
-#     form_num <- substr(basename(data_file), 1,5) #substr pulls out the 1:5 spaces in a char (will pull out "mnh00" etc);
-#     #basename() pulls out just the name of the file from the entire directory/path.
-#     print(paste("Reading", form_num))
-#     mnh_list[[form_num]] <- read_sas(data_file, )
-#   }
-#   saveRDS(mnh_list, file = paste0("MNH_list_", basename(path_to_data), ".RDS"))
-# }
-# 
-# mnh_list <- readRDS("MNH_list_data.RDS")  #read in the RDS objects with all the MNH files as a massive list.
-
 ```
 
 
@@ -262,83 +240,83 @@ Using modify() from Purrr library and a lambda function.
 ```{r echo=FALSE}
 
 mnh_list[["mnh00"]] <- mnh_list[["mnh00"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   filter(!is.na(MOMID)) %>% #try using 'drop_na (variables)
   distinct (MOMID, PREGID, SITE, M00_TYPE_VISIT, .keep_all = TRUE) # keep_all keeps the first row rather than dropping both duplicates. 
 
 
 mnh_list[["mnh01"]] <- mnh_list[["mnh01"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   filter(!is.na(MOMID)) %>%
   distinct ( SITE, SCRNID, M01_TYPE_VISIT, .keep_all = TRUE) #MOMID, PREGID,
 
 mnh_list[["mnh02"]] <- mnh_list[["mnh02"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   drop_na(MOMID, PREGID) %>%
   distinct (MOMID, PREGID, SITE, M02_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh04"]] <- mnh_list[["mnh04"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   drop_na(MOMID, PREGID) %>%
   distinct (MOMID, PREGID, SITE, M04_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh05"]] <- mnh_list[["mnh05"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   drop_na(MOMID, PREGID) %>%
   distinct (MOMID, PREGID, SITE, M05_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh06"]] <- mnh_list[["mnh06"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   drop_na(MOMID, PREGID) %>%
   distinct (MOMID, PREGID, SITE, M06_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh07"]] <- mnh_list[["mnh07"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   drop_na(MOMID, PREGID) %>%
   distinct (MOMID, PREGID, SITE, M07_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh08"]] <- mnh_list[["mnh08"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   drop_na(MOMID, PREGID) %>%
   distinct (MOMID, PREGID, SITE, M08_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh11"]] <- mnh_list[["mnh11"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   filter(!is.na(MOMID)) %>%
   distinct (MOMID, PREGID, SITE, M11_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh12"]] <- mnh_list[["mnh12"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   drop_na(MOMID, PREGID) %>%
   distinct (MOMID, PREGID, SITE, M12_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh13"]] <- mnh_list[["mnh13"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   filter(!is.na(MOMID)) %>%
   distinct (MOMID, PREGID, SITE, M13_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh14"]] <- mnh_list[["mnh14"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   filter(!is.na(MOMID)) %>%
   distinct (MOMID, PREGID, SITE, M14_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh15"]] <- mnh_list[["mnh15"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   filter(!is.na(MOMID)) %>%
   distinct (MOMID, PREGID, SITE, M15_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh19"]] <- mnh_list[["mnh19"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   drop_na(MOMID, PREGID) %>%
   distinct (MOMID, PREGID, SITE, M19_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh25"]] <- mnh_list[["mnh25"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   filter(!is.na(MOMID)) %>%
   distinct (MOMID, PREGID, SITE, M25_TYPE_VISIT, .keep_all = TRUE)
 
 mnh_list[["mnh26"]] <- mnh_list[["mnh26"]] %>%
-  filter(MOMID!="") %>% #Moved filter to the end so we can create all the variables with TYPE_VISIT at the end of the var name before rows get dropped out
+  filter(MOMID!="") %>% 
   filter(!is.na(MOMID)) %>%
   distinct (MOMID, PREGID, SITE, M26_TYPE_VISIT, .keep_all = TRUE)
 ```
@@ -1312,3 +1290,48 @@ diabetes_df <- merged_df %>%
 
 write.csv(diabetes_df, '../data_out/mat_diabetes_vars.csv')
 ```
+
+#####################################
+#### WRITE OUT CSV FILE  FOR HDP
+####################################
+```{r}
+htn_df <- merged_df %>% 
+  select(MOMID, PREGID, SITE, DELIVERED_FF, M06_HB_POC_LBORRES_4, M08_CBC_HB_LBORRES_4,
+         M04_ANC_OBSSTDAT_1, # Date ANC1 from MNH04
+         M04_HTN_EVER_MHOCCUR_1, M04_HTN_MHSTDAT_1, # CHRONIC HYPERTENSION
+         M04_HPD_MHTERM_1, M04_HPD_MHTERM_2, M04_HPD_MHTERM_3,# Chronic hypertension or gHTN or PE or Don't know. 
+         M04_HPD_MHTERM_4, M04_HPD_MHTERM_5, M04_HPD_MHTERM_13,
+         starts_with(c("M04_HPD_OECTRT_")),
+         starts_with(c("M04_HPD_MHTERM_")),
+         #Delivery form has _1-3, _77, _99 that I need to keep b/c it is a "No HDP diagnosis" and "No treatment received"
+         M09_HDP_HTN_MHOCCUR_1_6, M09_HDP_HTN_MHOCCUR_2_6, 
+         M09_HDP_HTN_MHOCCUR_3_6, M09_HDP_HTN_MHOCCUR_77_6, M09_HDP_HTN_MHOCCUR_99_6,
+         # variables for HDP medication during Delivery:
+         starts_with(c("M09_HDP_HTN_PROCCUR_")), 
+         # BP:
+         M19_BP_SYS_VSORRES_13, M19_BP_DIA_VSORRES_13, M19_BP_SYS_VSORRES_14, M19_BP_DIA_VSORRES_14,
+         # Other labs
+         M08_CBC_HB_LBORRES_4, M06_HB_POC_LBORRES_4, 
+         M08_IBILIRUBIN_LBORRES_4, M08_AST_UL_LBORRES_4, M08_ALT_UL_LBORRES_4,
+         M08_CBC_PLATE_LBORRES_4, M08_CREAT_UMOLL_LBORRES_4,
+         # Hospitalization HELLP:
+         M19_OBSSTDAT_13, # DATE OF HOSP.
+         M19_CBC_HB_LBORRES_13, M19_CBC_PLATELET_LBORRES_13,
+         M19_AST_UL_LBORRES_13, 
+         M19_ALT_UL_LBORRES_13,M19_ALT_UKATL_LBORRESU_13, 
+         M19_CREAT_LBORRESU_13,
+         M19_UA_PROT_LBORRES_13,
+         # OTHER VARS
+         starts_with(c("M06_BP_SYS_VSORRES_", "M06_BP_DIA_VSORRES_", "M04_HTN_CMTRT_", 
+                       "M04_HPD_OECTRT_", 
+                      # ANC HOSP _13
+                      "M19_HDP_HTN_MHOCCUR_", # was mother diagnosed
+                       "M19_HPD_HTN_CMOCCUR_", # did mother receive medication
+                       # PROTEINURIA
+                       "M08_UA_PROT_LBORRES",
+                       "M08_LBSTDAT_")))  # M08_LBSTDAT_ GIVES DATE OF THE VISIT
+
+write.csv(htn_df, '../data_out/mat_htn.csv')
+
+```
+

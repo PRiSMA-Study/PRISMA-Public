@@ -7,7 +7,17 @@ output:
   html_document: default
 ---
 
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
 
+
+##### **Includes data from synapse last updated:** {.unlisted .unnumbered}
+#####  **Ghana: 2023-10-13** {.unlisted .unnumbered}
+#####  **Kenya: 2023-10-13** {.unlisted .unnumbered}
+#####  **Pakistan: 2023-10-13** {.unlisted .unnumbered}
+#####  **Zambia: 2023-10-13** {.unlisted .unnumbered}
    
 # NOTE: #TODO Will have to recreate this variable using gestational age at some point (b/c women who are at GA 18 or 19 can still come in for ANC20 visit (VISIT 2) so to truly count this as 20week GA at least for gHTN - I need to look at GA (10/02/2023)
 
@@ -45,7 +55,7 @@ library(kableExtra)
 
 ```{r}
 merged_df <- readRDS('../data_out/merged_df.RDS')
-htn_df <- read.csv('../data_out/mat_htn.csv')
+htn_df <- read.csv('../data_out/mat_HDP.csv')
 window_subset_df <- read.csv('../data_out/window_subset_df.csv')
 htn_df <- htn_df %>% filter(DELIVERED_FF==1)
 ```
@@ -126,6 +136,7 @@ if(CONVERT_NA ==TRUE){
 time_diff <- toc-tic
 time_diff
 ```
+
 # INVESTIGATING MISSINGNESS
 ```{r}
 temp.df <- htn_df %>%
@@ -133,37 +144,90 @@ temp.df <- htn_df %>%
 
 missing_mnh08_df <- htn_df %>%
   select(MOMID, SITE, DELIVERED_FF.x, M08_MAT_VISIT_MNH08_1, M08_MAT_VISIT_FORM_COMPLETED_1, ENROLL_PASS,
-         M08_MAT_VISIT_MNH08_3, M08_MAT_VISIT_FORM_COMPLETED_3, ANC32_PASS)
+         M08_MAT_VISIT_MNH08_3, M08_MAT_VISIT_FORM_COMPLETED_3, ANC32_PASS, M08_MAT_VISIT_FORM_COMPLETED_4, ANC36_PASS)
 
-temp.df %>% summarize(n())
-write.csv(missing_mnh08_df, '../data_out/missing_mnh08_df_delivered_20231017.csv')
+# temp.df %>% summarize(n())
+write.csv(missing_mnh08_df, '../data_out/missing_mnh08_df_delivered_20231026.csv')
 ```
 
 ```{r}
   #SETTING UP VISIT 4 - ANC32.
-# 3RD TRIMESTER
 htn_df <- htn_df %>% 
-  mutate(MAT_ANEMIA_MEAS4 = ifelse((!is.na(M08_CBC_HB_LBORRES_4) & between(M08_CBC_HB_LBORRES_4, 10, 10.99)), "mild",
-                                    ifelse((!is.na(M08_CBC_HB_LBORRES_4) & between(M08_CBC_HB_LBORRES_4, 7.0, 9.99)), "moderate",
-                                            ifelse((!is.na(M08_CBC_HB_LBORRES_4) & between(M08_CBC_HB_LBORRES_4, 0.0, 6.99)), "severe",
-                                                    ifelse((!is.na(M08_CBC_HB_LBORRES_4) & between(M08_CBC_HB_LBORRES_4, 13.1, 14.99)), "high hb 13-<15g/dl",  
-                                                           ifelse((!is.na(M08_CBC_HB_LBORRES_4) & M08_CBC_HB_LBORRES_4 > 14.99), "high hb >=15g/dl",
-                                                                  ifelse((!is.na(M08_CBC_HB_LBORRES_4) & between(M08_CBC_HB_LBORRES_4, 11, 13.0)), "normal",
-                                                                         
-                                                                          ifelse((!is.na(M06_HB_POC_LBORRES_4) & between(M06_HB_POC_LBORRES_4, 10, 10.99)), "mild",
-                                                                                 ifelse((!is.na(M06_HB_POC_LBORRES_4) & between(M06_HB_POC_LBORRES_4, 7.0, 9.99)), "moderate",
-                                                                                        ifelse((!is.na(M06_HB_POC_LBORRES_4) & between(M06_HB_POC_LBORRES_4, 0.0, 6.99)), "severe",
-                                                                                               ifelse((!is.na(M06_HB_POC_LBORRES_4) & between(M06_HB_POC_LBORRES_4, 13.1, 14.99)), "high hb 13-<15g/dl",
-                                                                                                      ifelse((!is.na(M06_HB_POC_LBORRES_4) & M06_HB_POC_LBORRES_4 > 14.99), "high hb >=15g/dl",
-                                                                                                             ifelse((!is.na(M06_HB_POC_LBORRES_4) & between(M06_HB_POC_LBORRES_4, 11, 13.0)), "normal",
-                                                                                                                    as.character(NA)))))))))))))) 
+  mutate(MAT_ANEMIA_MEAS4 = case_when((!is.na(M08_CBC_HB_LBORRES_4) & 
+                                        M08_CBC_HB_LBORRES_4>=10 & M08_CBC_HB_LBORRES_4<11) ~ "mild",
+                                      (is.na(M08_CBC_HB_LBORRES_4) & !is.na(M06_HB_POC_LBORRES_4) & 
+                                        M06_HB_POC_LBORRES_4>=10 & M06_HB_POC_LBORRES_4<11) ~ "mild",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_4) & 
+                                        M08_CBC_HB_LBORRES_4>=7 & M08_CBC_HB_LBORRES_4<10) ~ "moderate",
+                                      (is.na(M08_CBC_HB_LBORRES_4) & !is.na(M06_HB_POC_LBORRES_4) & 
+                                        M06_HB_POC_LBORRES_4>=7 & M06_HB_POC_LBORRES_4<10) ~ "moderate",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_4) & 
+                                        M08_CBC_HB_LBORRES_4>=0 & M08_CBC_HB_LBORRES_4<7) ~ "severe",
+                                      (is.na(M08_CBC_HB_LBORRES_4) & !is.na(M06_HB_POC_LBORRES_4) & 
+                                        M06_HB_POC_LBORRES_4>=0 & M06_HB_POC_LBORRES_4<7) ~ "severe",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_4) & 
+                                        M08_CBC_HB_LBORRES_4>=11 & M08_CBC_HB_LBORRES_4<=13) ~ "normal",
+                                      (is.na(M08_CBC_HB_LBORRES_4) & !is.na(M06_HB_POC_LBORRES_4) & 
+                                        M06_HB_POC_LBORRES_4>=11 & M06_HB_POC_LBORRES_4<=13) ~ "normal",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_4) & 
+                                        M08_CBC_HB_LBORRES_4>13 & M08_CBC_HB_LBORRES_4<15) ~ "high hb 13-<15g/dl",
+                                      (is.na(M08_CBC_HB_LBORRES_4) & !is.na(M06_HB_POC_LBORRES_4) & 
+                                        M06_HB_POC_LBORRES_4>13 & M06_HB_POC_LBORRES_4<15) ~ "high hb 13-<15g/dl",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_4) & M08_CBC_HB_LBORRES_4>=15)  ~ "high hb >=15g/dl",
+                                      (is.na(M08_CBC_HB_LBORRES_4) & !is.na(M06_HB_POC_LBORRES_4) & 
+                                      M06_HB_POC_LBORRES_4>=15) ~ "high hb >=15g/dl",
+                                      
+                                      TRUE ~ as.character(NA)))
 
 temp.df <- htn_df %>% 
   select(MOMID, SITE, MAT_ANEMIA_MEAS4, M08_CBC_HB_LBORRES_4, M06_HB_POC_LBORRES_4)
   
 
 table(htn_df$MAT_ANEMIA_MEAS4, useNA = "always", htn_df$SITE)
+```
 
+# VISIT 5
+```{r}
+  #SETTING UP VISIT 5 - ANC36.
+htn_df <- htn_df %>% 
+  mutate(MAT_ANEMIA_MEAS5 = case_when((!is.na(M08_CBC_HB_LBORRES_5) & 
+                                        M08_CBC_HB_LBORRES_5>=10 & M08_CBC_HB_LBORRES_5<11) ~ "mild",
+                                      (is.na(M08_CBC_HB_LBORRES_5) & !is.na(M06_HB_POC_LBORRES_5) & 
+                                        M06_HB_POC_LBORRES_5>=10 & M06_HB_POC_LBORRES_5<11) ~ "mild",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_5) & 
+                                        M08_CBC_HB_LBORRES_5>=7 & M08_CBC_HB_LBORRES_5<10) ~ "moderate",
+                                      (is.na(M08_CBC_HB_LBORRES_5) & !is.na(M06_HB_POC_LBORRES_5) & 
+                                        M06_HB_POC_LBORRES_5>=7 & M06_HB_POC_LBORRES_5<10) ~ "moderate",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_5) & 
+                                        M08_CBC_HB_LBORRES_5>=0 & M08_CBC_HB_LBORRES_5<7) ~ "severe",
+                                      (is.na(M08_CBC_HB_LBORRES_5) & !is.na(M06_HB_POC_LBORRES_5) & 
+                                        M06_HB_POC_LBORRES_5>=0 & M06_HB_POC_LBORRES_5<7) ~ "severe",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_5) & 
+                                        M08_CBC_HB_LBORRES_5>=11 & M08_CBC_HB_LBORRES_5<=13) ~ "normal",
+                                      (is.na(M08_CBC_HB_LBORRES_5) & !is.na(M06_HB_POC_LBORRES_5) & 
+                                        M06_HB_POC_LBORRES_5>=11 & M06_HB_POC_LBORRES_5<=13) ~ "normal",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_5) & 
+                                        M08_CBC_HB_LBORRES_5>13 & M08_CBC_HB_LBORRES_5<15) ~ "high hb 13-<15g/dl",
+                                      (is.na(M08_CBC_HB_LBORRES_5) & !is.na(M06_HB_POC_LBORRES_5) & 
+                                        M06_HB_POC_LBORRES_5>13 & M06_HB_POC_LBORRES_5<15) ~ "high hb 13-<15g/dl",
+                                      
+                                      (!is.na(M08_CBC_HB_LBORRES_5) & M08_CBC_HB_LBORRES_5>=15)  ~ "high hb >=15g/dl",
+                                      (is.na(M08_CBC_HB_LBORRES_5) & !is.na(M06_HB_POC_LBORRES_5) & 
+                                      M06_HB_POC_LBORRES_5>=15) ~ "high hb >=15g/dl",
+                                      
+                                      TRUE ~ as.character(NA)))
+
+table(htn_df$MAT_ANEMIA_MEAS5, useNA = "always", htn_df$SITE)
+round(prop.table(table(htn_df$MAT_ANEMIA_MEAS5, useNA = "always", htn_df$SITE), margin=2)*100,2)
 ```
 
 # MEAN BLOOD PRESSURE MEASUREMENTS
@@ -489,6 +553,8 @@ htn_df <- htn_df %>%
                       !is.na(meanSBP_IPC))) # THIS SUM_BP LOOKS GOOD.
                       #!is.na(meanSBP_Hosp_ANC)
 
+temp.df <- htn_df %>% select(MOMID, SITE, meanSBP_IPC)
+
 table(htn_df$CHRON_HYPER_MEAS_ANY2, htn_df$SITE, useNA = "always")
 round(prop.table(table(htn_df$CHRON_HYPER_MEAS_ANY2, htn_df$SITE, useNA = "always"), margin=2)*100,2)
 
@@ -513,7 +579,7 @@ temp.df <- htn_df %>%
          meanSBP_IPC, meanDBP_IPC,
          meanSBP_Hosp_ANC, meanDBP_Hosp_ANC) %>% 
   filter(SITE=="Pakistan") %>%
-  mutate(SUM_BP = sum(#!is.na(meanSBP_ANC_LT20), 
+  mutate(SUM_BP = sum(!is.na(meanSBP_ANC_LT20), 
                       !is.na(meanSBP_ANC20), 
                       !is.na(meanSBP_ANC28), 
                       !is.na(meanSBP_ANC32), 
@@ -604,9 +670,10 @@ temp.df <- htn_df %>% select(MOMID, SITE, SEVERE_CHRON_HYPER_MEAS,
 ```{r}
 htn_df <- htn_df %>% 
  # filter(!is.na(M04_ANC_OBSSTDAT_1)) %>% # AMONG WOMEN WHO DELIVERED
-  mutate(CHRON_HYPER = case_when((CHRON_HYPER_MEAS1_TREAT==1 | CHRON_HYPER_MEAS_ANY2==1) ~ 1,
+  mutate(CHRON_HYPER = case_when((CHRON_HYPER_MEAS1_TREAT==1 | CHRON_HYPER_MEAS_ANY2==1 | SEVERE_CHRON_HYPER_MEAS==1) ~ 1,
                                             (is.na(CHRON_HYPER_MEAS_ANY2) & 
-                                               is.na(CHRON_HYPER_MEAS1_TREAT==1)) ~ as.numeric(NA),
+                                               is.na(CHRON_HYPER_MEAS1_TREAT) & 
+                                               is.na(SEVERE_CHRON_HYPER_MEAS)) ~ as.numeric(NA),
                                             TRUE ~ as.numeric(0)))
 
 table(htn_df$CHRON_HYPER, SITE = htn_df$SITE, useNA = "always")
@@ -699,26 +766,6 @@ htn_df <- htn_df %>%
                                         TRUE ~ 0))
 
 
-
-# htn_df <- htn_df %>%
-#   rowwise() %>%
-#   mutate(GT20_HTN_MEAS_ANY2 = ifelse(((sum(is_ghtn(meanSBP_ANC20, meanDBP_ANC20),
-#                                            is_ghtn(meanSBP_ANC28, meanDBP_ANC28),
-#                                            is_ghtn(meanSBP_ANC32, meanDBP_ANC32),
-#                                            is_ghtn(meanSBP_ANC36, meanDBP_ANC36),
-#                                            is_ghtn(meanSBP_IPC, meanDBP_IPC),
-#                                            is_ghtn(meanSBP_Hosp_ANC, meanDBP_Hosp_ANC), na.rm = TRUE) >=2) & 
-#                                         
-#                                         CHRON_HYPER==0), 1, 0),
-#          # OVERWRITES 0 WITH NA when all these vars are NA
-#          # HAVE TO HAVE AT LEAST 2 MEASUREMETNS (I.E 1 PAIR)
-#          GT20_HTN_MEAS_ANY2 = ifelse((sum(!is.na(c(meanSBP_ANC20, meanDBP_ANC20, meanSBP_ANC28, meanDBP_ANC28, 
-#                                                   meanSBP_ANC32, meanDBP_ANC32, meanSBP_ANC36, meanDBP_ANC36,
-#                                                   meanSBP_IPC, meanDBP_IPC, meanSBP_Hosp_ANC, meanDBP_Hosp_ANC)))<=2 | is.na(CHRON_HYPER)), 
-#                                      as.numeric(NA),
-#                                      # OTHERWISE, IT LEAVES IT ALONE.
-#                                      GT20_HTN_MEAS_ANY2))
-
 table(htn_df$GT20_HTN_MEAS_ANY2, htn_df$SITE, useNA = "always")
 round(prop.table(table(htn_df$GT20_HTN_MEAS_ANY2, htn_df$SITE, useNA = "always"), margin=2)*100,2)
 
@@ -752,26 +799,7 @@ htn_df <- htn_df %>%
                                                       meanSBP_IPC, 
                                                       meanSBP_Hosp_ANC))) <1) ~ as.numeric(NA),
                                         TRUE ~ 0))
-                                          
-# htn_df <- htn_df %>%
-#   rowwise() %>%
-#   mutate(GT20_HTN_MEAS_ANY1 = ifelse((sum(is_ghtn(meanSBP_ANC20, meanDBP_ANC20),
-#                                              is_ghtn(meanSBP_ANC28, meanDBP_ANC28),
-#                                              is_ghtn(meanSBP_ANC32, meanDBP_ANC32),
-#                                              is_ghtn(meanSBP_ANC36, meanDBP_ANC36),
-#                                              is_ghtn(meanSBP_IPC, meanDBP_IPC),
-#                                              is_ghtn(meanSBP_Hosp_ANC, meanDBP_Hosp_ANC), na.rm = TRUE) >=1) & # just need one TP to be high and then add in the medication piece next (it will be 1 TP high AND Medication use)
-#                                           CHRON_HYPER==0, 1, 0),
-#          # OVERWRITES 0 WITH NA when all these vars are NA
-#          GT20_HTN_MEAS_ANY1 = ifelse((all(is.na(c(meanSBP_ANC20, meanDBP_ANC20, 
-#                                                    meanSBP_ANC28, meanDBP_ANC28, 
-#                                                    meanSBP_ANC32, meanDBP_ANC32, 
-#                                                    meanSBP_ANC36, meanDBP_ANC36,
-#                                                    meanSBP_IPC, meanDBP_IPC, 
-#                                                    meanSBP_Hosp_ANC, meanDBP_Hosp_ANC))) | is.na(CHRON_HYPER)), 
-#                                        as.numeric(NA),
-#                                        # OTHERWISE, IT LEAVES IT ALONE.
-#                                        GT20_HTN_MEAS_ANY1))
+                                        
 
 table(htn_df$GT20_HTN_MEAS_ANY1, htn_df$SITE, useNA = "always")
 round(prop.table(table(htn_df$GT20_HTN_MEAS_ANY1, htn_df$SITE, useNA = "always"), margin=2)*100,2)
@@ -984,18 +1012,21 @@ Presence of all lab abnormalities: hemolysis, elevated liver enzymes, and low pl
 # What about at L&D? - IT IS NOT CHECKED AT L&D. 
 
 #####################
-# MATERNAL HEMOLYSIS - ONLY AT ANC-32
+# MATERNAL HEMOLYSIS - ONLY AT ANC-32 or ANC36
 #####################
 htn_df <- htn_df %>%
-  mutate(MAT_HEMOLYSIS = case_when((MAT_ANEMIA_MEAS4 == "severe" & M08_IBILIRUBIN_LBORRES_4 >=20.52) ~ 1,
-                                   (is.na(MAT_ANEMIA_MEAS4) | is.na(M08_IBILIRUBIN_LBORRES_4)) ~ as.numeric(NA),
-                                    TRUE ~ as.numeric(0)))
+  mutate(MAT_HEMOLYSIS = case_when(any((MAT_ANEMIA_MEAS4 == "severe" & M08_IBILIRUBIN_LBORRES_4 >=20.52),
+                                       (MAT_ANEMIA_MEAS5 == "severe" & M08_IBILIRUBIN_LBORRES_5 >=20.52), na.rm=TRUE) ~ 1,
+                                   (is.na(MAT_ANEMIA_MEAS4) | is.na(M08_IBILIRUBIN_LBORRES_4)) & 
+                                      (is.na(MAT_ANEMIA_MEAS5) | is.na(M08_IBILIRUBIN_LBORRES_5)) ~ as.numeric(NA),
+                                   TRUE ~ as.numeric(0)))
                                
 table(MAT_HEMOLYSIS = htn_df$MAT_HEMOLYSIS, SITE = htn_df$SITE, useNA = "always")
 round(prop.table(table(MAT_HEMOLYSIS = htn_df$MAT_HEMOLYSIS, SITE = htn_df$SITE, useNA = "always"), margin=2)*100, 2)
 
-temp.df <- htn_df %>% select(MOMID, SITE, MAT_HEMOLYSIS, MAT_ANEMIA_MEAS4, M08_IBILIRUBIN_LBORRES_4) %>%
-  filter(SITE=="Pakistan")
+
+temp.df <- htn_df %>% select(MOMID, SITE, MAT_HEMOLYSIS, MAT_ANEMIA_MEAS4, M08_IBILIRUBIN_LBORRES_4,
+                             MAT_ANEMIA_MEAS5, M08_IBILIRUBIN_LBORRES_5) 
 
 ####################
 # HELLP
@@ -1007,15 +1038,19 @@ temp.df <- htn_df %>% select(MOMID, SITE, MAT_HEMOLYSIS, MAT_ANEMIA_MEAS4, M08_I
 # AST upper normal range is set to: 45
 # ALT upper normal range is set to: 60
 htn_df <- htn_df %>%
-  mutate(MAT_HELLP = case_when((MAT_HEMOLYSIS ==1 | M08_AST_UL_LBORRES_4 >= 90 | M08_ALT_UL_LBORRES_4 >= 120 | # AST AND ALT 2X THE UPPER NORMAL RANGE
-                                  (M08_CBC_PLATE_LBORRES_4 >=0 & M08_CBC_PLATE_LBORRES_4 < 100)) ~ 1,
+  mutate(MAT_HELLP = case_when((MAT_HEMOLYSIS ==1 | M08_AST_UL_LBORRES_4 >= 90 | M08_AST_UL_LBORRES_5 >= 90 | 
+                                  M08_ALT_UL_LBORRES_4 >= 120 | M08_ALT_UL_LBORRES_5 >= 120 | # AST AND ALT 2X THE UPPER NORMAL RANGE
+                                  (M08_CBC_PLATE_LBORRES_4 >=0 & M08_CBC_PLATE_LBORRES_4 < 100) | 
+                                  (M08_CBC_PLATE_LBORRES_5 >=0 & M08_CBC_PLATE_LBORRES_5 < 100)) ~ 1,
                                # DURING HOSPITALIZATION:
                                # Hospitalization - there is no bilirubin so can't create hemolysis.
                                ((M19_CBC_PLATELET_LBORRES_13>=0 & M19_CBC_PLATELET_LBORRES_13 < 100) |
                                   M19_AST_UL_LBORRES_13 >=90 | M19_ALT_UL_LBORRES_13 >=120) ~ 1,  # Creatinine is umol/L
                                
-                               all(is.na(c(MAT_HEMOLYSIS, M08_AST_UL_LBORRES_4, M08_ALT_UL_LBORRES_4, 
-                                         M08_CBC_PLATE_LBORRES_4,
+                               all(is.na(c(MAT_HEMOLYSIS, 
+                                           M08_AST_UL_LBORRES_4, M08_AST_UL_LBORRES_5,
+                                           M08_ALT_UL_LBORRES_4, M08_ALT_UL_LBORRES_5, 
+                                         M08_CBC_PLATE_LBORRES_4, M08_CBC_PLATE_LBORRES_5,
                                          M19_CBC_PLATELET_LBORRES_13,
                                          M19_AST_UL_LBORRES_13, M19_ALT_UL_LBORRES_13))) ~ as.numeric(NA),
                                TRUE ~ as.numeric(0)))
@@ -1024,9 +1059,12 @@ table(MAT_HELLP = htn_df$MAT_HELLP, SITE = htn_df$SITE, useNA = "always")
 round(prop.table(table(MAT_HELLP = htn_df$MAT_HELLP, SITE = htn_df$SITE, useNA = "always"), margin=2)*100, 2)
 
 temp.df <- htn_df %>%
-  select(MOMID, SITE, MAT_HELLP, MAT_HEMOLYSIS, M08_AST_UL_LBORRES_4, M08_ALT_UL_LBORRES_4, M08_CBC_PLATE_LBORRES_4,
+  select(MOMID, SITE, MAT_HELLP, MAT_HEMOLYSIS, 
+         M08_AST_UL_LBORRES_4, M08_AST_UL_LBORRES_5,
+         M08_ALT_UL_LBORRES_4, M08_ALT_UL_LBORRES_5, 
+         M08_CBC_PLATE_LBORRES_4, M08_CBC_PLATE_LBORRES_5,
          M19_CBC_PLATELET_LBORRES_13, M19_CREAT_LBORRESU_13, M19_AST_UL_LBORRES_13, M19_ALT_UL_LBORRES_13) %>%
-  filter(SITE=="Kenya")
+  filter(SITE=="Zambia")
 ```
 
 # SEVERE FEATURES OF PREECLAMPISA (MEASURED): is HELLP and renal insufficiency (measured by creatinine levels)
@@ -1058,9 +1096,10 @@ htn_df <- htn_df %>%
   mutate(MAT_PE_SEV_MEAS = case_when((SEVERE_GT20_HTN_MEAS==1  |
                                         MAT_HELLP==1 |
                                         M08_CREAT_UMOLL_LBORRES_4 > 97.26 |  # 1.1mg/dl or 97.26umol/dl KIDNEY FUNCTION 
+                                        M08_CREAT_UMOLL_LBORRES_5 > 97.26 |
                                         M19_CREAT_LBORRESU_13 >97.26) ~ 1, #HOSPITALIZATION;  Creatinine 97.26umol/dl
                                      all(is.na(c(SEVERE_GT20_HTN_MEAS, MAT_HELLP,
-                                        M08_CREAT_UMOLL_LBORRES_4, M19_CREAT_LBORRESU_13))) ~ as.numeric(NA),
+                                        M08_CREAT_UMOLL_LBORRES_4, M08_CREAT_UMOLL_LBORRES_5, M19_CREAT_LBORRESU_13))) ~ as.numeric(NA),
                                      TRUE ~ as.numeric(0)))
 
 table(MAT_PE_SEV_MEAS = htn_df$MAT_PE_SEV_MEAS, SITE = htn_df$SITE, useNA = "always" )
@@ -1095,8 +1134,8 @@ temp.df <- htn_df %>%
 
 # Billirubin
 htn_df <- htn_df %>% 
-  mutate(BILIRUBIN = case_when((M08_IBILIRUBIN_LBORRES_4 >=20.52) ~ 1,
-                         is.na(M08_IBILIRUBIN_LBORRES_4)~ as.numeric(NA),
+  mutate(BILIRUBIN = case_when((M08_IBILIRUBIN_LBORRES_4 >=20.52 | M08_IBILIRUBIN_LBORRES_5 >=20.52) ~ 1,
+                         (is.na(M08_IBILIRUBIN_LBORRES_4) & is.na(M08_IBILIRUBIN_LBORRES_5))~ as.numeric(NA),
                          TRUE ~ 0))
 
 temp.df <- htn_df %>% 
@@ -1105,8 +1144,8 @@ temp.df <- htn_df %>%
 
 # AST
 htn_df <- htn_df %>% 
-  mutate(AST = case_when((M08_AST_UL_LBORRES_4 >= 90 | M19_AST_UL_LBORRES_13 >=90) ~ 1,
-                         (is.na(M08_AST_UL_LBORRES_4) & is.na(M19_AST_UL_LBORRES_13 >=90))~ as.numeric(NA),
+  mutate(AST = case_when((M08_AST_UL_LBORRES_4 >= 90 | M08_AST_UL_LBORRES_5 >= 90 | M19_AST_UL_LBORRES_13 >=90) ~ 1,
+                         (is.na(M08_AST_UL_LBORRES_4) & is.na(M19_AST_UL_LBORRES_13 & is.na(M08_AST_UL_LBORRES_5)))~ as.numeric(NA),
                          TRUE ~ 0))
 
 temp.df <- htn_df %>% 
@@ -1114,26 +1153,36 @@ temp.df <- htn_df %>%
 
 # ALT
 htn_df <- htn_df %>% 
-  mutate(ALT = case_when((M08_ALT_UL_LBORRES_4 >= 120 | M19_ALT_UL_LBORRES_13 >=120) ~ 1,
-                         is.na(M08_ALT_UL_LBORRES_4) & is.na(M19_ALT_UL_LBORRES_13) ~ as.numeric(NA),
+  mutate(ALT = case_when((M08_ALT_UL_LBORRES_4 >= 120 | M08_ALT_UL_LBORRES_5 >= 120 | M19_ALT_UL_LBORRES_13 >=120) ~ 1,
+                         is.na(M08_ALT_UL_LBORRES_4) & is.na(M08_ALT_UL_LBORRES_5) & is.na(M19_ALT_UL_LBORRES_13) ~ as.numeric(NA),
                          TRUE ~ 0))
 
 # PLATELETS:
 # (M08_CBC_PLATE_LBORRES_4 >=0 & M08_CBC_PLATE_LBORRES_4 < 100)
 htn_df <- htn_df %>% 
   mutate(PLATELETS = case_when(((M08_CBC_PLATE_LBORRES_4 >=0 & M08_CBC_PLATE_LBORRES_4 < 100) | 
+                                  (M08_CBC_PLATE_LBORRES_5 >=0 & M08_CBC_PLATE_LBORRES_5 < 100) | 
                                  (M19_CBC_PLATELET_LBORRES_13>=0 & M19_CBC_PLATELET_LBORRES_13 < 100)) ~ 1,
-                         (is.na(M08_CBC_PLATE_LBORRES_4) & is.na(M19_CBC_PLATELET_LBORRES_13)) ~ as.numeric(NA),
+                         (is.na(M08_CBC_PLATE_LBORRES_4) & 
+                            is.na(M08_CBC_PLATE_LBORRES_5) & 
+                            is.na(M19_CBC_PLATELET_LBORRES_13)) ~ as.numeric(NA),
                          TRUE ~ 0))
 
 temp.df <- htn_df %>% 
-  select(MOMID, SITE, PLATELETS, M08_CBC_PLATE_LBORRES_4, M19_CBC_PLATELET_LBORRES_13)
+  select(MOMID, SITE, PLATELETS, M08_CBC_PLATE_LBORRES_4, M19_CBC_PLATELET_LBORRES_13) %>%
+  filter(SITE=="Kenya")
+
+# merged_df %>% group_by(SITE) %>% summarize(n=n(), n_missing = sum(is.na(M08_CBC_PLATE_LBORRES_4)))
+htn_df %>% group_by(SITE) %>% summarize(n=n(), n_missing = sum(is.na(M08_CBC_PLATE_LBORRES_4)))
+
+table(htn_df$M08_CBC_PLATE_LBORRES_4, htn_df$SITE, useNA = "always")
+
 
 # CREATININE 
 #  M08_CREAT_UMOLL_LBORRES_4 > 97.26 |  M19_CREAT_LBORRESU_13 >97.26)
 htn_df <- htn_df %>% 
-  mutate(CREATININE = case_when((M08_CREAT_UMOLL_LBORRES_4 > 97.26 | M19_CREAT_LBORRESU_13 >97.26) ~ 1,
-                         (is.na(M08_CREAT_UMOLL_LBORRES_4) & is.na(M19_CREAT_LBORRESU_13)) ~ as.numeric(NA),
+  mutate(CREATININE = case_when((M08_CREAT_UMOLL_LBORRES_4 > 97.26 | M08_CREAT_UMOLL_LBORRES_5 > 97.26 | M19_CREAT_LBORRESU_13 >97.26) ~ 1,
+                         (is.na(M08_CREAT_UMOLL_LBORRES_4) & is.na(M08_CREAT_UMOLL_LBORRES_5) & is.na(M19_CREAT_LBORRESU_13)) ~ as.numeric(NA),
                          TRUE ~ 0))
 
 temp.df <- htn_df %>% 
@@ -1141,18 +1190,85 @@ temp.df <- htn_df %>%
 
 ```
 
+# CREATING NEW LAB VARS FOR PLOTTING:
+```{r}
+htn_df <- htn_df %>%
+  mutate(IBILIRUBIN_LBORRES = case_when(!is.na(M08_IBILIRUBIN_LBORRES_4) ~ M08_IBILIRUBIN_LBORRES_4,
+                                                is.na(M08_IBILIRUBIN_LBORRES_4) & !is.na(M08_IBILIRUBIN_LBORRES_5) ~ M08_IBILIRUBIN_LBORRES_5,
+                                         TRUE ~ as.numeric(NA)),
+         
+         AST_UL_LBORRES = case_when(!is.na(M08_AST_UL_LBORRES_4) ~ M08_AST_UL_LBORRES_4,
+                                                is.na(M08_AST_UL_LBORRES_4) & !is.na(M08_AST_UL_LBORRES_5) ~ M08_AST_UL_LBORRES_5,
+                                         TRUE ~ as.numeric(NA)),
+         
+         ALT_UL_LBORRES = case_when(!is.na(M08_ALT_UL_LBORRES_4) ~ M08_ALT_UL_LBORRES_4,
+                                                is.na(M08_ALT_UL_LBORRES_4) & !is.na(M08_ALT_UL_LBORRES_5) ~ M08_ALT_UL_LBORRES_5,
+                                         TRUE ~ as.numeric(NA)),
+         
+         CBC_PLATE_LBORRES = case_when(!is.na(M08_CBC_PLATE_LBORRES_4) ~ M08_CBC_PLATE_LBORRES_4,
+                                                is.na(M08_CBC_PLATE_LBORRES_4) & !is.na(M08_CBC_PLATE_LBORRES_5) ~ M08_CBC_PLATE_LBORRES_5,
+                                         TRUE ~ as.numeric(NA)),
+         
+         CREAT_UMOLL_LBORRES = case_when(!is.na(M08_CREAT_UMOLL_LBORRES_4) ~ M08_CREAT_UMOLL_LBORRES_4,
+                                                is.na(M08_CREAT_UMOLL_LBORRES_4) & !is.na(M08_CREAT_UMOLL_LBORRES_5) ~ M08_CREAT_UMOLL_LBORRES_5,
+                                         TRUE ~ as.numeric(NA)))
+
+temp.df <- htn_df %>% select(MOMID, SITE, M08_IBILIRUBIN_LBORRES_4, M08_IBILIRUBIN_LBORRES_5, IBILIRUBIN_LBORRES)
+temp.df <- htn_df %>% select(MOMID, SITE, M08_AST_UL_LBORRES_4, M08_AST_UL_LBORRES_5, AST_UL_LBORRES)
+temp.df <- htn_df %>% select(MOMID, SITE, M08_ALT_UL_LBORRES_4, M08_ALT_UL_LBORRES_5, ALT_UL_LBORRES)
+temp.df <- htn_df %>% select(MOMID, SITE, M08_CBC_PLATE_LBORRES_4, M08_CBC_PLATE_LBORRES_5, CBC_PLATE_LBORRES)
+temp.df <- htn_df %>% select(MOMID, SITE, M08_CREAT_UMOLL_LBORRES_4, M08_CREAT_UMOLL_LBORRES_5, CREAT_UMOLL_LBORRES)
+
+                                                                                       
+
+htn_df <- htn_df %>%
+  mutate(UA_PROT_LBORRES_LT20 = case_when(M08_GA_AT_VISIT_1/7<20 & !is.na(M08_UA_PROT_LBORRES_1) ~ M08_UA_PROT_LBORRES_1,
+                                          M08_GA_AT_VISIT_2/7<20 & !is.na(M08_UA_PROT_LBORRES_2) ~ M08_UA_PROT_LBORRES_2,
+                                          TRUE ~ as.numeric(NA)))
+
+
+ 
+temp.df <- htn_df %>% select(MOMID, SITE, M08_GA_AT_VISIT_1, M08_GA_AT_VISIT_2, 
+                                           UA_PROT_LBORRES_LT20, 
+                                           M08_UA_PROT_LBORRES_1, M08_UA_PROT_LBORRES_2)
+
+
+htn_df <- htn_df %>%
+  mutate(UA_PROT_LBORRES_GTE20 = case_when((M08_GA_AT_VISIT_2/7>=20 | is.na(M08_GA_AT_VISIT_2)) ~
+                                             pmax(M08_UA_PROT_LBORRES_2, M08_UA_PROT_LBORRES_3,
+                                                  M08_UA_PROT_LBORRES_4, M08_UA_PROT_LBORRES_5, 
+                                                  M08_UA_PROT_LBORRES_6,
+                                                  M19_UA_PROT_LBORRES_13, na.rm = TRUE),
+                                           
+                                           all(is.na(c(M08_UA_PROT_LBORRES_2, M08_UA_PROT_LBORRES_3,
+                                                  M08_UA_PROT_LBORRES_4, M08_UA_PROT_LBORRES_5, 
+                                                  M08_UA_PROT_LBORRES_6,
+                                                  M19_UA_PROT_LBORRES_13))) ~ as.numeric(NA)))
+ 
+temp.df <- htn_df %>% select(MOMID, SITE, M08_GA_AT_VISIT_2, 
+                                           UA_PROT_LBORRES_GTE20, 
+                                           M08_UA_PROT_LBORRES_2, M08_UA_PROT_LBORRES_3,
+                                                  M08_UA_PROT_LBORRES_4, M08_UA_PROT_LBORRES_5, 
+                                                  M08_UA_PROT_LBORRES_6,
+                                                  M19_UA_PROT_LBORRES_13)
+```
+
 ###############################
 # BASELINE PROTEINURIA - LOOKS GOOD!
 # I looked at both visit 1 and 2 but as long as they were <20 weeks testing.
 ```{r}
 # AT ENROLLMENT
+# response = 2 means Dipstick= 1+
+# response = 3 means Dipstick = 2+
+# Chris Sudfeld suggested adding 1+, 2+, 3+ and 4+ (options 2,3,4,5) in an email on 10/21/2023
 temp.df <- htn_df %>% select(MOMID, SITE, M08_GA_AT_VISIT_1, M08_GA_AT_VISIT_2) %>% 
   filter(M08_GA_AT_VISIT_1/7<20 | (M08_GA_AT_VISIT_2/7)<20)
 
 
-htn_df <- htn_df %>% filter(M08_GA_AT_VISIT_1/7<20 | M08_GA_AT_VISIT_2/7<20) %>% 
-  mutate(PROTEINURIA_BASELINE = case_when(((M08_GA_AT_VISIT_1/7<20) & M08_UA_PROT_LBORRES_1 %in% c(1,2)) |
-                                          ((M08_GA_AT_VISIT_2/7<20) & M08_UA_PROT_LBORRES_2 %in% c(1,2)) ~ 1,
+
+htn_df <- htn_df %>% filter(M08_GA_AT_VISIT_1/7<20 | M08_GA_AT_VISIT_2/7<20) %>%  
+  mutate(PROTEINURIA_BASELINE = case_when(((M08_GA_AT_VISIT_1/7<20) & M08_UA_PROT_LBORRES_1 %in% c(2,3,4,5)) |
+                                          ((M08_GA_AT_VISIT_2/7<20) & M08_UA_PROT_LBORRES_2 %in% c(2,3,4,5)) ~ 1,
                                           (is.na(M08_UA_PROT_LBORRES_1) & is.na(M08_UA_PROT_LBORRES_2)) ~ as.numeric(NA),
                                           TRUE ~ 0))
 
@@ -1184,7 +1300,7 @@ htn_df <- htn_df %>%
                                                   M08_UA_PROT_LBORRES_4, M08_UA_PROT_LBORRES_5, 
                                                   M08_UA_PROT_LBORRES_6, 
                                                   # Hospitalization
-                                                  M19_UA_PROT_LBORRES_13) %in% c(1,2)) &
+                                                  M19_UA_PROT_LBORRES_13) %in% c(2,3,4,5)) &
                                               (PROTEINURIA_BASELINE==0 | is.na(PROTEINURIA_BASELINE))) ~ 1, 
                                          
                                          #THIS IS SAYING IF ALL OF THESE VARS ARE 55, 77, OR NA THEN THE NEW VAR IS NA 
@@ -1199,7 +1315,7 @@ table(PROTEINURIA_ANC_IPC = htn_df$PROTEINURIA_ANC_IPC, SITE = htn_df$SITE, useN
 round(prop.table(table(PROTEINURIA_ANC_IPC = htn_df$PROTEINURIA_ANC_IPC, SITE = htn_df$SITE, useNA = "always"), margin=2)*100,2)
 
 temp.df <- htn_df %>% 
-  select(MOMID, SITE, M08_GA_AT_VISIT_2, PROTEINURIA_BASELINE,PROTEINURIA_ANC_IPC, MAT_PE_SEV_MEAS,
+  select(MOMID, SITE, M08_GA_AT_VISIT_2, PROTEINURIA_BASELINE,PROTEINURIA_ANC_IPC,
          M08_UA_PROT_LBORRES_2,
          M08_UA_PROT_LBORRES_3,M08_UA_PROT_LBORRES_4,
          M08_UA_PROT_LBORRES_5,M08_UA_PROT_LBORRES_6,
@@ -1227,14 +1343,15 @@ temp.df <- htn_df %>%
 ```
 
 
-# PREECLAMPSIA (PE) MEASURED (FINAL)
+# PREECLAMPSIA (PE) MEASURED (FINAL) - did not use this definition in the end. 
 ```{r}
 htn_df <- htn_df %>%
   mutate(MAT_PE_MEAS = case_when((GT20_HTN_MEAS_ANY==1 & PROTEINURIA_ANC_IPC==1) | 
                                        (GT20_HTN_MEAS_ANY==1 &  MAT_PE_SEV_MEAS==1) |
                                        (CHRON_HYPER==1 & PROTEINURIA_ANC_IPC==1) |
                                        (CHRON_HYPER==1 & MAT_PE_SEV_MEAS==1) ~ 1,
-                                     ((is.na(GT20_HTN_MEAS_ANY) & is.na(PROTEINURIA_ANC_IPC)) | 
+                                     
+                                 ((is.na(GT20_HTN_MEAS_ANY) & is.na(PROTEINURIA_ANC_IPC)) | 
                                        (is.na(GT20_HTN_MEAS_ANY) & is.na(MAT_PE_SEV_MEAS)) | 
                                        (is.na(CHRON_HYPER) & is.na(PROTEINURIA_ANC_IPC)) | 
                                        (is.na(CHRON_HYPER) & is.na(MAT_PE_SEV_MEAS))) ~ as.numeric(NA),
@@ -1249,6 +1366,241 @@ temp.df <- htn_df %>%
 
 ```
 
+# NEW DEFINITION OF PE AND SEVERE FEATURES:
+```{r}
+htn_df <- htn_df %>%
+  mutate(MAT_PE_MEAS_1ST = case_when(((GT20_HTN_MEAS_ANY==1 & PROTEINURIA_ANC_IPC==1) | 
+                                       (CHRON_HYPER==1 & PROTEINURIA_ANC_IPC==1) |
+                                       (SEVERE_GT20_HTN_MEAS==1 & PROTEINURIA_ANC_IPC==1)|
+                                       (SEVERE_CHRON_HYPER_MEAS==1 & PROTEINURIA_ANC_IPC==1)) ~ 1,
+                                       
+                                     ((is.na(GT20_HTN_MEAS_ANY) & is.na(PROTEINURIA_ANC_IPC)) | 
+                                        (is.na(SEVERE_GT20_HTN_MEAS) & is.na(PROTEINURIA_ANC_IPC)) | 
+                                        (is.na(CHRON_HYPER) & is.na(PROTEINURIA_ANC_IPC)) | 
+                                        (is.na(SEVERE_CHRON_HYPER_MEAS) & is.na(PROTEINURIA_ANC_IPC))) ~ as.numeric(NA),
+                                     TRUE ~ 0))
+
+
+table(MAT_PE_MEAS_1ST = htn_df$MAT_PE_MEAS_1ST, SITE = htn_df$SITE, useNA = "always")
+round(prop.table(table(MAT_PE_MEAS_1ST = htn_df$MAT_PE_MEAS_1ST, SITE = htn_df$SITE, useNA = "always"), margin=2)*100, 2)
+
+temp.df <- htn_df %>% 
+  select(MOMID, SITE, MAT_PE_MEAS, CHRON_HYPER, GT20_HTN_MEAS_ANY, PROTEINURIA_ANC_IPC) 
+
+
+# SEVERE FEATURES AS A SUB OF PE
+htn_df <- htn_df %>%
+  mutate(MAT_PE_SEV_FEAT_2ND = case_when(MAT_PE_MEAS_1ST==1 & MAT_PE_SEV_MEAS==1 ~ 1,
+                                         MAT_PE_MEAS_1ST==0 & MAT_PE_SEV_MEAS==0 ~ 0,
+                                         (is.na(MAT_PE_MEAS_1ST) |  is.na(MAT_PE_SEV_MEAS)) ~ as.numeric(NA)))
+
+table(MAT_PE_SEV_FEAT_2ND  = htn_df$MAT_PE_SEV_FEAT_2ND , SITE = htn_df$SITE, useNA = "always")
+round(prop.table(table(MAT_PE_SEV_FEAT_2ND  = htn_df$MAT_PE_SEV_FEAT_2ND , SITE = htn_df$SITE, useNA = "always"), margin=2)*100, 2)
+
+temp.df <- htn_df %>% 
+  select(MOMID, SITE, MAT_PE_MEAS_1ST, MAT_PE_SEV_FEAT_2ND, MAT_PE_SEV_MEAS)
+```
+
+
+# SEVERE FEATURES ONLY
+```{r}
+htn_df2 <- htn_df %>% filter(MAT_PE_SEV_MEAS==1) %>%
+  mutate(SEV_FEAT_ONLY = case_when(MAT_PE_SEV_MEAS==1 & CHRON_HYPER==0 & GEST_HYPER==0 & MAT_PE_MEAS==0 ~ 1,
+                                                      any(is.na(c(MAT_PE_SEV_MEAS, CHRON_HYPER, GEST_HYPER, MAT_PE_MEAS))) ~ as.numeric(NA),
+                                                      TRUE ~ 0))
+
+temp.df <- htn_df2 %>% select(MOMID, SITE, 
+                             SEV_FEAT_ONLY, MAT_PE_SEV_MEAS, 
+                             CHRON_HYPER, GEST_HYPER, 
+                             MAT_PE_MEAS, PROTEINURIA_ANC_IPC) #%>%
+
+table(SEV_FEAT_ONLY = htn_df2$SEV_FEAT_ONLY, SITE = htn_df2$SITE, useNA = "always")
+```
+
+#PE Diagnosed in MNH09
+```{r}
+htn_df <- htn_df %>% 
+  mutate(MAT_PE_DIAG = case_when(M09_HDP_HTN_MHOCCUR_3_6==1 ~ 1,
+                                 M09_HDP_HTN_MHOCCUR_3_6==0 |  M09_HDP_HTN_MHOCCUR_77_6==1 ~ 0,
+                                 
+                                 (is.na(M09_HDP_HTN_MHOCCUR_1_6) & is.na(M09_HDP_HTN_MHOCCUR_2_6) & 
+                                   is.na(M09_HDP_HTN_MHOCCUR_3_6) & is.na(M09_HDP_HTN_MHOCCUR_77_6) & 
+                                   is.na(M09_HDP_HTN_MHOCCUR_99_6)) ~ as.numeric(NA)))
+
+table(MAT_PE_DIAG = htn_df$MAT_PE_DIAG, htn_df$SITE, useNA = "always")
+round(prop.table(table(MAT_PE_DIAG = htn_df$MAT_PE_DIAG, useNA = "always", htn_df$SITE), margin=2)*100,2)
+
+temp.df <- htn_df %>% select(MOMID, SITE, M09_HDP_HTN_MHOCCUR_3_6) # Zambia has all women = 1 for PE.
+
+# If mother was diagnosed with PE, were there any of the following severe features. 
+htn_df <- htn_df %>%
+  mutate(MAT_PE_DIAG_SEV_FEAT = case_when((M09_PREECLAMPSIA_CEOCCUR_1_6==1 | 
+                                            M09_PREECLAMPSIA_CEOCCUR_2_6==1 | 
+                                            M09_PREECLAMPSIA_CEOCCUR_3_6==1 | 
+                                            M09_PREECLAMPSIA_CEOCCUR_4_6==1 | 
+                                            M09_PREECLAMPSIA_CEOCCUR_5_6==1) ~ 1,
+                                          
+                                          (M09_PREECLAMPSIA_CEOCCUR_1_6==0 & 
+                                            M09_PREECLAMPSIA_CEOCCUR_2_6==0 & 
+                                            M09_PREECLAMPSIA_CEOCCUR_3_6==0 & 
+                                            M09_PREECLAMPSIA_CEOCCUR_4_6==0 & 
+                                            M09_PREECLAMPSIA_CEOCCUR_5_6==0 &
+                                         (M09_PREECLAMPSIA_CEOCCUR_77_6==1 | # When 'no severe features noted==1"
+                                          M09_PREECLAMPSIA_CEOCCUR_99_6==1))  ~ 0, # when 'dont know' ==1
+                                          
+                                          all(is.na(c(M09_PREECLAMPSIA_CEOCCUR_1_6, M09_PREECLAMPSIA_CEOCCUR_2_6,
+                                            M09_PREECLAMPSIA_CEOCCUR_3_6, M09_PREECLAMPSIA_CEOCCUR_4_6, 
+                                            M09_PREECLAMPSIA_CEOCCUR_5_6, 
+                                            M09_PREECLAMPSIA_CEOCCUR_77_6, M09_PREECLAMPSIA_CEOCCUR_99_6)))~ as.numeric(NA))) 
+
+table(MAT_PE_DIAG_SEV_FEAT = htn_df$MAT_PE_DIAG_SEV_FEAT, htn_df$SITE, useNA = "always")
+round(prop.table(table(MAT_PE_DIAG_SEV_FEAT = htn_df$MAT_PE_DIAG_SEV_FEAT, useNA = "always", htn_df$SITE), margin=2)*100,2)
+
+htn_df <- htn_df %>%
+  mutate(MAT_PE_DIAG_SEV_FEAT_TYPE = case_when(MAT_PE_DIAG_SEV_FEAT==1 & M09_PREECLAMPSIA_CEOCCUR_1_6==1 ~ 'Eclampsia or seizures',
+                                            MAT_PE_DIAG_SEV_FEAT==1 &  M09_PREECLAMPSIA_CEOCCUR_2_6==1 ~ 'HELLP', 
+                                            MAT_PE_DIAG_SEV_FEAT==1 & M09_PREECLAMPSIA_CEOCCUR_3_6==1 ~ 'Severe gHTN', 
+                                            MAT_PE_DIAG_SEV_FEAT==1 & M09_PREECLAMPSIA_CEOCCUR_4_6==1 ~ 'Pulmonary edema',
+                                            MAT_PE_DIAG_SEV_FEAT==1 & M09_PREECLAMPSIA_CEOCCUR_5_6==1 ~ 'Visual symptoms',
+                                            MAT_PE_DIAG_SEV_FEAT==1 & M09_PREECLAMPSIA_CEOCCUR_77_6==1 ~ 'No severe features noted',
+                                            MAT_PE_DIAG_SEV_FEAT==1 & M09_PREECLAMPSIA_CEOCCUR_99_6==1 ~ 'Dont know',
+                                            
+                                            (M09_PREECLAMPSIA_CEOCCUR_1_6==0 & 
+                                            M09_PREECLAMPSIA_CEOCCUR_2_6==0 & 
+                                            M09_PREECLAMPSIA_CEOCCUR_3_6==0 & 
+                                            M09_PREECLAMPSIA_CEOCCUR_4_6==0 & 
+                                            M09_PREECLAMPSIA_CEOCCUR_5_6==0 &
+                                         (M09_PREECLAMPSIA_CEOCCUR_77_6==1 | # When 'no severe features noted==1"
+                                          M09_PREECLAMPSIA_CEOCCUR_99_6==1))  ~ 'Not placed in severe features cat', # when 'dont know' ==1
+                                          
+                                          all(is.na(c(M09_PREECLAMPSIA_CEOCCUR_1_6, M09_PREECLAMPSIA_CEOCCUR_2_6,
+                                            M09_PREECLAMPSIA_CEOCCUR_3_6, M09_PREECLAMPSIA_CEOCCUR_4_6, 
+                                            M09_PREECLAMPSIA_CEOCCUR_5_6, 
+                                            M09_PREECLAMPSIA_CEOCCUR_77_6, M09_PREECLAMPSIA_CEOCCUR_99_6)))~ as.character(NA))) 
+                                            
+table(htn_df$MAT_PE_DIAG_SEV_FEAT_TYPE, htn_df$SITE, useNA = "always")
+round(prop.table(table(htn_df$MAT_PE_DIAG_SEV_FEAT_TYPE, useNA = "always", htn_df$SITE), margin=2)*100,2)
+
+# ADDITINAL QUESTION IN MNH09 REGARDING ABDOMINAL PAIN, SEVERE HEADACHE, VISION CHANGES among those who are diagnosed with PE
+# Emily said she wanted to see overall, not among PE_DIAG so i redid this a few lines below.
+htn_df <- htn_df %>% 
+  mutate(MAT_PE_ADDITIONAL_FEAT_TYPE = case_when(MAT_PE_DIAG==1 & M09_HEADACHE_CEONGO_6==1 ~ 'Severe headache at L&D', 
+                                                 MAT_PE_DIAG==1 & M09_OTHR_CEOCCUR_10_6== 1 ~ 'Upper abdominal pain at L&D',
+                                                 MAT_PE_DIAG==1 & M09_OTHR_CEOCCUR_11_6==1 ~ 'Vision changes at L&D',
+                                                 
+                                                 (MAT_PE_DIAG==1 & (M09_HEADACHE_CEONGO_6==0 & 
+                                                                               M09_OTHR_CEOCCUR_10_6==0 &
+                                                                               M09_OTHR_CEOCCUR_11_6==0)) ~ 'No headache, abd pain, or vision ch. at L&D',
+                                                
+                                                 all(is.na(c(M09_HEADACHE_CEONGO_6, 
+                                                             M09_OTHR_CEOCCUR_10_6, 
+                                                             M09_OTHR_CEOCCUR_11_6))) ~ as.character(NA)))
+
+# Emily said do this overall in MNH09 not among those diagnosed with PE: 
+htn_df <- htn_df %>% 
+  mutate(MAT_PE_ADDITIONAL_FEAT_TYPE = case_when(M09_HEADACHE_CEONGO_6==1 ~ 'Severe headache at L&D', 
+                                                 M09_OTHR_CEOCCUR_10_6== 1 ~ 'Upper abdominal pain at L&D',
+                                                  M09_OTHR_CEOCCUR_11_6==1 ~ 'Vision changes at L&D',
+                                                 
+                                                 (M09_HEADACHE_CEONGO_6==0 & 
+                                                    M09_OTHR_CEOCCUR_10_6==0 &
+                                                    M09_OTHR_CEOCCUR_11_6==0) ~ 'No headache, abd pain, or vision ch. at L&D',
+                                                
+                                                 all(is.na(c(M09_HEADACHE_CEONGO_6, 
+                                                             M09_OTHR_CEOCCUR_10_6, 
+                                                             M09_OTHR_CEOCCUR_11_6))) ~ as.character(NA)))
+
+
+
+table(htn_df$MAT_PE_ADDITIONAL_FEAT_TYPE, htn_df$SITE, useNA = "always")
+round(prop.table(table(htn_df$MAT_PE_ADDITIONAL_FEAT_TYPE, useNA = "always", htn_df$SITE), margin=2)*100,2)
+
+
+# COMBINING DIAGNOSED SEVERE FEATURES WITH ADDITIONAL FEATURES.
+
+htn_df <- htn_df %>%
+  mutate(MAT_PE_DIAG_SEV_FEAT_COMBO = case_when(MAT_PE_DIAG_SEV_FEAT_TYPE== 'Eclampsia or seizures' ~ 'Eclampsia or seizures',
+                                                MAT_PE_DIAG_SEV_FEAT_TYPE== 'HELLP' ~ 'HELLP',
+                                                MAT_PE_DIAG_SEV_FEAT_TYPE== 'Severe gHTN' ~ 'Severe gHTN',
+                                                MAT_PE_DIAG_SEV_FEAT_TYPE== 'Pulmonary edema' ~ 'Pulmonary edema',
+                                                MAT_PE_DIAG_SEV_FEAT_TYPE== 'Visual symptoms' ~ 'Visual symptoms',
+                                                MAT_PE_DIAG_SEV_FEAT_TYPE=='No severe features noted' ~ 'No severe features noted',
+                                                MAT_PE_DIAG_SEV_FEAT_TYPE== 'Dont know' ~ 'Dont know',
+                                                MAT_PE_ADDITIONAL_FEAT_TYPE== 'Severe headache at L&D' ~ 'Severe headache at L&D',
+                                                 MAT_PE_ADDITIONAL_FEAT_TYPE=='Upper abdominal pain at L&D' ~ 'Upper abdominal pain at L&D',
+                                                 MAT_PE_ADDITIONAL_FEAT_TYPE== 'Vision changes at L&D' ~ 'Vision changes at L&D',
+                                                MAT_PE_ADDITIONAL_FEAT_TYPE== 'No headache, abd pain, or vision ch. at L&D' ~ 'No headache, abd pain, or vision ch. at L&D',
+                                                TRUE ~ as.character(NA)))
+table(htn_df$MAT_PE_DIAG_SEV_FEAT_COMBO, htn_df$SITE, useNA = "always")
+round(prop.table(table(htn_df$MAT_PE_DIAG_SEV_FEAT_COMBO, useNA = "always", htn_df$SITE), margin=2)*100,2)
+
+# PPL WHO WOULD BE LEFT OUT FROM PE DEFINTION IF WE REMOVE:
+# EPIGASTRIC PAIN
+# VISUAL DISTURBANCES
+# SEVERE HEADACHE
+htn_df <- htn_df %>%
+  mutate(MAT_PE_DIAG_3_SEV_FEAT = case_when(MAT_PE_DIAG_SEV_FEAT_TYPE== 'Visual symptoms' ~ 'Visual symptoms',
+                                                MAT_PE_ADDITIONAL_FEAT_TYPE== 'Severe headache at L&D' ~ 'Severe headache at L&D',
+                                                 MAT_PE_ADDITIONAL_FEAT_TYPE=='Upper abdominal pain at L&D' ~ 'Upper abdominal pain at L&D',
+                                                 MAT_PE_ADDITIONAL_FEAT_TYPE== 'Vision changes at L&D' ~ 'Vision changes at L&D',
+                                                TRUE ~ as.character(NA)))
+
+table(htn_df$MAT_PE_DIAG_3_SEV_FEAT, htn_df$SITE, useNA = "always")
+
+htn_df <- htn_df %>%
+  mutate(MAT_PE_DIAG_PULMEDEMA_SEV_FEAT = case_when(MAT_PE_DIAG_SEV_FEAT_TYPE== 'Pulmonary edema' ~ 'Pulmonary edema',TRUE ~ as.character(NA)))
+
+table(htn_df$MAT_PE_DIAG_PULMEDEMA_SEV_FEAT, htn_df$SITE, useNA = "always")
+table(htn_df$MAT_PE_DIAG_3_SEV_FEAT, htn_df$SITE, htn_df$MAT_PE_MEAS_1ST, useNA = "always")
+```
+
+#PE Diagnosed in MNH04
+```{r}
+htn_df <- htn_df %>%
+  mutate(MAT_HDP_DIAG_M04 = case_when((M04_HPD_MHOCCUR_1==1 | M04_HPD_MHOCCUR_2==1 |
+                                   M04_HPD_MHOCCUR_3==1 | M04_HPD_MHOCCUR_4==1 |
+                                   M04_HPD_MHOCCUR_5==1) ~ 1,
+                                 
+                                 (M04_HPD_MHOCCUR_1==0 & M04_HPD_MHOCCUR_2==0 &
+                                   M04_HPD_MHOCCUR_3==0 & M04_HPD_MHOCCUR_4==0 &
+                                   M04_HPD_MHOCCUR_5==0) ~ 0,
+                                 
+                                 all(is.na(c(M04_HPD_MHOCCUR_1, M04_HPD_MHOCCUR_2,
+                                   M04_HPD_MHOCCUR_3, M04_HPD_MHOCCUR_4,
+                                   M04_HPD_MHOCCUR_5))) ~ as.numeric(NA)))
+
+table(MAT_HDP_DIAG_M04 = htn_df$MAT_HDP_DIAG_M04, htn_df$SITE, useNA = "always")
+round(prop.table(table(MAT_HDP_DIAG_M04 = htn_df$MAT_HDP_DIAG_M04, useNA = "always", htn_df$SITE), margin=2)*100,2)
+
+htn_df <- htn_df %>% 
+  mutate(MAT_PE_DIAG_M04 = case_when((MAT_HDP_DIAG_M04==1 & # Any HDP yes, no? 
+                                        (M04_HPD_MHTERM_1 ==2 | # If above is yes, then which type: 1=gHTN, 2=PE, 3=cHTN
+                                           M04_HPD_MHTERM_2 ==2 | 
+                                           M04_HPD_MHTERM_3==2 | 
+                                           M04_HPD_MHTERM_4==2 |
+                                           M04_HPD_MHTERM_5==2)) ~ 1,
+                                     
+                                     (MAT_HDP_DIAG_M04==1 & # Any HDP yes, no?  
+                                      (is.na(M04_HPD_MHTERM_1) &  
+                                          is.na(M04_HPD_MHTERM_2) & 
+                                          is.na(M04_HPD_MHTERM_3) & 
+                                          is.na(M04_HPD_MHTERM_4) & 
+                                          is.na(M04_HPD_MHTERM_5))) ~ as.numeric(NA),
+                                         
+                                       (MAT_HDP_DIAG_M04==1 & # Any HDP yes, no? 
+                                         (M04_HPD_MHTERM_1 %in% c(1,3,99) & 
+                                            M04_HPD_MHTERM_2 %in% c(1,3,99) &
+                                            M04_HPD_MHTERM_3 %in% c(1,3,99) & 
+                                            M04_HPD_MHTERM_4 %in% c(1,3,99) &
+                                            M04_HPD_MHTERM_5 %in% c(1,3,99))) ~ as.numeric(0)))
+
+table(MAT_PE_DIAG_M04 = htn_df$MAT_PE_DIAG_M04, htn_df$SITE, useNA = "always")
+round(prop.table(table(MAT_PE_DIAG_M04 = htn_df$MAT_PE_DIAG_M04, useNA = "always", htn_df$SITE), margin=2)*100,2)
+
+temp.df <- htn_df %>%
+  select(MOMID, SITE, MAT_PE_DIAG_M04, M04_HPD_MHTERM_1, M04_HPD_MHTERM_2, M04_HPD_MHTERM_3, M04_HPD_MHTERM_4, M04_HPD_MHTERM_5 )
+```
+
 # HDP
 if severe_features = 1 then HDP = "PE w severe features";
 else if severe_features=0 and cHTN = 1 and PE = 1 then HDP =  "PE superimposed on chronic htn";
@@ -1256,31 +1608,74 @@ else if severe_features=0 and gHTN = 1 and PE = 1 then HDP =  "PE";
 else if severe_features=0 and gHTN = 1 and PE = 0 then HDP =  "gestational hypertension";
 else if severe_features=0 and cHTN = 1 and PE = 0 then HDP =  "chronic hypertension";
 else HDP = "none";
+# OLD definition
 ```{r}
 htn_df <- htn_df %>%
-  mutate(HDP = case_when(MAT_PE_SEV_MEAS==1 ~ "PE with severe features",
-                         MAT_PE_SEV_MEAS==0 & CHRON_HYPER==1 & MAT_PE_MEAS==1 ~ "PE superimposed on cHTN",
-                         MAT_PE_SEV_MEAS==0 & GEST_HYPER==1 & MAT_PE_MEAS==1 ~ "PE", 
-                         MAT_PE_SEV_MEAS==0 & GEST_HYPER==1 & MAT_PE_MEAS==0 ~ "gHTN", 
-                         MAT_PE_SEV_MEAS==0 &  CHRON_HYPER==1 & MAT_PE_MEAS==0 ~ "cHTN",
-                          MAT_PE_SEV_MEAS==0 & GEST_HYPER==0 & CHRON_HYPER==0 & MAT_PE_MEAS==1 ~ "PE",
+  mutate(HDP = case_when( MAT_PE_SEV_MEAS==1 &  MAT_PE_MEAS==1 ~ "PE with severe features",
+                          MAT_PE_SEV_MEAS==0 & CHRON_HYPER==1 &  MAT_PE_MEAS==1 ~ "PE superimposed on cHTN",
+                          MAT_PE_SEV_MEAS==0 & GEST_HYPER==1 &  MAT_PE_MEAS==1 ~ "PE", 
+                          MAT_PE_SEV_MEAS==0 & GEST_HYPER==1 &  MAT_PE_MEAS==0 ~ "gHTN", 
+                          MAT_PE_SEV_MEAS==0 &  CHRON_HYPER==1 &  MAT_PE_MEAS==0 ~ "cHTN",
+                           MAT_PE_SEV_MEAS==0 & GEST_HYPER==0 & CHRON_HYPER==0 &  MAT_PE_MEAS==1 ~ "PE",
                          
-                         MAT_PE_SEV_MEAS==0 & CHRON_HYPER==0 & MAT_PE_MEAS==0 ~ "No HDP",
-                         MAT_PE_SEV_MEAS==0 & GEST_HYPER==0 & MAT_PE_MEAS==0 ~ "No HDP",
-                         MAT_PE_SEV_MEAS==0 & 
+                          MAT_PE_SEV_MEAS==0 & CHRON_HYPER==0 &  MAT_PE_MEAS==0 ~ "No HDP",
+                          MAT_PE_SEV_MEAS==0 & GEST_HYPER==0 &  MAT_PE_MEAS==0 ~ "No HDP",
+                          MAT_PE_SEV_MEAS==0 & 
                            (CHRON_HYPER==0 | is.na(CHRON_HYPER)) & 
                            (GEST_HYPER==0 | is.na(GEST_HYPER)) & 
-                           (MAT_PE_MEAS==0 | is.na(MAT_PE_MEAS)) ~ "No HDP",
+                           ( MAT_PE_MEAS==0 | is.na( MAT_PE_MEAS)) ~ "No HDP",
                          
-                         ((is.na(MAT_PE_SEV_MEAS) & is.na(CHRON_HYPER) & is.na(MAT_PE_MEAS)) | 
-                            (is.na(MAT_PE_SEV_MEAS) & is.na(GEST_HYPER) & is.na(MAT_PE_MEAS))) ~ as.character(NA)))
+                         ((is.na(MAT_PE_SEV_MEAS) & is.na(CHRON_HYPER) & is.na( MAT_PE_MEAS)) | 
+                            (is.na(MAT_PE_SEV_MEAS) & is.na(GEST_HYPER) & is.na( MAT_PE_MEAS))) ~ as.character(NA)))
 
 table(HDP = htn_df$HDP, SITE = htn_df$SITE, useNA = "always")
 round(prop.table(table(HDP = htn_df$HDP, SITE = htn_df$SITE, useNA = "always"), margin=2)*100, 2)
 
 temp.df <- htn_df %>%
-  select(MOMID, SITE, HDP, MAT_PE_SEV_MEAS, CHRON_HYPER, MAT_PE_MEAS, GEST_HYPER)
+  select(MOMID, SITE, HDP,  MAT_PE_SEV_MEAS, CHRON_HYPER, GEST_HYPER,  MAT_PE_MEAS, PROTEINURIA_ANC_IPC)
 ```
+
+# With new PE Definition
+```{r}
+htn_df <- htn_df %>%
+  mutate(HDP = case_when(MAT_PE_SEV_FEAT_2ND==1 & MAT_PE_MEAS_1ST==1 ~ "PE with severe features",
+                          CHRON_HYPER==1 & MAT_PE_MEAS_1ST==1 ~ "PE superimposed on cHTN", # MAT_PE_SEV_FEAT_2ND==0 &
+                          GEST_HYPER==1 & MAT_PE_MEAS_1ST==1 ~ "PE", # MAT_PE_SEV_FEAT_2ND==0 &
+                         MAT_PE_SEV_FEAT_2ND==0 & GEST_HYPER==1 & MAT_PE_MEAS_1ST==0 ~ "gHTN", 
+                         MAT_PE_SEV_FEAT_2ND==0 &  CHRON_HYPER==1 & MAT_PE_MEAS_1ST==0 ~ "cHTN",
+                          ((is.na(MAT_PE_SEV_FEAT_2ND) | MAT_PE_SEV_FEAT_2ND==0) & GEST_HYPER==0 & CHRON_HYPER==0 & MAT_PE_MEAS_1ST==1) ~ "PE",
+                         
+                         MAT_PE_SEV_FEAT_2ND==0 & CHRON_HYPER==0 & MAT_PE_MEAS_1ST==0 ~ "No HDP",
+                         MAT_PE_SEV_FEAT_2ND==0 & GEST_HYPER==0 & MAT_PE_MEAS_1ST==0 ~ "No HDP",
+                         MAT_PE_SEV_FEAT_2ND==0 & 
+                           (CHRON_HYPER==0 | is.na(CHRON_HYPER)) & 
+                           (GEST_HYPER==0 | is.na(GEST_HYPER)) & 
+                           (MAT_PE_MEAS_1ST==0 | is.na(MAT_PE_MEAS_1ST)) ~ "No HDP",
+                         TRUE ~ as.character(NA)))
+                         
+                         
+                         # (is.na(CHRON_HYPER) & is.na(MAT_PE_MEAS_1ST)) & 
+                         #  (is.na(GEST_HYPER) & is.na(MAT_PE_MEAS_1ST)) & 
+                         #   (is.na(MAT_PE_SEV_FEAT_2ND) & (is.na(MAT_PE_MEAS_1ST) | MAT_PE_MEAS_1ST==0)) ~ as.character(NA)))
+
+table(HDP = htn_df$HDP, SITE = htn_df$SITE, useNA = "always")
+round(prop.table(table(HDP = htn_df$HDP, SITE = htn_df$SITE, useNA = "always"), margin=2)*100, 2)
+
+temp.df <- htn_df %>%
+  select(MOMID, SITE, HDP, MAT_PE_MEAS_1ST, MAT_PE_SEV_FEAT_2ND, CHRON_HYPER, GEST_HYPER, GT20_HTN_MEAS_ANY, PROTEINURIA_ANC_IPC)
+```
+
+# Among ppl with PE, how many ppl have who have features like edema. 
+```{r}
+table( htn_df$HDP, htn_df$SITE, htn_df$MAT_PE_DIAG_SEV_FEAT_COMBO)
+
+table(htn_df$MAT_PE_MEAS, htn_df$SITE, htn_df$MAT_PE_DIAG, useNA = "always")
+table(htn_df$HDP, htn_df$SITE, htn_df$MAT_PE_DIAG, useNA = "always")
+
+table(htn_df$MAT_PE_DIAG_3_SEV_FEAT, htn_df$HDP, useNA = "always")
+
+```
+
 
 # INVESTIGATING MISSINGNESS
 ```{r}
@@ -1290,14 +1685,10 @@ temp.df <- htn_df %>%
 
 temp.df %>% summarize(sum = n())
 
-# Gestational Proteinuria
-
 ```
 
 # WRITE CSV OUT FOR HTML
 ```{r}
-
-write.csv(htn_df, '../data_out/mat_htn_tables_20231017.csv')
-
+write.csv(htn_df, '../data_out/mat_HDP_tables_20231030.csv')
 ```
 

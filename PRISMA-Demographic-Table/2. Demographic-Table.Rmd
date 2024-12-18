@@ -12,7 +12,7 @@ output:
 
 *Demographic table is showing baseline household and individual characteristic.*
 
-**Date of included data upload to Synapse: ** 2024-10-18
+**Date of included data upload to Synapse: ** 2024-11-29
 
 \tableofcontents
 
@@ -842,8 +842,8 @@ matrix_demo_d <- df_demo_d %>%
           paste0(round(median(NUM_MISCARRIAGE, na.rm = TRUE)),
                  " (", format(IQR(NUM_MISCARRIAGE, na.rm=TRUE), digits=1, nsmall=1),")"),
     "num of miscarriage: N* (%)" =
-          paste0(sum(!is.na(NUM_MISCARRIAGE)),
-                 " (", format(sum(!is.na(NUM_MISCARRIAGE))/n()*100, digits = 2, nsmall = 2),")"),
+          paste0(sum(!is.na(NUM_MISCARRIAGE), na.rm = TRUE),
+                 " (", format(sum(!is.na(NUM_MISCARRIAGE), na.rm = TRUE)/n()*100, digits = 2, nsmall = 2),")"),
     "MUAC: mean (SD)" =
           paste0(floor(mean(MUAC, na.rm = TRUE)),
                  " (", format(sd(MUAC, na.rm = TRUE), digits = 1, nsmall = 1),")"),
@@ -890,8 +890,8 @@ matrix_demo_d <- df_demo_d %>%
           paste0(round(median(NUM_MISCARRIAGE, na.rm = TRUE)),
                  " (", format(IQR(NUM_MISCARRIAGE, na.rm=TRUE), digits=1, nsmall=1),")"),
         "num of miscarriage: N* (%)" =
-          paste0(sum(!is.na(NUM_MISCARRIAGE)),
-                 " (", format(sum(!is.na(NUM_MISCARRIAGE))/n()*100, digits = 2, nsmall = 2),")"),
+          paste0(sum(!is.na(NUM_MISCARRIAGE), na.rm = TRUE),
+                 " (", format(sum(!is.na(NUM_MISCARRIAGE), na.rm = TRUE)/n()*100, digits = 2, nsmall = 2),")"),
         "MUAC: mean (SD)" =
           paste0(floor(mean(MUAC, na.rm = TRUE)),
                  " (", format(sd(MUAC, na.rm = TRUE), digits = 1, nsmall = 1),")"),
