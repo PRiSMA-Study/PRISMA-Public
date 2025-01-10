@@ -1,7 +1,7 @@
 #*****************************************************************************
 #* PRISMA Maternal Infection
 #* Drafted: 25 October 2023, Stacie Loisate
-#* Last updated: 23 August 2024 
+#* Last updated: 10 January 2025 
 
 ## This code will generate maternal infection outcomes at the following time points: 
   # Enrollment
@@ -38,6 +38,38 @@ library(gmodels)
 library(kableExtra)
 library(lubridate)
 library(haven)
+
+mnh08 <- read_csv("~/import/2024-11-29/mnh08_merged.csv")
+mnh08_sub <- mnh08 %>% select(SITE, MOMID, PREGID, M08_TYPE_VISIT, M08_CTNG_LBPERF_1, M08_CTNG_LBPERF_2,
+                              M08_CTNG_CT_LBORRES, M08_CTNG_NG_LBORRES, M08_CTNG_LBTSTDAT)
+
+table(mnh08_sub$M08_CTNG_LBPERF_1, mnh08_sub$SITE, mnh08_sub$M08_TYPE_VISIT)
+#     Ghana India-CMC India-SAS Kenya Pakistan Zambia
+# 0      0         0         0   176        0      0
+# 1    573         0         0     0      434      0
+# 55     0         0         0   823        0      0
+# 77  1483      1383      1306  1126     3256   1637
+
+table(mnh08_sub$M08_CTNG_LBPERF_2, mnh08_sub$SITE, mnh08_sub$M08_TYPE_VISIT)
+#     Ghana India-CMC India-SAS Kenya Pakistan Zambia
+# 0      0         0         0   155        0      0
+# 1    573         0         0     0      434      0
+# 55     0         0         0   846        0      0
+# 77  1483      1383      1306  1124     3256   1637
+
+table(mnh08_sub$M08_CTNG_CT_LBORRES, mnh08_sub$SITE,mnh08_sub$M08_TYPE_VISIT)
+#     Ghana India-CMC India-SAS Kenya Pakistan Zambia
+# 0    532         0         0     0      424      0
+# 1     41         0         0     0       10      0
+# 55     0         0         0   846        0      0
+# 77  1483      1383      1306  1279     3256   1637
+
+table(mnh08_sub$M08_CTNG_NG_LBORRES, mnh08_sub$SITE,mnh08_sub$M08_TYPE_VISIT)
+#     Ghana India-CMC India-SAS Kenya Pakistan Zambia
+# 0    561         0         0     0      432      0
+# 1     12         0         0     0        2      0
+# 55     0         0         0   846        0      0
+# 77  1483      1383      1306  1279     3256   1637
 
 # UPDATE EACH RUN # 
 # set upload date 
@@ -305,7 +337,7 @@ mat_infection_sti <-mat_enroll %>%
          OTHR_POSITIVE_ANY_ANC = case_when(OTHR_POSITIVE_1 != 1 & (OTHR_POSITIVE_2 ==1 | OTHR_POSITIVE_3 ==1 | OTHR_POSITIVE_4 ==1 | OTHR_POSITIVE_5 ==1) ~ 1, TRUE ~ 0),
   ) %>% 
   mutate(SYPH_POSITIVE_ANY_PNC = case_when((SYPH_POSITIVE_1 != 1 | SYPH_POSITIVE_ANY_ANC != 1) & (SYPH_POSITIVE_7 ==1 | SYPH_POSITIVE_8 ==1 | SYPH_POSITIVE_9 ==1 | SYPH_POSITIVE_10 ==1 |
-                                                                         SYPH_POSITIVE_11 ==1 | SYPH_POSITIVE_12 ==1) ~ 1, TRUE ~ 0),
+                                             SYPH_POSITIVE_11 ==1 | SYPH_POSITIVE_12 ==1) ~ 1, TRUE ~ 0),
          HIV_POSITIVE_ANY_PNC = case_when((HIV_POSITIVE_1 != 1 | HIV_POSITIVE_ANY_ANC != 1) & HIV_POSITIVE_ENROLL_1 !=1 & (HIV_POSITIVE_7 ==1 | HIV_POSITIVE_8 ==1 | HIV_POSITIVE_9 ==1 | HIV_POSITIVE_10 ==1 |
                                                                                                         HIV_POSITIVE_11 ==1 | HIV_POSITIVE_12 ==1) ~ 1, TRUE ~ 0),
          GON_POSITIVE_ANY_PNC = case_when((GON_POSITIVE_1 != 1 | GON_POSITIVE_ANY_ANC != 1) & (GON_POSITIVE_7 ==1 | GON_POSITIVE_8 ==1 | GON_POSITIVE_9 ==1 | GON_POSITIVE_10 ==1 |
@@ -344,7 +376,7 @@ mat_infection_sti <-mat_enroll %>%
   )  %>% 
   # select needed vars
   select(SITE, MOMID, PREGID, ends_with("_ENROLL"), contains("_ANY_ANC"), #  contains("_ANY_PNC"),
-         contains("DENOM"), contains("_SYPH_POSITIVE"))
+         contains("DENOM"), contains("_SYPH_POSITIVE"), SYPH_POSITIVE_ANY_PNC)
   
 # table(mat_infection_sti$OTHR_POSITIVE_ANY_PNC, mat_infection_sti$SITE)
 
@@ -506,6 +538,8 @@ table(mat_other_infection$MAL_POSITIVE_ANY_PNC, mat_other_infection$SITE)
 table(mat_other_infection$TB_SYMP_POSITIVE_ANY_PNC, mat_other_infection$SITE)
 table(mat_other_infection$TB_SPUTUM_POSITIVE_ANY_PNC, mat_other_infection$SITE)
 
+
+table(mnh08$M08_ZCD_CHKIGM_LBORRES, mnh08$SITE)
 ## ZCD + Lepto
 mat_expansion_infection <- mnh08_all_visits %>% 
   filter(ENROLL_EXPANSION==1) %>% 
@@ -693,14 +727,12 @@ MAT_INFECTION <- full_join(mat_infection_sti, mat_other_infection, by = c("SITE"
   ) %>% 
   # generate denominators for any infection diagnosed by either method
   mutate(INFECTION_ENROLL_DENOM = case_when(ENROLL==1 ~ 1, TRUE ~ 0)) %>% # INFECTION_ANY_METHOD_DENOM = 1
-  select(-ENROLL,-M02_SCRN_OBSSTDAT,-PREG_END, -OTHER_INFECTION_MEAS_EXPANSION_ANY_1, -OTHER_INFECTION_DIAG_ANY_ENROLL, -OTHER_INFECTION_MEAS_ANY_ENROLL, -OTHER_INFECTION_LAB_ANY_ENROLL)
+  # rename variables 
+  rename(EXPANSION_ENROLL = ENROLL_EXPANSION) %>% 
+  select(-ENROLL,-M02_SCRN_OBSSTDAT, -OTHER_INFECTION_MEAS_EXPANSION_ANY_1, -OTHER_INFECTION_DIAG_ANY_ENROLL, -OTHER_INFECTION_MEAS_ANY_ENROLL, -OTHER_INFECTION_LAB_ANY_ENROLL)
 
 print(sum(MAT_INFECTION$INFECTION_ENROLL_DENOM))
 print(dim(mat_enroll)[1])
-
-view(table(MAT_INFECTION$HIV_POSITIVE_ENROLL, MAT_INFECTION$SITE))
-table(MAT_INFECTION$HIV_POSITIVE_ANY_ANC, MAT_INFECTION$SITE)
-table(MAT_INFECTION$HIV_POSITIVE_ANY_PNC, MAT_INFECTION$SITE)
 
 ## save data set; this will get called into the report
 write.csv(MAT_INFECTION, paste0(path_to_save, "MAT_INFECTION" ,".csv"), na="", row.names=FALSE)
@@ -771,6 +803,30 @@ out_aim3 <- MAT_INFECTION %>%
   filter(ZIK_IGM_POSITIVE_ENROLL==1)
 
 table(out_aim3$aim3, out_aim3$SITE)
+
+
+
+################################    
+# Confirm all varnames are in the data dictionary
+################################    
+outcome_dd <-  read_excel("D:/Users/stacie.loisate/Desktop/PRISMA-Outcomes-DataDictionary-Active (2).xlsx", 
+                          sheet = "Maternal Outcomes") %>% 
+  filter(`Data set` == "MAT_INFECTION" ) %>% 
+  select(-`Data set`)
+
+mat_inf <- read.csv(paste0(path_to_tnt, "MAT_INFECTION.csv")) 
+
+# hemorrhage = mat_hem
+
+mat_inf_names <- as.data.frame(colnames(mat_inf)) %>% 
+  mutate(data = 1) %>% 
+  rename(`Variable Name` = "colnames(mat_inf)")
+
+missing_names <-  outcome_dd  %>% mutate(dd=1) %>% 
+  full_join(mat_inf_names, by = c("Variable Name"))
+
+
+
 
 ### OLD CODE (KEEP FOR RECORDS):
 # mat_other_infection <- mnh04_all_visits %>% 
