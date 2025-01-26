@@ -2,22 +2,25 @@
 
 ## Description
 
-This project mainly includes two sections:
-Secton 1 is reporting the lab form and lab results missingness at each visit window. 
-Section 2 is visualizing the distribution of lab report during the pregnancy / after the pregnancy and also compare the differences of lab results among all site. 
+Codes includes two parts:
 
-#### :pushpin: Updated on 2024-11-20
+**`Lab Missingness:`** Report the missingness of lab forms and lab results for each visit window. This is the lab missingness report we run and track monthly.
+
+**`Lab Distribution:`** Visualize the distribution of lab results both during and after pregnancy, and compare the differences in lab results across all sites. This includes code for scatter plots, line plots, bar plots, and histograms. While we’re not running this part for now, I’ve included the code for future use.
+
+#### :pushpin: Updated on 2025-01-26
 #### :pushpin: Originally drafted by: Xiaoyan Hu (xyh@gwu.edu)
 
 ## File structure
 
-**`data_prep.R`**  read stacked data, derive new variable, such as denominators for form missingness and make necessary data transformation.
+**`1.data_prep.R`**  
+1. Data preparation for lab missingness: Load stacked and outcome data, merge data, derive denominators for missingness tables.
+2. Prepare data for plots: This section can be omitted if we're only generating missingness tables. It's meant for the scatter plots, line plots, bar plots, and histograms I created earlier in the lab report.
 
-**`Lab-Report.RMD`** :
+**`2.Lab-Report.RMD`** Generate the lab missingness report.
 
-**1\.** Part I Form missingness
+**`3.Lab-Distribution.RMD`** Codes for scatter plots, line plots, bar plots and histograms.
 
-**2\.** Part II Lab missingness
+**`Lab report variables.xlsx`** The Excel file containing all the lab test variables will be included in the missingness report. It should be updated whenever the lab variables in the data dictionary are modified.
 
-**3\.** Part III Lab results distribution: includes scatter plot, histogram, line chart and bar chart code
 
