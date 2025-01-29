@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: 02 April 2024, Stacie Loisate
-#* Last updated: October 29 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
+#* Last updated: January 29 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -3715,7 +3715,7 @@ ggplot() +
 
 **To be included as "non-Missing" for this outcome, a participant must have:**
 
-**1.** Reported test results (diagnosed or meassured) of 1 or 0 in MNH04 Maternal Clinical Status or MNH06 Point of Care for enrollment visit
+**1.** Reported test results (diagnosed or measured) of 1 or 0 in MNH04 Maternal Clinical Status or MNH06 Point of Care for enrollment visit
 
 **Common causes for a participant to be marked as "Missing":**
 
@@ -3781,47 +3781,47 @@ sti_enroll_tab <- MAT_INFECTION %>%
       format(round(sum(SYPH_MISSING_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-  # ## VAGINAL SWAB TESTING
-  #       "N with CT/NG test performed at enrollment" = paste0(
-  #      format(sum(CTNG_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-  #            
-  #     ## Chlamydia prevalence at enrollment 
-  #     "Chlamydia prevalence at enrollment" = paste0(
-  #       format(sum(CT_POSITIVE_1 == 1 & CTNG_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-  #       " (",
-  #       format(round(sum(CT_POSITIVE_1 == 1 & CTNG_TEST_PERF_1 == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_1 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-  #       ")"),
-  #     
-  #     # "N with NG test performed at enrollment" = paste0(
-  #     #   format(sum(CT_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-  #     
-  #     ## Gonorrhea prevalence at enrollment 
-  #     "Gonorrhea prevalence at enrollment (<20wks)" = paste0(
-  #       format(sum(NG_POSITIVE_1 == 1 & CTNG_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-  #       " (",
-  #       format(round(sum(NG_POSITIVE_1 == 1 & CTNG_TEST_PERF_1 == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_1 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-  #       ")") ,
-  #     
-  #     "N with CT/NG test performed at any ANC (excluding enrollment)" = paste0(
-  #       format(sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-  #     
-  #     ## Chlamydia prevalence at enrollment 
-  #     "Chlamydia incidence following enrollment (>=20wks)" = paste0(
-  #       format(sum(CT_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-  #       " (",
-  #       format(round(sum(CT_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-  #       ")"),
-  #     
-  #     # "N with NG test performed at enrollment" = paste0(
-  #     #   format(sum(CT_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-  #     
-  #     ## Gonorrhea prevalence at enrollment 
-  #     "Gonorrhea incidence following enrollment (>=20wks)" = paste0(
-  #       format(sum(NG_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-  #       " (",
-  #       format(round(sum(NG_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-  #       ")"),
-  # 
+  ## VAGINAL SWAB TESTING
+        "N with CT/NG test performed at enrollment" = paste0(
+       format(sum(CTNG_TEST_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      ## Chlamydia prevalence at enrollment
+      "Chlamydia prevalence at enrollment^e^" = paste0(
+        format(sum(CT_POSITIVE_ENROLL == 1 & CTNG_TEST_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+        " (",
+        format(round(sum(CT_POSITIVE_ENROLL == 1 & CTNG_TEST_PERF_ENROLL == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+        ")"),
+
+      # "N with NG test performed at enrollment" = paste0(
+      #   format(sum(CT_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      ## Gonorrhea prevalence at enrollment
+      "Gonorrhea prevalence at enrollment^e^" = paste0(
+        format(sum(NG_POSITIVE_ENROLL == 1 & CTNG_TEST_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+        " (",
+        format(round(sum(NG_POSITIVE_ENROLL == 1 & CTNG_TEST_PERF_ENROLL == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+        ")") ,
+
+      "N with CT/NG test performed at any ANC (excluding enrollment)" = paste0(
+        format(sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      ## Chlamydia prevalence at enrollment
+      "Chlamydia incidence following enrollment^e^" = paste0(
+        format(sum(CT_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+        " (",
+        format(round(sum(CT_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+        ")"),
+
+      # "N with NG test performed at enrollment" = paste0(
+      #   format(sum(CT_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      ## Gonorrhea prevalence at enrollment
+      "Gonorrhea incidence following enrollment^e^" = paste0(
+        format(sum(NG_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+        " (",
+        format(round(sum(NG_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+        ")"),
+
   # Gonorrhea
     "Gonorrhea diagnosed positive at enrollment ^a^" = paste0(
       format(sum(GON_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -3931,8 +3931,9 @@ sti_enroll_tab <- MAT_INFECTION %>%
 sti_enroll_tab[is.na(sti_enroll_tab)] <- paste0("0 (0)")
 
 ## the table is too long -- split into 2 
-sti_enroll_tab1 <- sti_enroll_tab[1:8,]
-sti_enroll_tab2 <- sti_enroll_tab[9:23,]
+sti_enroll_tab1 <- sti_enroll_tab[1:14,]
+# sti_enroll_tab2 <- sti_enroll_tab[9:14,]
+sti_enroll_tab2 <- sti_enroll_tab[15:29,]
 
 ## first half of table 
 sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>% 
@@ -3947,9 +3948,15 @@ sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>%
     label = html("<span style='font-size: 18px'>Syphilis, n (%)</span>"),
     rows = 5:8
   ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>CT/NG Vaginal Swabs, n (%)</span>"),
+    rows = 9:14
+  ) %>%
   row_group_order(groups = c(NA,
                             "<span style='font-size: 18px'>HIV, n (%)</span>",
-                            "<span style='font-size: 18px'>Syphilis, n (%)</span>")) %>% 
+                            "<span style='font-size: 18px'>Syphilis, n (%)</span>",
+                            "<span style='font-size: 18px'>CT/NG Vaginal Swabs, n (%)</span>"
+                            )) %>% 
   # bold denominator rows
   tab_style(
       style = list(
@@ -3963,6 +3970,21 @@ sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>%
         ),
       locations = cells_stub(rows = c(
                   "N with enrollment visit"))) %>% 
+      # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "N with CT/NG test performed at enrollment",
+                 "N with CT/NG test performed at any ANC (excluding enrollment)"))) %>% 
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "N with CT/NG test performed at enrollment",
+                 "N with CT/NG test performed at any ANC (excluding enrollment)"))) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
  ) %>% 
@@ -3975,6 +3997,9 @@ sti_enroll_output1 <- tb_theme1(sti_enroll_tab1) %>%
  ) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with an enrollment visit.</span>")
+ )  %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Denominator is total participants with a CT/NG swab and test performed.</span>")
  ) 
 
 
@@ -4032,7 +4057,6 @@ sti_enroll_output2 <- tb_theme1(sti_enroll_tab2) %>%
  )  
 
 ```
-
 
 ```{r, out.width = '100%'}
 
