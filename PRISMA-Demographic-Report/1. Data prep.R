@@ -1,6 +1,5 @@
 #****************************************************************************
-#*Demographic table
-#*Includes: basic demographic characters 
+#*Demographic report
 #*Author: Xiaoyan
 #*Email: xyh@gwu.edu
 #****************************************************************************
@@ -10,10 +9,14 @@ library(naniar)
 library(haven)
 library(openxlsx)
 
-UploadDate = "2024-11-29"
+UploadDate = "2025-01-10"
 
+#****************************************************************************
+#1.Load and merge data
+#****************************************************************************
 #load MAT_ENROLL
 MAT_ENROLL <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENROLL.dta"))
+
 #load mnh00
 mnh00 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh00_merged.csv")) %>% 
   select(SITE, SCRNID, 
@@ -64,7 +67,7 @@ mnh06 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh06_merged.csv")) %>%
   select(SITE, MOMID, PREGID, M06_SINGLETON_PERES)
 
 #****************************************************************************
-#Demographic chracters
+#2.Define demographic characters
 #****************************************************************************
 df_maternal <- MAT_ENROLL %>%
   left_join(mnh00, by = c("SITE", "SCRNID")) %>% 
@@ -76,12 +79,12 @@ df_maternal <- MAT_ENROLL %>%
 
 prep_demo <- df_maternal %>% 
   dplyr::select("SCRNID", "MOMID", "PREGID", "SITE",
-                EST_CONCEP_DATE, BOE_GA_DAYS_ENROLL,
+                PREG_START_DATE, BOE_GA_DAYS_ENROLL,
                 M00_BRTHDAT, M00_ESTIMATED_AGE,
                 M00_SCHOOL_YRS_SCORRES, M00_SCHOOL_SCORRES,
                 num_range("M01_US_EDD_BRTHDAT_FTS",1:4),
                 M01_FETUS_CT_PERES_US,
-                M02_SCRN_OBSSTDAT,
+                ENROLL_SCRN_DATE,
                 M03_MARITAL_SCORRES, M03_MARITAL_AGE,
                 M03_HEAD_HH_FCORRES, M03_HEAD_HH_SPFY_FCORRES,
                 M03_SMOKE_OECOCCUR,
@@ -154,8 +157,8 @@ df_demo <- prep_demo %>%
       TRUE ~ NA_real_
     ),
     #Age
-    age_temp = ifelse(!is.na(M02_SCRN_OBSSTDAT) & !is.na(M00_BRTHDAT), as.numeric(ymd(M02_SCRN_OBSSTDAT) - ymd(M00_BRTHDAT)) %/% 365, NA_real_), 
-    age = case_when(
+    age_temp = ifelse(!is.na(ENROLL_SCRN_DATE) & !is.na(M00_BRTHDAT), as.numeric(ymd(ENROLL_SCRN_DATE) - ymd(M00_BRTHDAT)) %/% 365, NA_real_), 
+    mat_age = case_when(
       (SITE %in% c("Ghana", "Pakistan", "Zambia") & age_temp %in% c(15:77)) | #remove outlivers (not meet age requirement)
         (SITE %in% c("India-CMC", "India-SAS", "Kenya") & age_temp %in% c(18:77)) ~ age_temp,
       (SITE %in% c("Ghana", "Pakistan", "Zambia") & as.numeric(M00_ESTIMATED_AGE) %in% c(15:77)) |
@@ -163,9 +166,9 @@ df_demo <- prep_demo %>%
       TRUE ~ NA_real_
     ),
     #age below 18 
-    age18 = case_when(
-      age > 14 & age < 18 ~ 1, 
-      age >= 18 ~ 0,
+    mat_age_under18 = case_when(
+      mat_age > 14 & mat_age < 18 ~ 1, 
+      mat_age >= 18 ~ 0,
       TRUE ~ NA_real_
     ),
     #Body mass index 
@@ -174,7 +177,7 @@ df_demo <- prep_demo %>%
         M05_WEIGHT_PERES / M05_HEIGHT_PERES / M05_HEIGHT_PERES * 10000, 
       TRUE ~ NA_real_
     ),
-    bmi_level = case_when(
+    bmi_level_enroll = case_when(
       bmi_enroll < 18.5 ~ 1,
       bmi_enroll >= 18.5 & bmi_enroll < 25 ~ 2,
       bmi_enroll >= 25 & bmi_enroll < 30 ~ 3,
@@ -244,7 +247,7 @@ df_demo <- prep_demo %>%
       gravidity > 0 ~ 0, 
       TRUE ~ NA_real_
     ),
-    #parity-the number of times a woman has given birth to a fetus at a gestational age of 20 weeks or more, regardless of whether the baby was born alive or stillborn.
+   #parity-the number of times a woman has given birth to a fetus at a gestational age of 20 weeks or more, regardless of whether the baby was born alive or stillborn.
     parity = case_when(
       M04_PH_PREV_RPORRES == 0 ~ 0,
       !is.na(M04_PH_LIVE_RPORRES) & !is.na(M04_STILLBIRTH_CT_RPORRES) ~ M04_PH_LIVE_RPORRES + M04_STILLBIRTH_CT_RPORRES, 
@@ -315,13 +318,13 @@ df_demo <- prep_demo %>%
       TRUE ~ NA_real_
     ),
     #Folic supplementation
-    folic = case_when(
+    folic_suppl_enroll = case_when(
       M04_FOLIC_ACID_CMOCCUR == 1 | M04_IFA_CMOCCUR == 1 ~ 1,
       M04_FOLIC_ACID_CMOCCUR == 0 & M04_IFA_CMOCCUR == 0 ~ 0,
       TRUE ~ NA_real_
     ),
     #Sleep under net
-    under_net = case_when(
+    sleep_under_net = case_when(
       M04_INSECT_LSTNIGHT_OBSOCCUR %in% c(0,1) ~ M04_INSECT_LSTNIGHT_OBSOCCUR,
       TRUE ~ NA_real_
     ),
@@ -359,9 +362,9 @@ df_demo <- prep_demo %>%
       TRUE ~ NA_real_
     ),
     #MUAC
-    muac = M05_MUAC_PERES,
+    muac_enroll = M05_MUAC_PERES,
   ) %>% 
-  dplyr::select(-c(matches("M\\d{2}_"), BOE_GA_DAYS_ENROLL, EST_CONCEP_DATE, other_job, age_temp)) %>% 
+  dplyr::select(-c(matches("M\\d{2}_"), BOE_GA_DAYS_ENROLL, PREG_START_DATE, other_job, age_temp)) %>% 
   rename_with(toupper)
 
 save(df_maternal, file = "derived_data/df_maternal.rda")

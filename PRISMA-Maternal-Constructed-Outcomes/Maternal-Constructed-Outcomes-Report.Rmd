@@ -36,11 +36,11 @@ library(dplyr)
 
 # set path to save 
 # Stacie's path:
-path_to_data <- "D:/Users/stacie.loisate/Documents/import/2024-09-20/"
-path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
+# path_to_data <- "D:/Users/stacie.loisate/Documents/import/2024-09-20/"
+# path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-# path_to_data <- "Z:/Outcome Data/2024-09-20/" 
+# path_to_data <- "Z:/Outcome Data/2025-01-10/" 
 # path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
@@ -235,9 +235,9 @@ summary_tab1 <- MAT_INFECTION %>%
     
   ## GDM
     "Gestational diabetes (by any test) ^b^" = paste0(
-      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     ) %>%
   t() %>% as.data.frame() %>% 
@@ -249,7 +249,7 @@ summary_tab1 <- MAT_INFECTION %>%
         plyr::summarise(
           
     "Gestational diabetes (by any test) ^b^" = paste0(
-      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2))
+      format(sum(DIAB_GEST_ANY==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
         t() %>%
@@ -375,9 +375,9 @@ summary_tab1 <- MAT_INFECTION %>%
     
   ## Preterm delivery
     "Preterm delivery (20 to <37 weeks) ^b^" = paste0(
-      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_ANY == 1 & PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_ANY == 1 & PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
    )  %>%
@@ -393,7 +393,7 @@ summary_tab1 <- MAT_INFECTION %>%
       format(sum(PPROM_OCCUR == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Preterm delivery (20 to <37 weeks) ^b^" = paste0(
-      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2))
+      format(sum(MAT_PRETERM_ANY == 1 & PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
         t() %>%
@@ -2132,48 +2132,48 @@ preterm_tab <- preterm_indication %>%
       ")"),  
     
     "Missing: Gestational age information unavailable [MNH01]" = paste0(
-      format(sum(PRETERM_PROV_MISS== 1 & PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_MISS== 1 & PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_MISS== 1 & PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_MISS== 1 & PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing: Date of pregnancy endpoint not available [MNH09/MNH04/MNH19]" = paste0(
-      format(sum(PRETERM_PROV_MISS==2 & PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_MISS==2 & PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_MISS==2 & PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_MISS==2 & PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Missing: information on labor onset or rupture of membranes [MNH09]" = paste0(
-      format(sum(PRETERM_PROV_MISS== 4 & PREG_END== 1 & PREG_END_DELIV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_MISS== 5 & PREG_END== 1 & PREG_END_DELIV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_MISS== 4 & PREG_END== 1 & PREG_END_DELIV==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_MISS== 5 & PREG_END== 1 & PREG_END_DELIV==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Preterm delivery (20 to <37 weeks)" = paste0(
-      format(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_ANY == 1 & PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_ANY == 1 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_ANY == 1 & PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Term delivery (>=37 weeks)" = paste0(
-      format(sum(PRETERM_ANY== 0 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_ANY== 0 & PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_ANY== 0 & PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_ANY== 0 & PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & MAT_PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Provider-initiated preterm" = paste0(
-      format(sum(PRETERM_PROV ==1 & PRETERM_ANY==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV ==1 & MAT_PRETERM_ANY==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV==1 & PRETERM_ANY==1 & PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PRETERM_ANY==1 & PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV==1 & MAT_PRETERM_ANY==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(MAT_PRETERM_ANY==1 & MAT_PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Spontaneous preterm" = paste0(
-      format(sum(PRETERM_PROV ==0 & PRETERM_ANY==1 & PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV ==0 & MAT_PRETERM_ANY==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV ==0 & PRETERM_ANY==1 & PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(PRETERM_ANY==1 & PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV ==0 & MAT_PRETERM_ANY==1 & MAT_PRETERM_PROV_MISS==0, na.rm = TRUE)/sum(MAT_PRETERM_ANY==1 & MAT_PRETERM_PROV_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     ) %>% 
   t() %>% as.data.frame() %>% 
@@ -2261,150 +2261,150 @@ prov_preterm_tab <- preterm_indication %>%
   summarise(
     
     "Denominator" = paste0(
-      format(sum(PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Diabetes(chronic or gestational)" = paste0(
-      format(sum(PRETERM_PROV_IND==8 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND==8 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==8 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==8 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Cardiac disease" = paste0(
-      format(sum(PRETERM_PROV_IND==9 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND==9 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==9 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==9 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Hypertension (chronic or gestational)" = paste0(
-      format(sum(PRETERM_PROV_IND== 7 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND== 7 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND== 7 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND== 7 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Preeclampsia/ eclampsia" = paste0(
-      format(sum(PRETERM_PROV_IND == 32 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND == 32 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND == 32 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND == 32 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Herpes" = paste0(
-      format(sum(PRETERM_PROV_IND== 34 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND== 34 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND== 34 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND== 34 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "PMTCT" = paste0(
-      format(sum(PRETERM_PROV_IND==35 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND==35 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==35 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==35 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Previous cesarean" = paste0(
-      format(sum(PRETERM_PROV_IND ==22 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==22 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==22 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==22 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Prior stillbirth" = paste0(
-      format(sum(PRETERM_PROV_IND ==3 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==3 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND ==3 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND ==3 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     # Pregnancy & fetal conditions 
     
     "Non-reassuring fetal heart rate " = paste0(
-      format(sum(PRETERM_PROV_IND ==2 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==2 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND ==2 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND ==2 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Oligohydramnios" = paste0(
-      format(sum(PRETERM_PROV_IND== 5 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND== 5 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND== 5 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND== 5 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "IUGR" = paste0(
-      format(sum(PRETERM_PROV_IND==6 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND==6 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==6 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==6 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Macrosomia" = paste0(
-      format(sum(PRETERM_PROV_IND== 4 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND== 4 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND== 4 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND== 4 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Post-term^*^" = paste0(
-      format(sum(PRETERM_PROV_IND == 1 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND == 1 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND == 1 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND == 1 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Fetal anomaly" = paste0(
-      format(sum(PRETERM_PROV_IND== 33 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND== 33 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND== 33 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND== 33 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Abruption/bleeding" = paste0(
-      format(sum(PRETERM_PROV_IND==26 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND==26 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==26 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==26 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Cord prolapse" = paste0(
-      format(sum(PRETERM_PROV_IND ==28 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==28 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==28 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==28 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Breech presentation" = paste0(
-      format(sum(PRETERM_PROV_IND ==29 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==29 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND ==29 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND ==29 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Rupture of membranes^*^" = paste0(
-      format(sum(PRETERM_PROV_IND ==11 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==11 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND ==11 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND ==11 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     ## elective
     "Elective induction" = paste0(
-      format(sum(PRETERM_PROV_IND== 10 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND== 10 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND== 10 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND== 10 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Elective cesarean" = paste0(
-      format(sum(PRETERM_PROV_IND==36 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND==36 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==36 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==36 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
   ## other
     "Other indication" = paste0(
-      format(sum(PRETERM_PROV_IND ==88 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==88 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND==88 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND==88 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Multiple indications" = paste0(
-      format(sum(PRETERM_PROV_IND ==89 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==89 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND ==89 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND ==89 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
   ## missing information
 
     "No indication provided" = paste0(
-      format(sum(PRETERM_PROV_IND ==555 & PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_PROV_IND ==555 & MAT_PRETERM_PROV==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_PROV_IND ==555 & PRETERM_PROV==1, na.rm = TRUE)/sum(PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_PROV_IND ==555 & MAT_PRETERM_PROV==1, na.rm = TRUE)/sum(MAT_PRETERM_PROV==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     ) %>% 
   t() %>% as.data.frame() %>% 
@@ -2513,24 +2513,24 @@ spon_preterm_tab <- preterm_indication %>%
   summarise(
     
    "Denominator (spontaneous preterm)" = paste0(
-      format(sum(PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(MAT_PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Preterm labor" = paste0(
-      format(sum(PRETERM_SPON_IND==1 & PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_SPON_IND==1 & MAT_PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_SPON_IND==1 & PRETERM_SPON==1, na.rm = TRUE)/sum(PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_SPON_IND==1 & MAT_PRETERM_SPON==1, na.rm = TRUE)/sum(MAT_PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "PPROM" = paste0(
-      format(sum(PRETERM_SPON_IND==2 & PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_SPON_IND==2 & MAT_PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_SPON_IND==2 & PRETERM_SPON==1, na.rm = TRUE)/sum(PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_SPON_IND==2 & MAT_PRETERM_SPON==1, na.rm = TRUE)/sum(MAT_PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Unknown order of events" = paste0(
-      format(sum(PRETERM_SPON_IND== 55 & PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAT_PRETERM_SPON_IND== 55 & MAT_PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRETERM_SPON_IND== 55 & PRETERM_SPON==1, na.rm = TRUE)/sum(PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAT_PRETERM_SPON_IND== 55 & MAT_PRETERM_SPON==1, na.rm = TRUE)/sum(MAT_PRETERM_SPON==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     ) %>% 
   t() %>% as.data.frame() %>% 
@@ -4711,33 +4711,33 @@ overt_diabetes <- gdm %>%
   summarise(
     
     "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
-      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Missing enrollment lab form (MNH08) or other lab at <20 weeks GA" = paste0(
-      format(sum(DIAB_OVERT_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_OVERT_MISS==2 & DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT_MISS==2 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_OVERT_MISS==2 & DIAB_GEST_DENOM == 1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing HbA1c test result in enrollment lab form (MNH08) or other lab at <20 weeks GA" = paste0(
-      format(sum(DIAB_OVERT_MISS==1 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_OVERT_MISS==1 & DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT_MISS==1 & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_OVERT_MISS==1 & DIAB_GEST_DENOM == 1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_OVERT_MISS==0 & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_OVERT_MISS==0 & DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No overt diabetes (<6.5% HbA1c)" = paste0(
-      format(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & (DIAB_OVERT_DX==0 | DIAB_OVERT_DX==55), na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_OVERT==0 & DIAB_GEST_DENOM == 1 & (DIAB_OVERT_DX==0 | DIAB_OVERT_DX==55), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_OVERT==0 & COMPLETE_ANC28 == 1 & (DIAB_OVERT_DX==0 | DIAB_OVERT_DX==55), na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_OVERT==0 & DIAB_GEST_DENOM == 1 & (DIAB_OVERT_DX==0 | DIAB_OVERT_DX==55), na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Overt diabetes (>=6.5% HbA1c or previous diagnosis)" = paste0(
-      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1 & DIAB_OVERT_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -4820,39 +4820,39 @@ pretest_fast_diabetes <- gdm %>%
   summarise(
     
     "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
-      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
-      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
       
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING_MISS==2 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING_MISS==2 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing pretest fasting glucose test result at ANC-28 (and not provided in any other visit)" = paste0(
-      format(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING_MISS==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1& DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING_MISS==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1& DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_GEST_FASTING_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_FASTING_MISS==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No gestational diabetes(<5.1 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 &  DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 &  DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=5.1 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_FASTING==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_FASTING==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_FASTING==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_FASTING_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -4935,39 +4935,39 @@ ogtt_diabetes <- gdm %>%
   summarise(
     
     "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
-      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
-      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
       
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR_MISS==2 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR_MISS==2 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing  1-hr OGTT result at ANC-28 (and not provided in any other visit)" = paste0(
-      format(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR_MISS==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR_MISS==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_GEST_1HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_1HR_MISS==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No gestational diabetes (<10.0 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=10.0 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_1HR==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_1HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_1HR==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_1HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -5052,39 +5052,39 @@ ogtt2_diabetes <- gdm %>%
   summarise(
     
    "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
-      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
    
     "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
-      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
       
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_2HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR_MISS==2 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR_MISS==2 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing 2-hr OGTT result at ANC-28 (and not provided in any other visit)" = paste0(
-      format(sum(DIAB_GEST_2HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR_MISS==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR_MISS==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_GEST_2HR_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_2HR_MISS==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No gestational diabetes (<8.5 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (>=8.5 mmol/L)" = paste0(
-      format(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_2HR==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_2HR==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_2HR==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_2HR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -5171,39 +5171,39 @@ any_test_diabetes <- gdm %>%
   summarise(
     
    "Expected denominator (pregnancies continued to 28 weeks gestation)" = paste0(
-      format(sum(COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
    
     "Excluded: Overt diabetes (>=6.5% HbA1c) or previous diagnosis" = paste0(
-      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & COMPLETE_ANC28 == 1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((DIAB_OVERT==1 | DIAB_OVERT_DX==1) & DIAB_GEST_DENOM == 1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
       
     "Missing ANC-28  lab form (MNH08) and no blood glucose test at other visits" = paste0(
-      format(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY_MISS==2 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY_MISS==2 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY_MISS==2 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing test result(s) at ANC-28 (and not provided in any other visit)" = paste0(
-      format(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY_MISS==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY_MISS==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY_MISS==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(DIAB_GEST_ANY_MISS==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DIAB_GEST_ANY_MISS==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No gestational diabetes (across all 3 tests)" = paste0(
-      format(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY==0 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY==0 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Gestational diabetes (by any test)" = paste0(
-      format(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DIAB_GEST_ANY==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DIAB_GEST_ANY==1 & COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(COMPLETE_ANC28 == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DIAB_GEST_ANY==1 & DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm = TRUE)/sum(DIAB_GEST_DENOM == 1 & DIAB_OVERT != 1 & DIAB_OVERT_DX !=1 & DIAB_GEST_ANY_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -5299,7 +5299,7 @@ library(RColorBrewer)
 library(ggvenn)
 library(wesanderson)
 
-gdm_vd <- subset(gdm, gdm$COMPLETE_ANC28==1 & (DIAB_GEST_FASTING!=55 | DIAB_GEST_1HR!=55 | DIAB_GEST_1HR!=55) & gdm$SITE!="India-SAS")
+gdm_vd <- subset(gdm, gdm$DIAB_GEST_DENOM==1 & (DIAB_GEST_FASTING!=55 | DIAB_GEST_1HR!=55 | DIAB_GEST_1HR!=55) & gdm$SITE!="India-SAS")
 
 gdm_vd$DIAB_GEST_FASTING<-ifelse(gdm_vd$DIAB_GEST_FASTING==55,0,gdm_vd$DIAB_GEST_FASTING) 
 gdm_vd$DIAB_GEST_1HR<-ifelse(gdm_vd$DIAB_GEST_1HR==55,0,gdm_vd$DIAB_GEST_1HR) 
@@ -6197,6 +6197,8 @@ knitr::include_graphics(paste0(path_to_save, "uter_rup_tab_output.png"))
 
 **Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor). 
 
+**Note:** Due to data collection differences, this outcome is not available for India-CMC and Ghana sites.  
+
 ### Table 11. Prolonged labor
 ```{r}
 
@@ -6210,6 +6212,12 @@ prolong_tab <- labor %>%
      "Expected denominator (total completed pregnancies)" = paste0(
       format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      
+    "Excluded: Outcome not available for site <sup>b</sup>" = paste0(
+      format(sum(PREG_END== 1 & (PRO_LABOR_MISS==8), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==8), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
      "Excluded: Pregnancy losses <20 weeks GA or induced abortion" = paste0(
       format(sum(PREG_END== 1 & (PRO_LABOR_MISS==4), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -6222,22 +6230,22 @@ prolong_tab <- labor %>%
       format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==5), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Excluded: Pregnancies >=20 weeks that ended without labor" = paste0(
+    "Excluded: Pregnancies >=20 weeks that ended in cesarean delivery without labor" = paste0(
       format(sum(PREG_END== 1 & (PRO_LABOR_MISS==6), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==6), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
      "Missing: unknown if labor occurred" = paste0(
-      format(sum(PREG_END== 1 & PRO_LABOR_MISS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & (PRO_LABOR_MISS==1 | PRO_LABOR_MISS==7), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & PRO_LABOR_MISS==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==1 | PRO_LABOR_MISS==7), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
     
     "Missing: unknown length of labor" = paste0(
-      format(sum(PREG_END== 1 & PRO_LABOR_MISS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & (PRO_LABOR_MISS==2), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & PRO_LABOR_MISS==2, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & (PRO_LABOR_MISS==2), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing: labor timing errors (under review)" = paste0(
@@ -6279,11 +6287,11 @@ prolong_tab_output <- tb_theme1(prolong_tab) %>%
     title = md("**Table 11**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
-        rows = 1:7
+        rows = 1:8
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Prolonged labor prevalence</span>"),
-    rows = 8:10
+    rows = 9:11
   ) %>%
     # bold denominator rows 1
   tab_style(
@@ -6320,7 +6328,10 @@ tab_style(
                            "<span style='font-size: 18px'>Prolonged labor prevalence</span>"))  %>% 
   
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))  %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Due to data collection differences for cases of induced labor in India-CMC and Ghana sites, the prolonged labor outcome is not available for these sites. </span>"))
 
 ```
 
@@ -6610,68 +6621,68 @@ hdp_tab <- hdp %>%
   summarise(
     
      "Expected denominator (total completed pregnancies)" = paste0(
-      format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(HDP_DENOM== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      "Excluded: pregnancy ended prior to 20 weeks" = paste0(
-      format(sum(PREG_END== 1 & HDP_GROUP_MISS==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_DENOM== 1 & HDP_GROUP_MISS==3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & HDP_GROUP_MISS==3, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_DENOM== 1 & HDP_GROUP_MISS==3, na.rm = TRUE)/sum(HDP_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
     
     "Missing: <2 BP measures at/after 20 weeks GA" = paste0(
-      format(sum(HDP_GROUP_MISS==1 & PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_GROUP_MISS==1 & HDP_DENOM== 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HDP_GROUP_MISS==1 & PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_GROUP_MISS==1 & HDP_DENOM== 1, na.rm = TRUE)/sum(HDP_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing: Baseline HTN information at <20 weeks GA" = paste0(
-      format(sum(HDP_GROUP_MISS==2 & PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_GROUP_MISS==2 & HDP_DENOM== 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HDP_GROUP_MISS==2 & PREG_END== 1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_GROUP_MISS==2 & HDP_DENOM== 1, na.rm = TRUE)/sum(HDP_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Denominator (non-missing)" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(HDP_DENOM==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "No hypertensive disorder" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_DENOM==1 & HDP_GROUP ==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP ==0, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_DENOM==1 & HDP_GROUP ==0, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Any hypertensive disorder of pregnancy" = paste0(
-      format(sum(PREG_END==1 & (HDP_GROUP ==1 | HDP_GROUP ==2 | HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_DENOM==1 & (HDP_GROUP ==1 | HDP_GROUP ==2 | HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & (HDP_GROUP ==1 | HDP_GROUP ==2 | HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_DENOM==1 & (HDP_GROUP ==1 | HDP_GROUP ==2 | HDP_GROUP ==3 | HDP_GROUP ==4 | HDP_GROUP ==5), na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Chronic hypertension (<20 weeks GA)" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_DENOM==1 & HDP_GROUP ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP ==1, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_DENOM==1 & HDP_GROUP ==1, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
      "Gestational hypertension (onset >=20 weeks)" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_DENOM==1 & HDP_GROUP ==2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP ==2, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_DENOM==1 & HDP_GROUP ==2, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Preeclampsia (without severe features)" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_DENOM==1 & HDP_GROUP ==3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP ==3, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_DENOM==1 & HDP_GROUP ==3, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
    "Preeclampsia superimposed on chronic hypertension" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_DENOM==1 & HDP_GROUP ==4, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP ==4, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_DENOM==1 & HDP_GROUP ==4, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
    
    "Preeclampsia with severe features" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP >= 0 & HDP_GROUP <=5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
     ) %>% 
@@ -6782,7 +6793,7 @@ knitr::include_graphics(paste0(path_to_save, "hdp_tab_output.png"))
 ```{r}
 
 hdp<-left_join(hdp,end)
-hdp<-subset(hdp,PREG_END==1)
+hdp<-subset(hdp,HDP_DENOM==1)
 
 hdp_tab2 <- hdp %>% 
   rowwise() %>% 
@@ -6790,76 +6801,76 @@ hdp_tab2 <- hdp %>%
   summarise(
     
     "Total cases of preeclampsia with severe features" = paste0(
-      format(sum(PREG_END==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Eclampsia and/or seizures" = paste0(
-      format(sum(SEVERE_FEAT_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "HELLP syndrome" = paste0(
-      format(sum(SEVERE_FEAT_HELLP==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_HELLP==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_HELLP==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_HELLP==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Postpartum eclampsia" = paste0(
-      format(sum(SEVERE_FEAT_POSTP_ECLAMPSIA==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_POSTP_ECLAMPSIA==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_POSTP_ECLAMPSIA==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_POSTP_ECLAMPSIA==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Organ dysfunction" = paste0(
-      format(sum(SEVERE_FEAT_ORGAN==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_ORGAN==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_ORGAN==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_ORGAN==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     
     "Severe high blood pressure (measured)" = paste0(
-      format(sum(SEVERE_FEAT_SEVHIGH==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_SEVHIGH==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_SEVHIGH==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_SEVHIGH==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Severe high blood pressure (diagnosed)" = paste0(
-      format(sum(SEVERE_FEAT_SEVHYP==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_SEVHYP==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_SEVHYP==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_SEVHYP==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     
     "Pulmonary edema" = paste0(
-      format(sum(SEVERE_FEAT_PULMED==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_PULMED==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_PULMED==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_PULMED==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     
     "Visual symptoms" = paste0(
-      format(sum(SEVERE_FEAT_VISUAL==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_VISUAL==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_VISUAL==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_VISUAL==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Epigastric pain" = paste0(
-      format(sum(SEVERE_FEAT_EPIPAIN==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_EPIPAIN==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_EPIPAIN==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_EPIPAIN==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     
     "Severe headache" = paste0(
-      format(sum(SEVERE_FEAT_HEAD==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_HEAD==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_HEAD==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_HEAD==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Postpartum seizures (within 7 days of delivery)" = paste0(
-      format(sum(SEVERE_FEAT_POSTP_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREEC_SEV_FEAT_POSTP_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_FEAT_POSTP_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(PREG_END==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREEC_SEV_FEAT_POSTP_SEIZURES==1 & HDP_GROUP ==5, na.rm = TRUE)/sum(HDP_DENOM==1 & HDP_GROUP ==5, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
   
     ) %>% 
@@ -7339,11 +7350,13 @@ knitr::include_graphics(paste0(path_to_save, "placenta_tab_output.png"))
 
 ## 16. Induced Labor
 
-**Definition:** Induced labor, including induction by artificial rupture of membranes, oxytocin, misoprostol, foley, and/or another method, as reported in MNH09 form)
+**Definition:** Induced labor, including induction by artificial rupture of membranes, oxytocin, misoprostol, foley, and/or another method (as reported in MNH09 form).
 
 **Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA), excluding pregnancies that ended in a c-section prior to labor. 
 
-### Table 16a. Induced Labor
+**Note:** Labor augmentation is defined as methods used to strengthen contractions that are already in progress. These include the same methods that can be used for labor induction. In India-SAS site, "induced labor" includes both induced and augmented labor. In Kenya and Zambia sites, "induced labor" may include both induced or augmented labor for some cases. 
+
+### Table 16. Induced Labor
 ```{r}
 
 induced<-left_join(labor,end)
@@ -7357,27 +7370,27 @@ induced_tab <- induced %>%
       format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
      
      "Excluded: Pregnancy losses <20 weeks GA or induced abortion" = paste0(
-      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==3 & PREG_LOSS_DEATH==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==4 & PREG_LOSS_DEATH==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==3 & PREG_LOSS_DEATH==0, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==4 & PREG_LOSS_DEATH==0, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
      
     "Excluded: Maternal deaths at <20 weeks GA" = paste0(
-      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==3 & PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==4 & PREG_LOSS_DEATH==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==3 & PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==4 & PREG_LOSS_DEATH==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Excluded: Pregnancies >=20 weeks that ended without labor AND without attempted induction" = paste0(
-      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==4, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Excluded: Pregnancies >=20 weeks that ended in cesarean delivery without labor AND without attempted induction" = paste0(
+      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==4, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==5, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
      "Missing: unknown if labor occurred" = paste0(
-      format(sum(PREG_END== 1 & MAT_INDUCED_MISS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END== 1 & (MAT_INDUCED_MISS==1 | MAT_INDUCED_MISS==3), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END== 1 & MAT_INDUCED_MISS==1, na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END== 1 & (MAT_INDUCED_MISS==1 | MAT_INDUCED_MISS==3), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),  
     
     "Missing: unknown if induced" = paste0(
@@ -7416,7 +7429,7 @@ induced_tab[is.na(induced_tab)] <- paste0("0 (0)")
 
 induced_tab_output <- tb_theme1(induced_tab) %>% 
   tab_header(
-    title = md("**Table 16a**")) %>% 
+    title = md("**Table 16**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
         rows = 1:6
@@ -7474,99 +7487,6 @@ knitr::include_graphics(paste0(path_to_save, "induced_tab_output.png"))
 
 ```
 
-
-
-### Table 16b. Induced Labor Scenarios
-```{r}
-
-induced_tab2 <- labor %>% 
-  rowwise() %>% 
-  group_by(SITE) %>% 
-  summarise(
-    
-    "Total cases of induced labor" = paste0(
-      format(sum(MAT_INDUCED==1, na.rm = TRUE), nsmall = 0, digits = 2)),
-    
-    "Induced by artificial rupture of membranes" = paste0(
-      format(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==1, na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Induced by another method, prior to rupture of membranes" = paste0(
-      format(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==2, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==2, na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Induced labor following PROM or PPROM" = paste0(
-      format(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==3, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==3, na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Unknown induction method" = paste0(
-      format(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==4, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_INDUCED==1 & MAT_INDUCED_TYPE==4, na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    
-    "Unknown timing of induction" = paste0(
-      format(sum(MAT_INDUCED==1 & (MAT_INDUCED_TYPE==5 | MAT_INDUCED_TYPE==6), na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_INDUCED==1 & (MAT_INDUCED_TYPE==5 | MAT_INDUCED_TYPE==6), na.rm = TRUE)/sum(MAT_INDUCED==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-  
-    ) %>% 
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
-
-```
-
-```{r}
-# replace NA with 0s (this likely means there is not yet data)
-induced_tab2[is.na(induced_tab2)] <- paste0("0 (0)")
-
-induced_tab2_output <- tb_theme1(induced_tab2) %>% 
-  tab_header(
-    title = md("**Table 16b**")) %>% 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Induction of Labor Scenarios <sup>a</sup> </span>"),
-        rows = 1:6
-    ) %>%
-  # bold denominator rows 2
-  tab_style(
-      style = list(
-        cell_text(weight = "bold")
-        ),
-      locations = cells_body(rows = c(
-                 "Total cases of induced labor",
-                 "Total cases of induced labor"))) %>% 
-tab_style(
-      style = list(
-        cell_text(weight = "bold")
-        ),
-      locations = cells_stub(rows = c(
-                 "Total cases of induced labor",
-                 "Total cases of induced labor"))) %>% 
- row_group_order(groups = c( "<span style='font-size: 18px'>Induction of Labor Scenarios <sup>a</sup> </span>"))  %>%
-  
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Note that participants induced prior to rupture of membranes are considered to be provider-initiated deliveries; participants with induced labor after spontaneous rupture of membranes (PROM or PPROM) are considered to be non-provider-initiated deliveries. </span>"))
-
-```
-
-```{r, out.width = '100%'}
-
-gtsave(induced_tab2_output, file = "induced_tab2_output.png", path = path_to_save, expand = 10)
-knitr::include_graphics(paste0(path_to_save, "induced_tab2_output.png"))
-
-```
 
 
 

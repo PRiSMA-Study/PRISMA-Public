@@ -12,7 +12,7 @@ output:
 
 *Demographic table is showing baseline household and individual characteristic.*
 
-**Date of included data upload to Synapse: ** 2024-11-29
+**Date of included data upload to Synapse: ** 2025-01-10
 
 \tableofcontents
 
