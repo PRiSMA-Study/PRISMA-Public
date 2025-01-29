@@ -3360,30 +3360,37 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),   
     
         "PPH reported in MNH09/12/19" = paste0(
-            format(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & TIMING_HOSP==2) |
-                         M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
-                         M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE), nsmall = 0, digits = 2),
+            format(sum(PPH_REPORT_IPC == 1 | 
+                         (HEM_HOSP_ANY==1 & TIMING_HOSP==2) |
+                         BIRTH_COMPL_PPH_PNC0 == 1 | 
+                         BIRTH_COMPL_PPH_PNC1 == 1 | BIRTH_COMPL_PPH_PNC4 == 1|
+                         BIRTH_COMPL_PPH_PNC6==1 | BIRTH_COMPL_PPH_PNC26==1 |
+                         BIRTH_COMPL_PPH_PNC52==1, na.rm = TRUE), nsmall = 0, digits = 2),
             " (",
-            format(round(sum(M09_PPH_CEOCCUR_6 == 1 | (HEM_HOSP_ANY==1 & TIMING_HOSP==2) |
-                         M12_BIRTH_COMPL_MHTERM_1_7 == 1 | M12_BIRTH_COMPL_MHTERM_1_8 == 1 | M12_BIRTH_COMPL_MHTERM_1_9 == 1|
-                         M12_BIRTH_COMPL_MHTERM_1_10==1 | M12_BIRTH_COMPL_MHTERM_1_11==1 | M12_BIRTH_COMPL_MHTERM_1_12==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+            format(round(sum(PPH_REPORT_IPC == 1 | (HEM_HOSP_ANY==1 & TIMING_HOSP==2) |
+                         BIRTH_COMPL_PPH_PNC0 == 1 | 
+                           BIRTH_COMPL_PPH_PNC1 == 1 |
+                           BIRTH_COMPL_PPH_PNC4 == 1|
+                         BIRTH_COMPL_PPH_PNC6==1 | 
+                           BIRTH_COMPL_PPH_PNC26==1 |
+                           BIRTH_COMPL_PPH_PNC52==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
             ")"),
 
 
           ## hemorrhage subcategories:
          "Estimated blood loss >= 500mL" = paste0(
-          format(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 500, na.rm = TRUE), nsmall = 0, digits = 2),
+          format(sum(EST_BLOOD_LOSS_IPC >= 500, na.rm = TRUE), nsmall = 0, digits = 2),
           " (",
-          format(round(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 500, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(EST_BLOOD_LOSS_IPC >= 500, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
     
 
          "Procedure or blood transfusion" = paste0(
-          format(sum(M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
-                       M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1 | M09_PPH_TRNSFSN_PROCCUR_6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+          format(sum(PPH_IPC_BALLOON==1 |PPH_IPC_SURG==1 |PPH_IPC_BRACE==1|
+                       PPH_IPC_VESSEL==1|PPH_IPC_HYSTER==1|PPH_IPC_OTHER==1 | BLOOD_TRANS_IPC==1, na.rm = TRUE), nsmall = 0, digits = 2),
           " (",
-          format(round(sum(M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
-                             M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1 | M09_PPH_TRNSFSN_PROCCUR_6==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(PPH_IPC_BALLOON==1 |PPH_IPC_SURG==1 |PPH_IPC_BRACE==1|
+                             PPH_IPC_VESSEL==1|PPH_IPC_HYSTER==1|PPH_IPC_OTHER==1 | BLOOD_TRANS_IPC==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
 
     "Severe postpartum hemorrhage" = paste0(
@@ -3394,18 +3401,18 @@ Hemorrhage_tab <- hemorrhage %>%
     
       ## severe subcategories:
          "Estimated blood loss >= 1000mL" = paste0(
-          format(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 1000, na.rm = TRUE), nsmall = 0, digits = 2),
+          format(sum(EST_BLOOD_LOSS_IPC >= 1000, na.rm = TRUE), nsmall = 0, digits = 2),
           " (",
-          format(round(sum(M09_PPH_ESTIMATE_FAORRES_6 >= 1000, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(EST_BLOOD_LOSS_IPC >= 1000, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
     
     
          "Procedure or blood transfusion " = paste0(
-          format(sum(HEM_PPH_SEV==1 & (M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
-                       M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1 | M09_PPH_TRNSFSN_PROCCUR_6==1), na.rm = TRUE), nsmall = 0, digits = 2),
+          format(sum(HEM_PPH_SEV==1 & (PPH_IPC_BALLOON==1 |PPH_IPC_SURG==1 |PPH_IPC_BRACE==1|
+                       PPH_IPC_VESSEL==1|PPH_IPC_HYSTER==1|PPH_IPC_OTHER==1 | BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
           " (",
-          format(round(sum(HEM_PPH_SEV==1 & (M09_PPH_FAORRES_1_6==1 |M09_PPH_FAORRES_2_6==1 |M09_PPH_FAORRES_3_6==1|
-                             M09_PPH_FAORRES_4_6==1|M09_PPH_FAORRES_5_6==1|M09_PPH_FAORRES_88_6==1 | M09_PPH_TRNSFSN_PROCCUR_6==1), na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(HEM_PPH_SEV==1 & (PPH_IPC_BALLOON==1 |PPH_IPC_SURG==1 |PPH_IPC_BRACE==1|
+                             PPH_IPC_VESSEL==1|PPH_IPC_HYSTER==1|PPH_IPC_OTHER==1 | BLOOD_TRANS_IPC==1), na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
     
     
@@ -3421,33 +3428,33 @@ Hemorrhage_tab <- hemorrhage %>%
       format(sum(HEM_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
 
   "Calibrated delivery drapes" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(BLOOD_LOSS_METHOD_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 1 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(BLOOD_LOSS_METHOD_IPC == 1 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
   "Noncalibrated delivery drapes" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 2 , na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(BLOOD_LOSS_METHOD_IPC == 2 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 2 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(BLOOD_LOSS_METHOD_IPC == 2 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   "Visual estimation" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 3 , na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(BLOOD_LOSS_METHOD_IPC == 3 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 3 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(BLOOD_LOSS_METHOD_IPC == 3 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      	
   "Gravimetric technique (weight of blood-soaked materials)" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 == 4 , na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(BLOOD_LOSS_METHOD_IPC == 4 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 == 4 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(BLOOD_LOSS_METHOD_IPC == 4 , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
   "Method unknown" = paste0(
-      format(sum(M09_PPH_PEMETHOD_6 %in% c(99, 55), na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(BLOOD_LOSS_METHOD_IPC %in% c(99, 55), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_PEMETHOD_6 %in% c(99, 55) , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(BLOOD_LOSS_METHOD_IPC %in% c(99, 55) , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   ## procedures for PPH (among participants with PPH)
@@ -3455,45 +3462,45 @@ Hemorrhage_tab <- hemorrhage %>%
       format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
 
     "Balloon/condom tamponade" = paste0(
-      format(sum(M09_PPH_FAORRES_1_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_IPC_BALLOON == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_FAORRES_1_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_IPC_BALLOON == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Surgical interventions" = paste0(
-      format(sum(M09_PPH_FAORRES_2_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_IPC_SURG == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_FAORRES_2_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_IPC_SURG == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Brace sutures" = paste0(
-      format(sum(M09_PPH_FAORRES_3_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_IPC_BRACE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_FAORRES_3_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_IPC_BRACE == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Vessel ligation" = paste0(
-      format(sum(M09_PPH_FAORRES_4_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_IPC_VESSEL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_FAORRES_4_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_IPC_VESSEL == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Hysterectomy" = paste0(
-      format(sum(M09_PPH_FAORRES_5_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_IPC_HYSTER == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_FAORRES_5_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_IPC_HYSTER == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Other" = paste0(
-      format(sum(M09_PPH_FAORRES_88_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_IPC_OTHER == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_FAORRES_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_IPC_OTHER == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Blood transfusion" = paste0(
-      format(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(BLOOD_TRANS_IPC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_TRNSFSN_PROCCUR_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(BLOOD_TRANS_IPC == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   ## Medications given to prevent/treat PPH (among all participants with an pph)
@@ -3501,57 +3508,57 @@ Hemorrhage_tab <- hemorrhage %>%
       format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2)), 
 
     "Oxytocin" = paste0(
-      format(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_OCY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_1_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_OCY == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Misoprostol" = paste0(
-      format(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_MISO == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_2_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_MISO == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Tranexaminic acid" = paste0(
-      format(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_TRANEX == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_3_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_TRANEX == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Carbetocin" = paste0(
-      format(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_CARBET == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_4_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_CARBET == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Methylergonovine" = paste0(
-      format(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_METHYL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_5_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_METHYL == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Carboprost (PGF2-alpha)" = paste0(
-      format(sum(M09_PPH_CMOCCUR_6_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_CARBOP == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_6_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_CARBOP == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Other " = paste0(
-      format(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_OTHER == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_88_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_OTHER == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "No medications given" = paste0(
-      format(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_NONE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_77_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_NONE == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Don’t know" = paste0(
-      format(sum(M09_PPH_CMOCCUR_99_6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PPH_MED_DONTKNOW == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M09_PPH_CMOCCUR_99_6 == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PPH_MED_DONTKNOW == 1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
   
   ) %>% 
@@ -3670,17 +3677,17 @@ knitr::include_graphics(paste0(path_to_save, "hemorrhage_output2.png"))
 ```{r, out.width = '100%', fig.align='center'}
 
 hemorrhage_figs <- hemorrhage %>% 
-  select(SITE, MOMID, PREGID, M09_PPH_ESTIMATE_FAORRES_6,HEM_PPH, HEM_PPH_SEV) %>% 
-  filter(M09_PPH_ESTIMATE_FAORRES_6 > 0) %>% 
-  mutate(CUTOFF = case_when(M09_PPH_ESTIMATE_FAORRES_6 >= 1000~ "Severe Hemorrhage(>=1000mL)",
-                            M09_PPH_ESTIMATE_FAORRES_6 >= 500 & M09_PPH_ESTIMATE_FAORRES_6 < 1000~ "Hemorrhage (>=500mL)",
+  select(SITE, MOMID, PREGID, EST_BLOOD_LOSS_IPC,HEM_PPH, HEM_PPH_SEV) %>% 
+  filter(EST_BLOOD_LOSS_IPC > 0) %>% 
+  mutate(CUTOFF = case_when(EST_BLOOD_LOSS_IPC >= 1000~ "Severe Hemorrhage(>=1000mL)",
+                            EST_BLOOD_LOSS_IPC >= 500 & EST_BLOOD_LOSS_IPC < 1000~ "Hemorrhage (>=500mL)",
                             TRUE ~ "No hemorrhage (<500mL)"))
 
 # Define the order of legend labels
 hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL)", 
                                                                     "Severe Hemorrhage(>=1000mL)"))
 ggplot() + 
-                    geom_histogram(data = hemorrhage_figs, aes(x = M09_PPH_ESTIMATE_FAORRES_6, fill = CUTOFF),  color = "gray", binwidth = 50) + 
+                    geom_histogram(data = hemorrhage_figs, aes(x = EST_BLOOD_LOSS_IPC, fill = CUTOFF),  color = "gray", binwidth = 50) + 
                     scale_fill_manual(values = c("darkgreen", "darkorange","darkred"), name = "") + 
                     facet_grid(rows = vars(SITE), scales = "free_y") + 
                     xlab("Estimated blood loss (mL)") + 
@@ -3773,7 +3780,48 @@ sti_enroll_tab <- MAT_INFECTION %>%
       " (",
       format(round(sum(SYPH_MISSING_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-
+  
+  # ## VAGINAL SWAB TESTING
+  #       "N with CT/NG test performed at enrollment" = paste0(
+  #      format(sum(CTNG_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  #            
+  #     ## Chlamydia prevalence at enrollment 
+  #     "Chlamydia prevalence at enrollment" = paste0(
+  #       format(sum(CT_POSITIVE_1 == 1 & CTNG_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+  #       " (",
+  #       format(round(sum(CT_POSITIVE_1 == 1 & CTNG_TEST_PERF_1 == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_1 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+  #       ")"),
+  #     
+  #     # "N with NG test performed at enrollment" = paste0(
+  #     #   format(sum(CT_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  #     
+  #     ## Gonorrhea prevalence at enrollment 
+  #     "Gonorrhea prevalence at enrollment (<20wks)" = paste0(
+  #       format(sum(NG_POSITIVE_1 == 1 & CTNG_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+  #       " (",
+  #       format(round(sum(NG_POSITIVE_1 == 1 & CTNG_TEST_PERF_1 == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_1 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+  #       ")") ,
+  #     
+  #     "N with CT/NG test performed at any ANC (excluding enrollment)" = paste0(
+  #       format(sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  #     
+  #     ## Chlamydia prevalence at enrollment 
+  #     "Chlamydia incidence following enrollment (>=20wks)" = paste0(
+  #       format(sum(CT_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+  #       " (",
+  #       format(round(sum(CT_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+  #       ")"),
+  #     
+  #     # "N with NG test performed at enrollment" = paste0(
+  #     #   format(sum(CT_TEST_PERF_1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  #     
+  #     ## Gonorrhea prevalence at enrollment 
+  #     "Gonorrhea incidence following enrollment (>=20wks)" = paste0(
+  #       format(sum(NG_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+  #       " (",
+  #       format(round(sum(NG_POSITIVE_ANY_ANC == 1 & CTNG_TEST_PERF_ANY_ANC == 1, na.rm = TRUE)/sum(CTNG_TEST_PERF_ANY_ANC == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+  #       ")"),
+  # 
   # Gonorrhea
     "Gonorrhea diagnosed positive at enrollment ^a^" = paste0(
       format(sum(GON_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -4138,18 +4186,18 @@ hepatitis_tab <- MAT_INFECTION %>%
   
     # Hepatitis E
   "N with at least one expansion test performed" = paste0(
-      format(sum(ENROLL_EXPANSION == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(EXPANSION_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Hep E IgM positive at enrollment ^d^" = paste0(
       format(sum(HEV_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEV_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & HEV_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEV_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & HEV_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Hep E IgG positive at enrollment ^d^" = paste0(
       format(sum(HEV_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEV_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & HEV_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEV_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & HEV_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     # "Hep E incidence following enrollment (IgM or IgG) ^b^" = paste0(
@@ -4161,7 +4209,7 @@ hepatitis_tab <- MAT_INFECTION %>%
     "Hep E missing at enrollment (IgG or IgM) ^e^" = paste0(
       format(sum(HEV_IGM_MISSING_ENROLL == 1 | HEV_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEV_IGM_MISSING_ENROLL == 1 | HEV_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEV_IGM_MISSING_ENROLL == 1 | HEV_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
 
 
@@ -4368,82 +4416,82 @@ zcd_tab <- MAT_INFECTION %>%
   # N with enrollment visit (following HEV/ZCD/Lepto expansion)
     
   "N with at least one expansion test performed" = paste0(
-      format(sum(ENROLL_EXPANSION == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(EXPANSION_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
   
   # Zika
       "Zika IgM positive at enrollment ^a^" = paste0(
       format(sum(ZIK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ZIK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & ZIK_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ZIK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & ZIK_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Zika IgG positive at enrollment ^a^" = paste0(
       format(sum(ZIK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ZIK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & ZIK_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ZIK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & ZIK_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     # "Zika incidence following enrollment (IgM or IgG) ^b^" = paste0(
     #   format(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1|ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1|ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1|ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
   
     "Zika missing at enrollment (IgG or IgM) ^b^" = paste0(
       format(sum(ZIK_IGM_MISSING_ENROLL == 1 | ZIK_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(ZIK_IGM_MISSING_ENROLL == 1 | ZIK_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(ZIK_IGM_MISSING_ENROLL == 1 | ZIK_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     # Dengue
       "Dengue IgM positive at enrollment^a^" = paste0(
       format(sum(DEN_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEN_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & DEN_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEN_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & DEN_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Dengue IgG positive at enrollment ^a^" = paste0(
       format(sum(DEN_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEN_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & DEN_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEN_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & DEN_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     # "Dengue incidence following enrollment (IgM or IgG) ^b^" = paste0(
     #   format(sum(DEN_IGM_POSITIVE_ANY_ANC == 1|DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(DEN_IGM_POSITIVE_ANY_ANC == 1|DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(DEN_IGM_POSITIVE_ANY_ANC == 1|DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
 
     "Dengue missing at enrollment (IgG or IgM) ^b^" = paste0(
       format(sum(DEN_IGM_MISSING_ENROLL == 1 | DEN_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEN_IGM_MISSING_ENROLL == 1 | DEN_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEN_IGM_MISSING_ENROLL == 1 | DEN_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     # Chikungunya
       "Chikungunya IgM positive at enrollment ^a^" = paste0(
       format(sum(CHK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(CHK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & CHK_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(CHK_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & CHK_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Chikungunya IgG positive at enrollment ^a^" = paste0(
       format(sum(CHK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(CHK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & CHK_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(CHK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & CHK_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     
     # "Chikungunya incidence following enrollment (IgM or IgG) ^b^" = paste0(
     #   format(sum(CHK_IGM_POSITIVE_ANY_ANC == 1|CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(CHK_IGM_POSITIVE_ANY_ANC == 1|CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(CHK_IGM_POSITIVE_ANY_ANC == 1|CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
   
     "Chikungunya missing at enrollment (IgG or IgM) ^b^" = paste0(
       format(sum(CHK_IGM_MISSING_ENROLL == 1 | CHK_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(CHK_IGM_MISSING_ENROLL == 1 | CHK_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(CHK_IGM_MISSING_ENROLL == 1 | CHK_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
   
@@ -4451,25 +4499,25 @@ zcd_tab <- MAT_INFECTION %>%
       "Leptospirosis  IgM positive at enrollment ^a^" = paste0(
       format(sum(LEP_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(LEP_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & LEP_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(LEP_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & LEP_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     "Leptospirosis  IgG positive at enrollment ^a^" = paste0(
       format(sum(LEP_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(LEP_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1 & LEP_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(LEP_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & LEP_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
     # "Leptospirosis incidence following enrollment (IgM or IgG) ^b^" = paste0(
     #   format(sum(LEP_IGM_POSITIVE_ANY_ANC == 1|LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(LEP_IGM_POSITIVE_ANY_ANC == 1|LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(LEP_IGM_POSITIVE_ANY_ANC == 1|LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
 
     "Leptospirosis missing at enrollment (IgG or IgM) ^b^" = paste0(
       format(sum(LEP_IGM_MISSING_ENROLL == 1 | LEP_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(LEP_IGM_MISSING_ENROLL == 1 | LEP_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(LEP_IGM_MISSING_ENROLL == 1 | LEP_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
 
   )  %>%
