@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2024 July 30)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2025-01-10)"
 output:
   pdf_document:
     toc: no
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Infant Outcomes -- TABLES 
 #* Drafted: 01 January 2024, Stacie Loisate
-#* Last updated: 11 October 2024
+#* Last updated: 10 January 2025
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -31,19 +31,16 @@ library(RColorBrewer)
 library(gt) ## for table gen
 library(webshot2)  ## for table gen
 
-UploadDate = "2024-10-04"
+UploadDate = "2025-01-24"
 path_to_data <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/data/"
 path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/output/"
 path_to_save_figures <- "D:/Users/stacie.loisate/Documents"
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
-psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
-infant_trajectory <- read.csv(paste0("Z:/Outcome Data/2024-06-28/INF_GROWTH_WIDE.csv"))
-all_plus_outcome <- read.csv(paste0("Z:/Outcome Data/2024-06-28/INF_GROWTH_LONG.csv"))
+# psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
+# infant_trajectory <- read.csv(paste0(path_to_tnt, "INF_GROWTH_WIDE", ".csv")) 
+# all_plus_outcome <- read.csv(paste0(path_to_tnt, "INF_GROWTH_LONG", ".csv")) 
 infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
-
-# mnh09_long <- read.csv(paste0(path_to_data, "mnh09_long.csv")) 
-
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -127,7 +124,7 @@ g_legend <- function(p) {
 setwd(paste0(path_to_save))
 ```
 
-**Includes data from synapse last updated:** 2024 July 30
+**Includes data from synapse last updated:** 2024-09-20
 \tableofcontents
 
 \newpage
@@ -144,7 +141,6 @@ setwd(paste0(path_to_save))
 ## LIVE BIRTHS (MNH09): sga, preterm
 
 ## special: neo/inf mortality, stillbirth, fetal death
-
 
 ## lbw: Any infant with a MNH11 form and a reported "live birth" `(BIRTH_DSTERM=1 [MNH09])`.
 ## preterm: Any participant with delivery after 20 weeks with a MNH09 form filled out with a reported "birth outcome" `(BIRTH_DSTERM_INF1-4=1 OR BIRTH_DSTERM_INF1-4=2 [MNH09])` AND has valid gestational age reported in MNH01 `(US_GA_WKS_AGE_FTS1-4 [MNH01], US_GA_DAYS_AGE_FTS1-4 [MNH01], GA_LMP_WEEKS_SCORRES [MNH01])`. Preterm delivery includes live or stillbirths; preterm birth includes only livebirths. 
@@ -335,7 +331,7 @@ sga_sum <- infant_outcomes %>%
 )
 
 # neonatal mortality (no missing here)infant_outcomes
-neo_mort_sum <- neonatal_mortality %>% 
+neo_mort_sum <- infant_outcomes %>% 
   ## If india-SAS doesn't have data, add emprty row here 
   mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
@@ -344,9 +340,9 @@ neo_mort_sum <- neonatal_mortality %>%
   summarise(
     
     "Neonatal mortality, n per 1000^a^" = paste0(
-      format(sum(NEO_DTH_CAT %in% c(11,12,13) & DENOM_28d==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & DENOM_28d==1, na.rm = TRUE)/sum(DENOM_28d==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
+      format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE)/sum(D28_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -355,13 +351,13 @@ neo_mort_sum <- neonatal_mortality %>%
   slice(-1) %>% 
         add_column(
       .before = 1,
-    "Total" = neonatal_mortality %>%
+    "Total" = infant_outcomes %>%
         plyr::summarise(
         
     "Neonatal mortality, n per 1000^a^" = paste0(
-      format(sum(NEO_DTH_CAT %in% c(11,12,13) & DENOM_28d==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & DENOM_28d==1, na.rm = TRUE)/sum(DENOM_28d==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
+      format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE)/sum(D28_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
       ")")
 
     
@@ -375,7 +371,7 @@ neo_mort_sum <- neonatal_mortality %>%
   #   "Neonatal mortality, n per 1000^a^" = paste0(
   #     format(sum(TOTAL_NEO_DEATHS==1, na.rm = TRUE), nsmall = 0, digits = 2),
   #     " (",
-  #     format(round(sum(TOTAL_NEO_DEATHS==1, na.rm = TRUE)/sum(DENOM_28d==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
+  #     format(round(sum(TOTAL_NEO_DEATHS==1, na.rm = TRUE)/sum(D28_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
   #     ")")
   # 
   #   
@@ -392,7 +388,7 @@ neo_mort_sum <- neonatal_mortality %>%
 #     "Infant mortality, n per 1000^b^" = paste0(
 #       format(sum(TOTAL_INF_DEATHS==1 & AGE_LAST_SEEN >= 365, na.rm = TRUE), nsmall = 0, digits = 2),
 #       " (",
-#       format(round(sum(TOTAL_INF_DEATHS==1 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(DENOM_365d==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
+#       format(round(sum(TOTAL_INF_DEATHS==1 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(D365_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
 #       ")")
 #     
 #   )  %>%
@@ -407,7 +403,7 @@ neo_mort_sum <- neonatal_mortality %>%
 #     "Infant mortality, n per 1000^b^" = paste0(
 #       format(sum(TOTAL_INF_DEATHS==1 & AGE_LAST_SEEN >= 365, na.rm = TRUE), nsmall = 0, digits = 2),
 #       " (",
-#       format(round(sum(TOTAL_INF_DEATHS==1 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(DENOM_365d==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
+#       format(round(sum(TOTAL_INF_DEATHS==1 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(D365_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
 #       ")")
 # 
 #     
@@ -643,7 +639,6 @@ psbi_sum <- infant_outcomes %>%
       `colnames<-`(c(.[1,])) %>% unlist()
 ) %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) 
-
 
 ```
 
@@ -1811,7 +1806,7 @@ sga_tab <- infant_outcomes %>%
   slice(-1) 
 
 
-# out <- sga %>% filter(SITE == "Kenya" & SGA_CAT==55) %>% select(SITE, MOMID, PREGID, INFANTID, GESTAGEBIRTH_BOE_DAYS, GESTAGEBIRTH_BOE, BWEIGHT_ANY, M09_SEX)
+# out <- sga %>% filter(SITE == "Kenya" & SGA_CAT==55) %>% select(SITE, MOMID, PREGID, INFANTID, GESTAGEBIRTH_BOE_DAYS, GESTAGEBIRTH_BOE, BWEIGHT_ANY, SEX)
 # write.csv(out, paste0("~/ken_out_ids.csv"), row.names=FALSE)
 
 ```
@@ -1923,32 +1918,23 @@ mortality_tab <- infant_outcomes %>% ## denominator is anyone with an MNH09 or M
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
-    "Denominator" =  paste0(
-      format(sum(LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    "Total deaths reported <365 days" =  paste0(
+      format(sum(((NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM == 1) | (INF_DTH_FROM28 == 1 & D365_DENOM == 1)) | DTH_TIME_MISSING == 1 | 
+                   DOB_AFTER_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    # "Missing MNH09 (but has MNH11 or MNH24) ^a^" = paste0(
-    #   format(sum(MISSING_MNH09 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(MISSING_MNH09 == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
-    # 
-    # "Missing MNH11 (but has MNH09 or MNH24) ^a^" = paste0(
-    #   format(sum(MISSING_MNH11 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(MISSING_MNH11 == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
-    
-    "Death reported but missing date or time of death ^b^" = paste0(
+    "Death reported but missing date or time of death" = paste0(
       format(sum(DTH_TIME_MISSING == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DTH_TIME_MISSING == 1, na.rm = TRUE)/sum(DTH_INDICATOR == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DTH_TIME_MISSING == 1, na.rm = TRUE)/sum(((NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM == 1) | (INF_DTH_FROM28 == 1 & D365_DENOM == 1)) | DTH_TIME_MISSING == 1 | 
+                   DOB_AFTER_DEATH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-     "Death reported but date or time of death is before delivery ^b^" = paste0(
+     "Death reported but date or time of death is before delivery" = paste0(
       format(sum(DOB_AFTER_DEATH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DOB_AFTER_DEATH == 1, na.rm = TRUE)/sum(DTH_INDICATOR == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(round(sum(DOB_AFTER_DEATH == 1, na.rm = TRUE)/sum(((NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM == 1) | (INF_DTH_FROM28 == 1 & D365_DENOM == 1)) | DTH_TIME_MISSING == 1 | 
+                   DOB_AFTER_DEATH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
 
   ) %>% 
   t() %>% as.data.frame() %>% 
@@ -1964,36 +1950,36 @@ neo_mortality_tab <- infant_outcomes %>% ## denominator is all live births with 
   group_by(SITE) %>% 
   summarise(
     "Denominator " = paste0(
-      format(sum(DENOM_28d == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(D28_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Death <24 hrs of life" = paste0(
       format(sum(NEO_DTH_CAT == 11, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEO_DTH_CAT == 11, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(NEO_DTH_CAT == 11, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Death 24 hrs to <7 days of life" = paste0(
       format(sum(NEO_DTH_CAT == 12, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEO_DTH_CAT == 12, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(NEO_DTH_CAT == 12, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Death 7 days to <28 days of life" = paste0(
       format(sum(NEO_DTH_CAT == 13, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEO_DTH_CAT == 13, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(NEO_DTH_CAT == 13, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     # "Death reported but missing time of death " = paste0(
     #   format(sum(NEO_DTH_CAT == 55, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(NEO_DTH_CAT == 55, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(NEO_DTH_CAT == 55, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
     
     "Total neonatal deaths " = paste0(
-      format(sum(NEO_DTH_CAT %in% c(11,12,13) & DENOM_28d == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & DENOM_28d == 1, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM == 1, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
 
 
@@ -2013,25 +1999,25 @@ inf_mortality_tab <- infant_outcomes %>% ## denominator is all live births with 
   summarise(
 
     "Denominator  " = paste0(
-      format(sum(DENOM_365d == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(D365_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Death 28 days to <365 days of life" = paste0(
-      format(sum(INF_DTH_FROM28 == 1 & DENOM_365d == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(INF_DTH_FROM28 == 1 & D365_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(INF_DTH_FROM28 == 1 & DENOM_365d == 1, na.rm = TRUE)/sum(DENOM_365d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_DTH_FROM28 == 1 & D365_DENOM == 1, na.rm = TRUE)/sum(D365_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
     
     # "Death reported but missing time of death  " = paste0(
     #   format(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
-    #   format(round(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(DENOM_28d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+    #   format(round(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
     #   ")"),
     # 
     
     "Total infant deaths  " = paste0(
-      format(sum(INF_DTH_FROM28 == 1 & DENOM_365d == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(INF_DTH_FROM28 == 1 & D365_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(INF_DTH_FROM28 == 1 & DENOM_365d == 1, na.rm = TRUE)/sum(DENOM_365d == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_DTH_FROM28 == 1 & D365_DENOM == 1, na.rm = TRUE)/sum(D365_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
 
   ) %>% 
@@ -2057,35 +2043,32 @@ mortality_output <- tb_theme1(mortality_all_tab) %>%
     rows = 1:3
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>c</sup></span>"),
+    label = html("<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>"),
     rows = 4:8
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of Infant Mortality<sup>d</sup></span>"),
-    rows = 10:11
+    label = html("<span style='font-size: 18px'>Timing of Infant Mortality<sup>c</sup></span>"),
+    rows = 9:11
   ) %>%
   row_group_order(groups = c("<span style='font-size: 18px'>Data Completeness<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>c</sup></span>",
-                  "<span style='font-size: 18px'>Timing of Infant Mortality<sup>d</sup></span>")
+                  "<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>",
+                  "<span style='font-size: 18px'>Timing of Infant Mortality<sup>c</sup></span>")
                   ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all live births.</span>")
- )  %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all reported deaths.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all reported deaths <365 days who have passed the risk period with a visit OR died within the risk period OR death was reported but date of death = missing OR date of death < DOB.</span>")
  )  %>% 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period with a visit OR died within the risk period (risk period: age = 28days).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period with a visit OR died within the risk period (risk period: age = 28days).</span>")
  )  %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period (risk period: age = 365days).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all live births with MNH09 and MNH11 filled out AND have passed the risk period (risk period: age = 365days).</span>")
  ) %>% 
     tab_style(
       style = list(
         cell_text(weight = "bold")
         ),
       locations = cells_body(rows = c(
-                 "Denominator",
+                 "Total deaths reported <365 days",
                  "Denominator ", 
                  "Denominator  "))) %>% 
   tab_style(
@@ -2093,7 +2076,7 @@ tab_footnote(
         cell_text(weight = "bold")
         ),
       locations = cells_stub(rows = c(
-                 "Denominator",
+                 "Total deaths reported <365 days",
                  "Denominator ", 
                  "Denominator  "))) 
 
@@ -2447,39 +2430,39 @@ birth_asphyxia_tab <- infant_outcomes %>% ## denominator is anyone with a birth 
       format(sum(LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Failed to initiate and sustain breathing at birth" = paste0(
-      format(sum(M11_BREATH_FAIL_CEOCCUR == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(INF_BREATH_FAIL == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M11_BREATH_FAIL_CEOCCUR == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_BREATH_FAIL == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Bag and mask ventilation" = paste0(
-      format(sum(M11_INF_PROCCUR_2 == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(INF_BREATH_MASK_VENT == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M11_INF_PROCCUR_2 == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_BREATH_MASK_VENT == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Continuous positive airway pressure" = paste0(
-      format(sum(M11_INF_PROCCUR_3 == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(INF_BREATH_PRESSURE == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M11_INF_PROCCUR_3 == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_BREATH_PRESSURE == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Repeated stimulation/suction" = paste0(
-      format(sum(M11_INF_PROCCUR_4 == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(INF_BREATH_SUCTION == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M11_INF_PROCCUR_4 == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_BREATH_SUCTION == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Intubation and mechanical ventilation" = paste0(
-      format(sum(M11_INF_PROCCUR_5 == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(INF_BREATH_INTUBATION == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M11_INF_PROCCUR_5 == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_BREATH_INTUBATION == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Chest compressions" = paste0(
-      format(sum(M11_INF_PROCCUR_6 == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(INF_BREATH_COMPRESS == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(M11_INF_PROCCUR_6 == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(INF_BREATH_COMPRESS == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     # perinatal birth asphyxia 
@@ -3351,8 +3334,8 @@ psbi_tab_output4 <- psbi_tab_output4 %>% gtsave("psbi_tab_output4.png", expand =
 knitr::include_graphics("psbi_tab_output4.png")
 ```
 
-
 \newpage
+
 
 ## 11. Infant growth trajectories
 
