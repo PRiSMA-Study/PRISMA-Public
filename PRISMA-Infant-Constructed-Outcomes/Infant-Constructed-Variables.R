@@ -1,7 +1,7 @@
 #*****************************************************************************
 #* PRISMA Infant Outcomes
 #* Drafted: 21 September 2023, Stacie Loisate
-#* Last updated: 18 December 2024
+#* Last updated: 10 January 2025
 
 # If you copy and paste the following, it will take you to that section: 
 # 1. Low birth-weight 
@@ -26,6 +26,7 @@
 # the package can be downloaded using the following code: 
 # install.packages("remotes") # if "remotes" is not already installed 
 # remotes::install_github("ki-tools/growthstandards") 
+
 #*****************************************************************************
 #*****************************************************************************
 #* Data Setup 
@@ -43,7 +44,7 @@ library(openxlsx)
 
 # UPDATE EACH RUN # 
 # set upload date 
-UploadDate = "2024-12-13"
+UploadDate = "2025-01-10"
 
 # set path to data
 path_to_data = paste0("~/import/" ,UploadDate)
@@ -79,7 +80,8 @@ mnh20 <- read.csv(paste0(path_to_data,"/", "mnh20_merged.csv"))
 
 mnh24 <- read.csv(paste0(path_to_data,"/", "mnh24_merged.csv"))
 
-mat_enroll <- read.csv(paste0(path_to_tnt, "/MAT_ENROLL.csv")) 
+# mat_enroll <- read.csv(paste0(path_to_tnt, "/MAT_ENROLL.csv"))
+mat_enroll <- read.xlsx(paste0(path_to_tnt, "/MAT_ENROLL.xlsx"))
 
 ## For sites that are not reporting MOMID/PREGID in MNH01 for enrollment visits, we will merge these IDs from MNH02 into MNH01
 ## zambia ids
@@ -224,7 +226,7 @@ enrolled_ids_vec <- as.vector(mat_enroll$PREGID)
 ## add constructed vars for: 
 # BOE_EDD, [varname: EDD_BOE]
 # BOE_GA, [varnames: GESTAGE_ENROLL_BOE, BOE_GA_DAYS]
-# Estimate conception date [varname: EST_CONCEP_DATE]
+# Estimate conception date [varname: PREG_START_DATE]
 
 mnh01_constructed <- mnh01 %>% 
   ## only want the first ultrasound visit -- take the earliest date for each participant -- USE TYPE_VISIT = 1 FOR NOW
@@ -253,12 +255,12 @@ mnh04_constructed <- mnh04 %>%
   # arrange(M04_ANC_OBSSTDAT) %>%
   # distinct(MOMID, PREGID, M04_TYPE_VISIT, .keep_all = TRUE) %>%
   ## calculate the gestational age at fetal loss 
-  # first join in EST_CONCEP_DATE from mnh01_constructed 
-  left_join(mat_enroll[c("SITE", "MOMID", "PREGID", "EST_CONCEP_DATE")], by = c("SITE", "MOMID", "PREGID")) %>% 
+  # first join in PREG_START_DATE from mnh01_constructed 
+  left_join(mat_enroll[c("SITE", "MOMID", "PREGID", "PREG_START_DATE")], by = c("SITE", "MOMID", "PREGID")) %>% 
   # replace default value date with NA 
   mutate(M04_FETAL_LOSS_DSSTDAT = replace(M04_FETAL_LOSS_DSSTDAT, M04_FETAL_LOSS_DSSTDAT==ymd("1907-07-07"), NA)) %>% 
   # calculate gestational age at fetal loss
-  mutate(GESTAGE_FETAL_LOSS_DAYS = as.numeric(ymd(M04_FETAL_LOSS_DSSTDAT)-ymd(EST_CONCEP_DATE)), 
+  mutate(GESTAGE_FETAL_LOSS_DAYS = as.numeric(ymd(M04_FETAL_LOSS_DSSTDAT)-ymd(PREG_START_DATE)), 
          GESTAGE_FETAL_LOSS_WKS = GESTAGE_FETAL_LOSS_DAYS %/% 7)
 
 ### MNH09 ###
@@ -270,7 +272,7 @@ mnh09_constructed <- mnh09 %>%
   ## 1. Calculating GA at birth ##
   # only want participants who are enrolled
   # merge in MNH01 info
-  right_join(mat_enroll[c("SITE", "MOMID", "PREGID", "EST_CONCEP_DATE")], by = c("SITE", "MOMID", "PREGID")) %>% 
+  right_join(mat_enroll[c("SITE", "MOMID", "PREGID", "PREG_START_DATE")], by = c("SITE", "MOMID", "PREGID")) %>% 
   left_join(mnh01_constructed[c("SITE", "MOMID", "PREGID", "M01_US_OHOSTDAT")], by = c("SITE", "MOMID", "PREGID")) %>% 
   # convert to date class
   mutate(M09_DELIV_DSSTDAT_INF1 = ymd(parse_date_time(M09_DELIV_DSSTDAT_INF1, order = c("%d/%m/%Y","%d-%m-%Y","%Y-%m-%d", "%d-%b-%y"))),
@@ -295,7 +297,7 @@ mnh09_constructed <- mnh09 %>%
   # only want those who have had a birth outcome 
   # filter(BIRTH_OUTCOME == 1) %>% 
   # calculate the number of days between DOB and estimated conception date
-  mutate(GESTAGEBIRTH_BOE_DAYS = as.numeric(ymd(DOB) - ymd(EST_CONCEP_DATE)), 
+  mutate(GESTAGEBIRTH_BOE_DAYS = as.numeric(ymd(DOB) - ymd(PREG_START_DATE)), 
          GESTAGEBIRTH_BOE = GESTAGEBIRTH_BOE_DAYS %/% 7) 
 
 
@@ -487,7 +489,8 @@ mnh04_constructed_fetal_loss <- mnh04_constructed %>% filter(M04_PRG_DSDECOD == 
   select(-n) %>% 
   ungroup() %>% 
   select(SITE, MOMID, PREGID, M04_PRG_DSDECOD, M04_FETAL_LOSS_DSDECOD, M04_FETAL_LOSS_DSSTDAT,
-         GESTAGE_FETAL_LOSS_DAYS, GESTAGE_FETAL_LOSS_WKS)
+         GESTAGE_FETAL_LOSS_DAYS, GESTAGE_FETAL_LOSS_WKS) %>% 
+  mutate(M04_FETAL_LOSS_DSSTDAT = ymd(M04_FETAL_LOSS_DSSTDAT))
 
 mnh09_long_sub <- mnh09_long %>%   select(SITE, MOMID, PREGID,INFANTID,M09_SEX,
                                           M09_DELIV_DSSTDAT, M09_DELIV_DSSTTIM,DOB,  DELIVERY_DATETIME,M09_BIRTH_DSTERM, 
@@ -496,10 +499,17 @@ mnh09_long_sub <- mnh09_long %>%   select(SITE, MOMID, PREGID,INFANTID,M09_SEX,
 
 inf_baseline <- mat_enroll %>% 
   full_join(mnh09_long_sub, by = c("SITE", "MOMID", "PREGID")) %>% 
-  select(SITE, MOMID, PREGID,INFANTID,M09_SEX, M02_SCRN_OBSSTDAT, BOE_METHOD,M01_US_OHOSTDAT, GA_DIFF_DAYS, EDD_BOE, BOE_GA_DAYS_ENROLL, EST_CONCEP_DATE,
+  select(SITE, MOMID, PREGID,INFANTID,M09_SEX, ENROLL_SCRN_DATE, BOE_METHOD,M01_US_OHOSTDAT, GA_DIFF_DAYS, EDD_BOE, BOE_GA_DAYS_ENROLL, PREG_START_DATE,
          DOB, M09_DELIV_DSSTTIM, DELIVERY_DATETIME,M09_BIRTH_DSTERM, 
          GESTAGEBIRTH_BOE_DAYS, GESTAGEBIRTH_BOE
   ) %>% 
+  # mutate(PREG_START_DATE = case_when(MOMID=="KEARC00074" ~ ymd(M01_US_OHOSTDAT) -  as.numeric(BOE_GA_DAYS_ENROLL),
+  #                                    TRUE ~ ymd(PREG_START_DATE))) %>%
+  # mutate(GESTAGEBIRTH_BOE = case_when(MOMID=="KEARC00074" ~ as.numeric(ymd(DOB) -  ymd(PREG_START_DATE))%/% 7,
+  #                                     TRUE ~ as.numeric(GESTAGEBIRTH_BOE))) %>%
+  # mutate(GESTAGEBIRTH_BOE_DAYS = case_when(MOMID=="KEARC00074" ~ as.numeric(ymd(DOB) -  ymd(PREG_START_DATE)),
+  #                                          TRUE ~ as.numeric(GESTAGEBIRTH_BOE_DAYS))) %>%
+
   full_join(mnh04_constructed_fetal_loss , by = c("SITE", "MOMID", "PREGID")) %>% 
   ## add new var with a indicator variable for birth outcome reported
   mutate(BIRTH_OUTCOME_REPORTED = case_when(!is.na(DOB) | !is.na(M04_FETAL_LOSS_DSSTDAT) ~ 1, 
@@ -539,12 +549,12 @@ inf_baseline <- mat_enroll %>%
          INF_CLOSEOUT_REASON = M24_CLOSE_DSDECOD, 
          DEATHDATE_MNH24 = M24_DTHDAT, 
          DEATHTIME_MNH24 = M24_DTHTIM,
-         BIRTH_OUTCOME = M09_BIRTH_DSTERM
+         BIRTH_OUTCOME = M09_BIRTH_DSTERM 
   ) %>% 
   # generate indicator variable for delivery date (fetal loss/stillbirths/livebiths)
   mutate(PREG_END_DATE = case_when(!is.na(DOB) ~ ymd(DOB),
                                    !is.na(M04_FETAL_LOSS_DSSTDAT) ~ ymd(M04_FETAL_LOSS_DSSTDAT), 
-                                   TRUE ~ NA)) %>% 
+                                   TRUE ~ NA_Date_)) %>% 
   mutate(BIRTH_OUTCOME = as.numeric(BIRTH_OUTCOME)) %>% 
   # generate adjudication variable; instances where a loss was reported in MNH04 but a live birth reported in MNH09
   mutate(ADJUD_NEEDED = case_when(BIRTH_OUTCOME ==1 & FETAL_LOSS==1 ~ 1, 
@@ -561,7 +571,7 @@ inf_baseline <- mat_enroll %>%
                                ADJUD_NEEDED ==1 ~ 55,
                                TRUE ~ 0)
   ) %>% 
-  select(SITE, MOMID, PREGID, INFANTID,M09_SEX, ENROLL_US_DATE,BOE_METHOD, GA_DIFF_DAYS, EDD_BOE, BOE_GA_DAYS_ENROLL, EST_CONCEP_DATE,PREG_END_DATE, GESTAGEBIRTH_ANY,GESTAGEBIRTH_ANY_DAYS,
+  select(SITE, MOMID, PREGID, INFANTID, M09_SEX, ENROLL_US_DATE,BOE_METHOD, GA_DIFF_DAYS, EDD_BOE, BOE_GA_DAYS_ENROLL, PREG_START_DATE,PREG_END_DATE, GESTAGEBIRTH_ANY,GESTAGEBIRTH_ANY_DAYS,
          BIRTH_OUTCOME, FETAL_LOSS,LIVEBIRTH,ADJUD_NEEDED, DOB, TIME_BIRTH, DELIVERY_DATETIME,M04_FETAL_LOSS_DSSTDAT,M04_FETAL_LOSS_DSDECOD,
          CLOSEOUT, INF_CLOSEOUT_REASON, DTH_INDICATOR, DEATHDATE_MNH24,DEATHTIME_MNH24,
          DEATH_DATETIME, AGEDEATH_DAYS, AGEDEATH_HRS,  GESTAGEBIRTH_BOE, GESTAGE_FETAL_LOSS_WKS
@@ -569,8 +579,22 @@ inf_baseline <- mat_enroll %>%
 
 
 
-
 table(inf_baseline$LIVEBIRTH, inf_baseline$SITE)
+# test_inf <- inf_baseline %>% filter(MOMID %in% as.vector(test$MOMID)) %>% 
+#   select(SITE, MOMID, PREGID, INFANTID,M01_US_OHOSTDAT, DOB, PREG_START_DATE, BOE_GA_DAYS_ENROLL)
+#          
+#          # ,M04_FETAL_LOSS_DSSTDAT,M04_FETAL_LOSS_DSDECOD,  BIRTH_OUTCOME_REPORTED,
+#          # GESTAGEBIRTH_BOE_DAYS, GESTAGE_FETAL_LOSS_DAYS, GESTAGEBIRTH_ANY_DAYS
+#          # 
+#          # )
+# 
+# test_04 <-inf_baseline %>% filter(MOMID == "KEARC00074") %>% KEARC00074
+#   select(SITE, MOMID, PREGID, M01_US_OHOSTDAT,
+#          M01_US_GA_WKS_AGE_FTS1, M01_US_GA_DAYS_AGE_FTS1)
+# 
+# test_02 <- mnh02 %>% filter(SCRNID == "10639")
+
+## kenya ids
 
 ## TIME VARYING DATASET 
 # generate constructed variables that will be used for time-varyign outcomes 
@@ -780,6 +804,9 @@ Hours_birthweight <- ggplot(data=lowbirthweight,
 # Notes: 
 # all induced abortions are excluded 
 #*****************************************************************************
+# test <- stillbirth %>% 
+#   filter(SITE == "India-SAS" & STILLBIRTH_20WK==1) 
+#   
 
 stillbirth <- inf_baseline %>% 
   # select(SITE,INFANTID, MOMID, PREGID, DOB, TIME_BIRTH, DELIVERY_DATETIME,  FETAL_LOSS, GESTAGEBIRTH_ANY,GESTAGEBIRTH_ANY_DAYS, BIRTH_OUTCOME) %>% 
@@ -977,6 +1004,18 @@ preterm_birth <- inf_baseline %>%
   select(-ADJUD_NEEDED)
 
 table(preterm_birth$PRETERMBIRTH_CAT, preterm_birth$SITE)
+# ## DATA CHECK FOR KENYA HAVING MORE INSTANCES OF PRETERM -- THIS IS DUE TO BOE CALUCALTION DISCREPANCIES 
+#   ## of all of the differences, they are using LMP for boe, but if you do it by ultrasound then they would be considered "late"
+# test<- preterm_birth %>% 
+#   filter(SITE == "Kenya") %>%
+#   mutate(METHOD = case_when(BOE_GA_DAYS == US_GA_DAYS ~ "US",
+#                             BOE_GA_DAYS == LMP_GA_DAYS ~ "LMP",
+#                             TRUE ~ NA)) %>% 
+#   filter(GESTAGEBIRTH_BOE_DAYS >=280) %>%
+#   select(SITE, MOMID, PREGID , LMP_GA_WKS, US_GA_WKS,LMP_GA_DAYS,US_GA_DAYS,BOE_GA_DAYS,
+#          GA_DIFF_DAYS,METHOD, GESTAGEBIRTH_BOE_DAYS, GESTAGE_US, GESTAGEBIRTH_BOE) %>% 
+#   mutate(GESTAGE_US_WKS = GESTAGE_US %/% 7) %>% 
+#   mutate(outcome_by_us = case_when(GESTAGE_US_WKS >= 41  ~ 1, TRUE ~ 0))  
 
 # write.csv(preterm_birth, paste0(path_to_save, "preterm_birth" ,".csv"), row.names=FALSE)
 
@@ -1096,6 +1135,11 @@ sga <- inf_baseline %>%
 # DOB [MNH09]
 # AGEDEATH_HRS [AGE_LAST_SEEN]
 #*****************************************************************************
+## DENOMINATOR is anyone with: 
+# pak_table5_ids <- mortality %>% filter(SITE =="Pakistan") %>% 
+#   filter(DOB_AFTER_DEATH==1) %>% 
+#   select(SITE, MOMID, PREGID, INFANTID, DELIVERY_DATETIME, DEATH_DATETIME)
+# write.xlsx(pak_table5_ids, paste0("D:/Users/stacie.loisate/Documents/Output/Outcomes-Queries/PAK_table5_ids-2024-09-20" ,".xlsx"),na="", rowNames=FALSE)
 
 mortality <- inf_baseline %>% 
   select(SITE,INFANTID, MOMID, PREGID,LIVEBIRTH, CLOSEOUT, PREG_END_DATE,DOB,TIME_BIRTH,  DELIVERY_DATETIME, FETAL_LOSS, 
@@ -1107,17 +1151,17 @@ mortality <- inf_baseline %>%
   
   ## generate variable if death is reported among live birth but is missing time of death 
   mutate(DTH_TIME_MISSING = case_when(BIRTH_OUTCOME==1 & DTH_INDICATOR==1 & (DEATHTIME_MNH24%in% c("55:55", "77:77") | is.na(DEATHTIME_MNH24) | 
-                                                                            (str_length(as.character(DEATHTIME_MNH24)) ==5 & str_detect(as.character(DEATHTIME_MNH24), "^[0-9]+$"))
-                                                                               ) ~ 1,
-                                      TRUE ~ 0),
-         DTH_DATE_MISSING = case_when(BIRTH_OUTCOME==1 & DTH_INDICATOR==1 & (DEATHDATE_MNH24%in% c(ymd("1905-05-05"), ymd("1907-07-07")) | is.na(DEATHDATE_MNH24)) ~ 1,
-                                      TRUE ~ 0)) %>% 
+                                                                               (str_length(as.character(DEATHTIME_MNH24)) ==5 & str_detect(as.character(DEATHTIME_MNH24), "^[0-9]+$"))
+  ) ~ 1,
+  TRUE ~ 0),
+  DTH_DATE_MISSING = case_when(BIRTH_OUTCOME==1 & DTH_INDICATOR==1 & (DEATHDATE_MNH24%in% c(ymd("1905-05-05"), ymd("1907-07-07")) | is.na(DEATHDATE_MNH24)) ~ 1,
+                               TRUE ~ 0)) %>% 
   
   ## generate outcome for neonatal death if infant dies <28 days of life
   mutate(NEO_DTH = case_when(ADJUD_NEEDED ==1 ~ 55, 
                              (BIRTH_OUTCOME==1 & DTH_INDICATOR==1 & is.na(AGEDEATH_DAYS)) | 
-                             (BIRTH_OUTCOME==1 & DTH_INDICATOR==1 & AGEDEATH_DAYS < 0) |
-                             DTH_TIME_MISSING ==1 | DTH_DATE_MISSING ==1  ~ 55,  ## if missing the three criteria, they are missing
+                               (BIRTH_OUTCOME==1 & DTH_INDICATOR==1 & AGEDEATH_DAYS < 0) |
+                               DTH_TIME_MISSING ==1 | DTH_DATE_MISSING ==1  ~ 55,  ## if missing the three criteria, they are missing
                              DTH_INDICATOR == 0 ~ 0, 
                              BIRTH_OUTCOME == 1 & AGEDEATH_DAYS >= 0 & AGEDEATH_DAYS < 28 ~ 1, ## if live birth AND age of death is < 28, they get a 1
                              is.na(BIRTH_OUTCOME) & is.na(DOB) ~ 55, ## THESE ARE PEOPLE WHO ARE REPORTING A DEATH BUT ARE MISSING OR HAVE INVALID AGE AT DEATH
@@ -1165,16 +1209,16 @@ mortality <- inf_baseline %>%
   ) %>% 
   ## calculate denominators; if you have passed the risk window (age last seen >= risk window) 
   mutate(
-    # DENOM_28d = case_when(AGE_LAST_SEEN >= 28 | (DTH_INDICATOR ==1 & AGEDEATH_DAYS < 28) |
+    # D28_DENOM = case_when(AGE_LAST_SEEN >= 28 | (DTH_INDICATOR ==1 & AGEDEATH_DAYS < 28) |
     #                          (DTH_INDICATOR==1 & DTH_TIME_MISSING==1) ~ 1,
     #                        TRUE ~ 0),
     # to generate risk period for neonatal and infant deaths 
     ESTIMATED_AGE_AT_UPLOAD = as.numeric(ymd(UploadDate)-DOB),
-    DENOM_365d = case_when(ADJUD_NEEDED ==1 ~ 55, 
-                           LIVEBIRTH ==1 & (AGE_LAST_SEEN >= 365 | ESTIMATED_AGE_AT_UPLOAD >= 365) ~ 1, 
+    D365_DENOM = case_when(ADJUD_NEEDED ==1 ~ 55,
+                           LIVEBIRTH ==1 & (AGE_LAST_SEEN >= 365 | ESTIMATED_AGE_AT_UPLOAD >= 365) ~ 1,
                            TRUE ~ 0),
     
-    DENOM_28d = case_when(ADJUD_NEEDED ==1 ~ 55, 
+    D28_DENOM = case_when(ADJUD_NEEDED ==1 ~ 55, 
                           (LIVEBIRTH ==1 & (ESTIMATED_AGE_AT_UPLOAD >= 28 | (DTH_INDICATOR ==1 & AGEDEATH_DAYS < 28) |
                                               (DTH_INDICATOR==1 & DTH_TIME_MISSING==1) | (DTH_INDICATOR==1 & DOB_AFTER_DEATH==1))) ~ 1,
                           TRUE ~ 0),
@@ -1330,6 +1374,11 @@ fetal_death <- inf_baseline %>%
   mutate(INF_FETAL_DTH_OTHR_DENOM = case_when(ADJUD_NEEDED==1 ~ 55, TRUE ~ 1)) 
 
 
+# test <- fetal_death %>% filter(SITE == "Kenya") %>% 
+#   filter(INF_ABOR_SPN == 1) %>% 
+#   select(MOMID,M04_PRG_DSDECOD, GESTAGE_FETAL_LOSS_WKS, 
+#          STILLBIRTH_20WK,INF_ABOR_SPN, INF_FETAL_DTH_UNGA, INF_FETAL_DTH) 
+
 
 # export data 
 # write.csv(fetal_death, paste0(path_to_save, "fetal_death" ,".csv"), row.names=FALSE)
@@ -1384,7 +1433,15 @@ birth_asphyxia <- inf_baseline %>%
                                          BIRTH_OUTCOME ==1 ~ 1, TRUE ~ 0),
          INF_ASPH_DENOM = case_when(ADJUD_NEEDED==1 ~ 55, 
                                     BIRTH_OUTCOME ==1 ~ 1, TRUE ~ 0)
-  ) 
+  ) %>% 
+  ## rename variables 
+  rename(INF_BREATH_MASK_VENT = M11_INF_PROCCUR_2,
+            INF_BREATH_PRESSURE	= M11_INF_PROCCUR_3,
+            INF_BREATH_SUCTION	= M11_INF_PROCCUR_4,
+            INF_BREATH_INTUBATION	= M11_INF_PROCCUR_5,
+            INF_BREATH_COMPRESS	= M11_INF_PROCCUR_6,
+            INF_BREATH_FAIL	= M11_BREATH_FAIL_CEOCCUR
+  )
 
 
 
@@ -1978,19 +2035,19 @@ psbi_outcome_sub <- psbi_outcome %>% select(SITE, MOMID, PREGID, INFANTID, TYPE_
                                  INF_PSBI ==1 & INVALID_DATE_INFO == 1 ~ 55, ## if psbi identified but visit date is default value or future date, 55
                                  INF_PSBI ==1 & AGE_AT_VISIT >= 28 & INVALID_DATE_INFO == 0 ~ 77, # if psbi identified but age is over 28 days, 77
                                  TRUE ~ NA
-                                 ),
-         PSBI_GREATER28 = case_when(INF_PSBI ==1 & AGE_AT_VISIT >= 28 & AGE_AT_VISIT <= 59 & INVALID_DATE_INFO == 0 ~ 1,
-                                 INF_PSBI ==1 & INVALID_DATE_INFO == 1  & AGE_AT_VISIT > 59 ~ 55,
-                                 INF_PSBI ==0 ~ 0,
-                                 INF_PSBI ==1 & INVALID_DATE_INFO == 1 ~ 55,
-                                 INF_PSBI ==1 & AGE_AT_VISIT < 28 & INVALID_DATE_INFO == 0 ~ 77,
-                                 INF_PSBI ==1 & AGE_AT_VISIT > 59 & INVALID_DATE_INFO == 0 ~ 77,
-                                 TRUE ~ NA),
-         PSBI_LESS59 = case_when(PSBI_LESS28==1 | PSBI_GREATER28==1 ~ 1,
-                                 PSBI_LESS28==55  & PSBI_GREATER28==55 ~ 55,
-                                 PSBI_LESS28==77  & PSBI_GREATER28==77 ~ 77,
-                              TRUE ~ 0)
-) %>% 
+  ),
+  PSBI_GREATER28 = case_when(INF_PSBI ==1 & AGE_AT_VISIT >= 28 & AGE_AT_VISIT <= 59 & INVALID_DATE_INFO == 0 ~ 1,
+                             INF_PSBI ==1 & INVALID_DATE_INFO == 1  & AGE_AT_VISIT > 59 ~ 55,
+                             INF_PSBI ==0 ~ 0,
+                             INF_PSBI ==1 & INVALID_DATE_INFO == 1 ~ 55,
+                             INF_PSBI ==1 & AGE_AT_VISIT < 28 & INVALID_DATE_INFO == 0 ~ 77,
+                             INF_PSBI ==1 & AGE_AT_VISIT > 59 & INVALID_DATE_INFO == 0 ~ 77,
+                             TRUE ~ NA),
+  PSBI_LESS59 = case_when(PSBI_LESS28==1 | PSBI_GREATER28==1 ~ 1,
+                          PSBI_LESS28==55  & PSBI_GREATER28==55 ~ 55,
+                          PSBI_LESS28==77  & PSBI_GREATER28==77 ~ 77,
+                          TRUE ~ 0)
+  ) %>% 
   select(-INF_PSBI_ANY) %>% 
   right_join(inf_baseline %>% filter(LIVEBIRTH==1) %>% select(SITE, MOMID, PREGID, INFANTID, LIVEBIRTH), by = c("SITE", "MOMID", "PREGID", "INFANTID"))
 
@@ -2030,17 +2087,20 @@ psbi_outcome_sub <- psbi_outcome %>% select(SITE, MOMID, PREGID, INFANTID, TYPE_
 
 psbi_outcome_wide <- psbi_outcome %>% 
   group_by(SITE, MOMID, PREGID, INFANTID) %>%
+  select(SITE, MOMID, PREGID, INFANTID, DOB, VISIT_DATE, AGE_AT_VISIT, INF_PSBI_IPC, INF_PSBI_PNC0,
+         INF_PSBI_PNC1, 
+         INF_PSBI_PNC4, INF_PSBI_PNC6, INF_PSBI_UNSCHED, 
+         INF_PSBI_HOSPITAL, INF_PSBI_DENOM) %>% 
   # Summarize to ensure any 1 is captured within the group
-  summarise(
-    INF_PSBI_IPC = max(INF_PSBI_IPC, na.rm = TRUE),
-    INF_PSBI_PNC0 = max(INF_PSBI_PNC0, na.rm = TRUE),
-    INF_PSBI_PNC1 = max(INF_PSBI_PNC1, na.rm = TRUE),
-    INF_PSBI_PNC4 = max(INF_PSBI_PNC4, na.rm = TRUE),
-    INF_PSBI_PNC6 = max(INF_PSBI_PNC6, na.rm = TRUE),
-    INF_PSBI_UNSCHED = max(INF_PSBI_UNSCHED, na.rm = TRUE),
-    INF_PSBI_HOSPITAL = max(INF_PSBI_HOSPITAL, na.rm = TRUE),
-    INF_PSBI_DENOM = max(INF_PSBI_DENOM, na.rm = TRUE)
-  ) %>%
+  slice_max(order_by = INF_PSBI_IPC, with_ties = FALSE, na_rm = TRUE) %>% 
+  slice_max(order_by = INF_PSBI_PNC0, with_ties = FALSE, na_rm = TRUE) %>% 
+  slice_max(order_by = INF_PSBI_PNC1, with_ties = FALSE, na_rm = TRUE) %>% 
+  slice_max(order_by = INF_PSBI_PNC4, with_ties = FALSE, na_rm = TRUE) %>% 
+  slice_max(order_by = INF_PSBI_PNC6, with_ties = FALSE, na_rm = TRUE) %>% 
+  slice_max(order_by = INF_PSBI_UNSCHED, with_ties = FALSE, na_rm = TRUE) %>% 
+  slice_max(order_by = INF_PSBI_HOSPITAL, with_ties = FALSE, na_rm = TRUE) %>% 
+  slice_max(order_by = INF_PSBI_DENOM, with_ties = FALSE, na_rm = TRUE) %>% 
+
   # Ungroup after summarizing
   ungroup() %>% 
   ## merge onto inf_baseline dataset
@@ -2055,8 +2115,37 @@ psbi_outcome_wide <- psbi_outcome %>%
                 ))) %>% 
   select(-ADJUD_NEEDED)
 
-
-
+# psbi_outcome_wide_og <- psbi_outcome %>% 
+#   group_by(SITE, MOMID, PREGID, INFANTID) %>%
+#   select(SITE, MOMID, PREGID, INFANTID, INF_PSBI_IPC, INF_PSBI_PNC0,
+#          INF_PSBI_PNC1, 
+#          INF_PSBI_PNC4, INF_PSBI_PNC6, INF_PSBI_UNSCHED, 
+#          INF_PSBI_HOSPITAL, INF_PSBI_DENOM,AGE_AT_VISIT) %>% 
+#   # Summarize to ensure any 1 is captured within the group
+#   slice_max(order_by = INF_PSBI_IPC, with_ties = FALSE, na_rm = TRUE) %>% 
+#   summarise(
+#     INF_PSBI_IPC = max(INF_PSBI_IPC, na.rm = TRUE),
+#     INF_PSBI_PNC0 = max(INF_PSBI_PNC0, na.rm = TRUE),
+#     INF_PSBI_PNC1 = max(INF_PSBI_PNC1, na.rm = TRUE),
+#     INF_PSBI_PNC4 = max(INF_PSBI_PNC4, na.rm = TRUE),
+#     INF_PSBI_PNC6 = max(INF_PSBI_PNC6, na.rm = TRUE),
+#     INF_PSBI_UNSCHED = max(INF_PSBI_UNSCHED, na.rm = TRUE),
+#     INF_PSBI_HOSPITAL = max(INF_PSBI_HOSPITAL, na.rm = TRUE),
+#     INF_PSBI_DENOM = max(INF_PSBI_DENOM, na.rm = TRUE)
+#   ) %>%
+#   # Ungroup after summarizing
+#   ungroup() %>% 
+#   ## merge onto inf_baseline dataset
+#   right_join(inf_baseline %>% select(SITE,MOMID, PREGID, INFANTID, ADJUD_NEEDED), by = c("SITE","MOMID", "PREGID", "INFANTID")) %>% 
+#   # re-categorize adjudication cases to 55
+#   mutate(across(c(INF_PSBI_IPC, INF_PSBI_PNC0, INF_PSBI_PNC1, 
+#                   INF_PSBI_PNC4, INF_PSBI_PNC6, INF_PSBI_UNSCHED, 
+#                   INF_PSBI_HOSPITAL, INF_PSBI_DENOM), 
+#                 ~ case_when(
+#                   ADJUD_NEEDED == 1 ~ 55,  # Replace with 55 when ADJUD_NEEDED is 1
+#                   TRUE ~ .               # Otherwise keep the original value
+#                 ))) %>% 
+#   select(-ADJUD_NEEDED)
 # M11_BREATH_VSORRES_1, M11_BREATH_VSORRES_2, M13_BREATH_VSORRES_1,
 # M13_BREATH_VSORRES_2, , M20_RR_VSORRES, M20_MAX_RR_VSORRES, M11_TEMP_VSORRES,
 # M11_TEMP_VSORRES_2, M20_TEMP_VSORRES, M20_MAX_TEMP_VSORRES, M20_LOW_TEMP_VSORRES,
@@ -2213,27 +2302,152 @@ psbi_outcome <- psbi_outcome %>%
 #*****************************************************************************
 # 11. Neonatal Sepsis ----
 #* Inflammatory response and organ dysfunction following presence of:
-  #*  a severe infection from delivery to 28 days as suspected (by a clinician) or proven (with culture).
+#*  a severe infection from delivery to 28 days as suspected (by a clinician) or proven (with culture).
 
 # Forms needed: 
-# MNH11 
-# MNH13 
-# MNH20
-
-# notes: 
-  # hyperbili is a common complication of neonatal sepsis
-  # what levels to use here?
-  # AAP: respiratory distress most common presenting symtpom of early sepsis
-
-
-# Variables needed
-#* Has the baby had difficulty in feeding (i.e., feeding poorly or not feeding at all)? [POOR_FEED_CEOCCUR, POOR_FEED_CEOCCUR_MR]
-#* Has the baby had convulsions? [CONV_CEOCCUR, CONV_CEOCCUR_MR]
-#* Has the baby had fast or difficult breathing? [BREATH_VSORRES_1, BREATH_VSORRES_2, BREATH_CEOCCUR_MR]
-#* Does infant have severe chest in-drawing? [CHESTINDRAW_CEOCCUR, CHEST_CEOCCUR]
-#* Has the baby had a fever? [TEMP_VSORRES_1, TEMP_VSORRES_2, FEVER_CEOCCUR_MR]
-#* Record infant temperature at time of visit. Is the baby cold [TEMP_VSORRES, HYPO_CEOCCUR_MR]
+# MNH11, MNH13, MNH20
+## Checkboxes: 
+# MNH11, MNH13, MNH20
+## Blood culture:
+# MNH11, MNH13, MNH20
 #*****************************************************************************
+
+mnh11_subset <- mnh11 %>% select(SITE, MOMID, PREGID, INFANTID,
+                                 M11_VISIT_OBSSTDAT, M11_VISIT_OBSSTTIM, M11_INF_VISIT_72HR_MNH11,
+                                 M11_INF_VISIT_MNH11, M11_INFANT_MHTERM_10,
+                                 M11_INFANT_SPFY_MHTERM, M11_CULTURE_LBPERF, M11_CULTURE_LBTSTDAT,
+                                 M11_CULTURE_LBORRES)
+
+mnh13_subset <- mnh13 %>% select(SITE, MOMID, PREGID, INFANTID,
+                                 M13_VISIT_OBSSTDAT, M13_VISIT_OBSLOC, M13_TYPE_VISIT,
+                                 M13_INF_VISIT_MNH13, M13_INFANT_MHTERM_10, 
+                                 M13_INFANT_SPFY_MHTERM, M13_BLD_CULT_LBPERF,
+                                 M13_BLD_CULT_LBTSTDAT, M13_BLD_CULT_LBORRES
+)
+
+
+mnh20_subset <- mnh20 %>% select(SITE, MOMID, PREGID, INFANTID,
+                                 M20_OBSSTDAT, M20_VISDAT_YN, M20_UNPLANNED_VISDAT, M20_EST_UNPLANNED_VISDAT,
+                                 M20_INFECTION_MHTERM_1, M20_INFECTION_SPFY_MHTERM, 
+                                 M20_BLD_CULT_LBPERF, M20_BLD_CULT_LBDAT, M20_BLD_CULT_LBORRES
+)
+
+## test to see if there are any instances where an infant has more than one hospitalization
+test <- mnh20_subset %>% group_by(INFANTID) %>% mutate(n=n()) %>% filter(n>1)
+
+## Merge together ----
+## first need to pull any instance in mnh13
+mnh13_subset_pos <- mnh13_subset %>% 
+  filter(M13_INFANT_MHTERM_10==1 | M13_BLD_CULT_LBORRES==1) %>% ## where the checkbox indicated sepsis OR had a positive culture
+  group_by(INFANTID) %>% 
+  ## if multiple, take the first report
+  arrange(-desc(M13_VISIT_OBSSTDAT)) %>%
+  slice(1) %>%
+  mutate(n=n()) %>%
+  ungroup() %>%
+  select(-n) %>%
+  ungroup() 
+
+## check for duplicates (if there are duplicates or positives at multiple visits present, this will cause issues in merging later)
+test <- mnh13_subset_pos %>% group_by(INFANTID) %>% mutate(n=n()) %>% filter(n>1)
+
+inf_outcomes_merge <- inf_outcomes_sub %>% 
+  left_join(mnh11_subset, by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
+  left_join(mnh13_subset_pos, by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
+  left_join(mnh20_subset, by = c("SITE", "MOMID", "PREGID", "INFANTID"))
+
+## Start constructing ----
+inf_outcomes_sepsis <- inf_outcomes_merge %>% 
+  mutate(SEPSIS_CHECK = case_when(M11_INFANT_MHTERM_10==1 | M13_INFANT_MHTERM_10==1 | M20_INFECTION_MHTERM_1==1 ~ 1,
+                                  TRUE ~ 0)) %>% 
+  # date of sepsis checkbox (pull the earliest instance)
+  mutate(SEPSIS_CHECK_DATE_M11 = case_when(M11_INFANT_MHTERM_10==1 ~ ymd(M11_VISIT_OBSSTDAT),
+                                           TRUE ~ NA),
+         
+         SEPSIS_CHECK_DATE_M13 = case_when(M13_INFANT_MHTERM_10==1 ~ ymd(M13_VISIT_OBSSTDAT),
+                                           TRUE ~ NA),
+         SEPSIS_CHECK_DATE_M20 = case_when(M20_INFECTION_MHTERM_1==1 ~ ymd(M20_OBSSTDAT),
+                                           TRUE ~ NA)
+  ) %>%
+  ## for each row/positive instance, pull the earlies sepsis check date 
+  rowwise() %>% 
+  mutate(SEPSIS_CHECK_DATE = pmin(SEPSIS_CHECK_DATE_M11, SEPSIS_CHECK_DATE_M13, SEPSIS_CHECK_DATE_M20, na.rm = TRUE)) %>% 
+  ## Generate indicator variable if any culture is positive
+  mutate(POSITIVE_CULTURE = case_when(M11_CULTURE_LBORRES==1 | M13_BLD_CULT_LBORRES==1 | M20_BLD_CULT_LBORRES==1 ~ 1, 
+                                      TRUE ~ 0)) %>%
+  # date of culture confirmation (pull the earliest instance)
+  mutate(POSITIVE_CULTURE_DATE_M11 = case_when(M11_CULTURE_LBORRES==1 ~ ymd(M11_VISIT_OBSSTDAT),
+                                               TRUE ~ NA),
+         
+         POSITIVE_CULTURE_DATE_M13 = case_when(M13_BLD_CULT_LBORRES==1 ~ ymd(M13_VISIT_OBSSTDAT),
+                                               TRUE ~ NA),
+         POSITIVE_CULTURE_DATE_M20 = case_when(M20_BLD_CULT_LBORRES==1 ~ ymd(M20_OBSSTDAT),
+                                               TRUE ~ NA)
+  ) %>% 
+  rowwise() %>% 
+  ## for each row/positive instance, pull the earliest culture confirmation date 
+  mutate(POSITIVE_CULTURE_DATE = pmin(POSITIVE_CULTURE_DATE_M11, POSITIVE_CULTURE_DATE_M13, POSITIVE_CULTURE_DATE_M20, na.rm = TRUE)) %>% 
+  mutate(SEPSIS_CULTURE_CONFIRMED = case_when(M11_INFANT_MHTERM_10 ==1 & M11_CULTURE_LBORRES ==1 ~ 1,   ## BOTH checkbox and culture confirmed @ the same visit
+                                              M13_INFANT_MHTERM_10==1 & M13_BLD_CULT_LBORRES==1 ~ 2,    ## BOTH checkbox and culture confirmed @ the same visit
+                                              M20_INFECTION_MHTERM_1==1 & M20_BLD_CULT_LBORRES==1 ~ 3,  ## BOTH checkbox and culture confirmed @ the same visit
+                                              M11_INFANT_MHTERM_10 ==1 & M11_CULTURE_LBORRES !=1 ~ 15,  ## ONLY checkbox and no culture confirmed @ the same visit
+                                              M13_INFANT_MHTERM_10 ==1 & M13_BLD_CULT_LBORRES!=1 ~ 25,  ## ONLY checkbox and no culture confirmed @ the same visit
+                                              M20_INFECTION_MHTERM_1==1 & M20_BLD_CULT_LBORRES!=1 ~ 35, ## ONLY checkbox and no culture confirmed @ the same visit
+                                              SEPSIS_CHECK !=1 & POSITIVE_CULTURE !=1 ~ 0, ## no sepsis or positive culture (we are not interested in these)
+                                              TRUE ~ 99)) %>% 
+  relocate(c("SEPSIS_CHECK_DATE", "POSITIVE_CULTURE_DATE", "M20_EST_UNPLANNED_VISDAT"), .after = "INFANTID") 
+
+
+## merge in psbi data 
+neo_sepsis_subset <- inf_outcomes_sepsis %>% 
+  ## only want subset of positives 
+  filter(SEPSIS_CHECK==1 | POSITIVE_CULTURE==1)  %>% 
+  left_join(psbi_outcome_wide , by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
+  relocate(c("DOB", "VISIT_DATE"), .after = "POSITIVE_CULTURE_DATE") %>% 
+  rename(PSBI_DX_DATE = VISIT_DATE) %>% 
+  # generate new variable if PSBI_DX_DATE is close to the checkbox date (using 2 weeks as indicator)
+  mutate(PSBI_DX_DATE_CHECKBOX = case_when(abs(ymd(SEPSIS_CHECK_DATE)-PSBI_DX_DATE) <= 14 ~ 1, TRUE ~ 0)) %>% 
+  # generate new variable if PSBI_DX_DATE is close to the culture date 
+  mutate(PSBI_DX_DATE_CULTURE= case_when(abs(ymd(POSITIVE_CULTURE_DATE)-PSBI_DX_DATE) <= 14 ~ 1, TRUE ~ 0))  %>% 
+  select(SITE, MOMID, PREGID, INFANTID, DOB, SEPSIS_CHECK,POSITIVE_CULTURE,
+         SEPSIS_CHECK_DATE, POSITIVE_CULTURE_DATE, PSBI_DX_DATE, 
+         PSBI_DX_DATE_CHECKBOX, PSBI_DX_DATE_CULTURE, AGE_AT_VISIT,
+         M11_INFANT_MHTERM_10, M13_INFANT_MHTERM_10, M20_INFECTION_MHTERM_1, M11_CULTURE_LBORRES, M13_BLD_CULT_LBORRES, M20_BLD_CULT_LBORRES,
+         contains("INF_PSBI")
+  )
+
+## Variables needed for tables 
+# N sepsis cases (checkbox or culture confirmed) NEO_SEPSIS ==1
+# N sepsis cases with confirmed culture POSITIVE_CULTURE ==1 
+# N sepsis cases with reported PSBI NEO_SEPSIS_PSBI ==1
+
+neo_sepsis <- subset_new %>% 
+  right_join(inf_outcomes %>% select(SITE, MOMID, PREGID, INFANTID, LIVEBIRTH, ADJUD_NEEDED), by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
+  # generate age at sepsis dx
+  mutate(SEPSIS_DATE = pmin(SEPSIS_CHECK_DATE, POSITIVE_CULTURE_DATE, na.rm = TRUE )) %>% 
+  mutate(NEO_SEPSIS_AGE =  as.numeric(ymd(SEPSIS_DATE)- ymd(DOB))) %>% 
+  # generate indicator variable if age at sepsis dx is >28 days 
+  mutate(NEO_SEPSIS_AGE_GREATER28 = case_when(NEO_SEPSIS_AGE >=28 ~ 1, 
+                                              NEO_SEPSIS_AGE >= 0 & NEO_SEPSIS_AGE<28 ~ 0, 
+                                              TRUE ~ 55)) %>% 
+  # generate neonatal sepsis variable 
+  mutate(NEO_SEPSIS = case_when(LIVEBIRTH ==1 & NEO_SEPSIS_AGE >= 0 & NEO_SEPSIS_AGE<28 & (SEPSIS_CHECK==1 | POSITIVE_CULTURE==1) ~ 1, # if livebirth and either checkbox or culture reported, ==1
+                                LIVEBIRTH ==1 & NEO_SEPSIS_AGE >=28 & (SEPSIS_CHECK==1 | POSITIVE_CULTURE==1) ~ 0, # if live birth with sepsis, but age at sepsis is >= 28, then no neonatal sepsis
+                                LIVEBIRTH ==1 & NEO_SEPSIS_AGE >= 0 & NEO_SEPSIS_AGE<28 & ((SEPSIS_CHECK==0 & POSITIVE_CULTURE==0) | is.na(SEPSIS_CHECK) & is.na(POSITIVE_CULTURE)) ~ 0, # if livebirth and checkbox or culture negative, ==0
+                                LIVEBIRTH == 0  | ADJUD_NEEDED ==1 | LIVEBIRTH == 55 | is.na(LIVEBIRTH)  ~ 77, # if no livebirth, ==7 NA
+                                TRUE ~ 55)) %>% 
+  # generate variable with concurrent PSBI 
+  mutate(NEO_SEPSIS_PSBI = case_when(NEO_SEPSIS==1 & NEO_SEPSIS_AGE >= 0 & NEO_SEPSIS_AGE<28 & (PSBI_DX_DATE_CHECKBOX==1 | PSBI_DX_DATE_CULTURE==1) ~ 1, # if sepsis and psbi dx ocurred within 14 days of eachother, ==1
+                                     LIVEBIRTH==0 | ADJUD_NEEDED ==1 | NEO_SEPSIS==0 | LIVEBIRTH == 55 | is.na(LIVEBIRTH) | NEO_SEPSIS_AGE >=28 ~ 77, # if no sepsis, ==77 NA
+                                     NEO_SEPSIS==1 &  NEO_SEPSIS_AGE >= 0 & NEO_SEPSIS_AGE<28 & ((PSBI_DX_DATE_CHECKBOX==0 & PSBI_DX_DATE_CULTURE==0) | is.na(PSBI_DX_DATE_CHECKBOX) & is.na(PSBI_DX_DATE_CULTURE)) ~ 0, # if sepsis but no concurrent psbi with 14 days, ==0,
+                                     TRUE ~ 55
+  )) %>% 
+  ## generate cleaner variable for culture confirmed 
+  mutate(NEO_SEPSIS_CULTURE = case_when(NEO_SEPSIS==1 & POSITIVE_CULTURE==1 ~ 1, 
+                                        NEO_SEPSIS==1 & POSITIVE_CULTURE==0 ~ 0,
+                                        NEO_SEPSIS==0 | NEO_SEPSIS == 77 ~ 77,
+                                        TRUE ~ 55
+  ))  
 
 #*****************************************************************************
 #* MERGE ALL OUTCOMES TOGETHER TO FORM AN OUTCOME DATASET 
@@ -2248,7 +2462,11 @@ psbi_outcome <- psbi_outcome %>%
 # 8. Birth Asphyxia
 # 9. Hyperbili
 # 10. PSBI 
+# 11. Neonatal sepsis
 #*****************************************************************************
+
+test <- infant_outcomes %>% group_by(SITE,MOMID, PREGID, INFANTID) %>% mutate(n=n()) %>% filter(n>1)
+
 infant_outcomes <- inf_baseline %>% 
   full_join(lowbirthweight[c("SITE", "INFANTID", "MOMID","PREGID",
                              "BWEIGHT_PRISMA", "BWEIGHT_ANY", "LBW2500_PRISMA", "LBW1500_PRISMA",
@@ -2267,7 +2485,7 @@ infant_outcomes <- inf_baseline %>%
   
   full_join(mortality[c("SITE", "INFANTID", "MOMID", "PREGID",
                         "MISSING_MNH09", "MISSING_MNH11", "DTH_TIME_MISSING", "DOB_AFTER_DEATH",
-                        "DTH_0D", "DTH_7D", "DTH_28D", "DTH_365D", "DENOM_28d", "DENOM_365d", "AGE_LAST_SEEN")],
+                        "DTH_0D", "DTH_7D", "DTH_28D", "DTH_365D", "D28_DENOM", "D365_DENOM", "AGE_LAST_SEEN")],
             by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
   
   full_join(neonatal_mortality[c("SITE", "INFANTID", "MOMID", "PREGID",
@@ -2289,7 +2507,7 @@ infant_outcomes <- inf_baseline %>%
             by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>% 
   
   full_join(birth_asphyxia[c("SITE", "INFANTID", "MOMID", "PREGID", "INF_ASPH",
-                             "M11_BREATH_FAIL_CEOCCUR", "M11_INF_PROCCUR_2", "M11_INF_PROCCUR_3", "M11_INF_PROCCUR_4", "M11_INF_PROCCUR_5", "M11_INF_PROCCUR_6")],
+                             "INF_BREATH_MASK_VENT", "INF_BREATH_PRESSURE", "INF_BREATH_SUCTION", "INF_BREATH_INTUBATION", "INF_BREATH_COMPRESS", "INF_BREATH_FAIL")],
             by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>% 
   
   full_join(hyperbili_all_crit[c("SITE", "INFANTID", "MOMID", "PREGID",
@@ -2302,6 +2520,10 @@ infant_outcomes <- inf_baseline %>%
                                 "INF_PSBI_IPC", "INF_PSBI_PNC0",
                                 "INF_PSBI_PNC1", "INF_PSBI_PNC4", "INF_PSBI_PNC6",
                                 "INF_PSBI_UNSCHED", "INF_PSBI_HOSPITAL", "INF_PSBI_DENOM")],
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>% 
+  full_join(neo_sepsis[c("SITE", "INFANTID", "MOMID", "PREGID",
+                                "NEO_SEPSIS", "NEO_SEPSIS_PSBI",
+                                "NEO_SEPSIS_CULTURE", "NEO_SEPSIS_AGE")],
             by = c("SITE", "INFANTID", "MOMID", "PREGID")) 
 
 
@@ -2326,20 +2548,20 @@ infant_outcomes<- infant_outcomes %>%
   mutate(DOB = case_when(INF_ABOR_IND==1 | INF_ABOR_SPN==1 ~ NA, TRUE ~ ymd(DOB))) %>% 
   # update dth_indicator variable (replace NA with 0)
   mutate(DTH_INDICATOR = case_when(DTH_INDICATOR==1 ~ 1, TRUE ~ 0)) %>% 
-
   
-  select(SITE, MOMID, PREGID, INFANTID, ENROLL_US_DATE,BOE_METHOD, GA_DIFF_DAYS, EDD_BOE, EST_CONCEP_DATE,
+  # rename variables 
+  rename(SEX = M09_SEX) %>% 
+  select(SITE, MOMID, PREGID, INFANTID, ENROLL_US_DATE,BOE_METHOD, GA_DIFF_DAYS, EDD_BOE, PREG_START_DATE,
          LIVEBIRTH, FETAL_LOSS, BIRTH_OUTCOME_REPORTED,ADJUD_NEEDED, FETAL_LOSS_DATE, FETAL_LOSS_DATE, DOB, 
          DELIVERY_DATETIME,GESTAGEBIRTH_ANY,GESTAGEBIRTH_ANY_DAYS, GESTAGE_FETAL_LOSS_WKS, 
          CLOSEOUT, DTH_INDICATOR,AGE_LAST_SEEN, DEATHDATE_MNH24, DEATHTIME_MNH24, DEATH_DATETIME, AGEDEATH_DAYS, AGEDEATH_HRS,
-         DENOM_28d, DENOM_365d,MISSING_MNH09, MISSING_MNH11, DTH_TIME_MISSING, DOB_AFTER_DEATH,
+         D28_DENOM, D365_DENOM,MISSING_MNH09, MISSING_MNH11, DTH_TIME_MISSING, DOB_AFTER_DEATH,
          BWEIGHT_PRISMA, BWEIGHT_ANY,M11_BW_FAORRES_REPORT, contains("LBW"),BW_TIME, MISSING_TIME, MISSING_PRISMA, MISSING_FACILITY, MISSING_BOTH, contains("PRETERM"), contains("SGA"), contains("NEO_DTH"),INF_DTH,INF_FETAL_DTH_DENOM,
          contains("STILLBIRTH"), MISSING_SIGNS_OF_LIFE,contains("INF_"),
          contains("DENOM_HYPERBILI"), DENOM_JAUN,
-         M11_BREATH_FAIL_CEOCCUR, M11_INF_PROCCUR_2, M11_INF_PROCCUR_3, M11_INF_PROCCUR_4, M11_INF_PROCCUR_5, M11_INF_PROCCUR_6, M09_SEX)
+         INF_BREATH_MASK_VENT, INF_BREATH_PRESSURE, INF_BREATH_SUCTION, INF_BREATH_INTUBATION, INF_BREATH_COMPRESS, INF_BREATH_FAIL, SEX)
 
 
-# export data to local
 path_to_save = "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/"
 write.csv(infant_outcomes, paste0(path_to_save, "INF_OUTCOMES" ,".csv"), row.names=FALSE)
 
@@ -2381,7 +2603,7 @@ inf_outcomes_names <- as.data.frame(colnames(inf_outcomes_full)) %>%
 
 missing_data <-  infant_dd  %>% mutate(dd=1) %>% 
   full_join(inf_outcomes_names, by = c("Variable Name"))
-                      
+
 
 inf_outcomes_sub <- inf_outcomes_full %>% 
   select(SITE, INFANTID, MOMID,PREGID,
@@ -2390,17 +2612,16 @@ inf_outcomes_sub <- inf_outcomes_full %>%
          LBW_PRISMA_DENOM, LBW_ANY_DENOM, PRETERMBIRTH_LT37, PRETERMBIRTH_LT34, PRETERMBIRTH_LT32, PRETERMBIRTH_LT28, PRETERMBIRTH_CAT,
          PRETERMDELIV_LT37, PRETERMDELIV_LT34, PRETERMDELIV_LT32, PRETERMDELIV_LT28, PRETERMDELIV_CAT,
          INF_SGA_PRETERM, INF_AGA_PRETERM, INF_SGA_TERM, INF_AGA_TERM,
-         SGA_CENTILE, SGA_CAT, M09_SEX, DTH_TIME_MISSING, DOB_AFTER_DEATH,
-         DENOM_28d, DENOM_365d,
+         SGA_CENTILE, SGA_CAT, SEX, DTH_TIME_MISSING, DOB_AFTER_DEATH,
+         D28_DENOM, D365_DENOM,
          NEO_DTH_24HR, NEO_DTH_EAR, NEO_DTH_LATE, NEO_DTH_CAT, NEO_DTH,
          INF_DTH, INF_DTH_FROM28,MISSING_SIGNS_OF_LIFE, STILLBIRTH_SIGNS_LIFE, 
          STILLBIRTH_20WK, STILLBIRTH_22WK,STILLBIRTH_24WK, STILLBIRTH_28WK, 
          STILLBIRTH_TIMING, STILLBIRTH_GESTAGE_CAT, STILLBIRTH_DENOM,
          INF_ABOR_SPN, INF_ABOR_IND, INF_FETAL_DTH,
          INF_FETAL_DTH_UNGA, INF_FETAL_DTH_DENOM, INF_FETAL_DTH_OTHR_DENOM,
-         INF_ASPH,
-         M11_BREATH_FAIL_CEOCCUR, M11_INF_PROCCUR_2, M11_INF_PROCCUR_3, M11_INF_PROCCUR_4, 
-         M11_INF_PROCCUR_5, M11_INF_PROCCUR_6,
+         INF_ASPH, INF_BREATH_MASK_VENT, INF_BREATH_PRESSURE, INF_BREATH_SUCTION, INF_BREATH_INTUBATION, 
+         INF_BREATH_COMPRESS, INF_BREATH_FAIL,
          INF_HYPERBILI_TCB15_24HR, INF_HYPERBILI_TCB15_5DAY, INF_HYPERBILI_TCB15_14DAY,
          INF_HYPERBILI_AAP_24HR, INF_HYPERBILI_AAP_5DAY, INF_HYPERBILI_AAP_14DAY,
          INF_JAUN_NON_SEV_ANY, INF_JAUN_SEV_24HR, INF_JAUN_SEV_GREATER_24HR, DENOM_HYPERBILI_ANY,
@@ -2408,7 +2629,7 @@ inf_outcomes_sub <- inf_outcomes_full %>%
          INF_PSBI_IPC, INF_PSBI_PNC0,
          INF_PSBI_PNC1, INF_PSBI_PNC4, INF_PSBI_PNC6,
          INF_PSBI_UNSCHED, INF_PSBI_HOSPITAL, INF_PSBI_DENOM
-         )
+  )
 
 
 ## extract data dictionary to align with outcome subset 
