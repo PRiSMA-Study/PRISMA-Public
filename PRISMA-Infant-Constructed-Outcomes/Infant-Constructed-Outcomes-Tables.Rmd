@@ -3561,9 +3561,9 @@ inf_traj_birth_tab <- infant_trajectory %>%
       ")"),    
     
     "Severe underweight (WAZ <-3)" = paste0(
-      format(sum(SEVERE_UNDER == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(UNDERWEIGHT_SEVERE == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_UNDER == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(UNDERWEIGHT_SEVERE == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
     "Wasting (WFL < -2)" = paste0(
@@ -3573,9 +3573,9 @@ inf_traj_birth_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe wasting (WFL < -3)" = paste0(
-      format(sum(SEVERE_WASTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(WASTING_SEVERE == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_WASTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(WASTING_SEVERE == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Stunting (LAZ <- 2)" = paste0(
@@ -3585,9 +3585,9 @@ inf_traj_birth_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe Stunting (LAZ <- 3)" = paste0(
-      format(sum(SEVERE_STUNTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(STUNTING_SEVERE == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_STUNTING == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STUNTING_SEVERE == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Overweight (WFL > 3)" = paste0(
@@ -3610,9 +3610,9 @@ inf_traj_birth_tab <- infant_trajectory %>%
       ")"),    
     
     "Severe underweight (WAZ <-3) " = paste0(
-      format(sum(SEVERE_UNDER_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(UNDERWEIGHT_SEVERE_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_UNDER_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(UNDERWEIGHT_SEVERE_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
     "Wasting (WFL < -2) " = paste0(
@@ -3622,9 +3622,9 @@ inf_traj_birth_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe wasting (WFL < -3) " = paste0(
-      format(sum(SEVERE_WASTING_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(WASTING_SEVERE_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_WASTING_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(WASTING_SEVERE_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Stunting (LAZ <- 2) " = paste0(
@@ -3634,9 +3634,9 @@ inf_traj_birth_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe Stunting (LAZ <- 3) " = paste0(
-      format(sum(SEVERE_STUNTING_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(STUNTING_SEVERE_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_STUNTING_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STUNTING_SEVERE_IG == 1 & MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Overweight (WFL > 3) " = paste0(
@@ -3828,9 +3828,9 @@ inf_traj_onem_tab <- infant_trajectory %>%
       ")"),    
     
     "Severe underweight (WAZ <-3)" = paste0(
-      format(sum(SEVERE_UNDER_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(UNDERWEIGHT_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_UNDER_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(UNDERWEIGHT_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
     "Wasting (WFL < -2)" = paste0(
@@ -3840,9 +3840,9 @@ inf_traj_onem_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe wasting (WFL < -3)" = paste0(
-      format(sum(SEVERE_WASTING_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(WASTING_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_WASTING_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(WASTING_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Stunting (LAZ <- 2)" = paste0(
@@ -3852,9 +3852,9 @@ inf_traj_onem_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe Stunting (LAZ <- 3)" = paste0(
-      format(sum(SEVERE_STUNTING_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(STUNTING_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_STUNTING_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STUNTING_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Overweight (WFL > 3)" = paste0(
@@ -3879,9 +3879,9 @@ inf_traj_onem_tab <- infant_trajectory %>%
       ")"),    
     
     "Severe underweight (WAZ <-3) " = paste0(
-      format(sum(SEVERE_UNDER_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(UNDERWEIGHT_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_UNDER_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(UNDERWEIGHT_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
     "Wasting (WFL < -2) " = paste0(
@@ -3891,9 +3891,9 @@ inf_traj_onem_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe wasting (WFL < -3) " = paste0(
-      format(sum(SEVERE_WASTING_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(WASTING_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_WASTING_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(WASTING_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Stunting (LAZ <- 2) " = paste0(
@@ -3903,9 +3903,9 @@ inf_traj_onem_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe Stunting (LAZ <- 3) " = paste0(
-      format(sum(SEVERE_STUNTING_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(STUNTING_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_STUNTING_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STUNTING_SEVERE_IG_M1 == 1 & MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M1 == 1 & NON_TRAJ_FLAG_M1 == 1 & VITAL_M1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Overweight (WFL > 3) " = paste0(
@@ -4082,9 +4082,9 @@ inf_traj_sixm_tab <- infant_trajectory %>%
       ")"),    
     
     "Severe underweight (WAZ <-3)" = paste0(
-      format(sum(SEVERE_UNDER_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(UNDERWEIGHT_SEVERE_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_UNDER_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(UNDERWEIGHT_SEVERE_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
     "Wasting (WFL < -2)" = paste0(
@@ -4094,9 +4094,9 @@ inf_traj_sixm_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe wasting (WFL < -3)" = paste0(
-      format(sum(SEVERE_WASTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(WASTING_SEVERE_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_WASTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(WASTING_SEVERE_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Stunting (LAZ <- 2)" = paste0(
@@ -4106,9 +4106,9 @@ inf_traj_sixm_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe Stunting (LAZ <- 3)" = paste0(
-      format(sum(SEVERE_STUNTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(STUNTING_SEVERE_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_STUNTING_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STUNTING_SEVERE_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Overweight (WFL > 3)" = paste0(
@@ -4132,9 +4132,9 @@ inf_traj_sixm_tab <- infant_trajectory %>%
       ")"),    
     
     "Severe underweight (WAZ <-3) " = paste0(
-      format(sum(SEVERE_UNDER_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(UNDERWEIGHT_SEVERE_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_UNDER_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(UNDERWEIGHT_SEVERE_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
     "Wasting (WFL < -2) " = paste0(
@@ -4144,9 +4144,9 @@ inf_traj_sixm_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe wasting (WFL < -3) " = paste0(
-      format(sum(SEVERE_WASTING_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(WASTING_SEVERE_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_WASTING_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(WASTING_SEVERE_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Stunting (LAZ <- 2) " = paste0(
@@ -4156,9 +4156,9 @@ inf_traj_sixm_tab <- infant_trajectory %>%
       ")"), 
     
     "Severe Stunting (LAZ <- 3) " = paste0(
-      format(sum(SEVERE_STUNTING_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(STUNTING_SEVERE_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SEVERE_STUNTING_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(STUNTING_SEVERE_IG_M6 == 1 & MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)/sum(MSRE_COMPLT_M6 == 1 & NON_TRAJ_FLAG_M6 == 1 & VITAL_M6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Overweight (WFL > 3) " = paste0(
@@ -4579,19 +4579,19 @@ data_grouped <- data %>%
   group_by(INFANTID) %>%
   mutate(
     PREV_STUNTING = lag(STUNTING, default = 0),
-    PREV_SEVERE_STUNTING = lag(SEVERE_STUNTING, default = 0),
-  EVER_STUNTED = cumsum(STUNTING | SEVERE_STUNTING) > 0   ) %>%
+    PREV_STUNTING_SEVERE = lag(STUNTING_SEVERE, default = 0),
+  EVER_STUNTED = cumsum(STUNTING | STUNTING_SEVERE) > 0   ) %>%
   ungroup()
 
 # Define stunting status
 data_grouped <- data_grouped %>%
 mutate(
     STATUS = case_when(
-      STUNTING == 0 & SEVERE_STUNTING == 0 & EVER_STUNTED == FALSE ~ "Never stunted",
-      STUNTING == 0 & SEVERE_STUNTING == 0 & EVER_STUNTED == TRUE ~ "No longer stunting",
-      STUNTING == 1 & PREV_STUNTING == 0 & PREV_SEVERE_STUNTING == 0 ~ "Newly stunted",
-      STUNTING == 1 & SEVERE_STUNTING == 0 & PREV_STUNTING == 1 ~ "Still stunted",
-      SEVERE_STUNTING == 1 & (PREV_STUNTING == 1 | PREV_SEVERE_STUNTING == 0) ~ "Increased stunting",
+      STUNTING == 0 & STUNTING_SEVERE == 0 & EVER_STUNTED == FALSE ~ "Never stunted",
+      STUNTING == 0 & STUNTING_SEVERE == 0 & EVER_STUNTED == TRUE ~ "No longer stunting",
+      STUNTING == 1 & PREV_STUNTING == 0 & PREV_STUNTING_SEVERE == 0 ~ "Newly stunted",
+      STUNTING == 1 & STUNTING_SEVERE == 0 & PREV_STUNTING == 1 ~ "Still stunted",
+      STUNTING_SEVERE == 1 & (PREV_STUNTING == 1 | PREV_STUNTING_SEVERE == 0) ~ "Increased stunting",
       STUNTING == 1 & PREV_STUNTING == 0 & EVER_STUNTED == TRUE ~ "Stunting relapse",
       TRUE ~ "Check data" # Catch-all to ensure no "Other" cases are missed
     )
