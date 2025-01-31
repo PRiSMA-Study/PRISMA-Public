@@ -37,13 +37,10 @@ path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-
 path_to_save_figures <- "D:/Users/stacie.loisate/Documents"
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
-path_to_save = "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/"
-write.csv(neo_sepsis_to_merge, paste0(path_to_save, "INF_OUTCOMES-SEPSIS" ,".csv"), row.names=FALSE)
-
 psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
 infant_trajectory <- read.csv(paste0(path_to_tnt, "INF_GROWTH_WIDE", ".csv"))
 all_plus_outcome <- read.csv(paste0(path_to_tnt, "INF_GROWTH_LONG", ".csv"))
-infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
+# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
 infant_outcomes <- read.csv(paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/", "INF_OUTCOMES-SEPSIS", ".csv"))
 
 tb_theme1 <- function(matrix){
