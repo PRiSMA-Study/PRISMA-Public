@@ -37,10 +37,14 @@ path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-
 path_to_save_figures <- "D:/Users/stacie.loisate/Documents"
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
-# psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
-# infant_trajectory <- read.csv(paste0(path_to_tnt, "INF_GROWTH_WIDE", ".csv")) 
-# all_plus_outcome <- read.csv(paste0(path_to_tnt, "INF_GROWTH_LONG", ".csv")) 
+path_to_save = "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/"
+write.csv(neo_sepsis_to_merge, paste0(path_to_save, "INF_OUTCOMES-SEPSIS" ,".csv"), row.names=FALSE)
+
+psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
+infant_trajectory <- read.csv(paste0(path_to_tnt, "INF_GROWTH_WIDE", ".csv"))
+all_plus_outcome <- read.csv(paste0(path_to_tnt, "INF_GROWTH_LONG", ".csv"))
 infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
+infant_outcomes <- read.csv(paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/", "INF_OUTCOMES-SEPSIS", ".csv"))
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -3336,8 +3340,128 @@ knitr::include_graphics("psbi_tab_output4.png")
 
 \newpage
 
+## 11. Neonatal Sepsis
 
-## 11. Infant growth trajectories
+**Definition:** Inflammatory response and organ dysfunction following presence of:a severe infection from delivery to 28 days as suspected (by a clinician) or proven (with culture). Defined below using reported neonatal sepsis variables and confirmed blood culture (varnames [form]: `INFANT_MHTERM_10 [MNH11]`, `INFANT_MHTERM_10 [MNH13]`, `INFECTION_MHTERM_1 [MNH20]`,`CULTURE_LBORRES [MNH11]`, `BLD_CULT_LBORRES [MNH13]`, `BLD_CULT_LBORRES [MNH20]`).
+
+**2.** Birthweight measured by PRISMA staff <72 hours following birth (varnames [form]: `BW_EST_FAORRES [MNH11]`, `BW_FAORRES [MNH11]`, `BW_FAORRES_REPORT [MNH11]`).
+
+**Denominator:** All livebirths aged 0 to 28 days. 
+
+&nbsp;
+### Table 11. Neonatal Sepsis
+
+```{r}
+
+# N sepsis cases (checkbox or culture confirmed) NEO_SEPSIS ==1
+# N sepsis cases with confirmed culture NEO_SEPSIS_CULTURE ==1 
+# N sepsis cases with reported PSBI NEO_SEPSIS_PSBI ==1
+
+neonatal_sepsis_tab <- neo_sepsis %>% ## denominator is anyone with a birth outcome reported 
+  ## If India-SAS doesn't have data, add empty row here 
+  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  ## Add empty rows for missing SITE values if the specific site doesn't exist
+  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    # data completeness 
+    "Denominator" =  paste0(
+      format(sum(LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Neonatal sepsis^a^" = paste0(
+      format(sum(NEO_SEPSIS == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEO_SEPSIS == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    # Among neonatal sepsis cases 
+    "Confirmed positive blood culture^b^" = paste0(
+      format(sum(NEO_SEPSIS_CULTURE == 1 & NEO_SEPSIS == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEO_SEPSIS_CULTURE == 1 & NEO_SEPSIS == 1, na.rm = TRUE)/sum(NEO_SEPSIS == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Concurrent PSBI^b, c^" = paste0(
+      format(sum(NEO_SEPSIS_PSBI == 1 & NEO_SEPSIS == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEO_SEPSIS_PSBI == 1 & NEO_SEPSIS == 1, na.rm = TRUE)/sum(NEO_SEPSIS == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+
+```
+
+```{r}
+
+neonatal_sepsis_tab <- neonatal_sepsis_tab %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+# replace NA with 0s (this likely means there is not yet data)
+neonatal_sepsis_tab[is.na(neonatal_sepsis_tab)] <- paste0("0 (0)")
+
+
+
+neonatal_sepsis_output <- tb_theme1(neonatal_sepsis_tab) %>% 
+  tab_header(
+    title = md("**Table 11**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Neonatal Sepsis</span>"),
+    rows = 1:4
+  ) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Neonatal Sepsis</span>")) %>% 
+  ## indent severe categories 
+  tab_style(
+      style = list(
+        cell_text(indent = px(40), size = 24)
+        ),
+      locations = cells_stub(rows = c("Confirmed positive blood culture^b^",
+                                      "Concurrent PSBI^b, c^"
+                                      )) 
+) %>%
+  # bold denominator rows
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                  "Denominator"))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                  "Denominator"))) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all livebirths.</span>")
+ ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all reported neonatal sepsis cases.</span>")
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> PSBI defined as the presence of any clinical signs or symptoms as defined by the WHO IMCI criteria, which are consistent with possible severe bacterial infection from delivery to 59 days (Table 10, above).</span>")
+ ) 
+
+
+```
+
+```{r, out.width = '100%'}
+
+psbi_tab_output1 <- psbi_tab_output1 %>% gtsave("psbi_tab_output1.png", expand = 8)
+knitr::include_graphics("psbi_tab_output1.png")
+```
+
+<!-- tO UPDATE BELOW  -->
+
+## 12. Infant growth trajectories
 
 **Definitions:** 
 
@@ -3361,7 +3485,7 @@ knitr::include_graphics("psbi_tab_output4.png")
 
 \newpage
 
-### Table 11a. Infant growth outcome at birth
+### Table 12a. Infant growth outcome at birth
 
 **Denominator:** All liveborn infants who have completed the IPC visit (0-5 days) (MNH11 & MNH09) AND have all anthropometric measures AND have valid z-scores.
 
@@ -3551,7 +3675,7 @@ inf_traj_birth_tab2 <- inf_traj_birth_tab[10:26,]
 # table 1
 inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>% 
   tab_header(
-    title = md("**Table 11a**")
+    title = md("**Table 12a**")
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>"),
@@ -3593,7 +3717,7 @@ inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>%
 ## table 2
 inf_traj_birth_output2 <- tb_theme1(inf_traj_birth_tab2) %>% 
   tab_header(
-    title = md("**Table 11a continued**")
+    title = md("**Table 12a continued**")
   ) %>%
 
   tab_row_group(
@@ -3645,7 +3769,7 @@ knitr::include_graphics("inf_traj_birth_output2.png")
 
 \newpage
 
-### Table 11b. Infant growth outcome at one month
+### Table 12b. Infant growth outcome at one month
 
 **Denominator:** All liveborn infants who have completed at least one visit at one month (21-42 days) of age, AND have all required anthropometric measurements, AND  possess valid z-scores.
 
@@ -3820,7 +3944,7 @@ inf_traj_onem_tab2 <- inf_traj_onem_tab[7:23,]
 # first table
 inf_traj_onem_output1 <- tb_theme1(inf_traj_onem_tab1) %>% 
   tab_header(
-    title = md("**Table 11b**")
+    title = md("**Table 12b**")
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness at one month (21 to 42 days)</span>"),
@@ -3852,7 +3976,7 @@ inf_traj_onem_output1 <- tb_theme1(inf_traj_onem_tab1) %>%
 ## second table
 inf_traj_onem_output2 <- tb_theme1(inf_traj_onem_tab2) %>% 
   tab_header(
-    title = md("**Table 11b continued**")
+    title = md("**Table 12b continued**")
   ) %>%
   
   tab_row_group(
@@ -3899,7 +4023,7 @@ knitr::include_graphics("inf_traj_onem_output2.png")
 
 \newpage
 
-### Table 11c. Infant growth outcome at six months
+### Table 12c. Infant growth outcome at six months
 
 **Denominator:** All liveborn infants who have completed at least one visit at six months of age (171-222 days) AND have all required anthropometric measurements AND possess valid z-scores.
 
@@ -4074,7 +4198,7 @@ inf_traj_sixm_tab2 <- inf_traj_sixm_tab[7:23,]
 # table 1
 inf_traj_sixm_output1 <- tb_theme1(inf_traj_sixm_tab1) %>% 
   tab_header(
-    title = md("**Table 11c**")
+    title = md("**Table 12c**")
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness at six months (171  to 222 days)</span>"),
@@ -4109,7 +4233,7 @@ inf_traj_sixm_output1 <- tb_theme1(inf_traj_sixm_tab1) %>%
 # table 2
 inf_traj_sixm_output2 <- tb_theme1(inf_traj_sixm_tab2) %>% 
   tab_header(
-    title = md("**Table 11c continued**")
+    title = md("**Table 12c continued**")
   ) %>%
 
  tab_row_group(
