@@ -40,12 +40,12 @@ library(dplyr)
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-# path_to_data <- "Z:/Outcome Data/2025-01-10/" 
-# path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+ path_to_data <- "Z:/Outcome Data/2025-01-10/" 
+ path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 #Savannah's paths
-path_to_data <- "Z:/Outcome Data/2025-01-10/" 
-path_to_save <- "D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/2025-01-10/"
+#path_to_data <- "Z:/Outcome Data/2025-01-10/" 
+#path_to_save <- "D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/2025-01-10/"
 
 mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
 hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
@@ -529,9 +529,9 @@ summary_tab1 <- MAT_INFECTION %>%
   
   ## Prolonged labor
      "Prolonged labor  ^d^" = paste0(
-      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1 & PRO_LABOR_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1 & PRO_LABOR_DENOM==1, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -544,7 +544,7 @@ summary_tab1 <- MAT_INFECTION %>%
         plyr::summarise(
           
     "Prolonged labor  ^d^" = paste0(
-      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2))
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1 & PRO_LABOR_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
         t() %>%
@@ -662,7 +662,8 @@ summary_tab1 <- MAT_INFECTION %>%
  summary_tab_2 <- rbind(summary_tab6,summary_tab7,summary_tab8,
                       summary_tab9,summary_tab9b,
                       summary_tab10,summary_tab11,summary_tab12)
-  
+ 
+ 
   
 ```
 
@@ -670,6 +671,12 @@ summary_tab1 <- MAT_INFECTION %>%
 # replace NA with 0s (this likely means there is not yet data)
 summary_tab[is.na(summary_tab)] <- paste0("0 (0)")
 summary_tab_2[is.na(summary_tab_2)] <- paste0("0 (0)")
+
+# Fix NAs in string variables for summary table (Ghana, India-CMC):
+summary_tab_2$Ghana<-ifelse(summary_tab_2$Ghana=="0 (NaN)",
+                           "0 (0)",summary_tab_2$Ghana)
+summary_tab_2$'India-CMC'<-ifelse(summary_tab_2$'India-CMC'=="0 (NaN)",
+                           "0 (0)",summary_tab_2$'India-CMC') 
 
 
 summary_tab_output <- tb_theme1(summary_tab) %>% 
