@@ -2787,6 +2787,8 @@ knitr::include_graphics(paste0(path_to_save, "pprom_tab_output.png"))
 
 **-** Visit was completed but unable to calculate depression score (variables `EPDS0101` – `EPDS0110` [MNH25] unable to calculate because all relevant variables are reported as 77, Not applicable).   
 
+\newpage
+
 ### Table 5a. Data completeness (MNH25)
 ```{r}
 ## to update denominators as needed!!
@@ -2811,7 +2813,7 @@ depression_complete_tab <- depression %>%
       format(round(sum(DEPR_MISS_ANC20==-1, na.rm = TRUE)/sum(DEPR_MISS_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^c^" = paste0(
+    "Observed denominator^c^" = paste0(
       format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     ## ANC32
@@ -2830,7 +2832,7 @@ depression_complete_tab <- depression %>%
       format(round(sum(DEPR_MISS_ANC32==-1, na.rm = TRUE)/sum(DEPR_MISS_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^c^ " = paste0(
+    "Observed denominator^c^ " = paste0(
       format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     ## PNC6
@@ -2849,7 +2851,7 @@ depression_complete_tab <- depression %>%
       format(round(sum(DEPR_MISS_PNC6==-1, na.rm = TRUE)/sum(DEPR_MISS_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^c^  " = paste0(
+    "Observed denominator^c^  " = paste0(
       format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2))
 
     ) %>%
@@ -2903,12 +2905,30 @@ knitr::include_graphics(paste0(path_to_save, "depression_complete_output.png"))
 
 \newpage
 
-### 5b. Suspected maternal depression, using standard cutoff score (>= 11)
+### 5b. Suspected maternal depression
 
-**Numerator:** Valid depression score $\geq$ 11 (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
+
+**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a standard or site-specific cutoff: 
+
+**Numerator:** Valid depression score $\geq$ threshold (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
 
 **Denominator:** MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
 
+**Cutoff scores for depressive symptoms:**
+
+
+|Site | Threshold|
+|---- | ---------|
+|Standard| 11 |
+|Ghana| 11 |
+|India-CMC| 8 |
+|India-SAS| 10 |
+|Kenya| 13 |
+|Pakistan| 14 |
+|Zambia| 10 |
+
+
+\newpage
 #### Table 5b. Suspected maternal depression, using standard cutoff score
 ```{r}
 ## to update denominators as needed!! 
@@ -2917,24 +2937,30 @@ depression_standard_tab <- depression %>%
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
+ 
+    ##Ever   
+     "Denominator, n" = paste0(
+      format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms ever, n (%)^a^" = paste0(
       format(sum(DEPR_STND_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_STND_EVER_NUM==1, na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Denominator, n" = paste0(
-      format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  
+    ##Ever ANC  
+    "Denominator, n " = paste0(
+      format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Depressive symptoms, ANC ever, n (%)^b^" = paste0(
       format(sum(DEPR_STND_ANC_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_STND_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Denominator, n " = paste0(
-      format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ 
+    ##ANC20   
+    "Denominator, n  " = paste0(
+      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms, ANC-20, n (%)^c^" = paste0(
       format(sum(DEPR_STND_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -2942,17 +2968,19 @@ depression_standard_tab <- depression %>%
       format(round(sum(DEPR_STND_ANC20_NUM==1, na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator, n  " = paste0(
-      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  ##ANC32  
+    "Denominator, n   " = paste0(
+      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms, ANC-32, n (%)^d^" = paste0(
       format(sum(DEPR_STND_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_STND_ANC32_NUM==1, na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Denominator, n   " = paste0(
-      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ 
+    ##PNC6  
+     "Denominator, n    " = paste0(
+      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
         
     "Depressive symptoms, PNC-6, n (%)" = paste0(
       format(sum(DEPR_STND_PNC6_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -2960,8 +2988,7 @@ depression_standard_tab <- depression %>%
       format(round(sum(DEPR_STND_PNC6_NUM==1, na.rm = TRUE)/sum(DEPR_PNC6_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator, n    " = paste0(
-      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+   
     
     
     ) %>% 
@@ -3020,7 +3047,7 @@ tab_style(
 ) %>% 
   tab_style(
       style = list(
-        cell_text(indent = px(40))
+        cell_text(indent = px(0))
         ),
       locations = cells_stub(rows = c('Denominator, n',
                  "Denominator, n ",
@@ -3028,6 +3055,31 @@ tab_style(
                  "Denominator, n   ",
                  "Denominator, n    "))
       ) %>% 
+  
+  # bold denominator rows - 1st column
+tab_style(
+  style = list(
+    cell_text(weight = "bold")
+  ),
+  locations = cells_stub(rows = c(
+    'Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))) %>%
+ 
+# bold denominator rows - body
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_body(rows = c(
+     'Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))) %>% 
+  
 
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> EPDS score at or above 11, ever (among any woman who has at least one EPDS assessment).</span>")
@@ -3052,27 +3104,6 @@ knitr::include_graphics(paste0(path_to_save, "depression_standard_output.png"))
 ```
 
 \newpage
-
-### 5c. Maternal depressive symptoms, using site-specific cutoff score
-**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a site-specific cutoff: 
-
--   Ghana $\geq$ 11; 
-
--   India - CMC $\geq$ 8; 
-
--   India - SAS $\geq$ 10; 
-
--   Kenya $\geq$ 13; 
-
--   Pakistan $\geq$ 14;
-
--   Zambia $\geq$ 10 
-
-**Numerator:** Valid depression score $\geq$ site-specific cutoff (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
-
-**Denominator:**  MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
-
-\newpage
 #### Table 5c. Maternal Depression, using site-specific cutoff score
 ```{r}
 depression_site_tab <- depression %>% 
@@ -3080,14 +3111,18 @@ depression_site_tab <- depression %>%
   group_by(SITE) %>% 
   summarise(
     
+     
+    "Denominator, n" = paste0(
+      format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
     "Depressive symptoms ever, n (%)^a^" = paste0(
       format(sum(DEPR_SITE_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_SITE_EVER_NUM==1, na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Denominator, n" = paste0(
-      format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+   
+    "Denominator, n " = paste0(
+      format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Depressive symptoms, ANC ever, n (%)^b^" = paste0(
       format(sum(DEPR_SITE_ANC_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -3095,8 +3130,9 @@ depression_site_tab <- depression %>%
       format(round(sum(DEPR_SITE_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Denominator, n " = paste0(
-      format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Denominator, n  " = paste0(
+      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms, ANC-20, n (%)^c^" = paste0(
       format(sum(DEPR_SITE_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -3104,8 +3140,9 @@ depression_site_tab <- depression %>%
       format(round(sum(DEPR_SITE_ANC20_NUM==1, na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator, n  " = paste0(
-      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ #ANC32
+     "Denominator, n   " = paste0(
+      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms, ANC-32, n (%)^d^" = paste0(
       format(sum(DEPR_SITE_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -3113,18 +3150,16 @@ depression_site_tab <- depression %>%
       format(round(sum(DEPR_SITE_ANC32_NUM==1, na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Denominator, n   " = paste0(
-      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
-        
+   
+ #PNC6
+  "Denominator, n    " = paste0(
+      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ 
     "Depressive symptoms, PNC-6, n (%)" = paste0(
       format(sum(DEPR_SITE_PNC6_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_SITE_PNC6_NUM==1, na.rm = TRUE)/sum(DEPR_PNC6_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-
-    "Denominator, n    " = paste0(
-      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
-    
     
     ) %>% 
   t() %>% as.data.frame() %>% 
@@ -3182,7 +3217,7 @@ tab_style(
 ) %>% 
   tab_style(
       style = list(
-        cell_text(indent = px(40))
+        cell_text(indent = px(0))
         ),
       locations = cells_stub(rows = c('Denominator, n',
                  "Denominator, n ",
@@ -3190,6 +3225,32 @@ tab_style(
                  "Denominator, n   ",
                  "Denominator, n    "))
       ) %>% 
+  
+  
+  # bold denominator rows - 1st column
+tab_style(
+  style = list(
+    cell_text(weight = "bold")
+  ),
+  locations = cells_stub(rows = c(
+   'Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))) %>%
+ 
+# bold denominator rows - body
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_body(rows = c(
+     'Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))) %>% 
+  
 
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> EPDS score at or above the cutoff score for that site, ever (among any woman who has at least one EPDS assessment).</span>")
@@ -3212,6 +3273,124 @@ gtsave(depression_site_output, file = "depression_site_output.png", path = path_
 knitr::include_graphics(paste0(path_to_save, "depression_site_output.png"))
 
 ```
+
+\newpage
+
+#### Figure 2. Depressive symptoms at ANC-20
+```{r, out.width = '100%', fig.align='center'}
+
+dep_anc20 <- ggplot(depression, aes(x = DEPR_SCORE_ANC20, fill = ..x..)) +
+                geom_histogram(alpha=1, position="identity", binwidth = 1) +
+                facet_grid(rows = vars(SITE), scales = "free_y") + 
+                scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
+                ggtitle(paste0("Maternal Depression at ANC-20"))  +
+                labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
+                xlab("") +
+                ylab("Frequency") +
+                theme_bw() +
+                theme(strip.background=element_rect(fill="white"),
+                      legend.position="right",
+                      legend.title = element_blank(),
+                      panel.grid.minor = element_blank(),
+                      # strip.text = element_text(size = 6.5), 
+                      plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
+                      plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
+                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
+                    # axis.text = element_text(size = 8)) + 
+                      # axis.title = element_text(size = 9),
+                      # legend.text = element_text(size = 6),
+                      # legend.key.size = unit(0.236,"cm"),
+                      # plot.margin = unit(c(0,0,0,0), "pt"),
+                      # axis.ticks.x = element_blank()
+                geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
+                scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                                     values = c(0, 11/30, (11/30+1)/2, 1))
+
+ggsave(paste0("dep_anc20", ".pdf"), path = path_to_data,
+       width = 8, height = 6)
+
+knitr::include_graphics(paste0(path_to_data, "dep_anc20.pdf"))
+
+```
+
+\newpage
+
+#### Figure 3. Depressive symptoms at ANC-32
+```{r, out.width = '100%', fig.align='center'}
+
+dep_anc32<- ggplot(depression, aes(x = DEPR_SCORE_ANC32, fill = ..x..)) +
+              geom_histogram(alpha=1, position="identity", binwidth = 1) +
+              facet_grid(rows = vars(SITE), scales = "free_y") + 
+              scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
+              ggtitle(paste0("Maternal Depression at ANC-32"))  +
+              labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
+              xlab("") +
+              ylab("Frequency") +
+              theme_bw() +
+              theme(strip.background=element_rect(fill="white"),
+                    legend.position="right",
+                    legend.title = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    # strip.text = element_text(size = 6.5), 
+                    plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
+                    plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
+                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
+                    # axis.text = element_text(size = 8)) + 
+                    # axis.text = element_text(size = 8),
+                    # axis.title = element_text(size = 9),
+                    # legend.text = element_text(size = 6),
+                    # legend.key.size = unit(0.236,"cm"),
+                    # plot.margin = unit(c(0,0,0,0), "pt"),
+                    # axis.ticks.x = element_blank()
+              geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
+              scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                                   values = c(0, 11/30, (11/30+1)/2, 1))
+
+ggsave(paste0("dep_anc32", ".pdf"), path = path_to_data,
+       width = 8, height = 6)
+
+knitr::include_graphics(paste0(path_to_data, "dep_anc32.pdf"))
+```
+
+\newpage
+
+#### Figure 4. Depressive symptoms at PNC-6
+```{r, out.width = '100%', fig.align='center'}
+
+dep_pnc6 <- ggplot(depression, aes(x = DEPR_SCORE_PNC6, fill = ..x..)) +
+              geom_histogram(alpha=1, position="identity", binwidth = 1) +
+              facet_grid(rows = vars(SITE), scales = "free_y") + 
+              scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
+              ggtitle(paste0("Maternal Depression at PNC-6"))  +
+              labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
+              xlab("") +
+              ylab("Frequency") +
+              theme_bw() +
+              theme(strip.background=element_rect(fill="white"),
+                    legend.position="right",
+                    legend.title = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    # strip.text = element_text(size = 6.5), 
+                    plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
+                    plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
+                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
+                    # axis.text = element_text(size = 8)) + 
+                    # axis.text = element_text(size = 8),
+                    # axis.title = element_text(size = 9),
+                    # legend.text = element_text(size = 6),
+                    # legend.key.size = unit(0.236,"cm"),
+                    # plot.margin = unit(c(0,0,0,0), "pt"),
+                    # axis.ticks.x = element_blank()
+              geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
+              scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
+                                   values = c(0, 11/30, (11/30+1)/2, 1))
+
+ggsave(paste0("dep_pnc6", ".pdf"), path = path_to_data,
+       width = 8, height = 6)
+
+knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
+```
+
 
 \newpage
 
