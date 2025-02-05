@@ -55,7 +55,7 @@ preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% ren
 labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
+MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION-CTNG", ".csv"))
 near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -1005,7 +1005,7 @@ knitr::include_graphics(paste0(path_to_save, "mortality_output.png"))
 
 ### 2a. Maternal anemia any time in pregnancy
 
-**Definition:** Low hemoglobin levels in pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy. Levels of anemia in pregnancy are defined as: 
+**Definition:** Low hemoglobin levels in pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy, adjusted for smoking status and elevation as applicable. Levels of anemia in pregnancy are defined as: 
 
 *First/third trimester:*
 
@@ -1209,7 +1209,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_output.png"))
 
 ### 2b. Maternal anemia in pregnancy by trimester
 
-**Definition:** Low hemoglobin levels in each trimester of pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy. Levels of anemia in pregnancy are defined as: 
+**Definition:** Low hemoglobin levels in each trimester of pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy, adjusted for smoking status and elevation as applicable. Levels of anemia in pregnancy are defined as: 
 
 *First/third trimester:*
 
@@ -1727,7 +1727,7 @@ knitr::include_graphics(paste0(path_to_data, "anemia-fig.jpg"))
 
 ### 2c. Maternal anemia in the postpartum period
 
-**Definition:** Low hemoglobin levels in the postpartum period, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in the postpartum time period of interest. Levels of anemia in the postpartum period are defined as: no anemia (>=12 g/dL); mild anemia (>=11 & <12 g/dL); moderate anemia (>=8 & <11 g/dL); severe anemia (< 8 g/dL).
+**Definition:** Low hemoglobin levels in the postpartum period, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in the postpartum time period of interest, adjusted for smoking status and elevation as applicable. Levels of anemia in the postpartum period are defined as: no anemia (>=12 g/dL); mild anemia (>=11 & <12 g/dL); moderate anemia (>=8 & <11 g/dL); severe anemia (< 8 g/dL).
 
 **Denominator:** All participants with completed pregnancies including:
 
