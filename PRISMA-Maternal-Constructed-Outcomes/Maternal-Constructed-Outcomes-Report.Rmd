@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2025 January 29)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2025 February 5)"
 output:
   pdf_document:
     toc: no
@@ -40,12 +40,12 @@ library(dplyr)
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
- path_to_data <- "Z:/Outcome Data/2025-01-10/" 
- path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+# path_to_data <- "Z:/Outcome Data/2025-01-10/" 
+# path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 #Savannah's paths
-#path_to_data <- "Z:/Outcome Data/2025-01-10/" 
-#path_to_save <- "D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/2025-01-10/"
+path_to_data <- "Z:/Outcome Data/2025-01-10/" 
+path_to_save <- "D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/2025-01-10/"
 
 mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
 hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
@@ -3273,124 +3273,6 @@ gtsave(depression_site_output, file = "depression_site_output.png", path = path_
 knitr::include_graphics(paste0(path_to_save, "depression_site_output.png"))
 
 ```
-
-\newpage
-
-#### Figure 2. Depressive symptoms at ANC-20
-```{r, out.width = '100%', fig.align='center'}
-
-dep_anc20 <- ggplot(depression, aes(x = DEPR_SCORE_ANC20, fill = ..x..)) +
-                geom_histogram(alpha=1, position="identity", binwidth = 1) +
-                facet_grid(rows = vars(SITE), scales = "free_y") + 
-                scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
-                ggtitle(paste0("Maternal Depression at ANC-20"))  +
-                labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
-                xlab("") +
-                ylab("Frequency") +
-                theme_bw() +
-                theme(strip.background=element_rect(fill="white"),
-                      legend.position="right",
-                      legend.title = element_blank(),
-                      panel.grid.minor = element_blank(),
-                      # strip.text = element_text(size = 6.5), 
-                      plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
-                      plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
-                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
-                    # axis.text = element_text(size = 8)) + 
-                      # axis.title = element_text(size = 9),
-                      # legend.text = element_text(size = 6),
-                      # legend.key.size = unit(0.236,"cm"),
-                      # plot.margin = unit(c(0,0,0,0), "pt"),
-                      # axis.ticks.x = element_blank()
-                geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
-                scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
-                                     values = c(0, 11/30, (11/30+1)/2, 1))
-
-ggsave(paste0("dep_anc20", ".pdf"), path = path_to_data,
-       width = 8, height = 6)
-
-knitr::include_graphics(paste0(path_to_data, "dep_anc20.pdf"))
-
-```
-
-\newpage
-
-#### Figure 3. Depressive symptoms at ANC-32
-```{r, out.width = '100%', fig.align='center'}
-
-dep_anc32<- ggplot(depression, aes(x = DEPR_SCORE_ANC32, fill = ..x..)) +
-              geom_histogram(alpha=1, position="identity", binwidth = 1) +
-              facet_grid(rows = vars(SITE), scales = "free_y") + 
-              scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
-              ggtitle(paste0("Maternal Depression at ANC-32"))  +
-              labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
-              xlab("") +
-              ylab("Frequency") +
-              theme_bw() +
-              theme(strip.background=element_rect(fill="white"),
-                    legend.position="right",
-                    legend.title = element_blank(),
-                    panel.grid.minor = element_blank(),
-                    # strip.text = element_text(size = 6.5), 
-                    plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
-                    plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
-                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
-                    # axis.text = element_text(size = 8)) + 
-                    # axis.text = element_text(size = 8),
-                    # axis.title = element_text(size = 9),
-                    # legend.text = element_text(size = 6),
-                    # legend.key.size = unit(0.236,"cm"),
-                    # plot.margin = unit(c(0,0,0,0), "pt"),
-                    # axis.ticks.x = element_blank()
-              geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
-              scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
-                                   values = c(0, 11/30, (11/30+1)/2, 1))
-
-ggsave(paste0("dep_anc32", ".pdf"), path = path_to_data,
-       width = 8, height = 6)
-
-knitr::include_graphics(paste0(path_to_data, "dep_anc32.pdf"))
-```
-
-\newpage
-
-#### Figure 4. Depressive symptoms at PNC-6
-```{r, out.width = '100%', fig.align='center'}
-
-dep_pnc6 <- ggplot(depression, aes(x = DEPR_SCORE_PNC6, fill = ..x..)) +
-              geom_histogram(alpha=1, position="identity", binwidth = 1) +
-              facet_grid(rows = vars(SITE), scales = "free_y") + 
-              scale_x_continuous(breaks=seq(0,30,1), limits = c(-1,30))+
-              ggtitle(paste0("Maternal Depression at PNC-6"))  +
-              labs(caption = "Vertical line indicates cutoff for depression using standard cutoff") + 
-              xlab("") +
-              ylab("Frequency") +
-              theme_bw() +
-              theme(strip.background=element_rect(fill="white"),
-                    legend.position="right",
-                    legend.title = element_blank(),
-                    panel.grid.minor = element_blank(),
-                    # strip.text = element_text(size = 6.5), 
-                    plot.title = element_text(colour = "black", hjust = 0,  size = 10, face = "bold"),
-                    plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
-                    plot.caption = element_text(hjust = 0, size = 10, margin = margin(t = 10), vjust = 0)) + 
-                    # axis.text = element_text(size = 8)) + 
-                    # axis.text = element_text(size = 8),
-                    # axis.title = element_text(size = 9),
-                    # legend.text = element_text(size = 6),
-                    # legend.key.size = unit(0.236,"cm"),
-                    # plot.margin = unit(c(0,0,0,0), "pt"),
-                    # axis.ticks.x = element_blank()
-              geom_vline(aes(xintercept = 11), color = "red",size=0.15) +
-              scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"), 
-                                   values = c(0, 11/30, (11/30+1)/2, 1))
-
-ggsave(paste0("dep_pnc6", ".pdf"), path = path_to_data,
-       width = 8, height = 6)
-
-knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
-```
-
 
 \newpage
 
