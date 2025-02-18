@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2025 January 29)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2025 February 5)"
 output:
   pdf_document:
     toc: no
@@ -529,9 +529,9 @@ summary_tab1 <- MAT_INFECTION %>%
   
   ## Prolonged labor
      "Prolonged labor  ^d^" = paste0(
-      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1 & PRO_LABOR_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1 & PRO_LABOR_DENOM==1, na.rm = TRUE)/sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
   )  %>%
@@ -544,7 +544,7 @@ summary_tab1 <- MAT_INFECTION %>%
         plyr::summarise(
           
     "Prolonged labor  ^d^" = paste0(
-      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2))
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1 & PRO_LABOR_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2))
     
   ) %>%
         t() %>%
@@ -662,7 +662,8 @@ summary_tab1 <- MAT_INFECTION %>%
  summary_tab_2 <- rbind(summary_tab6,summary_tab7,summary_tab8,
                       summary_tab9,summary_tab9b,
                       summary_tab10,summary_tab11,summary_tab12)
-  
+ 
+ 
   
 ```
 
@@ -670,6 +671,12 @@ summary_tab1 <- MAT_INFECTION %>%
 # replace NA with 0s (this likely means there is not yet data)
 summary_tab[is.na(summary_tab)] <- paste0("0 (0)")
 summary_tab_2[is.na(summary_tab_2)] <- paste0("0 (0)")
+
+# Fix NAs in string variables for summary table (Ghana, India-CMC):
+summary_tab_2$Ghana<-ifelse(summary_tab_2$Ghana=="0 (NaN)",
+                           "0 (0)",summary_tab_2$Ghana)
+summary_tab_2$'India-CMC'<-ifelse(summary_tab_2$'India-CMC'=="0 (NaN)",
+                           "0 (0)",summary_tab_2$'India-CMC') 
 
 
 summary_tab_output <- tb_theme1(summary_tab) %>% 
@@ -998,7 +1005,7 @@ knitr::include_graphics(paste0(path_to_save, "mortality_output.png"))
 
 ### 2a. Maternal anemia any time in pregnancy
 
-**Definition:** Low hemoglobin levels in pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy. Levels of anemia in pregnancy are defined as: 
+**Definition:** Low hemoglobin levels in pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy, adjusted for smoking status and elevation as applicable. Levels of anemia in pregnancy are defined as: 
 
 *First/third trimester:*
 
@@ -1202,7 +1209,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_output.png"))
 
 ### 2b. Maternal anemia in pregnancy by trimester
 
-**Definition:** Low hemoglobin levels in each trimester of pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy. Levels of anemia in pregnancy are defined as: 
+**Definition:** Low hemoglobin levels in each trimester of pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in pregnancy, adjusted for smoking status and elevation as applicable. Levels of anemia in pregnancy are defined as: 
 
 *First/third trimester:*
 
@@ -1720,7 +1727,7 @@ knitr::include_graphics(paste0(path_to_data, "anemia-fig.jpg"))
 
 ### 2c. Maternal anemia in the postpartum period
 
-**Definition:** Low hemoglobin levels in the postpartum period, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in the postpartum time period of interest. Levels of anemia in the postpartum period are defined as: no anemia (>=12 g/dL); mild anemia (>=11 & <12 g/dL); moderate anemia (>=8 & <11 g/dL); severe anemia (< 8 g/dL).
+**Definition:** Low hemoglobin levels in the postpartum period, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Anemia level is based on the lowest recorded hemoglobin measure in the postpartum time period of interest, adjusted for smoking status and elevation as applicable. Levels of anemia in the postpartum period are defined as: no anemia (>=12 g/dL); mild anemia (>=11 & <12 g/dL); moderate anemia (>=8 & <11 g/dL); severe anemia (< 8 g/dL).
 
 **Denominator:** All participants with completed pregnancies including:
 
@@ -2780,6 +2787,8 @@ knitr::include_graphics(paste0(path_to_save, "pprom_tab_output.png"))
 
 **-** Visit was completed but unable to calculate depression score (variables `EPDS0101` – `EPDS0110` [MNH25] unable to calculate because all relevant variables are reported as 77, Not applicable).   
 
+\newpage
+
 ### Table 5a. Data completeness (MNH25)
 ```{r}
 ## to update denominators as needed!!
@@ -2804,7 +2813,7 @@ depression_complete_tab <- depression %>%
       format(round(sum(DEPR_MISS_ANC20==-1, na.rm = TRUE)/sum(DEPR_MISS_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^c^" = paste0(
+    "Observed denominator^c^" = paste0(
       format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     ## ANC32
@@ -2823,7 +2832,7 @@ depression_complete_tab <- depression %>%
       format(round(sum(DEPR_MISS_ANC32==-1, na.rm = TRUE)/sum(DEPR_MISS_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^c^ " = paste0(
+    "Observed denominator^c^ " = paste0(
       format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     ## PNC6
@@ -2842,7 +2851,7 @@ depression_complete_tab <- depression %>%
       format(round(sum(DEPR_MISS_PNC6==-1, na.rm = TRUE)/sum(DEPR_MISS_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator^c^  " = paste0(
+    "Observed denominator^c^  " = paste0(
       format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2))
 
     ) %>%
@@ -2896,12 +2905,30 @@ knitr::include_graphics(paste0(path_to_save, "depression_complete_output.png"))
 
 \newpage
 
-### 5b. Suspected maternal depression, using standard cutoff score (>= 11)
+### 5b. Suspected maternal depression
 
-**Numerator:** Valid depression score $\geq$ 11 (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
+
+**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a standard or site-specific cutoff: 
+
+**Numerator:** Valid depression score $\geq$ threshold (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
 
 **Denominator:** MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
 
+**Cutoff scores for depressive symptoms:**
+
+
+|Site | Threshold|
+|---- | ---------|
+|Standard| 11 |
+|Ghana| 11 |
+|India-CMC| 8 |
+|India-SAS| 10 |
+|Kenya| 13 |
+|Pakistan| 14 |
+|Zambia| 10 |
+
+
+\newpage
 #### Table 5b. Suspected maternal depression, using standard cutoff score
 ```{r}
 ## to update denominators as needed!! 
@@ -2910,24 +2937,30 @@ depression_standard_tab <- depression %>%
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
+ 
+    ##Ever   
+     "Denominator, n" = paste0(
+      format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms ever, n (%)^a^" = paste0(
       format(sum(DEPR_STND_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_STND_EVER_NUM==1, na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Denominator, n" = paste0(
-      format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  
+    ##Ever ANC  
+    "Denominator, n " = paste0(
+      format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Depressive symptoms, ANC ever, n (%)^b^" = paste0(
       format(sum(DEPR_STND_ANC_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_STND_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Denominator, n " = paste0(
-      format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ 
+    ##ANC20   
+    "Denominator, n  " = paste0(
+      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms, ANC-20, n (%)^c^" = paste0(
       format(sum(DEPR_STND_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -2935,17 +2968,19 @@ depression_standard_tab <- depression %>%
       format(round(sum(DEPR_STND_ANC20_NUM==1, na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator, n  " = paste0(
-      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+  ##ANC32  
+    "Denominator, n   " = paste0(
+      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms, ANC-32, n (%)^d^" = paste0(
       format(sum(DEPR_STND_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_STND_ANC32_NUM==1, na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Denominator, n   " = paste0(
-      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ 
+    ##PNC6  
+     "Denominator, n    " = paste0(
+      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
         
     "Depressive symptoms, PNC-6, n (%)" = paste0(
       format(sum(DEPR_STND_PNC6_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -2953,8 +2988,7 @@ depression_standard_tab <- depression %>%
       format(round(sum(DEPR_STND_PNC6_NUM==1, na.rm = TRUE)/sum(DEPR_PNC6_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator, n    " = paste0(
-      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+   
     
     
     ) %>% 
@@ -3013,7 +3047,7 @@ tab_style(
 ) %>% 
   tab_style(
       style = list(
-        cell_text(indent = px(40))
+        cell_text(indent = px(0))
         ),
       locations = cells_stub(rows = c('Denominator, n',
                  "Denominator, n ",
@@ -3021,6 +3055,31 @@ tab_style(
                  "Denominator, n   ",
                  "Denominator, n    "))
       ) %>% 
+  
+  # bold denominator rows - 1st column
+tab_style(
+  style = list(
+    cell_text(weight = "bold")
+  ),
+  locations = cells_stub(rows = c(
+    'Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))) %>%
+ 
+# bold denominator rows - body
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_body(rows = c(
+     'Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))) %>% 
+  
 
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> EPDS score at or above 11, ever (among any woman who has at least one EPDS assessment).</span>")
@@ -3045,27 +3104,6 @@ knitr::include_graphics(paste0(path_to_save, "depression_standard_output.png"))
 ```
 
 \newpage
-
-### 5c. Maternal depressive symptoms, using site-specific cutoff score
-**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a site-specific cutoff: 
-
--   Ghana $\geq$ 11; 
-
--   India - CMC $\geq$ 8; 
-
--   India - SAS $\geq$ 10; 
-
--   Kenya $\geq$ 13; 
-
--   Pakistan $\geq$ 14;
-
--   Zambia $\geq$ 10 
-
-**Numerator:** Valid depression score $\geq$ site-specific cutoff (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
-
-**Denominator:**  MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]) AND expected for that visit (window has passed without closeout)
-
-\newpage
 #### Table 5c. Maternal Depression, using site-specific cutoff score
 ```{r}
 depression_site_tab <- depression %>% 
@@ -3073,14 +3111,18 @@ depression_site_tab <- depression %>%
   group_by(SITE) %>% 
   summarise(
     
+     
+    "Denominator, n" = paste0(
+      format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
     "Depressive symptoms ever, n (%)^a^" = paste0(
       format(sum(DEPR_SITE_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_SITE_EVER_NUM==1, na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    "Denominator, n" = paste0(
-      format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+   
+    "Denominator, n " = paste0(
+      format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Depressive symptoms, ANC ever, n (%)^b^" = paste0(
       format(sum(DEPR_SITE_ANC_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -3088,8 +3130,9 @@ depression_site_tab <- depression %>%
       format(round(sum(DEPR_SITE_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Denominator, n " = paste0(
-      format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Denominator, n  " = paste0(
+      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms, ANC-20, n (%)^c^" = paste0(
       format(sum(DEPR_SITE_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -3097,8 +3140,9 @@ depression_site_tab <- depression %>%
       format(round(sum(DEPR_SITE_ANC20_NUM==1, na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Denominator, n  " = paste0(
-      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ #ANC32
+     "Denominator, n   " = paste0(
+      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Depressive symptoms, ANC-32, n (%)^d^" = paste0(
       format(sum(DEPR_SITE_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -3106,18 +3150,16 @@ depression_site_tab <- depression %>%
       format(round(sum(DEPR_SITE_ANC32_NUM==1, na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Denominator, n   " = paste0(
-      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
-        
+   
+ #PNC6
+  "Denominator, n    " = paste0(
+      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ 
     "Depressive symptoms, PNC-6, n (%)" = paste0(
       format(sum(DEPR_SITE_PNC6_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(DEPR_SITE_PNC6_NUM==1, na.rm = TRUE)/sum(DEPR_PNC6_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-
-    "Denominator, n    " = paste0(
-      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
-    
     
     ) %>% 
   t() %>% as.data.frame() %>% 
@@ -3175,7 +3217,7 @@ tab_style(
 ) %>% 
   tab_style(
       style = list(
-        cell_text(indent = px(40))
+        cell_text(indent = px(0))
         ),
       locations = cells_stub(rows = c('Denominator, n',
                  "Denominator, n ",
@@ -3183,6 +3225,32 @@ tab_style(
                  "Denominator, n   ",
                  "Denominator, n    "))
       ) %>% 
+  
+  
+  # bold denominator rows - 1st column
+tab_style(
+  style = list(
+    cell_text(weight = "bold")
+  ),
+  locations = cells_stub(rows = c(
+   'Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))) %>%
+ 
+# bold denominator rows - body
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_body(rows = c(
+     'Denominator, n',
+                 "Denominator, n ",
+                 "Denominator, n  ",
+                 "Denominator, n   ",
+                 "Denominator, n    "))) %>% 
+  
 
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> EPDS score at or above the cutoff score for that site, ever (among any woman who has at least one EPDS assessment).</span>")

@@ -14,7 +14,7 @@
 *Update: September 16, 2024 by E Oakley (split into separate file for mat_endpoints only)
 *Update: October 09, 2024 by S O'Malley (fixed error handling induced abortions)
 *Update: December 17, 2024 by S O'Malley (Cleaned up and added to Github)
-
+*Update: January-February, 2025 by S O'Malley (updated variable names & improved handling of duplicates)
 
 clear
 set more off
@@ -23,7 +23,8 @@ cap log close
 *Directory structure:
 
 	// Savannah's folders: 
-global dadate "2024-12-13" // SYNAPSE/UPLOAD DATE 
+global dadate "2025-02-07" // SYNAPSE/UPLOAD DATE 
+global runquery = 1
 global dir  "Z:\Savannah_working_files\Endpoints/$dadate" 
 *global log "$dir/logs"
 *global do "$dir/do"
@@ -37,11 +38,15 @@ global da "Z:/Stacked Data/$dadate" // update date as needed
 global OUT "Z:\Savannah_working_files\Endpoints/$dadate"
 
 
-
 	// Working Files Folder (TNT-Drive)
 global wrk "Z:\Savannah_working_files\Endpoints/$dadate" // set pathway here for where you want to save output data files (i.e., constructed analysis variables)
+	
+	cap mkdir "$wrk" //make this folder if it does not exist
+	
+global queries "Z:\Savannah_working_files\Endpoints/$dadate\queries"
+	cap mkdir "$queries" //make this folder if it does not exist
 
-global date "241217" // today's date
+
 
 *log using "$log/mat_outcome_construct_endpoints_$date", replace
 
@@ -78,8 +83,27 @@ global date "241217" // today's date
 */
 
 		
-//////////////////////////////////////////
 
+
+
+*Step 0: check for duplicates in MAT_ENROLL:
+
+
+		
+	clear 
+	import delimited "Z:/Outcome Data/$dadate/MAT_ENROLL", case(upper)
+	keep if ENROLL==1
+	duplicates tag MOMID PREGID,gen(dup)
+	assert dup == 0 
+	bysort MOMID PREGID (PREG_START_DATE) : gen ENROLL_NUM = _n
+	tab ENROLL_NUM
+	keep if ENROLL_NUM == 1
+	drop ENROLL_NUM dup
+	count
+	save "$wrk/MAT_ENROLL", replace 
+	clear	
+
+//////////////////////////////////////////
 	*Added step prior to opening MMH09: search for pregnancy losses reported in 
 	*MNH04 (ANC form): 
 	
@@ -223,7 +247,7 @@ global date "241217" // today's date
 	*Added step prior to opening MMH09: search for pregnancy losses & relevant 
 	*outcomes reported in MNH19 (Hospitalization form): 
 	
-	import delimited "$da/mnh19_merged", bindquote(strict)
+	import delimited "$da/mnh19_merged", bindquote(strict) clear
 	
 	/* Variables needed from hospitalization:
 		
@@ -316,10 +340,32 @@ global date "241217" // today's date
 	duplicates tag momid pregid, gen(duplicate)
 	tab duplicate, m 
 	
-	drop duplicate
 	
-		*no duplicates for hospitalizations with pregnancy complications/
-		*endpoint information; proceed 
+
+		if $runquery == 1 {
+		levelsof(site) if duplicate !=0 , local(sitelev) clean
+		foreach site of local sitelev {
+			export excel site_MNH19 momid pregid  using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if site=="`site'" & duplicate >= 1 , sheet("duplicate-MNH19",modify)  firstrow(variables) 
+		}
+	}
+	
+	
+		sum duplicate 
+		if r(max) > 0  {
+			*if duplicate exists, collapse
+		
+	collapse (min)  PREGEND_HOSP_DT  ///
+		(max) PREGEND_HOSP LOSS_TYPE_HOSP LIVEBIRTH_HOSP ///
+			LOSS_EARLY LASTALIVE_M19 /// 
+		(firstnm) MAT_DEATH_M19 MAT_DEATH_DATE_M19 FORMCOMPL_DTHDAT_M19, ///
+		by(site_MNH19 momid pregid)
+		}
+	
+
+	cap drop duplicate
+	
+	
+	isid momid pregid //confirm no duplicates
 	
 	save "$wrk/endpoint_outcomes_MNH19", replace 
 	
@@ -328,7 +374,7 @@ global date "241217" // today's date
 	/////////////////////////
 	*Now can open MNH09: 
 	*MNH09: 
-	import delimited "$da/mnh09_merged", bindquote(strict)
+	import delimited "$da/mnh09_merged", bindquote(strict) clear
 	
 	tab site, m 
 	
@@ -428,16 +474,7 @@ global date "241217" // today's date
 	
 
 	// Merge in BOE data & ENROLLMENT INDICATOR 
-	preserve 
-		
-		clear 
-		import delimited "Z:/Outcome Data/$dadate/MAT_ENROLL", case(upper)
-		keep if ENROLL==1
-		duplicates tag MOMID PREGID,gen(dup)
-		count
-		save "$wrk/MAT_ENROLL", replace 
-		
-	restore
+	
 	
 	
 	rename momid MOMID 
@@ -450,21 +487,35 @@ global date "241217" // today's date
 	replace site = SITE if site == ""
 	
 	
-	*** TEMPORARY MEASURE: keep only if in BOE dataset AND L&D form:
-	keep if _merge == 3
+	*** TEMPORARY MEASURE: keep only if in ENROLL dataset AND L&D/MNH04/MNH19:
+	
+	if $runquery == 1 {
+		
+		levelsof(site) if _merge ==1 , local(sitelev) clean
+			*which sites have unenrolled participants?
+		foreach site of local sitelev {
+			export excel site MOMID PREGID PREG_END_SOURCE using ///
+			"$queries/`site'-endpoints-queries-$dadate.xlsx"  if ///
+			site=="`site'" & _merge == 1 , ///
+			sheet("Not-enrolled",modify) firstrow(variables) 
+		}
+		
+	}
+	
+	keep if _merge == 3 // keep only those Enrolled & with MNH 04/09/19
 	
 	drop _merge 
 	
-	rename EST_CONCEP_DATE 	STR_EST_CONCEP_DATE
+	rename PREG_START_DATE 	STR_PREG_START_DATE
 	
-	gen EST_CONCEP_DATE = date(STR_EST_CONCEP_DATE, "YMD")
-	format EST_CONCEP_DATE %td
+	gen PREG_START_DATE = date(STR_PREG_START_DATE, "YMD")
+	format PREG_START_DATE %td
 	
-	sum EST_CONCEP_DATE, format 
+	sum PREG_START_DATE, format 
 		
 *Calculate GA at pregnancy endpoint: 
 	
-	gen PREG_END_GA = PREG_END_DATE - EST_CONCEP_DATE
+	gen PREG_END_GA = PREG_END_DATE - PREG_START_DATE
 	label var PREG_END_GA "GA at pregnancy endpoint (days)"
 	
 	sum PREG_END_GA
@@ -474,7 +525,7 @@ global date "241217" // today's date
 	
 	
 	* REVIEW GA AT ESTIMATED ENDPOINT (for pregnancy losses with missing date): 
-	gen PREG_END_GA_EST = PREG_END_DATE_MNH04_ESTIMATED - EST_CONCEP_DATE if ///
+	gen PREG_END_GA_EST = PREG_END_DATE_MNH04_ESTIMATED - PREG_START_DATE if ///
 		MNH04_ESTIMATES==1 
 		
 	gen PREG_END_GA_EST_WK = PREG_END_GA_EST / 7 
@@ -499,8 +550,8 @@ global date "241217" // today's date
 	
 	
 	*Check on negative case: 
-	list MOMID PREGID SITE EST_CONCEP_DATE PREG_END_DATE PREG_END_GA ///
-		M02_SCRN_OBSSTDAT ///
+	list MOMID PREGID SITE PREG_START_DATE PREG_END_DATE PREG_END_GA ///
+		ENROLL_SCRN_DATE ///
 		if PREG_END_GA <0 & PREG_END_GA != .
 		
 	
@@ -606,7 +657,7 @@ global date "241217" // today's date
 			*calculate: form completed date & ga: 
 			gen FORM_DATE = date(m09_formcompldat_mnh09, "YMD")
 			format FORM_DATE %td
-			gen FORM_GA = FORM_DATE - EST_CONCEP_DATE if MNH09_VISIT_INCOMPLETE == 1 | ///
+			gen FORM_GA = FORM_DATE - PREG_START_DATE if MNH09_VISIT_INCOMPLETE == 1 | ///
 				PREG_END_DATE_MISS == 1 
 				
 			sum FORM_GA
@@ -764,17 +815,20 @@ global date "241217" // today's date
 	
 	list if duplicate >= 1 ,sepby(pregid)
 	
+	tab  CLOSEOUT_TYPE if duplicate >= 1
+	
 	**#stop & address duplicates: 
-	stop & address duplicates: 
-		
+	assert CLOSEOUT_TYPE !=3 if duplicate >= 1 
+	*duplicates are okay as long as there are no deaths
 
 	
-	*As of 9-6 data, no duplicates in closeout forms. 
-	
-	*as of 10-04 data we now have several duplicates again from Kenya
-	*none are deaths
-	
-	*as of 11-29 we have several duplicates from Kenya, one is a death but the reason for closeout (death) and date of death are the same in both forms
+	if $runquery == 1 {
+		levelsof(site) if duplicate >= 1 , local(sitelev) clean
+		foreach site of local sitelev {
+			export excel site momid pregid CLOSEOUT_DT using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if site=="`site'" & duplicate >= 1 , sheet("duplicate-closeout",modify)  firstrow(variables) 
+		}
+	}
+
 	bysort pregid (CLOSEOUT_DT) : gen dup_num = _n
 	drop if dup_num!=1
 	duplicates tag momid pregid, gen(duplicates2)
@@ -796,10 +850,10 @@ global date "241217" // today's date
 	
 	drop _merge 
 	
-	rename EST_CONCEP_DATE STR_EST_CONCEP_DATE
+	rename PREG_START_DATE STR_PREG_START_DATE
 	
-	gen EST_CONCEP_DATE = date(STR_EST_CONCEP_DATE, "YMD")
-	format EST_CONCEP_DATE %td
+	gen PREG_START_DATE = date(STR_PREG_START_DATE, "YMD")
+	format PREG_START_DATE %td
 	
 	*Merge in info to add pregnancy endpoint: 
 	
@@ -812,8 +866,8 @@ global date "241217" // today's date
 	*Generate a GA at closeout: 
 
 	
-	gen CLOSEOUT_GA = CLOSEOUT_DT - EST_CONCEP_DATE if ///
-		CLOSEOUT == 1 & CLOSEOUT_DT != . & EST_CONCEP_DATE != . & ///
+	gen CLOSEOUT_GA = CLOSEOUT_DT - PREG_START_DATE if ///
+		CLOSEOUT == 1 & CLOSEOUT_DT != . & PREG_START_DATE != . & ///
 		((CLOSEOUT_DT < PREG_END_DATE & PREG_END == 1) | ///
 		PREG_END == .)
 		
@@ -824,7 +878,7 @@ global date "241217" // today's date
 		
 		label var CLOSEOUT_GA "GA at closeout (if during pregnancy)"
 		
-	list site CLOSEOUT EST_CONCEP_DATE CLOSEOUT_DT ///
+	list site CLOSEOUT PREG_START_DATE CLOSEOUT_DT ///
 		CLOSEOUT_GA PREG_END PREG_END_DATE CLOSEOUT_TYPE if CLOSEOUT == 1 
 		
 	*** Save a closeout dataset:
@@ -946,10 +1000,10 @@ global date "241217" // today's date
 	
 	drop _merge 
 	
-	rename EST_CONCEP_DATE STR_EST_CONCEP_DATE
+	rename PREG_START_DATE STR_PREG_START_DATE
 	
-	gen EST_CONCEP_DATE = date(STR_EST_CONCEP_DATE, "YMD")
-	format EST_CONCEP_DATE %td	
+	gen PREG_START_DATE = date(STR_PREG_START_DATE, "YMD")
+	format PREG_START_DATE %td	
 	
 	
 	*#Generate GA at maternal death for cases where:
@@ -963,7 +1017,20 @@ global date "241217" // today's date
 		gen MAT_DEATH_DATE = min( PREG_DEATH_DATE_MNH04, MAT_DEATH_MNH09_DATE, MAT_DEATH_MNH10_DATE, MAT_DEATH_MNH12_DATE, MAT_DEATH_DATE_M19, MAT_DEATH_DATE_M23)
 		gen MAT_DEATH_MISSDATE = 1 if MAT_DEATH_DATE==. & MAT_DEATH == 1
 		
-		list SITE site_MNH23 PREG_DEATH_MNH04 MAT_DEATH_MNH09 MAT_DEATH_M23 MAT_DEATH_MNH10 MAT_DEATH_MNH12 MAT_DEATH_M19 if MAT_DEATH_MISSDATE==1
+		list SITE MOMID site_MNH23 PREG_DEATH_MNH04 MAT_DEATH_MNH09 MAT_DEATH_M23 MAT_DEATH_MNH10 MAT_DEATH_MNH12 MAT_DEATH_M19 if MAT_DEATH_MISSDATE==1
+		
+replace SITE = site_MNH23 if SITE == ""
+replace SITE = site if SITE == ""
+replace SITE = site_MNH19 if SITE == ""
+		
+		
+if $runquery == 1 {
+		levelsof(SITE) if MAT_DEATH_MISSDATE==1 , local(sitelev) clean
+		foreach site of local sitelev {
+			export excel SITE MOMID PREGID  using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if SITE=="`site'" & MAT_DEATH_MISSDATE==1 , sheet("missing-DoD",modify)  firstrow(variables) 
+		}
+	}
+		
 		**#stop and check how many are missing death dates
 		stop and check how many are missing death dates
 		
@@ -978,8 +1045,9 @@ global date "241217" // today's date
 			
 		*check when last seen alive and date when death was recorded
 		
-		list SITE VISIT_LAST_ALIVE_MNH09 VISIT_LAST_ALIVE_MNH10 VISIT_LAST_ALIVE_MNH12 VISIT_DOD_MNH09 VISIT_DOD_MNH10 VISIT_DOD_MNH12_DATE  if MAT_DEATH_MISSDATE==1
+		list SITE VISIT_LAST_ALIVE_MNH09 VISIT_LAST_ALIVE_MNH10 VISIT_LAST_ALIVE_MNH12 VISIT_DOD_MNH09 VISIT_DOD_MNH10 VISIT_DOD_MNH12_DATE  if MAT_DEATH_MISSDATE==1, abbr(15)
 		
+	
 	gen LASTALIVE = ///
 	max(VISIT_LAST_ALIVE_MNH09, VISIT_LAST_ALIVE_MNH10, VISIT_LAST_ALIVE_MNH12)
 	gen VISIT_DOD = ///
@@ -989,7 +1057,7 @@ global date "241217" // today's date
 	gen MIDPOINT_LASTALIVE_DEAD= ((VISIT_DOD-LASTALIVE)/2) + LASTALIVE
 		
 	format LASTALIVE MIDPOINT_LASTALIVE_DEAD VISIT_DOD %td	
-	list  LASTALIVE MIDPOINT_LASTALIVE_DEAD VISIT_DOD if MAT_DEATH_MISSDATE==1
+	list SITE LASTALIVE MIDPOINT_LASTALIVE_DEAD VISIT_DOD if MAT_DEATH_MISSDATE==1
 	
 	*show the momids at each site with a missing date
 	levelsof(SITE) if MAT_DEATH_MISSDATE==1,local(sitelev) clean
@@ -1001,9 +1069,9 @@ global date "241217" // today's date
 	}
 
 		
-	/*
+
 	**Use the below code if death occurs during ANC:
-		preserve
+	/*	preserve
 			keep if MAT_DEATH_MISSDATE==1
 			
 			drop  VISIT_LAST_ALIVE_MNH04 LASTALIVE_M19 VISIT_LAST_ALIVE_MNH09
@@ -1027,13 +1095,18 @@ global date "241217" // today's date
 			
 			list VISIT_LAST_ALIVE_MNH04 VISIT_LAST_ALIVE_MNH09 LASTALIVE_M19 VISIT_LAST_ALIVE_MNH10 VISIT_LAST_ALIVE_MNH12 CLOSEOUT_DT
 			
-			**one participant, death reported in MNH12
+		gen VISIT_DOD = min(VISIT_DOD_MNH09, VISIT_DOD_MNH10, VISIT_DOD_MNH12_DATE)	
+		format VISIT_DOD %td
+		label var VISIT_DOD "date of first visit where mother was recorded died"
 			
 		gen LASTALIVE=max(VISIT_LAST_ALIVE_MNH04, VISIT_LAST_ALIVE_MNH09, LASTALIVE_M19, VISIT_LAST_ALIVE_MNH10, VISIT_LAST_ALIVE_MNH12)
+		format LASTALIVE %td
 		gen MIDPOINT_LASTALIVE_DEAD = ///
 		((CLOSEOUT_DT-LASTALIVE)/2) + LASTALIVE
+		replace MIDPOINT_LASTALIVE_DEAD = ///
+		((VISIT_DOD-LASTALIVE)/2) + LASTALIVE if MIDPOINT_LASTALIVE_DEAD ==.
 		format MIDPOINT_LASTALIVE_DEAD %td
-		list VISIT_LAST_ALIVE_MNH04 VISIT_LAST_ALIVE_MNH09 LASTALIVE_M19 VISIT_LAST_ALIVE_MNH10 VISIT_LAST_ALIVE_MNH12 MIDPOINT_LASTALIVE_DEAD CLOSEOUT_DT
+		list SITE LASTALIVE  MIDPOINT_LASTALIVE_DEAD CLOSEOUT_DT VISIT_DOD
 		
 		save "$wrk/MAT_DEATH_MISSDATE", replace
 	
@@ -1045,8 +1118,8 @@ global date "241217" // today's date
 	replace MAT_DEATH_DATE= MIDPOINT_LASTALIVE_DEAD if MAT_DEATH_DATE==.
 		
 		
-	gen MAT_DEATH_GA = MAT_DEATH_DATE - EST_CONCEP_DATE if MAT_DEATH == 1 & ///
-		MAT_DEATH_DATE != . & EST_CONCEP_DATE != . & PREG_END != 1 
+	gen MAT_DEATH_GA = MAT_DEATH_DATE - PREG_START_DATE if MAT_DEATH == 1 & ///
+		MAT_DEATH_DATE != . & PREG_START_DATE != . & PREG_END != 1 
 		
 		 
 		
@@ -1057,7 +1130,7 @@ global date "241217" // today's date
 	
 	
 	*identify any maternal deaths during pregnancy & not yet documented:
-	list site* EST_CONCEP_DATE  CLOSEOUT_DT CLOSEOUT_GA MAT_DEATH_DATE ///
+	list site* PREG_START_DATE  CLOSEOUT_DT CLOSEOUT_GA MAT_DEATH_DATE ///
 		MAT_DEATH_GA PREG_END PREG_END_DATE PREG_END_GA MNH04_ANY MNH19_ANY ///
 		MNH09_FORM_INCOMPLETE if MAT_DEATH == 1  
 		
@@ -1071,22 +1144,29 @@ global date "241217" // today's date
 	replace PREG_END_DATE = MAT_DEATH_DATE if MAT_DEATH == 1 & ///
 		PREG_END != 1 & PREG_END_DATE == . & MAT_DEATH_GA <290
 		
-	replace PREG_END_GA = PREG_END_DATE - EST_CONCEP_DATE if ///
-		PREG_END_DATE != . & EST_CONCEP_DATE != . & PREG_END_GA == . 
+	replace PREG_END_GA = PREG_END_DATE - PREG_START_DATE if ///
+		PREG_END_DATE != . & PREG_START_DATE != . & PREG_END_GA == . 
 
 	replace PREG_END=1 if PREG_LOSS_DEATH == 1 
 	
 	*RE_FIX negative case: 
-	list MOMID PREGID SITE EST_CONCEP_DATE PREG_END_DATE PREG_END_GA ///
-		M02_SCRN_OBSSTDAT ///
+	list MOMID PREGID SITE PREG_START_DATE PREG_END_DATE PREG_END_GA ///
+		ENROLL_SCRN_DATE ///
 		if PREG_END_GA <0 & PREG_END_GA != .
 		
 
 
 	
 	*review info: 
-	histogram PREG_END_GA, by(site,col(1)) percent
+	*histogram PREG_END_GA, by(site,col(1)) percent
 	bigtab site PREG_END_GA if PREG_END_GA>300 & PREG_END_GA<.
+	
+	if $runquery == 1 {
+		levelsof(SITE) if PREG_END_GA>300 & PREG_END_GA<., local(sitelev) clean
+		foreach site of local sitelev {
+			export excel SITE MOMID PREGID PREG_END_GA PREG_END_SOURCE using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if SITE=="`site'" & PREG_END_GA>300 & PREG_END_GA<. , sheet("High-PREG_END_GA",modify)  firstrow(variables) 
+		}
+	}
 	
 	histogram PREG_END_GA if MAT_DEATH == 1 & MAT_DEATH_DATE == PREG_END_DATE, width(1)
 	
@@ -1208,27 +1288,33 @@ merge 1:1 MOMID PREGID using "$OUT/MAT_ENROLL.dta", gen(ENROLL_MERGE)
 keep if ENROLL_MERGE==3
 drop ENROLL_MERGE
 	
-	replace PREG_END_DATE = date(EDD_BOE, "YMD") if PREG_END_DATE==. 
+	*replace PREG_END_DATE = date(EDD_BOE, "YMD") if PREG_END_DATE==. 
 //if no pregnancy end date or DOB
 
 //step 2: calculate window of time up to 42 days after pregnancy end date
-	cap drop PP42
-	gen PP42 = PREG_END_DATE + 42 if PREG_END_DATE>0 & PREG_END_DATE!=.
-	format PREG_END_DATE PP42 MAT_DEATH_DATE %td
+	cap drop PREG_END_PP42_DT
+	gen PREG_END_PP42_DT = PREG_END_DATE + 42 if PREG_END_DATE>0 & PREG_END_DATE!=.
+	replace PREG_END_PP42_DT = date(EDD_BOE, "YMD") + 42 if PREG_END_DATE == . 
+	//if no DOB
+	format PREG_END_DATE PREG_END_PP42_DT MAT_DEATH_DATE %td
 
 	
 	*Calculate GA or infant age at time of death
-	gen DEATH_GA = MAT_DEATH_DATE-date(EST_CONCEP_DATE, "YMD") if ///
+	gen DEATH_GA = MAT_DEATH_DATE-date(PREG_START_DATE, "YMD") if ///
 	MAT_DEATH == 1
 	replace DEATH_GA = . if MAT_DEATH_DATE > PREG_END_DATE
-	
-
+	replace MAT_DEATH_GA = DEATH_GA if MAT_DEATH_GA ==. & DEATH_GA != .
+	assert DEATH_GA == MAT_DEATH_GA
+	list SITE DEATH_GA PREG_START_DATE PREG_END_DATE PREG_END MAT_DEATH_GA MAT_DEATH_MISSDATE  if DEATH_GA != MAT_DEATH_GA
+	// this will flag if any differences
+	drop DEATH_GA
+	//if no differences, safe to drop
 	
 //step 3: code if within 42 days
 	gen MAT_DEATH_42 = 1 if /// occured during pregnancy - 42 days pp
-	MAT_DEATH_DATE < PP42
+	MAT_DEATH_DATE < PREG_END_PP42_DT
 	replace MAT_DEATH_42 =2 if /// occured 42+ days pp
-	MAT_DEATH_DATE >= PP42 & MAT_DEATH_INFAGE<=365
+	MAT_DEATH_DATE >= PREG_END_PP42_DT & MAT_DEATH_INFAGE<=365
 	replace MAT_DEATH_42 = 55 if /// missing
 	MAT_DEATH_DATE<0
 	//negative values are the default values, meaning DoD unknown
@@ -1240,6 +1326,59 @@ drop ENROLL_MERGE
 	label val MAT_DEATH_42 MAT_DEATH_42		
 	
 	bigtab MAT_DEATH_42 MAT_DEATH_GA  MAT_DEATH_INFAGE if MAT_DEATH==1
+	
+	
+		if $runquery == 1 {
+		
+	*pull IDs for weird closeout situations
+	
+	gen CLOSEOUT_DAYS_PP = CLOSEOUT_DT- PREG_END_DATE
+	
+	*Situation #1: 
+	*closeout < 40 days and closeout type == " 2-Follow-up complete (42 days)"
+	tab SITE if CLOSEOUT_TYPE==2 & CLOSEOUT_DAYS_PP <40
+	
+	
+	levelsof(SITE) if CLOSEOUT_TYPE==2 & CLOSEOUT_DAYS_PP <40 , local(sitelev) clean
+		foreach site of local sitelev {
+		export excel SITE MOMID PREGID PREG_END CLOSEOUT_DAYS_PP CLOSEOUT_TYPE using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if SITE=="`site'" & CLOSEOUT_TYPE==2 & CLOSEOUT_DAYS_PP <40 , sheet("Closeout-LT40",modify)  firstrow(variables)  
+	}
+	
+	
+	*Situation #2:
+	*closeout type == 2 and PREG_END==0
+	tab SITE if CLOSEOUT_TYPE==2 & PREG_END==0
+	
+	levelsof(SITE) if CLOSEOUT_TYPE==2 & PREG_END==0 , local(sitelev) clean
+		foreach site of local sitelev {
+		export excel SITE MOMID PREGID PREG_END CLOSEOUT_DAYS_PP CLOSEOUT_TYPE using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if SITE=="`site'"  & PREG_END==0 & (CLOSEOUT_TYPE==2 | CLOSEOUT_TYPE == 1) , sheet("No-Preg-End",modify)  firstrow(variables) 
+	}
+	
+		
+	*SITUATION #3:
+	*Closeout_type == "1-Follow-up complete (1 yr)" but closeout days postparum < 300 days
+	bigtab SITE CLOSEOUT_TYPE if CLOSEOUT_TYPE==1 & CLOSEOUT_DAYS_PP<300
+	
+	
+	levelsof(SITE) if CLOSEOUT_TYPE==1 & CLOSEOUT_DAYS_PP<300 & PREG_END==1 , local(sitelev) clean
+		foreach site of local sitelev {
+		export excel SITE MOMID PREGID PREG_END CLOSEOUT_DAYS_PP CLOSEOUT_TYPE ///
+		using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if ///
+		SITE=="`site'" & (CLOSEOUT_TYPE==1 & CLOSEOUT_DAYS_PP<300 & PREG_END==1) , ///
+		sheet("Closeout-LT300",modify)  firstrow(variables) 
+	}
+	
+	
+	*Situation 4: the closeout type is not specified
+	levelsof(SITE) if CLOSEOUT_TYPE >10 & CLOSEOUT == 1, local(sitelev) clean
+	foreach site of local sitelev {
+		export excel SITE MOMID PREGID CLOSEOUT_TYPE using ///
+		"$queries/`site'-endpoints-queries-$dadate.xlsx"  if ///
+		SITE=="`site'" & CLOSEOUT_TYPE>10 & CLOSEOUT == 1, ///
+		sheet("Miss-closeout-reason", modify) firstrow(variables)
+	}
+	
+	}
 			
 	* ADD IN PNC VISIT WINDOWS: 
 	
@@ -1263,40 +1402,9 @@ drop ENROLL_MERGE
 	}
 	
 	
-	/*
-	pull IDs for weird closeout situations
+
 	
-	gen CLOSEOUT_DAYS_PP = CLOSEOUT_DT- PREG_END_DATE
-	
-	*Situation #1: 
-	*closeout < 40 days and closeout type == " 2-Follow-up complete (42 days)"
-	tab SITE if CLOSEOUT_TYPE==2 & CLOSEOUT_DAYS_PP <40
-	
-	
-	foreach site in "Ghana" "Kenya" "Pakistan" {
-		export excel SITE MOMID PREGID PREG_END CLOSEOUT_DAYS_PP CLOSEOUT_TYPE using "$wrk/`site'-CLOSEOUT-IDS.xlsx"  if SITE=="`site'" & (CLOSEOUT_TYPE==2 & CLOSEOUT_DAYS_PP <40 & PREG_END==1) , sheet("Less-Than-40-days",modify)  firstrow(variables) 
-	}
-	
-	
-	*Situation #2:
-	*closeout type == 2 and PREG_END==0
-	tab SITE if CLOSEOUT_TYPE==2 & PREG_END==0
-	
-	foreach site in "Ghana"  "Pakistan" {
-		export excel SITE MOMID PREGID PREG_END CLOSEOUT_DAYS_PP CLOSEOUT_TYPE using "$wrk/`site'-CLOSEOUT-IDS.xlsx"  if SITE=="`site'" & (CLOSEOUT_TYPE==2 & PREG_END==0) , sheet("No-Preg-End",modify)  firstrow(variables) 
-	}
-	
-		
-	*SITUATION #3:
-	*Closeout_type == "1-Follow-up complete (1 yr)" but closeout days postparum < 300 days
-	bigtab SITE CLOSEOUT_TYPE if CLOSEOUT_TYPE==1 & CLOSEOUT_DAYS_PP<300
-	
-	
-	foreach site in "Ghana"  "Pakistan" "Zambia" {
-		export excel SITE MOMID PREGID PREG_END CLOSEOUT_DAYS_PP CLOSEOUT_TYPE using "$wrk/`site'-CLOSEOUT-IDS.xlsx"  if SITE=="`site'" & (CLOSEOUT_TYPE==1 & CLOSEOUT_DAYS_PP<300 & PREG_END==1) , sheet("Less-than-300-days",modify)  firstrow(variables) 
-	}
-	
-	*/
+
 	
 	*Windows below drawn for consistency with the monitoring report: 
 	*https://docs.google.com/spreadsheets/d/11VutJeWo5lH2RlSpgPHv7hrHqNt2BCXrZm8XRjdS3j0/edit?usp=sharing 
@@ -1366,6 +1474,33 @@ drop ENROLL_MERGE
 	keep if _merge==3
 	tab SITE if PREG_END==., miss
 	
+	drop _merge 
+	assert PREG_END_GA == . if PREG_END == 0
+	assert PREG_END_DATE == . if PREG_END == 0
+	
+	cap assert PREG_END_GA <. & PREG_END_DATE <.  if PREG_END == 1
+	if _rc != 0 { 
+		*if error code is captured, run below code
+		
+		if $runquery == 1 {
+		
+	levelsof(SITE) if PREG_END_DATE ==. & PREG_END == 1, local(sitelev) clean 
+	*which sites have this error?
+		
+		foreach site of local sitelev {
+			*for each site with the error, export the following excel:
+					
+		export excel SITE MOMID PREGID PREG_END PREG_END_SOURCE using ///
+		"$queries/`site'-endpoints-queries-$dadate.xlsx" if ///
+		SITE=="`site'" & PREG_END_DATE ==. & PREG_END == 1, ///
+		sheet("Miss-PREG_END_DATE",modify)  firstrow(variables) 
+			
+		}
+		
+		}
+		
+	}
+
 	save "$OUT/MAT_ENDPOINTS", replace 
 	
 	*Save to outcomes folder once reviewed:
@@ -1373,6 +1508,31 @@ drop ENROLL_MERGE
 
 	
 	
+	if $runquery == 1 {
+		
+		use "Z:\Savannah_working_files\Endpoints/$dadate\REVIEW_EMPTY_MNH09_FORMS.dta", clear
+		
+		gen formfill_window = FORM_DATE + 60 if ///
+			FORM_DATE != . & CLOSEOUT == 0 
+			format formfill_window %td
+		
+		levelsof(SITE) if formfill_window < date("$dadate","YMD"), local(sitelev) clean 
+		
+		foreach site of local sitelev {
+			
+			preserve
+			
+			sort FORM_DATE
+			export excel SITE momid pregid CLOSEOUT FORM_DATE using ///
+			"$queries/`site'-endpoints-queries-$dadate.xlsx" if ///
+			SITE=="`site'" & formfill_window < date("$dadate","YMD"), ///
+			sheet("Empty-MNH09",modify)  firstrow(variables) 
+			
+			restore
+
+			}
+		
+	}
 	
 	
 	/*	

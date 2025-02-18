@@ -8,13 +8,14 @@ Stata code: Savannah F. O'Malley (savannah.omalley@gwu.edu)
 
 ## Codes include:
 
-**`MNH25.do` uses MNH25 form to construct perinatal depression
+**`depression.do` uses depression [MNH25] data to construct perinatal depression
 
 *Note: this code requires three data sets:* 
-1. 'mnh25.csv' which contains depression data 
-2. 'BOE.dta' which is required to calculate visit windows [part 3 of the code]
-3. 'mat_OUTCOMES.dta' which provides variables for pregnancy end date and closeout date [part 3 of the code]
-*Note that data sets #2 and #3 are only for generating denominators for reports [part 3 of the code]; individual sites do not need data sets #2 and #3 to calculate depression summary scores*
+1. 'mnh25_merged.csv' which contains depression data 
+2. 'MAT_ENROLL.dta' which is required to calculate visit windows [part 3 of the code]
+3. 'MAT_ENDPOINTS.dta' which provides variables for pregnancy end date and closeout date [part 3 of the code]
+4. 'Expected_obs.dta' which provides denominators of women expected for each time point
+*Note that data sets #2 - 4 are only for generating denominators for reports [part 3 of the code]; individual sites do not need data sets #2 -4 to calculate depression summary scores*
 
 This do file will create three data files:
 1. Long data set (per participant - observation) --> useful for monitoring; includes data for non-scheduled visits
@@ -34,14 +35,14 @@ This do file will create three data files:
 Outcomes are provided in a collapsed data set (one row per participant)
 
 #### Depression at ANC-20 : 
-1. DEPR_ANC20_STND
-2. DEPR_ANC20_SITE
-3. DEPR_ANC20_SCORE 
+1. DEPR_STND_ANC20
+2. DEPR_SITE_ANC20
+3. DEPR_SCORE_ANC20 
 #### Depression at ANC-32 : 
-1. DEPR_ANC32_STND
-2. DEPR_ANC32_SITE
-3. DEPR_ANC32_SCORE 
+1. DEPR_STND_ANC32
+2. DEPR_SITE_ANC32
+3. DEPR_SCORE_ANC32 
 #### Depression at PNC-6  : 
-1. DEPR_PNC6_STND
-2. DEPR_PNC6_SITE
-3. DEPR_PNC6_SCORE 
+1. DEPR_STND_PNC6
+2. DEPR_SITE_PNC6
+3. DEPR_SCORE_PNC6 
