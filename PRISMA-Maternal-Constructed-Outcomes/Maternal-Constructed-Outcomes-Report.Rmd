@@ -55,7 +55,7 @@ preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% ren
 labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
+MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION-CTNG", ".csv"))
 near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -4224,24 +4224,39 @@ hepatitis_tab <- MAT_INFECTION %>%
       format(round(sum(HEV_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & HEV_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
+    # Hepatitis E
+  "N with at least one expansion test performed" = paste0(
+      format(sum(EXPANSION_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Hep E IgM positive at enrollment ^d^" = paste0(
+      format(sum(HEV_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEV_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & HEV_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
     "Hep E IgG positive at enrollment ^d^" = paste0(
       format(sum(HEV_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEV_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & HEV_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    # "Hep E incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(HEV_IGM_POSITIVE_ANY_ANC == 1|HEV_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(HEV_IGM_POSITIVE_ANY_ANC == 1|HEV_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(ENROLL_EXPANSION == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
+    "Hep E IgM incidence following enrollment ^d^" = paste0(
+      format(sum(HEV_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEV_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+      "Hep E IgG incidence following enrollment ^d^" = paste0(
+      format(sum(HEV_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEV_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
 
     "Hep E missing at enrollment (IgG or IgM) ^e^" = paste0(
       format(sum(HEV_IGM_MISSING_ENROLL == 1 | HEV_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEV_IGM_MISSING_ENROLL == 1 | HEV_IGG_MISSING_ENROLL==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-
 
   )  %>%
   t() %>% as.data.frame() %>% 
@@ -4272,7 +4287,7 @@ hepatitis_tab_output <- tb_theme1(hepatitis_tab) %>%
   
  tab_row_group(
     label = html("<span style='font-size: 18px'>Hep E, n (%)</span>"),
-    rows = 8:11
+    rows = 8:13
   ) %>%
   row_group_order(groups = c(NA,
                              "<span style='font-size: 18px'>Hep B, n (%)</span>",
@@ -4461,11 +4476,17 @@ zcd_tab <- MAT_INFECTION %>%
       format(round(sum(ZIK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & ZIK_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    # "Zika incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1|ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1|ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
+    "Zika IgM incidence following enrollment ^b^" = paste0(
+      format(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ZIK_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+      "Zika IgG incidence following enrollment ^b^" = paste0(
+      format(sum(ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ZIK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
   
     "Zika missing at enrollment (IgG or IgM) ^b^" = paste0(
       format(sum(ZIK_IGM_MISSING_ENROLL == 1 | ZIK_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -4486,11 +4507,18 @@ zcd_tab <- MAT_INFECTION %>%
       format(round(sum(DEN_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & DEN_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    # "Dengue incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(DEN_IGM_POSITIVE_ANY_ANC == 1|DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(DEN_IGM_POSITIVE_ANY_ANC == 1|DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
+    "Dengue IgM incidence following enrollment ^b^" = paste0(
+      format(sum(DEN_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEN_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Dengue IgG incidence following enrollment ^b^" = paste0(
+      format(sum(DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEN_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
 
     "Dengue missing at enrollment (IgG or IgM) ^b^" = paste0(
       format(sum(DEN_IGM_MISSING_ENROLL == 1 | DEN_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -4510,13 +4538,18 @@ zcd_tab <- MAT_INFECTION %>%
       " (",
       format(round(sum(CHK_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & CHK_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-
     
-    # "Chikungunya incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(CHK_IGM_POSITIVE_ANY_ANC == 1|CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(CHK_IGM_POSITIVE_ANY_ANC == 1|CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
+    "Chikungunya IgM incidence following enrollment ^b^" = paste0(
+      format(sum(CHK_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHK_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    "Chikungunya IgG incidence following enrollment ^b^" = paste0(
+      format(sum(CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHK_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
   
     "Chikungunya missing at enrollment (IgG or IgM) ^b^" = paste0(
       format(sum(CHK_IGM_MISSING_ENROLL == 1 | CHK_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -4526,23 +4559,29 @@ zcd_tab <- MAT_INFECTION %>%
   
   
   # Leptospirosis 
-      "Leptospirosis  IgM positive at enrollment ^a^" = paste0(
+      "Leptospirosis IgM positive at enrollment ^a^" = paste0(
       format(sum(LEP_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LEP_IGM_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & LEP_IGM_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Leptospirosis  IgG positive at enrollment ^a^" = paste0(
+    "Leptospirosis IgG positive at enrollment ^a^" = paste0(
       format(sum(LEP_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LEP_IGG_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1 & LEP_IGG_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    # "Leptospirosis incidence following enrollment (IgM or IgG) ^b^" = paste0(
-    #   format(sum(LEP_IGM_POSITIVE_ANY_ANC == 1|LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(LEP_IGM_POSITIVE_ANY_ANC == 1|LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
+    "Leptospirosis IgM incidence following enrollment ^d^" = paste0(
+      format(sum(LEP_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LEP_IGM_POSITIVE_ANY_ANC == 1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+      "Leptospirosis IgG incidence following enrollment ^d^" = paste0(
+      format(sum(LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LEP_IGG_POSITIVE_ANY_ANC==1, na.rm = TRUE)/sum(EXPANSION_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
 
     "Leptospirosis missing at enrollment (IgG or IgM) ^b^" = paste0(
       format(sum(LEP_IGM_MISSING_ENROLL == 1 | LEP_IGG_MISSING_ENROLL==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -4569,22 +4608,22 @@ zcd_tab_output <- tb_theme1(zcd_tab) %>%
     title = md("**Table 7e**")) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Zika, n (%)</span>"),
-    rows = 2:4
+    rows = 2:6
   ) %>%
   
   tab_row_group(
     label = html("<span style='font-size: 18px'>Dengue, n (%)</span>"),
-    rows = 5:7
+    rows = 7:11
   ) %>%
   
  tab_row_group(
     label = html("<span style='font-size: 18px'>Chikungunya, n (%)</span>"),
-    rows = 8:10
+    rows = 12:16
   ) %>%
   
   tab_row_group(
     label = html("<span style='font-size: 18px'>Leptospirosis, n (%)</span>"),
-    rows = 11:13
+    rows = 17:21
   ) %>%
   row_group_order(groups = c(NA,
                              "<span style='font-size: 18px'>Zika, n (%)</span>",
