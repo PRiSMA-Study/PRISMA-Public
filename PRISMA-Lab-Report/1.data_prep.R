@@ -12,26 +12,33 @@ library(readxl)
 library(haven)
 
 #Site data upload date
-UploadDate = "2025-01-10"
+UploadDate = "2025-04-04"
 
 #*****************************************************************************
 #* 1.Data preparation for lab missingness
 #*****************************************************************************
+
+# set path to data
+path_to_data <- paste0("~/import/", UploadDate)
+
+# set path to save 
+path_to_save <- paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Lab-Missingness/data")
+
 #******load data
 #load mnh06 data
-mnh06 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh06_merged.csv")) 
+mnh06 <- read.csv(paste0(path_to_data,"/mnh06_merged.csv")) 
 
 #load mnh08 data
-mnh08 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh08_merged.csv")) 
+mnh08 <- read.csv(paste0(path_to_data,"/mnh08_merged.csv")) 
 
 #load mnh04 data for some lab value denominator
-mnh04 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh04_merged.csv")) 
+mnh04 <- read.csv(paste0(path_to_data,"/mnh04_merged.csv")) 
 
 #load mnh09 data for DOB
-mnh09 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh09_merged.csv")) 
+mnh09 <- read.csv(paste0(path_to_data,"/mnh09_merged.csv")) 
 
 #load MAT_ENROLL 
-MAT_ENROLL <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENROLL.dta"))
+MAT_ENROLL <- read_xlsx(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENROLL.xlsx"))
 
 #load MAT_ENDPOINT 
 MAT_ENDPOINTS <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENDPOINTS.dta"))
@@ -98,7 +105,7 @@ df_maternal <- MAT_ENROLL %>%
 
 #******clean data
 #read in the lab variables we are gonna report
-lab_var <- read_excel("Lab report variables.xlsx") %>% 
+lab_var <- read_excel("D:/Users/stacie.loisate/Documents/PRISMA-Public/PRISMA-Lab-Report/Lab report variables.xlsx") %>% 
   slice(-1) %>%
   select(Form, `Variable Name`, Value) %>% 
   mutate(cat = ifelse(!is.na(Value), 1, 0))
@@ -161,7 +168,7 @@ prep_lab_date <- df_maternal %>%
 pre_lab_other <- df_maternal %>% 
   select(SITE, MOMID, PREGID, PREG_START_DATE, BOE_GA_DAYS_ENROLL, BOE_GA_WKS_ENROLL, 
          CLOSEOUT_DT, PREG_END_GA, MAT_DEATH, PREG_LOSS, DIAB_OVERT, DIAB_OVERT_DX,
-         ends_with("_PASS_LATE"), ends_with("_LATE_WINDOW")
+         ends_with("_PASS_LATE"), ends_with("_LATE_WINDOW"), contains("M08_LBSTDAT")
          ) %>% 
   #replace with NA 
   mutate_all(~ if_else(. %in% c("1907-07-07"), NA, .)) 
@@ -249,13 +256,19 @@ df_lab <- prep_lab_num %>%
   mutate(
     denom_remapp = case_when(
       denom_lab_08_1 == 1 & 
-        ((SITE == "Ghana" & ENROLL_SCRN_DATE >= "2022-12-28") |
-           (SITE == "Kenya" & ENROLL_SCRN_DATE >= "2023-04-03") | 
+        ((SITE == "Ghana" & ENROLL_SCRN_DATE >= "2022-12-28" & ENROLL_SCRN_DATE <= "2024-10-29") | ## end date confirmed added 
+           (SITE == "Kenya" & ENROLL_SCRN_DATE >= "2023-04-03") | ## confirmed 
            (SITE == "Zambia" & ENROLL_SCRN_DATE >= "2022-12-15") |
-           (SITE == "Pakistan" & ENROLL_SCRN_DATE >= "2022-09-22" & ENROLL_SCRN_DATE <= "2024-04-05") |
+           (SITE == "Pakistan" & ENROLL_SCRN_DATE >= "2022-09-22" & ENROLL_SCRN_DATE <= "2024-04-05") | ## end date confirmed added 
            (SITE == "India-CMC" & ENROLL_SCRN_DATE >= "2023-06-20") |
            (SITE == "India-SAS" & ENROLL_SCRN_DATE >= "2023-12-12")) ~ 1,
       TRUE ~ 0
+    )) %>% 
+  #define denominator India-SAS post-enrollment CBC start dates 
+  mutate(
+    denom_post_enrll_cbc = case_when(
+      (denom_lab_08_1 == 1 &  SITE == "India-CMC" & ENROLL_SCRN_DATE >= "2024-07-22") ~ 1,
+      TRUE ~ denom_remapp
     )) %>% 
   #define denominator for syphilis (test date)
   mutate(
@@ -281,7 +294,7 @@ df_lab <- prep_lab_num %>%
   #define denominator for glucose test
   mutate(
     denom_glucose= case_when(
-      DIAB_OVERT == 1 | DIAB_OVERT_DX == 1 ~ 0, #overt diabete
+      DIAB_OVERT == 1 | DIAB_OVERT_DX == 1 ~ 0, #overt diabetes
       TRUE ~ 1
     )) %>% 
   #define denominator for HIV test 
@@ -291,58 +304,89 @@ df_lab <- prep_lab_num %>%
       SITE == "Kenya" & M04_HIV_EVER_MHOCCUR_1 == 0 & M06_HIV_POC_LBPERF_1 == 1 ~ 1, 
       TRUE ~ 0
     )) %>% 
-#define denominator for zcd test 
+## define denominator zcd/lepto/hev (denom_lept_igm, denom_lept_igg, denom_hev, denom_zcd) 
   mutate(
-    denom_zcd= case_when(
-      (SITE == "Ghana" & (M08_ZCD_LBTSTDAT_1 >= "2024-04-09")) | 
-        (SITE == "India-CMC" & (M08_ZCD_LBTSTDAT_1 >= "2024-03-06")) | 
-        (SITE == "India-SAS" & (M08_ZCD_LBTSTDAT_1 >= "2024-03-12")) | 
-        (SITE == "Kenya" & (M08_ZCD_LBTSTDAT_1 >= "2024-03-06")) | 
-        (SITE == "Pakistan" & (M08_ZCD_LBTSTDAT_1 >= "2024-04-08")) |
-        (SITE == "Zambia" & (M08_ZCD_LBTSTDAT_1 >= "2023-11-09")) ~ 1,
+    denom_zcd_1 = case_when(
+      (SITE == "Ghana" & (M08_LBSTDAT_1 >= "2024-04-09")) | 
+        (SITE == "India-CMC" & (M08_LBSTDAT_1 >= "2024-03-06")) | 
+        (SITE == "India-SAS" & (M08_LBSTDAT_1 >= "2024-03-11" & M08_LBSTDAT_1 <= "2025-02-01")) | ## confirmed end date added
+        (SITE == "Kenya" & (M08_LBSTDAT_1 >= "2024-03-06")) | 
+        (SITE == "Pakistan" & (M08_LBSTDAT_1 >= "2024-04-08")) |
+        (SITE == "Zambia" & (M08_LBSTDAT_1 >= "2023-11-09")) ~ 1,
       TRUE ~ 0
-    )) %>% 
-  #define denominator for leptospirosis igm test 
-mutate(
-  denom_lept_igm= case_when(
-    (SITE == "Ghana" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-04-09")) | 
-      (SITE == "India-CMC" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-03-06")) | 
-      (SITE == "India-SAS" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-03-12")) | 
-      (SITE == "Kenya" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-03-06")) | 
-      (SITE == "Pakistan" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-04-08")) | 
-      (SITE == "Zambia" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2023-11-09")) ~ 1, 
-    TRUE ~ 0 
-  )) %>% 
-  #define denominator for leptospirosis igg test 
-mutate(
-  denom_lept_igg= case_when(
-    (SITE == "Ghana" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-04-09")) | 
-      (SITE == "India-CMC" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-03-06")) | 
-      (SITE == "India-SAS" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-03-12")) |
-      (SITE == "Kenya" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-03-06")) | 
-      (SITE == "Pakistan" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-04-08")) |
-      (SITE == "Zambia" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2023-11-09")) ~ 1,
-    TRUE ~ 0 
-  )) %>% 
-#define denominator for hev test 
-mutate(
-  denom_hev= case_when(
-    (SITE == "Ghana" & (M08_HEV_LBTSTDAT_1 >= "2024-04-09")) | 
-      (SITE == "India-CMC" & (M08_HEV_LBTSTDAT_1 >= "2024-03-06")) | 
-      (SITE == "India-SAS" & (M08_HEV_LBTSTDAT_1 >= "2024-03-12" )) |
-      (SITE == "Kenya" & (M08_HEV_LBTSTDAT_1 >= "2024-03-06")) | 
-      (SITE == "Pakistan" & (M08_HEV_LBTSTDAT_1 >= "2024-04-08")) |
-      (SITE == "Zambia" & (M08_HEV_LBTSTDAT_1 >= "2023-11-09")) ~ 1,
-    TRUE ~ 0
-  )) %>% 
+    ),
+    denom_zcd_4 = case_when(
+      (SITE == "Ghana" & (M08_LBSTDAT_4 >= "2024-04-09")) | 
+        (SITE == "India-CMC" & (M08_LBSTDAT_4 >= "2024-03-06")) | 
+        (SITE == "India-SAS" & (M08_LBSTDAT_4 >= "2024-03-11" & M08_LBSTDAT_4 <= "2025-02-01")) | ## confirmed end date added
+        (SITE == "Kenya" & (M08_LBSTDAT_4 >= "2024-03-06")) | 
+        (SITE == "Pakistan" & (M08_LBSTDAT_4 >= "2024-04-08")) |
+        (SITE == "Zambia" & (M08_LBSTDAT_4 >= "2023-11-09")) ~ 1,
+      TRUE ~ 0
+    ),
+    denom_zcd_10 = case_when(
+      (SITE == "Ghana" & (M08_LBSTDAT_10 >= "2024-04-09")) | 
+        (SITE == "India-CMC" & (M08_LBSTDAT_10 >= "2024-03-06")) | 
+        (SITE == "India-SAS" & (M08_LBSTDAT_10 >= "2024-03-11" & M08_LBSTDAT_10 <= "2025-02-01")) | ## confirmed end date added
+        (SITE == "Kenya" & (M08_LBSTDAT_10 >= "2024-03-06")) | 
+        (SITE == "Pakistan" & (M08_LBSTDAT_10 >= "2024-04-08")) |
+        (SITE == "Zambia" & (M08_LBSTDAT_10 >= "2023-11-09")) ~ 1,
+      TRUE ~ 0
+    ),
+    
+    
+    ) %>% 
+#   mutate(
+#     denom_zcd= case_when(
+#       (SITE == "Ghana" & (M08_LBSTDAT >= "2024-04-09")) | 
+#         (SITE == "India-CMC" & (M08_ZCD_LBTSTDAT_1 >= "2024-03-06")) | 
+#         (SITE == "India-SAS" & (M08_ZCD_LBTSTDAT_1 >= "2024-03-12" & M08_ZCD_LBTSTDAT_1 <= "2025-02-01")) | ## confirmed end date added
+#         (SITE == "Kenya" & (M08_ZCD_LBTSTDAT_1 >= "2024-03-06")) | 
+#         (SITE == "Pakistan" & (M08_ZCD_LBTSTDAT_1 >= "2024-04-08")) |
+#         (SITE == "Zambia" & (M08_ZCD_LBTSTDAT_1 >= "2023-11-09")) ~ 1,
+#       TRUE ~ 0
+#     )) %>% 
+#   #define denominator zcd/lepto/hev (denom_lept_igm, denom_lept_igg, denom_hev)
+# mutate(
+#   denom_lept_igm= case_when(
+#     (SITE == "Ghana" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-04-09")) | 
+#       (SITE == "India-CMC" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-03-06")) | 
+#       (SITE == "India-SAS" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-03-12" & M08_ZCD_LBTSTDAT_1 <= "2025-02-01")) | ## confirmed end date added
+#       (SITE == "Kenya" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-03-06")) | 
+#       (SITE == "Pakistan" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2024-04-08")) | 
+#       (SITE == "Zambia" & (M08_LEPT_IGM_LBTSTDAT_1 >= "2023-11-09")) ~ 1, 
+#     TRUE ~ 0 
+#   )) %>% 
+#   #define denominator for leptospirosis igg test 
+# mutate(
+#   denom_lept_igg= case_when(
+#     (SITE == "Ghana" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-04-09")) | 
+#       (SITE == "India-CMC" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-03-06")) | 
+#       (SITE == "India-SAS" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-03-12" & M08_ZCD_LBTSTDAT_1 <= "2025-02-01")) | ## confirmed end date added
+#       (SITE == "Kenya" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-03-06")) | 
+#       (SITE == "Pakistan" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2024-04-08")) |
+#       (SITE == "Zambia" & (M08_LEPT_IGG_LBTSTDAT_1 >= "2023-11-09")) ~ 1,
+#     TRUE ~ 0 
+#   )) %>% 
+# #define denominator for hev test 
+# mutate(
+#   denom_hev= case_when(
+#     (SITE == "Ghana" & (M08_HEV_LBTSTDAT_1 >= "2024-04-09")) | 
+#       (SITE == "India-CMC" & (M08_HEV_LBTSTDAT_1 >= "2024-03-06")) | 
+#       (SITE == "India-SAS" & (M08_HEV_LBTSTDAT_1 >= "2024-03-12" & M08_ZCD_LBTSTDAT_1 <= "2025-02-01")) | ## confirmed end date added
+#       (SITE == "Kenya" & (M08_HEV_LBTSTDAT_1 >= "2024-03-06")) | 
+#       (SITE == "Pakistan" & (M08_HEV_LBTSTDAT_1 >= "2024-04-08")) |
+#       (SITE == "Zambia" & (M08_HEV_LBTSTDAT_1 >= "2023-11-09")) ~ 1,
+#     TRUE ~ 0
+#   )) %>% 
   #define denominator for RBC disorder test 
   mutate(
     denom_rbc_disorder = case_when(
       denom_lab_08_1 == 1 & 
-        ((SITE == "Ghana" & ENROLL_SCRN_DATE >= "2022-12-28") |
-           (SITE == "Kenya" & ENROLL_SCRN_DATE >= "2023-04-14") |
+        ((SITE == "Ghana" & ENROLL_SCRN_DATE >= "2022-12-28" & ENROLL_SCRN_DATE <= "2024-10-29") | ## end date confirmed added 
+           (SITE == "Kenya" & ENROLL_SCRN_DATE >= "2023-04-3") | ## should this be 3 April 
            (SITE == "Zambia" & ENROLL_SCRN_DATE >= "2022-12-15") |
-           (SITE == "Pakistan" & M08_LBSTDAT_1 >= "2022-09-22" & M08_LBSTDAT_1 < "2024-01-18") |
+           (SITE == "Pakistan" & M08_LBSTDAT_1 >= "2022-09-22" & M08_LBSTDAT_1 < "2024-04-05") | ## confirmed 5 April
            (SITE == "India-CMC" & ENROLL_SCRN_DATE >= "2023-06-20") |
            (SITE == "India-SAS" & ENROLL_SCRN_DATE >= "2023-12-12")) ~ 1,
       TRUE ~ 0
@@ -351,17 +395,154 @@ mutate(
   mutate(
     denom_t3t4_anc32 = case_when(
       denom_lab_08_4 == 1 & 
-        ((SITE == "Ghana") |
-           (SITE == "Kenya") |
-           (SITE == "Zambia") |
-           (SITE == "Pakistan") |
-           (SITE == "India-CMC" & 
-              (M08_THYROID_LBTSTDAT_4 <= "2024-10-14" | 
-                 (M08_THYROID_LBTSTDAT_4 > "2024-10-14" & 
-                    (M08_THYROID_TSH_LBORRES_4 < 0.3 | M08_THYROID_TSH_LBORRES_4 > 4)))) |
+        ((SITE == "Ghana" & (M08_THYROID_LBTSTDAT_4 <= "2024-09-01" |  (M08_THYROID_LBTSTDAT_4 > "2024-09-01" & 
+                             (M08_THYROID_TSH_LBORRES_4 < 0.3 | M08_THYROID_TSH_LBORRES_4 > 4)))) |
+           (SITE == "Kenya" & (M08_THYROID_LBTSTDAT_4 <= "2025-01-14" |  (M08_THYROID_LBTSTDAT_4 > "2025-01-14" & 
+                              (M08_THYROID_TSH_LBORRES_4 < 0.3 | M08_THYROID_TSH_LBORRES_4 > 4)))) |
+           (SITE == "Zambia" & (M08_THYROID_LBTSTDAT_4 <= "2024-10-11" |  (M08_THYROID_LBTSTDAT_4 > "2024-10-11" & 
+                                (M08_THYROID_TSH_LBORRES_4 < 0.3 | M08_THYROID_TSH_LBORRES_4 > 4)))) |
+           (SITE == "Pakistan" & (M08_THYROID_LBTSTDAT_4 <= "2024-10-3" |  (M08_THYROID_LBTSTDAT_4 > "2024-10-03" & 
+                                 (M08_THYROID_TSH_LBORRES_4 < 0.3 | M08_THYROID_TSH_LBORRES_4 > 4)))) |
+           (SITE == "India-CMC" & (M08_THYROID_LBTSTDAT_4 <= "2024-10-14" |  (M08_THYROID_LBTSTDAT_4 > "2024-10-14" & ## should this be 10-16?
+                                    (M08_THYROID_TSH_LBORRES_4 < 0.3 | M08_THYROID_TSH_LBORRES_4 > 4)))) |
            (SITE == "India-SAS")) ~ 1,
       TRUE ~ 0
-    )) 
+    )) %>% 
+  #define denominator for free t3 and free t4 at enrollment
+  mutate(
+    denom_t3t4_enroll = case_when(
+      denom_lab_08_1 == 1 & 
+        ((SITE == "Ghana" & M08_THYROID_LBTSTDAT_4 <= "2024-09-01") | 
+           (SITE == "Kenya" &  M08_THYROID_LBTSTDAT_4 <= "2025-01-14") |
+           (SITE == "Zambia" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-11") |
+           (SITE == "Pakistan" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-03") |
+           (SITE == "India-CMC" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-17") |
+           (SITE == "India-SAS")) ~ 1,
+      TRUE ~ 0
+    )) %>% 
+  #define denominator for kidney & liver function tests at ANC32 
+  mutate(
+    denom_kft_lft_fxn_anc32 = case_when(
+      denom_lab_08_4 == 1 & 
+        ((SITE == "Ghana" & M08_THYROID_LBTSTDAT_4 <= "2024-10-01") | 
+           (SITE == "Kenya" &  M08_THYROID_LBTSTDAT_4 <= "2025-01-14") |
+           (SITE == "Zambia" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-11") |
+           (SITE == "Pakistan" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-03") |
+           (SITE == "India-CMC" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-16") |
+           (SITE == "India-SAS" &  M08_THYROID_LBTSTDAT_4 <= "2024-09-02")) ~ 1,
+      TRUE ~ 0
+    )) %>% 
+  #define denominator for holo TC @ Enroll/ANC32 
+  mutate(
+    denom_holo_1 = case_when(
+      denom_lab_08_1 == 1 & 
+        ((SITE == "Ghana" & M08_THYROID_LBTSTDAT_4 <= "2024-09-01") | 
+           (SITE == "Kenya" &  M08_THYROID_LBTSTDAT_4 <= "2025-01-14") |
+           (SITE == "Zambia" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-11") |
+           (SITE == "Pakistan" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-03") |
+           (SITE == "India-CMC" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-15") |
+           (SITE == "India-SAS" &  M08_THYROID_LBTSTDAT_4 <= "2024-09-02")) ~ 1,
+      TRUE ~ 0
+    ),
+    denom_holo_4 = case_when(
+      denom_lab_08_4 == 1 & 
+        ((SITE == "Ghana" & M08_THYROID_LBTSTDAT_4 <= "2024-09-01") | 
+           (SITE == "Kenya" &  M08_THYROID_LBTSTDAT_4 <= "2025-01-14") |
+           (SITE == "Zambia" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-11") |
+           (SITE == "Pakistan" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-03") |
+           (SITE == "India-CMC" &  M08_THYROID_LBTSTDAT_4 <= "2024-10-15") |
+           (SITE == "India-SAS" &  M08_THYROID_LBTSTDAT_4 <= "2024-09-02")) ~ 1,
+      TRUE ~ 0
+    ),
+    ) %>% 
+  # #define denominator for kenya carbon dioxide AND carbon dioxide for SAS at enrollment and ANC32
+  mutate(co2_denom_lab_08_1 = case_when(!SITE %in% c("Kenya", "India-SAS") & denom_lab_08_1 == 1 ~ 1,
+                                        (SITE ==  "Kenya" & denom_lab_08_1 == 1 & M08_LBSTDAT_1 >="2023-04-01") |
+                                        (SITE ==  "India-SAS" & denom_lab_08_1 == 1 & M08_LBSTDAT_1 >="2024-07-13")
+                                          ~ 1, TRUE ~ 0
+                                        ),
+         
+         co2_denom_lab_08_2 = case_when(SITE !=  "Kenya" & denom_lab_08_2 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_2 == 1 & M08_LBSTDAT_2 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_3 = case_when(SITE !=  "Kenya" & denom_lab_08_3 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_3 == 1 & M08_LBSTDAT_3 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_4 = case_when(!SITE %in% c("Kenya", "India-SAS") & denom_lab_08_4 == 1 ~ 1,
+                                        (SITE ==  "Kenya" & denom_lab_08_4 == 1 & M08_LBSTDAT_4 >="2023-04-01") |
+                                        (SITE ==  "India-SAS" & denom_lab_08_4 == 1 & M08_LBSTDAT_4 >="2024-07-13") ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_5 = case_when(SITE !=  "Kenya" & denom_lab_08_5 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_5 == 1 & M08_LBSTDAT_5 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_6 = case_when(SITE !=  "Kenya" & denom_lab_08_6 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_6 == 1 & M08_LBSTDAT_6 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_7 = case_when(SITE !=  "Kenya" & denom_lab_08_7 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_7 == 1 & M08_LBSTDAT_7 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_8 = case_when(SITE !=  "Kenya" & denom_lab_08_8 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_8 == 1 & M08_LBSTDAT_8 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_9 = case_when(SITE !=  "Kenya" & denom_lab_08_9 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_9 == 1 & M08_LBSTDAT_9 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_10 = case_when(SITE !=  "Kenya" & denom_lab_08_10 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_10 == 1 & M08_LBSTDAT_10 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_11 = case_when(SITE !=  "Kenya" & denom_lab_08_11 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_11 == 1 & M08_LBSTDAT_11 >="2023-04-01" ~ 1, TRUE ~ 0
+         ),
+         co2_denom_lab_08_12 = case_when(SITE !=  "Kenya" & denom_lab_08_12 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_12 == 1 & M08_LBSTDAT_12 >="2023-04-01" ~ 1, TRUE ~ 0
+         )
+         ) %>% 
+  # #define denominator for kenya carbon dioxide
+  mutate(pdw_denom_lab_08_1 = case_when(SITE !=  "Kenya" & denom_lab_08_1 == 1 ~ 1,
+                                        SITE ==  "Kenya" & denom_lab_08_1 == 1 & M08_LBSTDAT_1 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  
+  pdw_denom_lab_08_2 = case_when(SITE !=  "Kenya" & denom_lab_08_2 == 1 ~ 1,
+                                 SITE ==  "Kenya" & denom_lab_08_2 == 1 & M08_LBSTDAT_2 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_3 = case_when(SITE !=  "Kenya" & denom_lab_08_3 == 1 ~ 1,
+                                 SITE ==  "Kenya" & denom_lab_08_3 == 1 & M08_LBSTDAT_3 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_4 = case_when(SITE !=  "Kenya" & denom_lab_08_4 == 1 ~ 1,
+                                 SITE ==  "Kenya" & denom_lab_08_4 == 1 & M08_LBSTDAT_4 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_5 = case_when(SITE !=  "Kenya" & denom_lab_08_5 == 1 ~ 1,
+                                 SITE ==  "Kenya" & denom_lab_08_5 == 1 & M08_LBSTDAT_5 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_6 = case_when(SITE !=  "Kenya" & denom_lab_08_6 == 1 ~ 1,
+                                 SITE ==  "Kenya" & denom_lab_08_6 == 1 & M08_LBSTDAT_6 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_7 = case_when(SITE !=  "Kenya" & denom_lab_08_7 == 1 ~ 1,
+                                 SITE ==  "Kenya" & denom_lab_08_7 == 1 & M08_LBSTDAT_7 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_8 = case_when(SITE !=  "Kenya" & denom_lab_08_8 == 1 ~ 1,
+                                 SITE ==  "Kenya" & denom_lab_08_8 == 1 & M08_LBSTDAT_8 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_9 = case_when(SITE !=  "Kenya" & denom_lab_08_9 == 1 ~ 1,
+                                 SITE ==  "Kenya" & denom_lab_08_9 == 1 & M08_LBSTDAT_9 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_10 = case_when(SITE !=  "Kenya" & denom_lab_08_10 == 1 ~ 1,
+                                  SITE ==  "Kenya" & denom_lab_08_10 == 1 & M08_LBSTDAT_10 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_11 = case_when(SITE !=  "Kenya" & denom_lab_08_11 == 1 ~ 1,
+                                  SITE ==  "Kenya" & denom_lab_08_11 == 1 & M08_LBSTDAT_11 >="2023-03-29" ~ 1, TRUE ~ 0
+  ),
+  pdw_denom_lab_08_12 = case_when(SITE !=  "Kenya" & denom_lab_08_12 == 1 ~ 1,
+                                  SITE ==  "Kenya" & denom_lab_08_12 == 1 & M08_LBSTDAT_12 >="2023-03-29" ~ 1, TRUE ~ 0
+  )
+  )
+
+
+backup = df_lab
+# export data
+# save(df_lab, file = paste0(path_to_save, "/df_lab.RData"))
+save(df_lab, file= paste(path_to_save,"/df_lab.RData",sep = ""))
+
 
 #********************************************************************************
 #*Prepare data for plots 
@@ -708,11 +889,313 @@ df_lab_08_l <- df_lab_08 %>%
   filter(time < 70) #remove outlier 
 
 #save data
-save(df_maternal, file = "derived_data/df_maternal.rda")
-save(df_lab, file = "derived_data/df_lab.rda")
-save(df_lab_06_l, file = "derived_data/df_lab_06_l.rda")
-save(df_lab_08_l, file = "derived_data/df_lab_08_l.rda")
-save(MAT_ENROLL, file = "derived_data/MAT_ENROLL.rda")
-save(mnh06, file = "derived_data/mnh06.rda")
-save(mnh08, file = "derived_data/mnh08.rda")
+save(df_maternal, file= paste(path_to_save,"/df_maternal", ".RData",sep = ""))
+save(df_lab, file= paste(path_to_save,"/df_lab", ".RData",sep = ""))
+save(df_lab_06_l, file= paste(path_to_save,"/df_lab_06_l", ".RData",sep = ""))
+save(df_lab_08_l, file= paste(path_to_save,"/df_lab_08_l", ".RData",sep = ""))
+save(MAT_ENROLL, file= paste(path_to_save,"/MAT_ENROLL", ".RData",sep = ""))
+save(mnh06, file= paste(path_to_save,"/mnh06", ".RData",sep = ""))
+save(mnh08, file= paste(path_to_save,"/mnh08", ".RData",sep = ""))
 
+# save(df_maternal, file = "derived_data/df_maternal.rda")
+# save(df_lab, file = "derived_data/df_lab.rda")
+# save(df_lab_06_l, file = "derived_data/df_lab_06_l.rda")
+# save(df_lab_08_l, file = "derived_data/df_lab_08_l.rda")
+# save(MAT_ENROLL, file = "derived_data/MAT_ENROLL.rda")
+# save(mnh06, file = "derived_data/mnh06.rda")
+# save(mnh08, file = "derived_data/mnh08.rda")
+
+
+
+#*****************table 1******************
+matrix1 <- df_lab %>% 
+  group_by(SITE) %>% 
+  summarise(
+    #en - expect forms as long as enrolled
+    "Expected Form: N" = n(),
+    "Missing MNH06: n (%)" = paste0(
+      sum(is.na(M06_TYPE_VISIT_1), na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_1), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)" = paste0(
+      sum(is.na(M08_TYPE_VISIT_1), na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_1), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #anc20
+    "Expected Form: N " = sum(denom_form_2 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%) " = paste0(
+      sum(is.na(M06_TYPE_VISIT_2) & denom_form_2 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_2) & denom_form_2 == 1, na.rm = TRUE)/sum(denom_form_2 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%) " = paste0(
+      sum(is.na(M08_TYPE_VISIT_2) & denom_form_2 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_2) & denom_form_2 == 1, na.rm = TRUE)/sum(denom_form_2 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #anc28
+    "Expected Form: N  " = sum(denom_form_3 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)  " = paste0(
+      sum(is.na(M06_TYPE_VISIT_3) & denom_form_3 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_3) & denom_form_3 == 1, na.rm = TRUE)/sum(denom_form_3 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)  " = paste0(
+      sum(is.na(M08_TYPE_VISIT_3) & denom_form_3 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_3) & denom_form_3 == 1, na.rm = TRUE)/sum(denom_form_3 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #anc32
+    "Expected Form: N   " = sum(denom_form_4 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)   " = paste0(
+      sum(is.na(M06_TYPE_VISIT_4) & denom_form_4 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_4) & denom_form_4 == 1, na.rm = TRUE)/sum(denom_form_4 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)   " = paste0(
+      sum(is.na(M08_TYPE_VISIT_4) & denom_form_4 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_4) & denom_form_4 == 1, na.rm = TRUE)/sum(denom_form_4 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #anc36
+    "Expected Form: N    " = sum(denom_form_5 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)    " = paste0(
+      sum(is.na(M06_TYPE_VISIT_5) & denom_form_5 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_5) & denom_form_5 == 1, na.rm = TRUE)/sum(denom_form_5 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)    " = paste0(
+      sum(is.na(M08_TYPE_VISIT_5) & denom_form_5 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_5) & denom_form_5 == 1, na.rm = TRUE)/sum(denom_form_5 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #pnc0
+    "Expected Form: N     " = sum(denom_form_7 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)     " = paste0(
+      sum(is.na(M06_TYPE_VISIT_7) & denom_form_7 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_7) & denom_form_7 == 1, na.rm = TRUE)/sum(denom_form_7 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)     " = paste0(
+      sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)/
+                     sum(denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #pnc1
+    "Expected Form: N      " = sum(denom_form_8 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)      " = paste0(
+      sum(is.na(M06_TYPE_VISIT_8) & denom_form_8 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_8) & denom_form_8 == 1, na.rm = TRUE)/sum(denom_form_8 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)      " = paste0(
+      sum(is.na(M08_TYPE_VISIT_8) & denom_form_8 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_8) & denom_form_8 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)/
+                     sum(denom_form_8 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #pnc4
+    "Expected Form: N       " = sum(denom_form_9 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)       " = paste0(
+      sum(is.na(M06_TYPE_VISIT_9) & denom_form_9 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_9) & denom_form_9 == 1, na.rm = TRUE)/sum(denom_form_9 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)       " = paste0(
+      sum(is.na(M08_TYPE_VISIT_9) & denom_form_9 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_9) & denom_form_9 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)/
+                     sum(denom_form_9 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #pnc6
+    "Expected Form: N        " = sum(denom_form_10 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)        " = paste0(
+      sum(is.na(M06_TYPE_VISIT_10) & denom_form_10 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_10) & denom_form_10 == 1, na.rm = TRUE)/sum(denom_form_10 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)        " = paste0(
+      sum(is.na(M08_TYPE_VISIT_10) & denom_form_10 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_10) & denom_form_10 == 1, na.rm = TRUE)/sum(denom_form_10 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #pnc26
+    "Expected Form: N         " = sum(denom_form_11 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)         " = paste0(
+      sum(is.na(M06_TYPE_VISIT_11) & denom_form_11 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_11) & denom_form_11 == 1, na.rm = TRUE)/sum(denom_form_11 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)         " = paste0(
+      sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), # "India-CMC",
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana",  "Zambia"), na.rm = TRUE)/
+                     sum(denom_form_11 == 1 & SITE %in% c("Ghana",  "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #pnc52
+    "Expected Form: N          " = sum(denom_form_12 == 1, na.rm = TRUE),
+    "Missing MNH06: n (%)          " = paste0(
+      sum(is.na(M06_TYPE_VISIT_12) & denom_form_12 == 1, na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M06_TYPE_VISIT_12) & denom_form_12 == 1, na.rm = TRUE)/sum(denom_form_12 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing MNH08: n (%)          " = paste0(
+      sum(is.na(M08_TYPE_VISIT_12) & denom_form_12 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), 
+      " (", 
+      format(round(sum(is.na(M08_TYPE_VISIT_12) & denom_form_12 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)/
+                     sum(denom_form_12 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #total 
+  ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) %>% 
+  add_column(
+    .after = 6,
+    "Total" = df_lab %>% 
+      summarise(
+        #en
+        "Expected Form: N" = n(),
+        "Missing MNH06: n (%)" = paste0(
+          sum(is.na(M06_TYPE_VISIT_1), na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_1), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)" = paste0(
+          sum(is.na(M08_TYPE_VISIT_1), na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_1), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #anc20
+        "Expected Form: N " = sum(denom_form_2 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%) " = paste0(
+          sum(is.na(M06_TYPE_VISIT_2) & denom_form_2 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_2) & denom_form_2 == 1, na.rm = TRUE)/sum(denom_form_2 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%) " = paste0(
+          sum(is.na(M08_TYPE_VISIT_2) & denom_form_2 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_2) & denom_form_2 == 1, na.rm = TRUE)/sum(denom_form_2 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #anc28
+        "Expected Form: N  " = sum(denom_form_3 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)  " = paste0(
+          sum(is.na(M06_TYPE_VISIT_3) & denom_form_3 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_3) & denom_form_3 == 1, na.rm = TRUE)/sum(denom_form_3 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)  " = paste0(
+          sum(is.na(M08_TYPE_VISIT_3) & denom_form_3 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_3) & denom_form_3 == 1, na.rm = TRUE)/sum(denom_form_3 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #anc32
+        "Expected Form: N   " = sum(denom_form_4 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)   " = paste0(
+          sum(is.na(M06_TYPE_VISIT_4) & denom_form_4 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_4) & denom_form_4 == 1, na.rm = TRUE)/sum(denom_form_4 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)   " = paste0(
+          sum(is.na(M08_TYPE_VISIT_4) & denom_form_4 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_4) & denom_form_4 == 1, na.rm = TRUE)/sum(denom_form_4 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #anc36
+        "Expected Form: N    " = sum(denom_form_5 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)    " = paste0(
+          sum(is.na(M06_TYPE_VISIT_5) & denom_form_5 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_5) & denom_form_5 == 1, na.rm = TRUE)/sum(denom_form_5 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)    " = paste0(
+          sum(is.na(M08_TYPE_VISIT_5) & denom_form_5 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_5) & denom_form_5 == 1, na.rm = TRUE)/sum(denom_form_5 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #pnc0
+        "Expected Form: N     " = sum(denom_form_7 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)     " = paste0(
+          sum(is.na(M06_TYPE_VISIT_7) & denom_form_7 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_7) & denom_form_7 == 1, na.rm = TRUE)/sum(denom_form_7 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)     " = paste0(
+          sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)/
+                         sum(denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #pnc1
+        "Expected Form: N      " = sum(denom_form_8 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)      " = paste0(
+          sum(is.na(M06_TYPE_VISIT_8) & denom_form_8 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_8) & denom_form_8 == 1, na.rm = TRUE)/sum(denom_form_8 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)      " = paste0(
+          sum(is.na(M08_TYPE_VISIT_8) & denom_form_8 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_8) & denom_form_8 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)/
+                         sum(denom_form_8 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #pnc4
+        "Expected Form: N       " = sum(denom_form_9 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)       " = paste0(
+          sum(is.na(M06_TYPE_VISIT_9) & denom_form_9 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_9) & denom_form_9 == 1, na.rm = TRUE)/sum(denom_form_9 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)       " = paste0(
+          sum(is.na(M08_TYPE_VISIT_9) & denom_form_9 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_9) & denom_form_9 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)/
+                         sum(denom_form_9 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #pnc6
+        "Expected Form: N        " = sum(denom_form_10 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)        " = paste0(
+          sum(is.na(M06_TYPE_VISIT_10) & denom_form_10 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_10) & denom_form_10 == 1, na.rm = TRUE)/sum(denom_form_10 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)        " = paste0(
+          sum(is.na(M08_TYPE_VISIT_10) & denom_form_10 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_10) & denom_form_10 == 1, na.rm = TRUE)/sum(denom_form_10 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #pnc26
+        "Expected Form: N         " = sum(denom_form_11 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)         " = paste0(
+          sum(is.na(M06_TYPE_VISIT_11) & denom_form_11 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_11) & denom_form_11 == 1, na.rm = TRUE)/sum(denom_form_11 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)         " = paste0(
+          sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)/
+                         sum(denom_form_11 == 1 & SITE %in% c("Ghana",  "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        #pnc52
+        "Expected Form: N          " = sum(denom_form_12 == 1, na.rm = TRUE),
+        "Missing MNH06: n (%)          " = paste0(
+          sum(is.na(M06_TYPE_VISIT_12) & denom_form_12 == 1, na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M06_TYPE_VISIT_12) & denom_form_12 == 1, na.rm = TRUE)/sum(denom_form_12 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing MNH08: n (%)          " = paste0(
+          sum(is.na(M08_TYPE_VISIT_12) & denom_form_12 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), 
+          " (", 
+          format(round(sum(is.na(M08_TYPE_VISIT_12) & denom_form_12 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)/
+                         sum(denom_form_12 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+      ) %>% 
+      t() %>% unlist()
+  ) %>% 
+  #replace denomintor is 0 cells with space
+  mutate_all(funs(str_replace(., "(NaN)", "-"))) 

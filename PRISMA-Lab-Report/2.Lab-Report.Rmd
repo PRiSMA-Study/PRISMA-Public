@@ -10,7 +10,7 @@ output:
     keep_tex: true
 ---
 
-**Date of included data upload to Synapse: ** 2025-01-10
+**Date of included data upload to Synapse: ** 2025-03-07
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%", fig.align = "center") 
@@ -18,7 +18,9 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width 
 library(tidyverse)
 library(gt)
 
-load("derived_data/df_lab.rda")
+path_to_data = paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Lab-Missingness/data/")
+load(paste0(path_to_data, "df_lab.RData"))
+
 
 #define table format 
 tb_theme2 <- function(matrix){
@@ -85,11 +87,15 @@ tb_theme2 <- function(matrix){
     tab_options(table.width = pct(100)) %>%
     cols_width(1 ~ px(200))
 } 
+
+
+setwd("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Lab-Missingness/results/")
 ```
 
 \tableofcontents
 
 ```{r define form missingness table}
+
 #table
   #*****************table 1******************
 matrix1 <- df_lab %>% 
@@ -163,10 +169,10 @@ matrix1 <- df_lab %>%
       format(round(sum(is.na(M06_TYPE_VISIT_7) & denom_form_7 == 1, na.rm = TRUE)/sum(denom_form_7 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     "Missing MNH08: n (%)     " = paste0(
-      sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Kenya", "Zambia"), na.rm = TRUE), 
+      sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE), 
       " (", 
-      format(round(sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Kenya", "Zambia"), na.rm = TRUE)/
-                     sum(denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Kenya", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)/
+                     sum(denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     #pnc1
     "Expected Form: N      " = sum(denom_form_8 == 1, na.rm = TRUE),
@@ -214,10 +220,10 @@ matrix1 <- df_lab %>%
       format(round(sum(is.na(M06_TYPE_VISIT_11) & denom_form_11 == 1, na.rm = TRUE)/sum(denom_form_11 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     "Missing MNH08: n (%)         " = paste0(
-      sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE), 
+      sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), # "India-CMC",
       " (", 
-      format(round(sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)/
-                     sum(denom_form_11 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana",  "Zambia"), na.rm = TRUE)/
+                     sum(denom_form_11 == 1 & SITE %in% c("Ghana",  "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     #pnc52
     "Expected Form: N          " = sum(denom_form_12 == 1, na.rm = TRUE),
@@ -309,10 +315,10 @@ matrix1 <- df_lab %>%
           format(round(sum(is.na(M06_TYPE_VISIT_7) & denom_form_7 == 1, na.rm = TRUE)/sum(denom_form_7 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing MNH08: n (%)     " = paste0(
-          sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Kenya", "Zambia"), na.rm = TRUE), 
+          sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE), 
           " (", 
-          format(round(sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Kenya", "Zambia"), na.rm = TRUE)/
-                         sum(denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Kenya", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(is.na(M08_TYPE_VISIT_7) & denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)/
+                         sum(denom_form_7 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         #pnc1
         "Expected Form: N      " = sum(denom_form_8 == 1, na.rm = TRUE),
@@ -360,10 +366,10 @@ matrix1 <- df_lab %>%
           format(round(sum(is.na(M06_TYPE_VISIT_11) & denom_form_11 == 1, na.rm = TRUE)/sum(denom_form_11 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing MNH08: n (%)         " = paste0(
-          sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE), 
+          sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE), 
           " (", 
-          format(round(sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)/
-                         sum(denom_form_11 == 1 & SITE %in% c("Ghana", "India-CMC", "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(is.na(M08_TYPE_VISIT_11) & denom_form_11 == 1 & SITE %in% c("Ghana", "Zambia"), na.rm = TRUE)/
+                         sum(denom_form_11 == 1 & SITE %in% c("Ghana",  "Zambia"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         #pnc52
         "Expected Form: N          " = sum(denom_form_12 == 1, na.rm = TRUE),
@@ -385,9 +391,9 @@ matrix1 <- df_lab %>%
   mutate_all(funs(str_replace(., "(NaN)", "-"))) 
 
 #tests not expected at visit
-matrix1[c(18), c("India-SAS", "Pakistan")] = "n/a"
+matrix1[c(18), c("India-SAS", "Kenya", "Pakistan")] = "n/a"
 matrix1[c(21,24,33), c("India-CMC", "India-SAS", "Kenya", "Pakistan")] = "n/a"
-matrix1[c(30), c("India-SAS", "Kenya", "Pakistan")] = "n/a"
+matrix1[c(30), c("India-CMC","India-SAS", "Kenya", "Pakistan")] = "n/a"
 
 tb1_1 <- tb_theme2(matrix1 %>% slice(1:15)) %>% 
   tab_header(
@@ -482,6 +488,8 @@ tb1_2 <- tb_theme2(matrix1 %>% slice(16:33)) %>%
 ```  
 
 ```{r define matrix function}
+
+
 missing_fun <- function(num, visit) {
  #*******************table 2.1 ********************
   matrix2_1 <- df_lab %>%
@@ -1391,9 +1399,13 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
 
  #******************table 2.3 *****************
  #use unscheduled ANC data
- load("derived_data/mnh06.rda")
- load("derived_data/mnh08.rda")
- load("derived_data/MAT_ENROLL.rda")
+load(paste0(path_to_data, "mnh06.RData"))
+load(paste0(path_to_data, "mnh08.RData"))
+load(paste0(path_to_data, "MAT_ENROLL.RData"))
+
+ # load("derived_data/mnh06.rda")
+ # load("derived_data/mnh08.rda")
+ # load("derived_data/MAT_ENROLL.rda")
  
  #extract test results from unscheduled ANC test
  poc_13 <- mnh06 %>% 
@@ -1472,7 +1484,7 @@ df_ogtt <- df_ogtt %>%
   mutate(denom_poc_glucose_gh = case_when(
     SITE != "Ghana" ~ 1,
     if_any(poc_glucose_date_cols, ~.x >= "2023-05-12" & .x <= "2023-10-19") ~ 1,  
-    if_any(poc_glucose_date_cols, ~.x >= "2024-04-05") ~ 1,
+    if_any(poc_glucose_date_cols, ~.x >= "2024-04-08") ~ 1,
     TRUE ~ 0
   )) %>% 
   ungroup()
@@ -1599,7 +1611,7 @@ df_ogtt <- df_ogtt %>%
         footnote = c("Note: Test completed at ANC32 or ANC36 or unscheduled visit on/after 26 gestational weeks are also included.")
       ) %>%
       tab_footnote(
-        footnote = c("Ghana note: Poc glucose test between 2023-10-20 and 2024-05-05. Denominator removed this period.")
+        footnote = c("Ghana note: Poc glucose test between 2023-10-20 and 2024-04-08. Denominator removed this period.")
       ) %>%
       gtsave(paste0("results/missing_m06_", visit, "_3.png"), expand = 10)
     
@@ -1996,25 +2008,26 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_MONO_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Missing Eosinophils (%): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+          "Missing Eosinophils (%): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-        "Missing Eosinophils (full cell count): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
-          " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
+             format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
+    
+          "Missing Eosinophils (full cell count): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
+            " (",
+           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
         "Missing Red Cell Width (%): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")")))),
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
+          sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum(!SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum( eval(parse(text = paste0("pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing Plateletcrit (PCT) (%): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_PCT_PCT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
@@ -2097,25 +2110,26 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_MONO_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
-            "Missing Eosinophils (%): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+          "Missing Eosinophils (%): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-            "Missing Eosinophils (full cell count): n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
-              " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-              ")"),
+             format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
+    
+          "Missing Eosinophils (full cell count): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
+            " (",
+           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
             "Missing Red Cell Width (%): n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")")))),
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
               ")"),
-            "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
+    "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
+              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
               " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum(!SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum( eval(parse(text = paste0("pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
             "Missing Plateletcrit (PCT) (%): n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_CBC_PCT_PCT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
@@ -2128,10 +2142,10 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
       mutate_all(funs(str_replace(., "(NaN)", "-")))
 
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
-    matrix3_2[c(5,7,14,15,16,18,19), c("Pakistan")] = "n/a"
+    matrix3_2[c(5,7,14,18,19), c("Pakistan")] = "n/a"
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
 
-  tb3_2 <- tb_theme2(matrix3_2) %>%
+tb3_2 <- tb_theme2(matrix3_2) %>%
   # table title
   tab_header(
     title = paste0("Table 3. MNH08 lab result missingness by site - ", visit)
@@ -2149,10 +2163,13 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
     footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
   ) %>%
       tab_footnote(
-    footnote = c("Note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, eosinophils %, eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan. Total number excluded Pakistan.")
+    footnote = c("Note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, plateletcrit, platelet distribution width are not performed at Pakistan. Total number excluded Pakistan.")
   ) %>%
     tab_footnote(
     footnote = c("Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Total number excluded India-SAS.")
+  ) %>%
+    tab_footnote(
+    footnote = c("Note: Kenya started platelet distribution width (PDW) testing after 2023-03-29.")
   ) %>%
   tab_options(table.width = pct(100)) %>%
   #revise column width
@@ -2162,7 +2179,13 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
 
  if(num %in% c(2)) {
     matrix3_2 <- df_lab %>%
-      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+      # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                              (SITE == "Pakistan" & denom_remapp==1) |
+                                                                              (SITE == "Ghana" & denom_remapp==1)|
+                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
+                                                                              )) %>%
       group_by(SITE) %>%
       summarise(
         "Expected Lab Results from MNH08: N" = n(),
@@ -2233,25 +2256,33 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_MONO_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing Eosinophils (%): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+            format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Missing Eosinophils (full cell count): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+          # format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          # ")"),
+        # "Missing Eosinophils (full cell count): n (%)*" = paste0(
+        #   sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+        #   " (",
+        #   format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+        #   ")"),
+          "Missing Eosinophils (full cell count): n (%)*" = paste0(
+          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing Red Cell Width (%): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")")))),
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
           ")"),
+        
         "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
-          " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum(!SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
+              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
+              " (",
+              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum( eval(parse(text = paste0("pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              ")"),
         "Missing Plateletcrit (PCT) (%): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_PCT_PCT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
           " (",
@@ -2265,7 +2296,12 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
       add_column(
         .after = 6,
         "Total" = df_lab %>%
-          filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                              (SITE == "Pakistan" & denom_remapp==1) |
+                                                                              (SITE == "Ghana" & denom_remapp==1)|
+                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
+                                                                              )) %>%
           summarise(
             "Expected Lab Results from MNH08: N" = n(),
             "Missing Hematocrit (HCT): n (%)*" = paste0(
@@ -2333,25 +2369,26 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_MONO_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
-            "Missing Eosinophils (%): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
-          " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-            "Missing Eosinophils (full cell count): n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+             "Missing Eosinophils (%): n (%)*" = paste0(
+              sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
               " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+                format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+              ")"),
+    
+              "Missing Eosinophils (full cell count): n (%)*" = paste0(
+              sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
+              " (",
+              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
               ")"),
             "Missing Red Cell Width (%): n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")")))),
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
               ")"),
-            "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
+              "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
+              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
               " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum(!SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum( eval(parse(text = paste0("pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
             "Missing Plateletcrit (PCT) (%): n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_CBC_PCT_PCT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
@@ -2364,7 +2401,8 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
       mutate_all(funs(str_replace(., "(NaN)", "-")))
 
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
-    matrix3_2[, c("Pakistan")] = "n/a"
+    # matrix3_2[, c("Pakistan")] = "n/a"
+    matrix3_2[c(5,7,14,18,19), c("Pakistan")] = "n/a" ## 15/16 removed
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
     matrix3_2 <- matrix3_2 %>% relocate(Pakistan, .after = Kenya)
 
@@ -2386,10 +2424,16 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
     footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
   ) %>%
       tab_footnote(
-    footnote = c("Pakistan note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, eosinophils %, eosinophils full cell count, plateletcrit, platelet distribution width are not performed. Rest CBC stopped testing from April 2024. Total number excluded Pakistan.")
+    footnote = c("Pakistan note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count,  plateletcrit, platelet distribution width are not performed. Remaining CBC testing stopped from 2024-04-05") ## eosinophils %, eosinophils full cell count,
+  ) %>%
+     tab_footnote(
+    footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
   ) %>%
     tab_footnote(
-    footnote = c("SAS note: Plateletcrit, platelet distribution width are not performed. Total number excluded India-SAS.")
+    footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
+  ) %>%
+    tab_footnote(
+    footnote = c("Kenya Note: started platelet distribution width (PDW) testing after 2023-03-29.")
   ) %>%
   tab_options(table.width = pct(100)) %>%
   #revise column width
@@ -2397,10 +2441,15 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
   gtsave(paste0("results/missing_m08_", visit, "_2.png"), expand = 10)
  }
     
-    #CBC for Kenya only for ReMAPP
+#CBC for Kenya only for ReMAPP
   if(num %in% c(3,10)) {
     matrix3_2 <- df_lab %>%
-      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (SITE != "Kenya" | (SITE == "Kenya" & denom_remapp == 1))) %>%
+        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                              (SITE == "Pakistan" & denom_remapp==1) |
+                                                                              (SITE == "Ghana" & denom_remapp==1)|
+                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
+                                                                              )) %>%
       group_by(SITE) %>%
       summarise(
         "Expected Lab Results from MNH08: N" = n(),
@@ -2470,26 +2519,27 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_MONO_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Missing Eosinophils (%): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+          "Missing Eosinophils (%): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-        "Missing Eosinophils (full cell count): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
-          " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
+             format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
+    
+          "Missing Eosinophils (full cell count): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
+            " (",
+           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
         "Missing Red Cell Width (%): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")")))),
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
-          " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum(!SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
+            "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
+              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
+              " (",
+              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum( eval(parse(text = paste0("pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              ")"),
         "Missing Plateletcrit (PCT) (%): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_PCT_PCT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
           " (",
@@ -2503,7 +2553,12 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
       add_column(
         .after = 6,
         "Total" = df_lab %>%
-        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (SITE != "Kenya" | (SITE == "Kenya" & denom_remapp == 1))) %>%
+        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                              (SITE == "Pakistan" & denom_remapp==1) |
+                                                                              (SITE == "Ghana" & denom_remapp==1)|
+                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
+                                                                              )) %>%
           summarise(
             "Expected Lab Results from MNH08: N" = n(),
             "Missing Hematocrit (HCT): n (%)*" = paste0(
@@ -2571,25 +2626,27 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_MONO_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
-            "Missing Eosinophils (%): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+          "Missing Eosinophils (%): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-            "Missing Eosinophils (full cell count): n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
-              " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-              ")"),
+             format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
+    
+          "Missing Eosinophils (full cell count): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
+            " (",
+           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
             "Missing Red Cell Width (%): n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")")))),
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
               ")"),
-            "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
+          ## new code >>
+              "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
+              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
               " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum(!SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum( eval(parse(text = paste0("pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
             "Missing Plateletcrit (PCT) (%): n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_CBC_PCT_PCT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
@@ -2602,7 +2659,7 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
       mutate_all(funs(str_replace(., "(NaN)", "-")))
 
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
-    matrix3_2[c(5,7,14,15,16,18,19), c("Pakistan")] = "n/a"
+    matrix3_2[c(5,7,14,18,19), c("Pakistan")] = "n/a"
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
     
   tb3_2 <- tb_theme2(matrix3_2) %>%
@@ -2622,15 +2679,19 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
   tab_footnote(
     footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
   ) %>%
-      tab_footnote(
-    footnote = c("Note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, eosinophils %, eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan. Total number excluded Pakistan.")
+    tab_footnote(
+    footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
   ) %>%
     tab_footnote(
-    footnote = c("Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Total number excluded India-SAS.")
+    footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
   ) %>%
     tab_footnote(
     footnote = c("Kenya note: CBC collected for ReMAPP only. Only expect CBC when SCRN_OBSSTDAT >= 2023-04-03.")
   ) %>%
+  tab_footnote(
+    footnote = c("Pakistan note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, plateletcrit, platelet distribution width are not performed. Remaining CBC testing stopped from 2024-04-05")
+  ) %>%
+
   tab_options(table.width = pct(100)) %>%
   #revise column width
   cols_width(1 ~ px(225)) %>%
@@ -2640,7 +2701,12 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
        #CBC for Kenya only for ReMAPP
   if(num %in% c(5)) {
     matrix3_2 <- df_lab %>%
-      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (SITE != "Kenya" | (SITE == "Kenya" & denom_remapp == 1)) & SITE != "Pakistan") %>%
+        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                              (SITE == "Pakistan" & denom_remapp==1) |
+                                                                              (SITE == "Ghana" & denom_remapp==1)|
+                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
+                                                                              )) %>%
       group_by(SITE) %>%
       summarise(
         "Expected Lab Results from MNH08: N" = n(),
@@ -2710,26 +2776,28 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_MONO_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Missing Eosinophils (%): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+          "Missing Eosinophils (%): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-        "Missing Eosinophils (full cell count): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
-          " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
+             format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
+    
+          "Missing Eosinophils (full cell count): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
+            " (",
+           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
         "Missing Red Cell Width (%): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")")))),
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
-          " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum(!SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
+        ## new code >>
+            "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
+              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
+              " (",
+              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum( eval(parse(text = paste0("pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              ")"),
         "Missing Plateletcrit (PCT) (%): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_PCT_PCT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
           " (",
@@ -2743,7 +2811,13 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
       add_column(
         .after = 6,
         "Total" = df_lab %>%
-        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (SITE != "Kenya" | (SITE == "Kenya" & denom_remapp == 1)) & SITE != "Pakistan") %>%
+        # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (SITE != "Kenya" | (SITE == "Kenya" & denom_remapp == 1)) & SITE != "Pakistan") %>%
+        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                              (SITE == "Pakistan" & denom_remapp==1) |
+                                                                              (SITE == "Ghana" & denom_remapp==1)|
+                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
+                                                                              )) %>%
           summarise(
             "Expected Lab Results from MNH08: N" = n(),
             "Missing Hematocrit (HCT): n (%)*" = paste0(
@@ -2811,25 +2885,27 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_MONO_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
-            "Missing Eosinophils (%): n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
+          "Missing Eosinophils (%): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-            "Missing Eosinophils (full cell count): n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
-              " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-              ")"),
+             format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
+    
+          "Missing Eosinophils (full cell count): n (%)*" = paste0(
+            sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
+            " (",
+           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
+            ")"),
             "Missing Red Cell Width (%): n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")")))),
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_RDW_PCT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
               ")"),
+          ## new code >>
             "Missing Platelet Distribution Width (PDW): n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
+              sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
               " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum(!SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_PDW_CT_LBORRES_", num, ")","&", "pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)/sum( eval(parse(text = paste0("pdw_denom_lab_08_", num, " == 1"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
             "Missing Plateletcrit (PCT) (%): n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_CBC_PCT_PCT_LBORRES_", num, ")"))) & !SITE %in% c("Pakistan", "India-SAS"), na.rm = TRUE),
@@ -2842,9 +2918,8 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
       mutate_all(funs(str_replace(., "(NaN)", "-")))
 
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
-    matrix3_2[, c("Pakistan")] = "n/a"
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
-    matrix3_2 <- matrix3_2 %>% relocate(Pakistan, .after = Kenya)
+    matrix3_2[c(5,7,14,18,19), c("Pakistan")] = "n/a"
 
   tb3_2 <- tb_theme2(matrix3_2) %>%
   # table title
@@ -2864,10 +2939,13 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
     footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
   ) %>%
   tab_footnote(
-        footnote = c("Pakistan note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, eosinophils %, eosinophils full cell count, plateletcrit, platelet distribution width are not performed. Rest CBC stopped testing from April 2024. Total number excluded Pakistan.")
+        footnote = c("Pakistan note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, plateletcrit, platelet distribution width are not performed. Remaing CBC testing stopped from 2024-04-05.")
   ) %>%
     tab_footnote(
-    footnote = c("Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Total number excluded India-SAS.")
+    footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
+  ) %>%
+    tab_footnote(
+    footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
   ) %>%
     tab_footnote(
     footnote = c("Kenya note: CBC collected for ReMAPP only. Only expect CBC when SCRN_OBSSTDAT >= 2023-04-03.")
@@ -2931,6 +3009,7 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
   " (",
   format(round(sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
+
 "Missing BUN: n (%)*" = paste0(
   sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")")))),
   " (",
@@ -2966,11 +3045,12 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
   " (",
   format(round(sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Carbon Dioxide: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
+
+ "Missing Carbon Dioxide: n (%)*" = paste0(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")", "&", "co2_denom_lab_08_", num, " == 1"))), na.rm = TRUE),
+     " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")", "&", "co2_denom_lab_08_", num, " == 1"))), na.rm = TRUE)/sum( eval(parse(text = paste0("co2_denom_lab_08_", num, " == 1"))), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+        ")"),
+
 "Missing Magnesium: n (%)*" = paste0(
   sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_", num, ")"))) & SITE %in% c("Ghana", "Zambia")),
   " (",
@@ -3067,11 +3147,11 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
   " (",
   format(round(sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Carbon Dioxide: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
+
+     "Missing Carbon Dioxide: n (%)*" = paste0(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")", "&", "co2_denom_lab_08_", num, " == 1"))), na.rm = TRUE),
+                " (",
+      format(round(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")", "&", "co2_denom_lab_08_", num, " == 1"))), na.rm = TRUE)/sum( eval(parse(text = paste0("co2_denom_lab_08_", num, " == 1"))), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+        ")"),
 "Missing Magnesium: n (%)*" = paste0(
   sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_", num, ")"))) & SITE %in% c("Ghana", "Zambia")),
   " (",
@@ -3106,109 +3186,342 @@ tb3_3 <- tb_theme2(matrix3_3) %>%
   )) %>%
   tab_footnote(
     footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
-  ) %>%
+  ) %>% 
     tab_footnote(
     footnote = c("Note: Magnesium is optional. Not perfomred at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17. Total number only included Ghana and Zambia")
+  ) %>%
+    tab_footnote(
+    footnote = c("Kenya Note: started carbon dioxide testing on 2023-04-01.")
+  ) %>%
+    tab_footnote(
+    footnote = c("SAS Note: started carbon dioxide testing on 2024-07-13.")
   ) %>%
   gtsave(paste0("results/missing_m08_", visit, "_3.png"), expand = 10)
  }
 
  if(num %in% c(4)) {
    matrix3_3 <- df_lab %>%
-    filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "India-CMC") %>%
+    # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>% #  & SITE != "India-CMC"
+    filter(denom_kft_lft_fxn_anc32==1) %>% 
   group_by(SITE) %>%
   summarise(
 "Expected Lab Results from MNH08: N" = n(),
+
 #kidney and liver function test: En, anc32
 "Missing AST/SGOT: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_AST_UL_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_AST_UL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_AST_UL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_AST_UL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing ALT/SGPT: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_ALT_UL_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_ALT_UL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_ALT_UL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_ALT_UL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Alkaline Phosphatase (ALP): n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_ALP_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_ALP_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_ALP_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_ALP_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Total Bilirubin: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_TBILIRUBIN_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_TBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_TBILIRUBIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_TBILIRUBIN_LBORRES_", num, ")"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Direct Bilirubin: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_DBILIRUBIN_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_DBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_DBILIRUBIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_DBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Total Protein: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_TPROTEIN_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_TPROTEIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_TPROTEIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_TPROTEIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Albumin: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_ALBUMIN_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_ALBUMIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_ALBUMIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_ALBUMIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Gamma GT: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_GAMMAGT_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_GAMMAGT_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_GAMMAGT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_GAMMAGT_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Indirect Bilirubin: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
+
+## KIDNEY FUNCTION TEST 
 "Missing BUN: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Serum Creatinine: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CREAT_UMOLL_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_CREAT_UMOLL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CREAT_UMOLL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CREAT_UMOLL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Sodium: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_SODIUM_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_SODIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_SODIUM_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_SODIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Potassium: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_POTASSIUM_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_POTASSIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_POTASSIUM_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_POTASSIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Chloride: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CHLORIDE_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_CHLORIDE_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CHLORIDE_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CHLORIDE_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Phosphorus: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_PHOSPHORUS_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_PHOSPHORUS_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_PHOSPHORUS_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_PHOSPHORUS_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
 "Missing Calcium: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")")))),
+  sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Carbon Dioxide: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")")))),
+
+"Missing Carbon Dioxide: n (%)*" = paste0(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")", "&", "co2_denom_lab_08_", num, " == 1", "& denom_kft_lft_fxn_anc32 == 1"))), na.rm = TRUE),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")", "&", "co2_denom_lab_08_", num, " == 1", "& denom_kft_lft_fxn_anc32 == 1"))), na.rm = TRUE)/sum( eval(parse(text = paste0("co2_denom_lab_08_", num, " == 1", "& denom_kft_lft_fxn_anc32 == 1"))), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+    ")"),
+    "Missing Magnesium: n (%)*" = paste0(
+      sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_", num, ")")))& denom_kft_lft_fxn_anc32==1 & SITE %in% c("Ghana", "Zambia")),
+      " (",
+      format(round(sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_",num, ")"))) &
+                         denom_kft_lft_fxn_anc32==1 & SITE %in% c("Ghana", "Zambia"))/sum(SITE %in% c("Ghana", "Zambia") &denom_kft_lft_fxn_anc32==1, na.rm =TRUE )*100, 2), nsmall = 0, digits = 2),
+      ")")
+#total
+  ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+  add_column(
+    .after = 6,
+    "Total" = df_lab %>%
+    # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "India-CMC") %>%
+  filter(denom_kft_lft_fxn_anc32==1) %>% 
+  summarise(
+"Expected Lab Results from MNH08: N" = n(),
+
+#kidney and liver function test: En, anc32
+"Missing AST/SGOT: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_AST_UL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_AST_UL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Magnesium: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_", num, ")"))) & SITE %in% c("Ghana", "Zambia")),
+"Missing ALT/SGPT: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_ALT_UL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_", num, ")"))) & SITE %in% c("Ghana", "Zambia"))/sum(SITE %in% c("Ghana", "Zambia"))*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_ALT_UL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Alkaline Phosphatase (ALP): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_ALP_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_ALP_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Total Bilirubin: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_TBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_TBILIRUBIN_LBORRES_", num, ")"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Direct Bilirubin: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_DBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_DBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Total Protein: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_TPROTEIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_TPROTEIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Albumin: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_ALBUMIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_ALBUMIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Gamma GT: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_GAMMAGT_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_GAMMAGT_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Indirect Bilirubin: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+
+## KIDNEY FUNCTION TEST 
+"Missing BUN: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Serum Creatinine: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_CREAT_UMOLL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CREAT_UMOLL_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Sodium: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_SODIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_SODIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Potassium: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_POTASSIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_POTASSIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Chloride: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_CHLORIDE_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CHLORIDE_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Phosphorus: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_PHOSPHORUS_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_PHOSPHORUS_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+"Missing Calcium: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")", "& denom_kft_lft_fxn_anc32 == 1"))))/sum(denom_kft_lft_fxn_anc32==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+
+"Missing Carbon Dioxide: n (%)*" = paste0(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")", "&", "co2_denom_lab_08_", num, " == 1", "& denom_kft_lft_fxn_anc32 == 1"))), na.rm = TRUE),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")", "&", "co2_denom_lab_08_", num, " == 1", "& denom_kft_lft_fxn_anc32 == 1"))), na.rm = TRUE)/sum( eval(parse(text = paste0("co2_denom_lab_08_", num, " == 1", "& denom_kft_lft_fxn_anc32 == 1"))), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+    ")"),
+    "Missing Magnesium: n (%)*" = paste0(
+      sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_", num, ")")))& denom_kft_lft_fxn_anc32==1 & SITE %in% c("Ghana", "Zambia")),
+      " (",
+      format(round(sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_",num, ")"))) &
+                         denom_kft_lft_fxn_anc32==1 & SITE %in% c("Ghana", "Zambia"))/sum(SITE %in% c("Ghana", "Zambia") &denom_kft_lft_fxn_anc32==1, na.rm =TRUE )*100, 2), nsmall = 0, digits = 2),
+      ")")
+  ) %>%
+      t() %>% unlist()
+  ) %>%
+    mutate_all(funs(str_replace(., "(NaN)", "-")))
+
+#Magnesium is optional. Not perfomred at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17.
+matrix3_3[19, c("India-CMC", "India-SAS", "Kenya", "Pakistan")] = "n/a"
+
+tb3_3 <- tb_theme2(matrix3_3) %>%
+  # table title
+  tab_header(
+    title = paste0("Table 3. MNH08 lab result missingness by site - ", visit)
+  ) %>%
+  # stubhead label
+  tab_stubhead(label = "Part III. Liver and Kidney Function Test Results") %>%
+  tab_row_group(
+    label = "Missing Liver Function Test (LFT) Results",
+    rows = 2:10
+  ) %>%
+  tab_row_group(
+    label = "Missing Kidney (Renal) Function Test Results",
+    rows = 11:19
+  ) %>%
+  row_group_order(groups = c(NA,
+                             "Missing Liver Function Test (LFT) Results",
+                             "Missing Kidney (Renal) Function Test Results"
+  )) %>%
+  tab_footnote(
+    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+  ) %>%
+    tab_footnote(
+    footnote = c("Note: Magnesium is optional. Not perfomred at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17. Total number only included Ghana and Zambia")
+  ) %>%
+  # tab_footnote(
+  #   footnote = c("Note: CMC stopped Liver and kidney function tests on 2024-10-14 for ANC32 visit. Total number excluded CMC")
+  # ) %>%
+  tab_footnote(
+    footnote = c("Note: Kidney and Liver function testing stopped on 2024-10-01 (Ghana); 2024-10-16 (CMC); 2024-09-02 (SAS); 2025-01-15 (Kenya); 2024-10-03 (Pakistan); 2024-10-11 (Zambia).")
+  ) %>%
+  tab_footnote(
+    footnote = c("Kenya Note: started carbon dioxide test on 2023-04-01.")
+  ) %>%
+  tab_footnote(
+    footnote = c("SAS Note: started carbon dioxide testing on 2024-07-13.")
+  ) %>%
+  gtsave(paste0("results/missing_m08_", visit, "_3.png"), expand = 10)
+ }
+
+ #******************table 3.4 *****************
+ if(num %in% c(1,4)) {
+     matrix3_4 <- df_lab %>%
+    filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
+  group_by(SITE) %>%
+  summarise(
+"Expected Lab Results from MNH08: N" = n(),
+#Vit B12 (TC): 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Serum Vitamin B12 (Total Cobalamin): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_VITB12_COB_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_VITB12_COB_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Vit B12 (HoloTC): 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Serum Vitamin B12 (Holotranscobalamin II): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_VITB12_HOL_LBORRES_", num, ")", "& denom_holo_", num, "==1")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_VITB12_HOL_LBORRES_", num, ")", "& denom_holo_", num, "==1"))))/sum(eval(parse(text = paste0("denom_holo_", num, "==1"))), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Folate (serum) 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Folate - Blood Serum: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Ferritin: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Iodine (Thyroglobulin or Tg): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_IODINE_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_IODINE_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Serum Transferrin Receptor (sTfR): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_TRANSFERRIN_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_TRANSFERRIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Retinol Protein Binding 4 (RBP4): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_RBP4_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_RBP4_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing C-reactive Protein (CRP): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_CRP_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CRP_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Alpha 1-acid Glycoprotein (AGP): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_AGP_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_AGP_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  ")"),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+"Missing Histidine-rich Protein 2 (HRP): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_HRP_LBORRES_", num, ")")))),
+  " (",
+  format(round(sum(eval(parse(text = paste0("is.na(M08_HRP_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
 #total
   ) %>%
@@ -3218,143 +3531,108 @@ tb3_3 <- tb_theme2(matrix3_3) %>%
   add_column(
     .after = 6,
     "Total" = df_lab %>%
-    filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "India-CMC") %>%
+    filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
   summarise(
 "Expected Lab Results from MNH08: N" = n(),
-"Missing AST/SGOT: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_AST_UL_LBORRES_", num, ")")))),
+#Vit B12 (TC): 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Serum Vitamin B12 (Total Cobalamin): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_VITB12_COB_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_AST_UL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_VITB12_COB_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing ALT/SGPT: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_ALT_UL_LBORRES_", num, ")")))),
+#Vit B12 (HoloTC): 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Serum Vitamin B12 (Holotranscobalamin II): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_VITB12_HOL_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_ALT_UL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_VITB12_HOL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Alkaline Phosphatase (ALP): n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_ALP_LBORRES_", num, ")")))),
+#Float (serum) 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Folate - Blood Serum: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_ALP_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Total Bilirubin: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_TBILIRUBIN_LBORRES_", num, ")")))),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Ferritin: n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_TBILIRUBIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Direct Bilirubin: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_DBILIRUBIN_LBORRES_", num, ")")))),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Iodine (Thyroglobulin or Tg): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_IODINE_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_DBILIRUBIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_IODINE_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Total Protein: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_TPROTEIN_LBORRES_", num, ")")))),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Serum Transferrin Receptor (sTfR): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_TRANSFERRIN_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_TPROTEIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_TRANSFERRIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Albumin: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_ALBUMIN_LBORRES_", num, ")")))),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Retinol Protein Binding 4 (RBP4): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_RBP4_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_ALBUMIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_RBP4_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Gamma GT: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_GAMMAGT_LBORRES_", num, ")")))),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing C-reactive Protein (CRP): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_CRP_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_GAMMAGT_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_CRP_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing Indirect Bilirubin: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")")))),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Alpha 1-acid Glycoprotein (AGP): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_AGP_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_IBILIRUBIN_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_AGP_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
-"Missing BUN: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")")))),
+#Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+"Missing Histidine-rich Protein 2 (HRP): n (%)*" = paste0(
+  sum(eval(parse(text = paste0("is.na(M08_HRP_LBORRES_", num, ")")))),
   " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_BUN_MMOLL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
-"Missing Serum Creatinine: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CREAT_UMOLL_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CREAT_UMOLL_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
-"Missing Sodium: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_SODIUM_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_SODIUM_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
-"Missing Potassium: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_POTASSIUM_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_POTASSIUM_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
-"Missing Chloride: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CHLORIDE_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CHLORIDE_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
-"Missing Phosphorus: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_PHOSPHORUS_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_PHOSPHORUS_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
-"Missing Calcium: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CALCIUM_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
-"Missing Carbon Dioxide: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")")))),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_CARB_DIOX_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-  ")"),
-"Missing Magnesium: n (%)*" = paste0(
-  sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_", num, ")"))) & SITE %in% c("Ghana", "Zambia")),
-  " (",
-  format(round(sum(eval(parse(text = paste0("is.na(M08_MAGNESIUM_LBORRES_", num, ")"))) & SITE %in% c("Ghana", "Zambia"))/sum(SITE %in% c("Ghana", "Zambia"))*100, 2), nsmall = 0, digits = 2),
+  format(round(sum(eval(parse(text = paste0("is.na(M08_HRP_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
   ")"),
   ) %>%
       t() %>% unlist()
   ) %>%
     mutate_all(funs(str_replace(., "(NaN)", "-")))
 
-#Magnesium is optional. Not perfomred at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17.
-matrix3_3[19, c("India-CMC", "India-SAS", "Kenya", "Pakistan")] = "n/a"
-matrix3_3[, c("India-CMC")] = "n/a"
-matrix3_3 <- matrix3_3 %>% relocate(`India-CMC`, .after = Ghana)
-    
-tb3_3 <- tb_theme2(matrix3_3) %>%
+tb3_4 <- tb_theme2(matrix3_4) %>%
   # table title
   tab_header(
     title = paste0("Table 3. MNH08 lab result missingness by site - ", visit)
   ) %>%
   # stubhead label
-  tab_stubhead(label = "Part III. Liver and Kidney Function Test Results") %>%
+  tab_stubhead(label = "Part IV. Micronutrient Test Results") %>%
   tab_row_group(
-    label = "Missing Liver Function Test (LFT) Results",
-    rows = 2:10
-  ) %>%
-  tab_row_group(
-    label = "Missing Kidney (Renal) Function Test Results",
-    rows = 11:19
+    label = "Missing Micronutrient Results",
+    rows = 2:11
   ) %>%
   row_group_order(groups = c(NA,
-                             "Missing Liver Function Test (LFT) Results",
-                             "Missing Kidney (Renal) Function Test Results"
+                             "Missing Micronutrient Results"
   )) %>%
   tab_footnote(
     footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
   ) %>%
-    tab_footnote(
-    footnote = c("Note: Magnesium is optional. Not perfomred at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17. Total number only included Ghana and Zambia")
+ tab_footnote(
+    footnote = c("Note: holoTC stopped testing: 2024-09-01 (Ghana); 2024-10-15 (CMC); 2024-09-02 (SAS); 2025-01-14 (Kenya); 2024-10-03 (Pakistan); 2024-10-11 (Zambia)")
   ) %>%
   tab_footnote(
-    footnote = c("CMC Note: Liver and kidney function tests stopped on 2024-10-14 for ANC32 visit. Total number excluded CMC")
+    footnote = c("Note: Vitamin B12 total cobalamin and holoTC results delay for Kenya and Zambia due to shipment to KHRC and not start with new kit for Pakistan as of 2024-11-18")
   ) %>%
-  gtsave(paste0("results/missing_m08_", visit, "_3.png"), expand = 10)
+  tab_footnote(
+    footnote = c("Note: Folate results delay for Kenya and Pakistan due to shipment to KHRC")
+  ) %>%
+  tab_footnote(
+    footnote = c("Pakistan note: Quansys is ongoing and plan to complete by end Jan 2025.")
+  ) %>%
+  gtsave(paste0("results/missing_m08_", visit, "_4.png"), expand = 10)
  }
 
- #******************table 3.4 *****************
- if(num %in% c(1,4,10)) {
-     matrix3_4 <- df_lab %>%
+ if(num %in% c(10)) {
+  matrix3_4 <- df_lab %>%
     filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
   group_by(SITE) %>%
   summarise(
@@ -3527,7 +3805,7 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
   #******************table 3.5*****************
    if (num %in% c(1)) {
     matrix3_5 <- df_lab %>%
-      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "India-CMC") %>%
+      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))))  %>% #  & SITE != "India-CMC"
       group_by(SITE) %>%
       summarise(
         "Expected Lab Results from MNH08: N" = n(),
@@ -3537,14 +3815,15 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
           format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_TSH_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing Free T4: n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET4_LBORRES_", num, ")")))),
+          sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET4_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)")))),
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET4_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET4_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)"))))/sum(denom_t3t4_enroll == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
+
         "Missing Free T3: n (%)*" = paste0(
-          sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET3_LBORRES_", num, ")")))),
+          sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET3_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)")))),
           " (",
-          format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET3_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
+          format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET3_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)"))))/sum(denom_t3t4_enroll == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         #total
       ) %>%
@@ -3554,7 +3833,7 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
       add_column(
         .after = 6,
         "Total" = df_lab %>%
-          filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "India-CMC") %>%
+          filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>% # & SITE != "India-CMC"
           summarise(
             "Expected Lab Results from MNH08: N" = n(),
             #Thyroid function TSH, Free T3, Free T4 (P: En, ANC-32)
@@ -3563,25 +3842,25 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_TSH_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
               ")"),
-            #Thyroid function TSH, Free T3, Free T4 (P: En, ANC-32)
-            "Missing Free T4: n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET4_LBORRES_", num, ")")))),
-              " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET4_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            #Thyroid function TSH, Free T3, Free T4 (P: En, ANC-32)
-            "Missing Free T3: n (%)*" = paste0(
-              sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET3_LBORRES_", num, ")")))),
-              " (",
-              format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET3_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-              ")"),
+        "Missing Free T4: n (%)*" = paste0(
+          sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET4_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)")))),
+          " (",
+          format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET4_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)"))))/sum(denom_t3t4_enroll == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+
+        "Missing Free T3: n (%)*" = paste0(
+          sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET3_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)")))),
+          " (",
+          format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_FREET3_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)"))))/sum(denom_t3t4_enroll == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
           ) %>%
           t() %>% unlist()
       ) %>%
       mutate_all(funs(str_replace(., "(NaN)", "-")))
 
-    matrix3_5[, c("India-CMC")] = "n/a"
-    matrix3_5 <- matrix3_5 %>% relocate(`India-CMC`, .after = Ghana)
+    ## the following code will override CMC with NA -- remove now that we have official dates
+    # matrix3_5[, c("India-CMC")] = "n/a"
+    # matrix3_5 <- matrix3_5 %>% relocate(`India-CMC`, .after = Ghana)
         
     tb3_5 <- tb_theme2(matrix3_5) %>%
       # table title
@@ -3601,7 +3880,7 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
         footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
       ) %>%
       tab_footnote(
-        footnote = c("CMC note: thyroid tests stoppend on 2024-10-14")
+        footnote = c("Note: thyroid testing stopped on 2024-09-01 (Ghana); 2024-10-17 (CMC); 2024-01-14 (Kenya); 2024-10-03 (Pakistan); 2014-10-11 (Zambia); ongoing (SAS).")
       ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_5.png"), expand = 10)
   }
@@ -3686,10 +3965,11 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
         footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants who completed MNH08 either in person or by phone initially, but later only participants with abnormal TSH levels (< 0.3 mIU/L or > 4.0 mIU/L) at ANC32 after a specific date: CMC:2024-10-14. Other sites please provide the date for change.")
+        footnote = c("**Denominator: Participants who completed MNH08 either in person or by phone initially, but later only participants with abnormal TSH levels (< 0.3 mIU/L or > 4.0 mIU/L) at ANC32 after a specific date: 2024-09-01 (Ghana); 2024-10-14 (CMC); 2024-01-14 (Kenya); 2024-10-03 (Pakistan); 2014-10-11 (Zambia); ongoing (SAS).. Other sites please provide the date for change.")
       ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_5.png"), expand = 10)
   }
+
  #******************table 3.6*****************
  if (num == 1) {
     matrix3_6 <- df_lab %>%
@@ -4083,7 +4363,10 @@ tb3_7 <- tb_theme2(matrix3_7) %>%
     footnote = c("CMC note: Tests performed at any visit are included to account for the catch-up tests.")
   ) %>%
   tab_source_note(
-    source_note = c("Note: Included data with SCRN_OBSSTDAT at/after: 2022-12-28(Ghana); 2023-06-20(CMC); 2023-12-12(SAS); 2023-04-03(Kenya); 2022-12-15(Zambia); LBSTDAT between: 2022-09-22 and 2024-01-17(Pakistan). Each site please double check dates variable used and the exact dates.")
+    source_note = c("Note: Included data with SCRN_OBSSTDAT at/after: 2022-12-28 (Ghana); 2023-06-20(CMC); 2023-12-12(SAS); 2023-04-03(Kenya); 2022-12-15(Zambia); LBSTDAT between: 2022-09-22 (Pakistan). Each site please double check dates variable used and the exact dates.")
+  ) %>%
+  tab_source_note(
+    source_note = c("Note: Testing stopped: 2024-10-29(Ghana); 2024-04-05(Pakistan).")
   ) %>%
   tab_style(
         style = list(
@@ -4293,7 +4576,7 @@ if (num %in% c(1,4)) {
   ) %>%
     mutate_all(funs(str_replace(., "(NaN)", "-")))
 
- tb3_10 <- tb_theme2(matrix3_10) %>%
+tb3_10 <- tb_theme2(matrix3_10) %>%
  # table title
  tab_header(
    title = paste0("Table 3. MNH08 lab result missingness by site - ", visit)
@@ -4317,7 +4600,7 @@ if (num %in% c(1,4)) {
  }
 
 #******************table 3.11*****************
- if (num %in% c(1,4,10)) {
+ if (num %in% c(1)) {
     matrix3_11 <- df_lab %>%
       filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
       group_by(SITE) %>%
@@ -4632,9 +4915,288 @@ if (num %in% c(1,4)) {
         footnote = c("Note: We only expect 1000 participants per site. There will be no miss if the goal is reached")
       ) %>%
       tab_footnote(
-        footnote = c("Note: Test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
+        footnote = c("Note: ZCD test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
+      ) %>%
+      tab_footnote(
+        footnote = c("Note: HEV test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
+      ) %>%
+      tab_footnote(
+        footnote = c("SAS Note: ZCD/HEV/Lepto testing ended on 2025-02-01")
       ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_11.png"), expand = 10)
+  }
+
+#******************table 3.13 (3.11 for anc32 & pnc6 removing hev)*****************
+ if (num %in% c(4,10)) {
+    matrix3_13 <- df_lab %>%
+      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
+      group_by(SITE) %>%
+      summarise(
+        "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd == 1, na.rm = TRUE), 1000),
+        #EN, ANC32, PNC6
+        "Missing ZIKV IgM Test Results: n (%)*" = paste0(
+          min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+            ),
+          " (",
+          format(round(
+            min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+            ) / 
+              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing ZIKV IgG Test Results : n (%)*" = paste0(
+          min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
+          " (",
+          format(round(
+            min(
+              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              )/
+              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing DENV IgM Test Results: n (%)*" = paste0(
+          min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+            ),
+          " (",
+          format(round(
+            min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                           sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+            )/
+              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing DENV IgG Test Results: n (%)*" = paste0(
+          min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+            ),
+          " (",
+          format(round(
+            min(
+              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              )/
+              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing CHKV IgM Test Results: n (%)*" = paste0(
+          min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
+          " (",
+          format(round(
+            min(
+              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              )/
+              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Missing CHKV IgG Test Results: n (%)*" = paste0(
+          min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+            ),
+          " (",
+          format(round(
+            min(
+              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              )/
+              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Expected Leptospirosis IgM Test Results from MNH08: N" = min(sum(denom_lept_igm == 1, na.rm = TRUE), 1000),
+        "Missing Leptospirosis IgM Test Results: n (%)**" = paste0(
+          min(
+            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)),
+          " (",
+          format(round(
+            min(max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)
+                )/min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+        "Expected Hepatitis E IgM/IgG Test Results from MNH08: N" = min(sum(denom_hev == 1, na.rm = TRUE), 6000),
+            "Missing HEV IgM Test Results: n (%)***" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
+                sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE),
+              " (",
+              format(round(
+                min(
+                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
+                  sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
+                )/min(sum(denom_hev == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")")
+
+        #total
+      ) %>%
+      t() %>% as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>%
+      slice(-1) %>%
+      add_column(
+        .after = 6,
+        "Total" = df_lab %>%
+          filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
+          summarise(
+            "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd == 1, na.rm = TRUE), 6000),
+            # "Expected Lab Results from MNH08: N" = n(),
+            #EN, ANC32, PNC6
+            "Missing ZIKV IgM Test Results: n (%)*" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              ),
+              " (",
+              format(round(
+                min(
+                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                  sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+                ) / 
+                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+            "Missing ZIKV IgG Test Results : n (%)*" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
+              " (",
+              format(round(
+                min(
+                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                  sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+                )/
+                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+            "Missing DENV IgM Test Results: n (%)*" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              ),
+              " (",
+              format(round(
+                min(
+                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                  sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+                )/
+                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+            "Missing DENV IgG Test Results: n (%)*" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              ),
+              " (",
+              format(round(
+                min(
+                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                  sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+                )/
+                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+            "Missing CHKV IgM Test Results: n (%)*" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
+              " (",
+              format(round(
+                min(
+                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                  sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+                )/
+                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+            "Missing CHKV IgG Test Results: n (%)*" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              ),
+              " (",
+              format(round(
+                min(
+                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
+                  sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+                )/
+                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+            "Expected Leptospirosis IgM Test Results from MNH08: N" = min(sum(denom_lept_igm == 1, na.rm = TRUE), 6000),
+            "Missing Leptospirosis IgM Test Results: n (%)**" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)),
+              " (",
+              format(round(
+                min(max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
+                    sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)
+                )/min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+          "Expected Hepatitis E IgM Test Results from MNH08: N" = min(sum(denom_hev == 1, na.rm = TRUE), 6000),
+            "Missing HEV IgM Test Results: n (%)***" = paste0(
+              min(
+                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
+                sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE),
+              " (",
+              format(round(
+                min(
+                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
+                  sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
+                )/min(sum(denom_hev == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+              ")")
+          ) %>%
+          t() %>% unlist()
+      ) %>%
+      mutate_all(funs(str_replace(., "(NaN)", "-")))
+    
+    tb3_13 <- tb_theme2(matrix3_13) %>%
+      # table title
+      tab_header(
+        title = paste0("Table 3. MNH08 lab result missingness by site - ", visit)
+      ) %>%
+      # stubhead label
+      tab_stubhead(label = "Part XI. ZCD, and Leptospirosis IgM/IgG Test Results") %>%
+      tab_row_group(
+        label = "Missing Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results",
+        rows = 1:7
+      ) %>%
+      tab_row_group(
+        label = "Missing Leptospirosis IgM Test Results",
+        rows = 8:9
+      ) %>%
+      tab_row_group(
+        label = "Missing Hepatitis E IgM Test Results",
+        rows = 10:11
+      ) %>%
+      row_group_order(groups = c("Missing Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results",
+                                 "Missing Leptospirosis IgM Test Results",
+                                 "Missing Hepatitis E IgM Test Results"
+      )) %>%
+
+      tab_footnote(
+        footnote = c("*Denominator: Participants with testing date (ZCD_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
+      ) %>%
+      tab_footnote(
+        footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
+      ) %>%
+      tab_footnote(
+        footnote = c("***Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
+      ) %>%
+      tab_footnote(
+        footnote = c("Note: We only expect 1000 participants per site. There will be no miss if the goal is reached")
+      ) %>%
+      tab_footnote(
+        footnote = c("Note: ZCD test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
+      ) %>%
+      tab_footnote(
+        footnote = c("Note: HEV test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
+      ) %>%
+      tab_footnote(
+        footnote = c("SAS Note: ZCD/HEV/Lepto testing ended on 2025-02-01")
+      ) %>%
+      gtsave(paste0("results/missing_m08_", visit, "_13.png"), expand = 10)
   }
 
 #*****************table 3.12******************
@@ -4702,7 +5264,10 @@ tb3_12 <- tb_theme2(matrix3_12) %>%
     footnote = c("Note: G6PD is for ReMAPP primary cohort exclusively. ")
   ) %>%
   tab_source_note(
-    source_note = c("Note: Included data with SCRN_OBSSTDAT at/after: 2022-12-28(Ghana); 2023-06-20(CMC); 2023-12-12(SAS); 2023-04-03(Kenya); 2022-12-15(Zambia); SCRN_OBSSTDAT between: 2022-09-22 and 2024-01-17(Pakistan). Each site please double check dates variable I used and the exact dates.")
+    source_note = c("Note: Included data with SCRN_OBSSTDAT at/after: 2022-12-28 (Ghana); 2023-06-20(CMC); 2023-12-12(SAS); 2023-04-03(Kenya); 2022-12-15(Zambia); LBSTDAT between: 2022-09-22 (Pakistan). Each site please double check dates variable used and the exact dates.")
+  ) %>%
+  tab_source_note(
+    source_note = c("Note: Testing stopped: 2024-10-29(Ghana); 2024-04-05(Pakistan).")
   ) %>%
   tab_style(
         style = list(
@@ -4732,6 +5297,7 @@ fig39_path <- paste0("results/missing_m08_", visit, "_9.png")
 fig310_path <- paste0("results/missing_m08_", visit, "_10.png")
 fig311_path <- paste0("results/missing_m08_", visit, "_11.png")
 fig312_path <- paste0("results/missing_m08_", visit, "_12.png")
+fig313_path <- paste0("results/missing_m08_", visit, "_13.png")
 
 #knit basd on visit window
 #enrollment
@@ -4743,7 +5309,7 @@ else if (num == 2) {knit<- knitr::include_graphics(c(fig22_path, fig32_path, fig
 else if (num == 3) {knit<- knitr::include_graphics(c(fig22_path, fig23_path, fig32_path, fig38_path))}
 #ANC32
 else if (num == 4) {knit<- knitr::include_graphics(c(fig22_path, fig24_path, fig33_path, fig34_path, fig35_path,
-                          fig38_path, fig39_path, fig310_path, fig311_path))}
+                          fig38_path, fig39_path, fig310_path, fig313_path))} # fig311_path
 #ANC36
 else if (num == 5) {knit<- knitr::include_graphics(c(fig22_path, fig32_path, fig38_path))}
 #PNC0
@@ -4753,19 +5319,23 @@ else if (num == 8) {knit<- knitr::include_graphics(c(fig22_path))}
 #PNC4
 else if (num == 9) {knit<- knitr::include_graphics(c(fig22_path))}
 #PNC6
-else if (num == 10) {knit<- knitr::include_graphics(c(fig22_path, fig32_path, fig34_path, fig311_path))}
+else if (num == 10) {knit<- knitr::include_graphics(c(fig22_path, fig32_path, fig34_path, fig313_path))}  # fig311_path
 #PNC26
 else if (num == 11) {knit<- knitr::include_graphics(c(fig22_path))}
 #PNC52
 else if (num == 12) {knit<- knitr::include_graphics(c(fig22_path))}
 
 }
+
 ```
 
+
 \newpage
+
 # Form missingness 
 
 ```{r, out.width="100%"}
+ 
   knitr::include_graphics("results/missing_form_1.png")
 
   knitr::include_graphics("results/missing_form_2.png")
