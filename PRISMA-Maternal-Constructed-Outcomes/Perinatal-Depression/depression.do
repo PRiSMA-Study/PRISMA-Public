@@ -24,7 +24,7 @@
 ***Part 1: Directories and data import
 ***********************************
 * Update each session:
-global datadate "2025-01-10"
+global datadate "2025-04-04"
 //update with data date
 
 global runqueries = 1
@@ -113,27 +113,8 @@ drop date_dup visnum
 
 merge m:1 MOMID PREGID using "$outcomes/MAT_ENROLL.dta", gen(checkenroll) keepusing(ENROLL PREG_START_DATE)
 
-capture program drop str2date
-program str2date
-	
-		syntax varlist( min=1 max=1)
-		local i = 1
-		capture confirm numeric variable ``i''
-		if _rc != 0 {
-			rename ``i'' ``i''_STR
-			gen ``i'' = date(``i''_STR, "YMD")
-			format ``i'' %td	
-			notes ``i'' : "Converted to numeric"
-					}
-		else {
-			notes ``i'' : "Imported as numeric"
-			disp as error "``i'' already numeric"		
-		}	
-			
-		
-end
-
 str2date   FORMCOMPLDAT_MNH25 
+	**str2date is a user-defined function to convert strings to dates
 str2date   PREG_START_DATE
 
 
@@ -545,7 +526,9 @@ save "$wrk/mnh25_collapsed.dta", replace
 **# Part 3: Analytical variables for maternal outcomes data set
 **************************************************
 	
-	merge 1:1 MOMID PREGID using "$outcomes/MAT_ENROLL.dta", keepusing(ENROLL) nogen
+	use "$outcomes/MAT_ENROLL.dta", clear
+	keep SITE MOMID PREGID ENROLL
+	merge 1:1 MOMID PREGID using "$wrk/mnh25_collapsed.dta", nogen
 	keep if ENROLL == 1
 
 /*
@@ -556,72 +539,86 @@ save "$wrk/mnh25_collapsed.dta", replace
 
 	merge 1:1 MOMID PREGID using "Z:\Savannah_working_files\Expected_obs-$datadate.dta", nogen
 
-
+	assert SITE != ""
+		//check not missing SITE for any observations
 **********ANC-20***********
-
+	**denominator for data completeness table
+	gen DEPR_MISS_ANC20_DENOM = 1 if ANC20_EXP ==1 | inrange(DEPR_STND_ANC20,0,1)
+		**those expected and/or have data
 	gen DEPR_ANC20_DENOM = 1 if ///
-	(DEPR_STND_ANC20 ==0 | DEPR_STND_ANC20==1) & ANC20_EXP==1
+	(DEPR_STND_ANC20 ==0 | DEPR_STND_ANC20==1) 
 	label var DEPR_ANC20_DENOM ///
 	"Denominator of those who have valid depression score for ANC20"
 	**NUMERATORS
-	gen DEPR_STND_ANC20_NUM = 1 if DEPR_STND_ANC20==1 & ANC20_EXP==1
+	gen DEPR_STND_ANC20_NUM = 1 if DEPR_STND_ANC20==1 
 	label var DEPR_STND_ANC20_NUM ///
 	"Numerator of those screening for depression at ANC20, Standard cutoff"
-	gen DEPR_SITE_ANC20_NUM = 1 if DEPR_SITE_ANC20==1 & ANC20_EXP==1
+	gen DEPR_SITE_ANC20_NUM = 1 if DEPR_SITE_ANC20==1 
 	label var DEPR_SITE_ANC20_NUM ///
 	"Numerator of those screening for depression at ANC20, SITE cutoff"
+	
 	**MISSING
 	gen DEPR_MISS_ANC20 =DEPR_STND_ANC20 if DEPR_STND_ANC20<0
 	replace DEPR_MISS_ANC20 = -2 if ANC20_EXP ==1 & DEPR_STND_ANC20==.
-	replace DEPR_MISS_ANC20 = . if ANC20_EXP !=1
+	replace DEPR_MISS_ANC20 = . if DEPR_MISS_ANC20_DENOM !=1
+		*if no data and not expected, we don't care about missingness reason
 	label define MISS -2"Visit not completed" -1"No summary score"
 	label val DEPR_MISS_ANC20 MISS
 
-	gen DEPR_MISS_ANC20_DENOM = 1 if ANC20_EXP ==1
-	//denominator for data completeness table
+
 
 **********ANC-32***********
 
+	* "full" denominator for missingness table in the report
+	gen DEPR_MISS_ANC32_DENOM =1 if ANC32_EXP == 1 | inrange(DEPR_STND_ANC32,0,1)
+		**have data and/or are expected
+		
+	*denominator of those with valid data
 	gen DEPR_ANC32_DENOM = 1 if ///
-	(DEPR_STND_ANC32 == 0 | DEPR_STND_ANC32 == 1) & ANC32_EXP == 1
+	(DEPR_STND_ANC32 == 0 | DEPR_STND_ANC32 == 1) 
 	label var DEPR_ANC32_DENOM ///
 	"Denominator of those who have valid depression score for ANC32"
 	**NUMERATORS
 	gen DEPR_STND_ANC32_NUM =1 if ///
-	DEPR_STND_ANC32 ==1 & ANC32_EXP == 1
+	DEPR_STND_ANC32 ==1 
 	label var DEPR_STND_ANC32_NUM ///
 	"Numerator of those screening for depression at ANC32, standard cutoff"
 	gen DEPR_SITE_ANC32_NUM =1 if ///
-	DEPR_SITE_ANC32 ==1 & ANC32_EXP == 1
+	DEPR_SITE_ANC32 ==1 
 	label var DEPR_SITE_ANC32_NUM ///
 	"Numerator of those screening for depression at ANC32, SITE cutoff"
 	**MISSING
 	gen DEPR_MISS_ANC32 = DEPR_STND_ANC32 if DEPR_STND_ANC32<0
 	replace DEPR_MISS_ANC32 = -2 if  ANC32_EXP == 1 & DEPR_STND_ANC32==.
-	replace  DEPR_MISS_ANC32=. if ANC32_EXP !=1
+	replace  DEPR_MISS_ANC32=. if DEPR_MISS_ANC32_DENOM !=1
+		*if no data and not expected, we don't care about missingness reason
 	label val DEPR_MISS_ANC32 MISS
-	gen DEPR_MISS_ANC32_DENOM =1 if ANC32_EXP == 1
+	
 
 **********PNC-6***********
 	**DENOMINATOR
+	*full denominator for the report
+	gen DEPR_MISS_PNC6_DENOM = 1 if PNC6_EXP == 1 | inrange(DEPR_STND_PNC6,0,1)
+		// those who have data or are expected
+	
+	*denominator of those who have data
 	gen DEPR_PNC6_DENOM = 1 if ///
-	(DEPR_STND_PNC6 == 0 | DEPR_STND_PNC6 == 1) & PNC6_EXP == 1
+	(DEPR_STND_PNC6 == 0 | DEPR_STND_PNC6 == 1)
 	label var DEPR_PNC6_DENOM ///
 	"Denominator of those who have valid depression scores for PNC6"
 	**NUMERATORS
-	gen DEPR_STND_PNC6_NUM = 1 if DEPR_STND_PNC6 == 1 & PNC6_EXP == 1
+	gen DEPR_STND_PNC6_NUM = 1 if DEPR_STND_PNC6 == 1 
 	label var DEPR_STND_PNC6_NUM ///
 	"Numerator of those screening for depression at PNC6, standard cutoff"
-	gen DEPR_SITE_PNC6_NUM = 1 if DEPR_SITE_PNC6 == 1 & PNC6_EXP == 1
+	gen DEPR_SITE_PNC6_NUM = 1 if DEPR_SITE_PNC6 == 1 
 	label var DEPR_SITE_PNC6_NUM ///
 	"Numerator of those screening for depression at PNC6, SITE cutoff"
 	**MISSING 
 	gen DEPR_MISS_PNC6 = DEPR_STND_PNC6 if DEPR_STND_PNC6 < 0
 	replace DEPR_MISS_PNC6 = -2 if PNC6_EXP ==1 & DEPR_STND_PNC6==.
-	replace DEPR_MISS_PNC6 = . if PNC6_EXP!=1
+	replace DEPR_MISS_PNC6 = . if DEPR_MISS_PNC6_DENOM!=1
 	label val DEPR_MISS_PNC6 MISS
 
-	gen DEPR_MISS_PNC6_DENOM = 1 if PNC6_EXP == 1
 
 **********ANC, EVER***********
 	gen DEPR_ANC_EVER_DENOM =1 if ///
@@ -674,36 +671,3 @@ save "$wrk/MAT_DEPR-$datadate.dta", replace
 *Review and save to outcome folder:
 *save "$outcomes/MAT_DEPR.dta" , replace
 	
-/*
-**Generate an enrollment depression data set
-	**for risk factors analysis
-	
-	use "$wrk/mnh25.dta" 
-
-	//keep only enrollment & ANC-20
-	drop if TYPE_VISIT>=3
-	//drop if visit not completed
-	drop if MAT_VISIT_MNH25>=3
-	
-	duplicates tag PREGID, gen(dup)
-	tab dup
-	
-	gen ENROLL_DEPR_STND = 0 if DEPR_STND_ANC20 == 0
-	replace ENROLL_DEPR_STND =1 if  DEPR_STND_ANC20 == 1
-	
-	gen ENROLL_DEPR_SITE = 0 if DEPR_SITE_ANC20 == 0
-	replace ENROLL_DEPR_SITE = 1 if DEPR_SITE_ANC20 == 1
-
-	sort SITE MOMID PREGID m25_obsstdat
-
-	collapse (firstnm) ENROLL_DEPR_STND ENROLL_DEPR_SITE, ///
-	by(SITE MOMID PREGID)
-	
-	label var ENROLL_DEPR_STND ///
-	"Depr. screening standard cutoff"
-	label var ENROLL_DEPR_SITE ///
-	"Depr screening, SITE cutoff"
-	
-	save "$wrk/DEPR_ENROLL.dta", replace
-*/
-
