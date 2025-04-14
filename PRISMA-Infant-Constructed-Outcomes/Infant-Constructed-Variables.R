@@ -1681,6 +1681,17 @@ hyperbili_crit2 <- hyperbili_wide %>%
                                              TRUE ~ 0)
   )
 
+hyperbili_crit2 <- hyperbili_crit2 %>% 
+  ## AAP doesn't measure <35 weeks; replace with NA
+  mutate(INF_HYPERBILI_AAP_ANY = case_when(GESTAGEBIRTH_ANY < 35 & INF_HYPERBILI_AAP_ANY == 0 ~ 77, 
+                                           TRUE ~ INF_HYPERBILI_AAP_ANY),
+         INF_HYPERBILI_AAP_24HR = case_when(GESTAGEBIRTH_ANY < 35 & INF_HYPERBILI_AAP_24HR == 0 ~ 77,
+                                            TRUE ~ INF_HYPERBILI_AAP_24HR),
+         INF_HYPERBILI_AAP_5DAY = case_when(GESTAGEBIRTH_ANY < 35 & INF_HYPERBILI_AAP_5DAY == 0 ~ 77,
+                                            TRUE ~ INF_HYPERBILI_AAP_5DAY),
+         INF_HYPERBILI_AAP_14DAY = case_when(GESTAGEBIRTH_ANY < 35 & INF_HYPERBILI_AAP_14DAY == 0 ~ 77,
+                                             TRUE ~ INF_HYPERBILI_AAP_14DAY)
+         )
 
 # Criteria 3. By IMCI jaundice criteria (YELLOW_CEOCCUR, JAUND_CEOCCUR, JAUND_CESTDAT) -- WIDE 
 hyperbili_crit3 <- hyperbili_wide %>%
@@ -1817,10 +1828,10 @@ hyperbili_all_crit <- hyperbili_all_crit %>%
                 ))) %>% 
   select(-ADJUD_NEEDED)
 
+# table(hyperbili_all_crit$GESTAGEBIRTH_ANY, hyperbili_all_crit$INF_HYPERBILI_AAP_ANY)
 # test2 <- hyperbili_all_crit_test %>% filter(ADJUD_NEEDED==1)
 # export data 
-# write.csv(hyperbili_all_crit, paste0(path_to_save, "hyperbili_all_crit" ,".csv"), row.names=FALSE)
-
+write.csv(hyperbili_all_crit, paste0(path_to_save, "hyperbili_all_crit" ,".csv"), row.names=FALSE)
 
 ## INF_HYPERBILI_ANY: any hyperbilirubin defined by TCB >15 at any time (TBILIRUBIN_UMOLL_LBORRES @ IPC OR TCB_UMOLL_LBORRES @ PNC)
 ## INF_HYPERBILI_AAP_ANY: any hyperbilirubin defined by TCB >AAP time-specific cutoff (serum bili threshold minus 3 for each GA+age group)
