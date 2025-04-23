@@ -1,0 +1,1177 @@
+---
+title: "Perinatal Depression Demographics"
+output:
+  pdf_document:
+    toc: false
+    toc_depth: 6
+    latex_engine: xelatex
+    keep_tex: false
+  word_document:
+    toc: false
+    toc_depth: '6'
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                    encoding=encoding, 
+                    output_file= paste(Sys.Date(),'-Perinatal-Depression-Demographics-Report', '.pdf', sep='')) })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%") 
+knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+######### Set Dates ############
+      
+    datadate <- "2025-04-04"
+      
+    today    <- Sys.Date()
+    
+######### Load Packages ######
+
+library(knitr)
+library(tidyverse)
+library(reshape2)
+library(lubridate)
+library(naniar)
+library(RColorBrewer)
+library(gt) ## for table gen
+library(webshot2) ## for table gen
+library(haven)
+library(dplyr)
+library(cowplot)
+library(tidyverse)
+library(wesanderson)
+library(scales)
+library(ggbreak)
+library(readxl)
+
+######### Set path to save #####
+# Savannah's path: 
+path_to_data <- paste0("Z:/Savannah_working_files/depression/", 
+                       datadate, "/") 
+path_to_save <- paste0(path_to_data, "reports/")
+
+
+######### Import data #####
+# ALL VISITS:
+data_long<- read_dta(paste0(path_to_data, "mnh25_long_covariates.dta"))  %>% 
+  rename_all(toupper)  
+
+data_long$VISTYPE <- factor(data_long$VISTYPE, levels = c("ENROLL/ANC20", 
+                                                "ANC32/36", 
+                                                "PNC6"))
+
+data_long$SITE_R <- factor(data_long$SITE, 
+                      levels = c("Ghana", "Kenya", "Zambia", 
+                                 "India-CMC","India-SAS", "Pakistan"))
+
+#FIRST VISIT PER WOMAN:
+data1<- data_long  %>% filter(NUMVISIT==1)  %>% 
+   mutate(
+ MAT_AGE25 = case_when(
+    MAT_AGE<25 ~ 0,
+    MAT_AGE>=25 & MAT_AGE<=50 ~ 1 ),
+  MAT_AGE35 = case_when(
+    MAT_AGE<35 ~ 0,
+    MAT_AGE>=35 & MAT_AGE<=50 ~ 1 ),
+  OBESE_CLASS = case_when(
+    BMI_ENROLL<30  ~ 0,
+    BMI_ENROLL>=30 & BMI_ENROLL<35 ~ 1,
+    BMI_ENROLL>=35 & BMI_ENROLL<40 ~ 2,
+    BMI_ENROLL>=40 & BMI_ENROLL<100 ~ 3
+  ))
+
+custom_fill2 <- scale_fill_manual(
+  values = c("Yes" =  "#71BBB2", "No" = "#27445D" ),
+  breaks = c("Yes", "No"),
+  labels = c("Yes", "No" ))
+
+
+######### Define table formatting #####
+tb_theme1 <- function(matrix){
+  tb <- matrix %>%
+    gt(
+      rownames_to_stub = TRUE
+    ) %>%
+    opt_align_table_header(align = "left") %>%
+    tab_spanner(
+      label = "Sites"
+    ) %>%
+    opt_stylize(style = 6, color = 'gray') %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#27445D"),
+        #cell_text(weight = "bold"),
+        cell_text(v_align = "middle"),
+        cell_text(color = "white", size = px(18))
+      ),
+      locations = list(
+        cells_title()
+      ) 
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#71BBB2"), # #f0b7b3,#f7cbc8, 
+        cell_text( color = "black", size = px(18)),
+        cell_text(v_align = "middle")
+      ),
+      locations = list(
+        cells_stubhead(),
+        cells_column_spanners(),
+        cells_column_labels()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#F0F0F0"),
+        cell_text(v_align = "middle", size = px(18))
+      ),
+      locations = list(
+        cells_stub()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_column_labels(columns = everything())
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_body(columns = everything())
+      )
+    ) %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_options(table.width = pct(100)) %>%
+    cols_width(1 ~ px(225))
+}
+ 
+
+```
+
+
+**Report issued on:** `r (paste0(today))`
+
+**Data from:** `r (paste0(datadate))`
+
+\setcounter{tocdepth}{6}
+\tableofcontents
+
+\newpage
+# Part 1: Demographics
+## Table 1. Demographics of those with a depression score at enrollment/ANC20
+```{r demographics-table}
+
+table1 <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+      
+    "Denominator, n" = sum(!is.na(MAT_AGE)),
+    
+    "Maternal age, median years (Q1, Q3)" = paste0(
+      format(median(MAT_AGE, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(MAT_AGE, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(MAT_AGE, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+     "Denominator, n " = paste0(
+      format(sum(MARRY_STATUS<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Married, n (%)" = paste0(
+      format(sum(MARRY_STATUS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS==1 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Cohabitating, n (%)" = paste0(
+      format(sum(MARRY_STATUS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS==2 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Divorced, n (%)" = paste0(
+      format(sum(MARRY_STATUS==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS==3 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Widowed, n (%)" = paste0(
+      format(sum(MARRY_STATUS==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS==4 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Single, n (%)" = paste0(
+      format(sum(MARRY_STATUS==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS==5 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+     "Denominator, n  " = sum(!is.na(SCHOOL_YRS)),
+    
+     "Median years of school, (Q1, Q3)" = paste0(
+      format(median(SCHOOL_YRS, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(SCHOOL_YRS, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(SCHOOL_YRS, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+
+      "Denominator, n   " = paste0(
+      format(sum(PARITY_CAT<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Nulliparous, n (%)" = paste0(
+      format(sum(PARITY_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==0 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "1 previous birth, n (%)" = paste0(
+      format(sum(PARITY_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==1 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "2+ previous births, n (%)" = paste0(
+      format(sum(PARITY_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==2 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+        
+    "Denominator, n    " = sum(!is.na(BMI_ENROLL)),
+    
+     "Median BMI, (Q1, Q3)" = paste0(
+      format(median(BMI_ENROLL, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(BMI_ENROLL, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(BMI_ENROLL, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+     "Denominator, n    " = sum(!is.na(BMI_ENROLL)),
+    
+     "Median BMI, (Q1, Q3)" = paste0(
+      format(median(BMI_ENROLL, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(BMI_ENROLL, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(BMI_ENROLL, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+    
+     "Denominator, n^a^" = paste0(
+      format(sum(PAID_WORK!= 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Paid work, n (%)^a^" = paste0(
+      format(sum(PAID_WORK==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PAID_WORK==1 , na.rm = TRUE)/sum(PAID_WORK!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table1[is.na(table1)] <- paste0("0 (0)")
+
+table1 <- tb_theme1(table1) %>% 
+  tab_header(
+    title = md("**Table 1. Demographics**")) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal age at enrollment</span>"),
+        rows = 1:2 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Marital status</span>"),
+        rows = 3:8 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Schooling</span>"),
+        rows = 9:10) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Parity</span>"),
+        rows = 11:14) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>BMI at enrollment</span>"),
+        rows = 15:16) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Main occupation</span>"),
+        rows = 17:18) %>%
+  
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Maternal age at enrollment</span>",
+   "<span style='font-size: 18px'>Marital status</span>",
+   "<span style='font-size: 18px'>Schooling</span>",
+   "<span style='font-size: 18px'>Parity</span>",
+   "<span style='font-size: 18px'>BMI at enrollment</span>",
+   "<span style='font-size: 18px'>Main occupation</span>"
+                ) ) %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Zambia began collecting this information partway through the PRISMA study</span>")) 
+
+gtsave(table1, file = "table1.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "Table1.png"))
+
+```
+\newpage
+
+### Figure 1. Maternal age
+```{r age-figure}
+age <- ggplot(data1, aes(MAT_AGE)) + facet_wrap(~SITE_R, scales="free") + 
+  theme_classic() +
+  geom_histogram(binwidth = 1, fill="white", colour="black") +  
+  guides(fill="none") + 
+  labs(title = "Age by site", x="Age (yrs)") +
+  scale_x_continuous(breaks=seq(15,50,5), limits = c(15,50)) 
+
+ggsave(paste0("age", ".png"), path = path_to_save,
+                                  width = 8, height = 5)
+knitr::include_graphics(paste0(path_to_save, "age.png"))
+
+
+
+
+depression_age <- ggplot(subset(data1, MAT_AGE_CAT %in% c(0,1,2) ), 
+       aes(x=MAT_AGE_CAT_STR, y=EPDS_SCORE, fill=MAT_AGE_CAT_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  scale_fill_brewer(palette = "Blues") +  
+  theme_classic() +
+  labs(title = "Depression by maternal age", 
+       tag="", y="Depression",
+       caption = "Note: outliers not visualized") + 
+  guides(fill=guide_legend(title="Age group:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+
+
+#age_fig <- plot_grid(age, depression_age,  ncol = 1, nrow = 2)
+#ggsave(paste0("age_fig", ".png"), path = path_to_save, width = 8, height = 8)
+#knitr::include_graphics(paste0(path_to_save, "age_fig.png"))
+
+```
+
+\textcolor{blue}{**Question for discussion: what maternal age cutoffs are relevant, given the literature and these data?**}
+
+### Table 2. Maternal age
+```{r age-table}
+
+table_age <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+      
+    "Denominator, n" = sum(!is.na(MAT_AGE)),
+    
+    "Maternal age, median years (Q1, Q3)" = paste0(
+      format(median(MAT_AGE, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(MAT_AGE, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(MAT_AGE, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+     "Maternal age 25+, n (%)" = paste0(
+      format(sum(MAT_AGE25==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_AGE25==1 , na.rm = TRUE)/sum(MAT_AGE25<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Maternal age 35+, n (%)" = paste0(
+      format(sum(MAT_AGE35==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_AGE35==1 , na.rm = TRUE)/sum(MAT_AGE35<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_age[is.na(table_age)] <- paste0("0 (0)")
+
+table_age <- tb_theme1(table_age) %>% 
+  tab_header(
+    title = md("**Table 2. Maternal Age**")) %>% 
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) 
+
+gtsave(table_age, file = "table_age.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_age.png"))
+
+```
+
+\newpage
+### Figure 2. Marital status
+```{r marriage-figure}
+
+ data1 <-  data1 %>% 
+   mutate(
+  MARRIAGE_BIN = case_when(
+    MARRY_STATUS_STR %in% 
+        c("Married", "Cohabitating") ~ "Married/cohabitating",
+    MARRY_STATUS_STR %in% 
+        c("Divorced", "Widowed", "Single") ~ "Not married/cohabitating"
+  ) )
+
+
+
+depression_marriage <- ggplot(subset(data1, 
+                                MARRIAGE_BIN %in% 
+                                  c("Married/cohabitating",
+                                    "Not married/cohabitating") ), 
+       aes(x=MARRIAGE_BIN, y=EPDS_SCORE, fill=MARRIAGE_BIN) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) + 
+  scale_fill_manual(values=c( "#71BBB2", "#27445D"  )) +
+  theme_classic() +
+  labs(title = "Depression by marital status", 
+       tag="", y="Depression",
+       caption = "Note: Depression outliers not visualized") + 
+  guides(fill=guide_legend(title="Status:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+ 
+ggsave(paste0("depression_marriage", ".png"), path = path_to_save,
+       width = 8, height = 4)
+knitr::include_graphics(paste0(path_to_save, "depression_marriage.png"))
+
+```
+
+\textcolor{blue}{**Question for discussion: should we combine to make two groups?**}
+
+\textcolor{blue}{1.   married or cohabitating}
+\textcolor{blue}{2.   divorced, widowed, or single}
+
+### Table 3. Marital status
+```{r marriage-table}
+
+table_single <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+    
+     "Denominator, n " = paste0(
+      format(sum(MARRY_STATUS<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Married/cohabitating, n (%)" = paste0(
+      format(sum(MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS<=2 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+     "Not married/cohabitating, n (%)" = paste0(
+      format(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_single[is.na(table_single)] <- paste0("0 (0)")
+
+table_single <- tb_theme1(table_single) %>% 
+  tab_header(
+    title = md("**Table 3. Marital status**")) %>% 
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) 
+
+gtsave(table_single, file = "table_single.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_single.png"))
+
+```
+
+\newpage
+### Figure 3. Schooling
+```{r schooling-figure}
+
+school <- ggplot(data1, aes(SCHOOL_YRS)) + facet_wrap(~SITE_R, scales="free") + 
+  theme_classic() +
+  geom_histogram(binwidth = 1, fill="white", colour="black") +  
+  guides(fill="none") + 
+  labs(title = "Schooling by site", x="Schooling (yrs)",
+       caption="Outliers > 20 years of school not visualized") +
+  scale_x_continuous(breaks=seq(0,20,3), limits = c(0,20)) +
+  scale_y_continuous(breaks=seq(0,1000,200), limits = c(0,1000)) 
+
+ggsave(paste0("school", ".png"), path = path_to_save,
+       width = 8, height = 5)
+knitr::include_graphics(paste0(path_to_save, "school.png"))
+```
+
+\textcolor{blue}{**Question for discussion: what years of schooling cutoffs are relevant, given the literature and these data?**}.
+
+
+\newpage
+### Figure 4. Parity
+```{r parity-figure}
+
+parity <- ggplot(data1, aes(PARITY)) + facet_wrap(~SITE_R, scales="free") + 
+  theme_classic() +
+  geom_histogram(binwidth = 1, fill="white", colour="black") +  
+  guides(fill="none") + 
+  labs(title = "Parity by site", x="Parity",
+       caption="Does not include current pregnancy") +
+  scale_x_continuous(breaks=seq(0,15,5), limits = c(0,15)) 
+
+depression_parity <- ggplot(subset(data1, 
+                                PARITY_CAT_STR %in% c("0", 
+                                                      "1", 
+                                                      "2+") ), 
+                         aes(x=PARITY_CAT_STR, y=EPDS_SCORE, fill=PARITY_CAT_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  scale_fill_brewer(palette = "Blues") +  
+  theme_classic() +
+  labs(title = "Depression by parity", 
+       tag="", y="Depression",
+       caption = "Note: does not include current pregnancy") + 
+  guides(fill=guide_legend(title="Parity:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+parity_fig <- plot_grid(parity, depression_parity, 
+                      ncol = 1, nrow = 2)
+ggsave(paste0("parity_fig", ".png"), path = path_to_save,
+                                  width = 8, height = 8)
+knitr::include_graphics(paste0(path_to_save, "parity_fig.png"))
+
+
+```
+\newpage
+### Figure 5. BMI
+```{r bmi-figure}
+
+data1 <- data1 %>%
+  mutate()
+
+bmi <- ggplot(data1, aes(BMI_ENROLL)) + facet_wrap(~SITE_R, scales="free") + theme_classic() +
+  geom_histogram(binwidth = 1, fill="white", colour="black") +  guides(fill="none") + 
+  labs(title = "BMI by site", x="BMI",
+       caption="Note: outliers BMI>50 not visualized") +
+  scale_x_continuous(breaks=seq(0,50,10), limits = c(0,50)) 
+
+ggsave(paste0("bmi", ".png"), path = path_to_save,
+                                  width = 8, height = 4)
+knitr::include_graphics(paste0(path_to_save, "bmi.png"))
+
+depression_bmi <- ggplot(subset(data1, 
+                                BMI_ENROLL_CAT_STR %in% c("<18.5", 
+                                                          "18.5-24.9", 
+                                                          "25-29.9",
+                                                          "30+") ), 
+       aes(x=BMI_ENROLL_CAT_STR, y=EPDS_SCORE, fill=BMI_ENROLL_CAT_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  scale_fill_brewer(palette = "Blues") +  
+  theme_classic() +
+  labs(title = "Depression by enrollment BMI", 
+       tag="", y="Depression",
+       caption = "Note: outliers not visualized") + 
+  guides(fill=guide_legend(title="BMI:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+ 
+ggsave(paste0("depression_bmi", ".png"), path = path_to_save,
+                                  width = 8, height = 4)
+#knitr::include_graphics(paste0(path_to_save, "depression_bmi.png"))
+
+
+```
+
+\textcolor{blue}{**Question for discussion: should we use the typical BMI cutoffs for our analysis, given the literature and these data distributions?**}
+
+### Table 4. BMI
+```{r bmi_table}
+
+table_bmi <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Denominator, n" = sum(!is.na(BMI_ENROLL)),
+  
+
+    "Underweight, n (%)^a^" = paste0(
+      format(sum(BMI_ENROLL_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI_ENROLL_CAT==0 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Normal weight, n (%)^b^" = paste0(
+      format(sum(BMI_ENROLL_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI_ENROLL_CAT==1 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Overweight, n (%)^c^" = paste0(
+      format(sum(BMI_ENROLL_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI_ENROLL_CAT==2 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Obese (any class), n (%)^d^" = paste0(
+      format(sum(BMI_ENROLL_CAT==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI_ENROLL_CAT==3 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Obese class 1, n (%)^e^" = paste0(
+      format(sum(OBESE_CLASS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(OBESE_CLASS==1 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Obese class 2, n (%)^f^" = paste0(
+      format(sum(OBESE_CLASS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(OBESE_CLASS==2 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+    "Obese class 3, n (%)^g^" = paste0(
+      format(sum(OBESE_CLASS==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(OBESE_CLASS==3 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    
+    #   
+    # "Median BMI, (Q1, Q3)" = paste0(
+    #   format(median(BMI_ENROLL, na.rm = TRUE), nsmall = 0, digits = 2),
+    #   " (",
+    #   format(round(quantile(BMI_ENROLL, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+    #  ", " ,  format(round(quantile(BMI_ENROLL, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    # 
+    # 
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_bmi[is.na(table_bmi)] <- paste0("0 (0)")
+
+table_bmi <- tb_theme1(table_bmi) %>% 
+  tab_header(
+    title = md("**Table 3. BMI at Enrollment**")) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>BMI class</span>"),
+        rows = 2:8) %>%
+ row_group_order(groups = c(NA,
+   "<span style='font-size: 18px'>BMI class</span>",NA
+                ) ) %>% 
+   
+# indent categories
+  tab_style(
+      style = list(
+        cell_text(indent = px(20), size = 24)
+        ),
+      locations = cells_stub(rows = c("Obese class 1, n (%)^e^",
+                                      "Obese class 2, n (%)^f^",
+                                      "Obese class 3, n (%)^g^"))) %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Underweight: BMI < 18.5.  <sup>b</sup>Normal weight: BMI 18.5-24.9. <sup>c</sup>Overweight: BMI 25-29.9. <sup>d</sup>Obese: BMI 30+</span>")) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup>Class 1: BMI 30-34.9.   <sup>f</sup>Class 2: BMI 35-39.9. <sup>g</sup>Class 3: BMI 40+</span>"))
+
+gtsave(table_bmi, file = "table_bmi.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_bmi.png"))
+
+```
+
+### Figure 6. Main occupation
+```{r job-figure}
+
+data1$PAID_WORK_STR <- factor(data1$PAID_WORK_STR, levels = c("Yes", 
+                                                "No", 
+                                                "Other"))
+
+depression_job <- ggplot(subset(data1, 
+                                PAID_WORK %in% c(0,1,88) ), 
+                         aes(x=PAID_WORK_STR, y=EPDS_SCORE, fill=PAID_WORK_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  scale_fill_brewer(palette = "Paired") +  
+  theme_classic() +
+  labs(title = "Depression by occupation", 
+       tag="", y="Depression",
+       caption="Based on M03_JOB_SCORRES which allows an 'other, specify' option") + 
+  guides(fill=guide_legend(title="Paid work:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+ggsave(paste0("depression_job", ".png"), path = path_to_save,
+                                  width = 8, height = 5)
+knitr::include_graphics(paste0(path_to_save, "depression_job.png"))
+
+
+```
+
+\newpage
+\newpage
+# Part 2: Health behaviors
+## Table 5. Health behaviors
+
+```{r behaviors-table}
+
+table_behaviors <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+   
+     "Denominator, n" = paste0(
+      format(sum(CHEW_TOBACCO<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Chewed tobacco, n (%)^a^" = paste0(
+      format(sum(CHEW_TOBACCO==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHEW_TOBACCO==1 , na.rm = TRUE)/sum(CHEW_TOBACCO<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Denominator, n " = paste0(
+      format(sum(CHEW_BETELNUT<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Chewed betel nut, n (%)^a^" = paste0(
+      format(sum(CHEW_BETELNUT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHEW_BETELNUT==1 , na.rm = TRUE)/sum(CHEW_BETELNUT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Denominator, n  " = paste0(
+      format(sum(SMOKE<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Smoked, n (%)^b^" = paste0(
+      format(sum(SMOKE==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SMOKE==1 , na.rm = TRUE)/sum(SMOKE<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Denominator, n   " = paste0(
+      format(sum(DRINK<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Consumed alcohol, n (%)^a^" = paste0(
+      format(sum(DRINK==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DRINK==1 , na.rm = TRUE)/sum(DRINK<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    ) %>% 
+    mutate( `Consumed alcohol, n (%)^a^` = 
+              case_when(SITE %in% c("Pakistan") ~ "N/A", 
+                      TRUE ~ `Consumed alcohol, n (%)^a^`) ) %>% 
+  
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_behaviors[is.na(table_behaviors)] <- paste0("0 (0)")
+
+table_behaviors <- tb_theme1(table_behaviors) %>% 
+  tab_header(
+    title = md("**Table 5. Health Behaviors**")) %>% 
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Chewing tobacco usage</span>"),
+        rows = 1:2) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Betel nut usage</span>"),
+        rows = 3:4) %>%
+  
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Participant smoking</span>"),
+        rows = 5:6) %>%
+   
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Alcohol consumption</span>"),
+        rows = 7:8) %>%
+  
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Chewing tobacco usage</span>",
+   "<span style='font-size: 18px'>Betel nut usage</span>",
+    "<span style='font-size: 18px'>Participant smoking</span>",
+   "<span style='font-size: 18px'>Alcohol consumption</span>" 
+                ) ) %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>"))  %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>N/A: </sup>Alcohol consumption is not queried in Pakistan.</span>")) %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Any intake over previous month.</span>"))  %>% 
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup>Smoking includes cigarettes, cigars, and pipe.</span>"))
+
+gtsave(table_behaviors, file = "table_behaviors.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_behaviors.png"))
+
+```
+
+### Figure 7. Substance use 
+```{r substance-figure}
+
+depression_tobacco <- ggplot(subset(data1, 
+                                    CHEW_TOBACCO_STR %in% c("No", 
+                                                         "Yes") ), 
+                            aes(x=CHEW_TOBACCO_STR, y=EPDS_SCORE, fill=CHEW_TOBACCO_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  scale_fill_brewer(palette = "Blues") +  
+  theme_classic() +
+  labs(title = "Depression by tobacco usage", 
+       tag="", y="Depression",
+       caption = "Note: chewing tobacco") + 
+  custom_fill2 +
+  guides(fill=guide_legend(title="Tobacco usage:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+depression_betelnut <- ggplot(subset(data1, 
+                                    CHEW_BETELNUT_STR %in% c("No", "Yes") ), 
+                             aes(x=CHEW_BETELNUT_STR, 
+                                 y=EPDS_SCORE, 
+                                 fill=CHEW_BETELNUT_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  custom_fill2 + 
+  theme_classic() +
+  labs(title = "Depression by betel nut usage", 
+       tag="", y="Depression",
+       caption = "Note: chewing betel nut") + 
+  guides(fill=guide_legend(title="Betel nut usage:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+
+chew_fig <- plot_grid(depression_tobacco, depression_betelnut, 
+                          ncol = 1, nrow = 2)
+ggsave(paste0("chew_fig", ".png"), path = path_to_save,
+                                  width = 8, height = 8)
+knitr::include_graphics(paste0(path_to_save, "chew_fig.png"))
+
+
+depression_drink <- ggplot(subset(data1, 
+                                    DRINK_STR %in% c("No", 
+                                                         "Yes") ), 
+                            aes(x=DRINK_STR, y=EPDS_SCORE, fill=DRINK_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  scale_fill_brewer(palette = "Blues") +  
+  theme_classic() +
+  labs(title = "Depression by alcohol consumption", 
+       tag="", y="Depression",
+       caption = "Note: not asked in Pakistan") + 
+  custom_fill2 +
+  guides(fill=guide_legend(title="Alcohol intake:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+depression_smoke <- ggplot(subset(data1, 
+                                    SMOKE_STR %in% c("No", "Yes") ), 
+                             aes(x=SMOKE_STR, 
+                                 y=EPDS_SCORE, 
+                                 fill=SMOKE_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  custom_fill2 + 
+  theme_classic() +
+  labs(title = "Depression by smoking", 
+       tag="", y="Depression",
+       caption = "Note: cigarettes, cigar, or pipe") + 
+  guides(fill=guide_legend(title="Smoking:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+
+drinksmoke_fig <- plot_grid(depression_drink, depression_smoke, 
+                          ncol = 1, nrow = 2)
+ggsave(paste0("drinksmoke_fig", ".png"), path = path_to_save,
+                                  width = 8, height = 8)
+knitr::include_graphics(paste0(path_to_save, "drinksmoke_fig.png"))
+
+```
+
+\newpage
+# Part 3: Depression over time
+## Figure 8. Timing of Depression Assessment
+```{r timing}
+
+depression_vistype <- ggplot(subset(data_long, 
+                                    VISTYPE %in% c("ENROLL/ANC20", 
+                                                   "ANC32/36",
+                                                   "PNC6")), 
+                                    aes(x=VISTYPE, y=EPDS_SCORE, fill=VISTYPE) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  scale_fill_brewer(palette = "Paired") + 
+  scale_color_brewer(palette = "Paired", guide="none") + 
+  theme_classic() +
+  labs(title = "Depression by visit type", 
+       tag="", y="Depression",
+       caption = "No outliers") + 
+  guides(fill=guide_legend(title="Time")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+ggsave(paste0("depression_vistype", ".png"), path = path_to_save,
+       width = 8, height = 5)
+knitr::include_graphics(paste0(path_to_save, "depression_vistype.png"))
+
+
+depression_vistype_jitter <- ggplot(subset(data_long, 
+                                           VISTYPE %in% c("ENROLL/ANC20", 
+                                                          "ANC32/36", 
+                                                          "PNC6")), 
+                          aes(x=VISTYPE, y=EPDS_SCORE, fill=VISTYPE) ) +
+  geom_jitter( aes(color=VISTYPE), width=0.15,alpha=0.5, size=0.2) + 
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE_R,nrow=1) +
+  scale_fill_brewer(palette = "Paired") + 
+  scale_color_brewer(palette = "Paired", guide="none") + 
+  theme_classic() +
+  labs(title = "Depression by visit type", tag="", y="Depression") + 
+  guides(fill=guide_legend(title="Time")) + 
+  theme(legend.position = "bottom", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+   geom_hline(yintercept=11, linetype="dashed")
+
+ggsave(paste0("depression_vistype_jitter", ".png"), path = path_to_save,
+       width = 8, height = 5)
+
+ hist_anc20 <- ggplot(subset(data_long,  VISTYPE %in% c("ENROLL/ANC20")), 
+                          aes(x=EPDS_SCORE,) )  + 
+   facet_wrap(~SITE_R, nrow =1, scales="free") + theme_classic() +
+   geom_histogram(binwidth = 1, fill="white", colour="black") +  guides(fill="none") + 
+   labs(title = "ENROLL/ANC20", x="Depression score") +
+   scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30))
+ 
+  hist_anc32 <- ggplot(subset(data_long,  VISTYPE %in% c("ANC32/36")), 
+                          aes(x=EPDS_SCORE,) )  + 
+    facet_wrap(~SITE_R, nrow =1, scales="free") + theme_classic() +
+  geom_histogram(binwidth = 1, fill="#71BBB2", colour="#27445D") +  guides(fill="none") + 
+  labs(title = "ANC32/ANC36", x="Depression score") +
+  scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30)) 
+  
+   hist_pnc6 <- ggplot(subset(data_long,  VISTYPE %in% c("PNC6")), 
+                          aes(x=EPDS_SCORE,) )  + 
+     facet_wrap(~SITE_R, nrow =1, scales="free") + theme_classic() +
+  geom_histogram(binwidth = 1, fill="#27445D", colour="grey") +  guides(fill="none") + 
+  labs(title = "PNC6", x="Depression score") +
+  scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30)) 
+  
+  
+depression_hist <- plot_grid(hist_anc20, hist_anc32, hist_pnc6,
+                          ncol = 1, nrow = 3)
+ggsave(paste0("depression_hist", ".png"), path = path_to_save,
+                                  width = 8, height = 10)
+knitr::include_graphics(paste0(path_to_save, "depression_hist.png"))
+
+
+```
+\newpage
+# Appendix A
+## Table 6. Missed Questions
+
+Note: Several participants were administered EPDS, but are missing data on 1 or more questions. The most commonly missed question is Q10, which queries thoughts of self-harm.
+
+```{r questions-missed}
+
+table_missq <- data_long %>% 
+  filter(QUERY_MISS_DEPSCORE==0) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Denominator, n " = paste0(
+      format(sum(QUERY_MISS_DEPSCORE==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Answered < 10 questions, n (%)" = paste0(
+      format(sum(Q_ANSWERED<10, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(Q_ANSWERED<10 , na.rm = TRUE)/sum(QUERY_MISS_DEPSCORE==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Missed Q1, n" = sum(is.na(EPDS0101_R)),
+     "Missed Q2, n" = sum(is.na(EPDS0102_R)),
+     "Missed Q3, n" = sum(is.na(EPDS0103_R)),
+     "Missed Q4, n" = sum(is.na(EPDS0104_R)),
+     "Missed Q5, n" = sum(is.na(EPDS0105_R)),
+     "Missed Q6, n" = sum(is.na(EPDS0106_R)),
+     "Missed Q7, n" = sum(is.na(EPDS0107_R)),
+     "Missed Q8, n" = sum(is.na(EPDS0108_R)),
+     "Missed Q9, n" = sum(is.na(EPDS0109_R)),
+     "Missed Q10, n" = sum(is.na(EPDS0110_R))
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_missq[is.na(table_missq)] <- paste0("0 (0)")
+
+table_missq <- tb_theme1(table_missq) %>% 
+  tab_header(
+    title = md("**Table 5. Missed Questions**"))  %>% 
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Some women missed multiple questions.</span>")) 
+
+gtsave(table_missq, file = "table_missq.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_missq.png"))
+
+```
+\newpage
+
+## Figure 9. Administration at India-CMC (self vs. staff)
+
+Note: India-CMC changed the administration from self-administered EPDS to staff-administered EPDS on December 8, 2023. Depression scores differed substantially based on administration format.
+
+```{r admin-figure}
+
+data_long <- data_long %>%
+   mutate(
+  CMC_ADMIN_STR = case_when(
+   CMC_ADMIN==0 ~ "Self-administered",
+   CMC_ADMIN==1 ~ "Staff-administered"
+  ))
+  
+
+depression_admin <- ggplot(subset(data_long, SITE=="India-CMC"), aes(EPDS_SCORE)) + facet_wrap(~CMC_ADMIN_STR, ncol=1, scales="free") + 
+    theme_classic() +
+    geom_histogram(binwidth = 1, fill="white", colour="black") +  
+    guides(fill="none") + 
+    labs(title = "Depression in India-CMC by administration date", 
+         x="Depression score", caption="Staff-administered after 8 December 2023") +
+    scale_x_continuous(breaks=seq(0,30,5), limits = c(-1,30))
+
+ggsave(paste0("depression_admin", ".png"), path = path_to_save,
+       width = 8, height = 5)
+knitr::include_graphics(paste0(path_to_save, "depression_admin.png"))
+```
+ 
+## Table 6. Administration at India-CMC (self vs. staff)
+```{r admin-table}
+
+data_long <- data_long %>%
+    mutate(
+  EPDS_STND = case_when(
+     EPDS_SCORE>=11 & EPDS_SCORE<=30 ~ 1,
+     EPDS_SCORE <11 ~ 0))
+
+admin_table <- data_long %>% 
+  filter(SITE=="India-CMC" & CMC_ADMIN <= 1) %>%
+  rowwise() %>% 
+  group_by(CMC_ADMIN_STR) %>% 
+  summarise(
+
+    "Denominator, n" = sum(!is.na(EPDS_SCORE)),
+    
+    "Depression score, median (Q1, Q3)" = paste0(
+      format(median(EPDS_SCORE, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(EPDS_SCORE, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(EPDS_SCORE, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+     "Depression score 11+, n (%)" = paste0(
+      format(sum(EPDS_STND==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_STND==1 , na.rm = TRUE)/sum(EPDS_STND<=1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+ 
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+admin_table[is.na(admin_table)] <- paste0("0 (0)")
+
+admin_table <- tb_theme1(admin_table) %>% 
+  tab_header(
+    title = md("**Table 6. Administration Format (India-CMC)**"))
+  
+  
+
+
+gtsave(admin_table, file = "admin_table.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "admin_table.png"))
+
+
+ranksum <- wilcox.test(EPDS_SCORE ~ CMC_ADMIN, 
+                         data=subset(data_long, SITE=="India-CMC" & CMC_ADMIN<=1))
+ranksum_pval <- ranksum$p.value
+
+ttest <- t.test(EPDS_SCORE ~ CMC_ADMIN, 
+                         data=subset(data_long, SITE=="India-CMC" & CMC_ADMIN<=1))
+
+ttest_pval <- ttest$p.value
+
+```
+
+**P-value of Wilcoxon rank-sum test:** `r (paste0(ranksum_pval))`
+
+**P-value of t-test:** `r (paste0(ttest_pval))`
