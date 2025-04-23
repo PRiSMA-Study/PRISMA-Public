@@ -39,10 +39,13 @@ global wrk "Z:\Savannah_working_files\depression/$datadate"
 // make sure this is a secure location as we will save data files here
 cap mkdir "$wrk"
 cd "$wrk"
-global queries "Z:\Savannah_working_files\depression/$datadate\queries"
-cap mkdir "$queries"
-//save query reports here
 
+*Save queries:
+global queries "Z:\Savannah_working_files\depression/$datadate\queries"
+	cap mkdir "$queries" //create the folder if it doesn't exist
+	//save query reports here
+
+	*Get today's date:
 local date: di %td_CCYY_NN_DD daily("`c(current_date)'", "DMY")
 global today = subinstr(strltrim("`date'"), " ", "-", .)
 *******************************************************************
@@ -111,7 +114,8 @@ drop date_dup visnum
 
 *Check if all merge with the enrolled file 
 
-merge m:1 MOMID PREGID using "$outcomes/MAT_ENROLL.dta", gen(checkenroll) keepusing(ENROLL PREG_START_DATE)
+merge m:1 MOMID PREGID using "$outcomes/MAT_ENROLL.dta", gen(checkenroll) keepusing(SITE ENROLL PREG_START_DATE)
+assert SITE != ""
 
 str2date   FORMCOMPLDAT_MNH25 
 	**str2date is a user-defined function to convert strings to dates
@@ -131,7 +135,8 @@ if $runqueries == 1 {
 drop if ENROLL == . 
 drop checkenroll 
 
-merge m:1 MOMID PREGID using "$outcomes/MAT_ENDPOINTS.dta", nogen keepusing(PREG_END PREG_END_DATE)
+merge m:1 MOMID PREGID using "$outcomes/MAT_ENDPOINTS.dta", nogen keepusing(SITE PREG_END PREG_END_DATE)
+assert SITE != ""
 
 gen depr_ga = DATE - PREG_START_DATE
 replace depr_ga = . if ///
@@ -330,7 +335,7 @@ foreach var in EPDS0103 EPDS0104 EPDS0105 EPDS0106 EPDS0107 EPDS0108 EPDS0109 EP
 
 **#Generate summary variable and label responses
 *Label the responses
-**note that the responses are not the same across SITEs, but 3--> higher frequency/worse intensity of depression symptoms
+**note that the responses are not the same across sites, but 3--> higher frequency/worse intensity of depression symptoms
 label define depression_responses ///
 0"0, Less/infrequent symptom" 3"3, Worse/frequent symptom"
 label val EPDS0101_R EPDS0102_R EPDS0103_R EPDS0104_R EPDS0105_R EPDS0106_R EPDS0107_R EPDS0108_R EPDS0109_R EPDS0110_R depression_responses
@@ -340,15 +345,15 @@ label val EPDS0101_R EPDS0102_R EPDS0103_R EPDS0104_R EPDS0105_R EPDS0106_R EPDS
  
 **GEN SUMMARY VARIABLE
 egen dep=rowtotal( EPDS0101_R EPDS0102_R EPDS0103_R EPDS0104_R EPDS0105_R EPDS0106_R EPDS0107_R EPDS0108_R EPDS0109_R EPDS0110_R) , missing 
-gen dep_sum = (dep/Q_ANSWERED) *10
+gen epds_score = (dep/Q_ANSWERED) *10
 
 
 
-gen QUERY_MISS_DEPSCORE=1 if dep_sum==. 
+gen QUERY_MISS_DEPSCORE=1 if epds_score==. 
 label var QUERY_MISS_DEPSCORE "Missing depression score"
 
-**QC check if sum score matches the autocalculated score
-gen dep_check = dep_sum - EPDS01_SCORRES if EPDS01_SCORRES < 55
+**QC check if sum score matches the auto-calculated score
+gen dep_check = epds_score - EPDS01_SCORRES if EPDS01_SCORRES < 55
 gen EPDS01_SCORRES_MISS = 1 if ///
 	inlist(EPDS01_SCORRES,55,66,77,88,99) & inrange(Q_ANSWERED,1,10)
 
@@ -389,6 +394,8 @@ replace cmc_admin=1 if OBSSTDAT>="2023-12-08" & SITE=="India-CMC"
 label define cmc_admin 0"self-administered" 1"staff-administered"
 label val cmc_admin cmc_admin
 label var cmc_admin "CMC self- or staff- administered; changed Dec 8 2023"
+	*Note that the distribution of values by assessment differs substantially
+
 
 **# Create variables for the report
 **ANC-20
@@ -401,12 +408,12 @@ replace DEPR_STND_ANC20 = -2 if ///
 TYPE_VISIT<=2  &  MAT_VISIT_MNH25>=3
 //reason for missing: visit not completed
 replace DEPR_STND_ANC20 = -1 if ///
-TYPE_VISIT<=2  &  MAT_VISIT_MNH25<=2 & dep_sum==.
+TYPE_VISIT<=2  &  MAT_VISIT_MNH25<=2 & epds_score==.
 //reason for missing: visit completed, but the summary score is not available
 replace DEPR_STND_ANC20 = 0 if ///
-TYPE_VISIT<=2  & dep_sum !=.
+TYPE_VISIT<=2  & epds_score !=.
 replace DEPR_STND_ANC20 = 1 if ///
-TYPE_VISIT<=2  & dep_sum !=. & dep_sum>=11 
+TYPE_VISIT<=2  & epds_score !=. & epds_score>=11 
 label var DEPR_STND_ANC20 "Standard cutoff"
 
 gen DEPR_SITE_ANC20 = -5 if ///
@@ -415,19 +422,19 @@ replace DEPR_SITE_ANC20 = -2 if ///
 TYPE_VISIT<=2  &  MAT_VISIT_MNH25>=3
 //reason for missing: visit not completed
 replace DEPR_SITE_ANC20 = -1 if ///
-TYPE_VISIT<=2  &  MAT_VISIT_MNH25<=2 & dep_sum==.
+TYPE_VISIT<=2  &  MAT_VISIT_MNH25<=2 & epds_score==.
 replace DEPR_SITE_ANC20 = 0 if ///
-TYPE_VISIT<=2  & dep_sum !=.
+TYPE_VISIT<=2  & epds_score !=.
 replace DEPR_SITE_ANC20  = 1 if /// 
-SITE=="Ghana" & dep_sum>=11  	& dep_sum!=.  & TYPE_VISIT<=2 | ///
-SITE=="India-CMC" & dep_sum>=8  & dep_sum!=. & TYPE_VISIT<=2 | ///
-SITE=="India-SAS" & dep_sum>=10 & dep_sum!=. & TYPE_VISIT<=2 | ///
-SITE=="Kenya" & dep_sum>=13     & dep_sum!=. & TYPE_VISIT<=2 | ///
-SITE=="Pakistan" & dep_sum>=14  & dep_sum!=. & TYPE_VISIT<=2 | ///
-SITE=="Zambia" & dep_sum>=10    & dep_sum!=. & TYPE_VISIT<=2
+SITE=="Ghana" & epds_score>=11     & epds_score!=. & TYPE_VISIT<=2 | ///
+SITE=="India-CMC" & epds_score>=8  & epds_score!=. & TYPE_VISIT<=2 | ///
+SITE=="India-SAS" & epds_score>=10 & epds_score!=. & TYPE_VISIT<=2 | ///
+SITE=="Kenya" & epds_score>=13     & epds_score!=. & TYPE_VISIT<=2 | ///
+SITE=="Pakistan" & epds_score>=14  & epds_score!=. & TYPE_VISIT<=2 | ///
+SITE=="Zambia" & epds_score>=10    & epds_score!=. & TYPE_VISIT<=2
 label var DEPR_SITE_ANC20 "SITE-specific cutoff"
 
-gen DEPR_SCORE_ANC20=dep_sum if TYPE_VISIT<=2
+gen DEPR_SCORE_ANC20=epds_score if TYPE_VISIT<=2
 
 **ANC-32 (also includes ANC-36)
 	gen DEPR_STND_ANC32 = -5 if ///
@@ -437,11 +444,11 @@ gen DEPR_SCORE_ANC20=dep_sum if TYPE_VISIT<=2
 	replace DEPR_STND_ANC32 = -2 if ///
 	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25>=3
 	replace DEPR_STND_ANC32 = -1 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25<=2 & dep_sum==.
+	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25<=2 & epds_score==.
 	replace DEPR_STND_ANC32 = 0 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5 & dep_sum !=.
+	TYPE_VISIT>=4 & TYPE_VISIT<=5 & epds_score !=.
 	replace DEPR_STND_ANC32 = 1 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & dep_sum !=. & dep_sum>=11 
+	TYPE_VISIT>=4 & TYPE_VISIT<=5  & epds_score !=. & epds_score>=11 
 	label var DEPR_STND_ANC32 "Standard cutoff"
 
 	gen DEPR_SITE_ANC32 = -5 if ///
@@ -449,24 +456,24 @@ gen DEPR_SCORE_ANC20=dep_sum if TYPE_VISIT<=2
 	 replace DEPR_SITE_ANC32 = -2 if ///
 	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25>=3
 	replace DEPR_SITE_ANC32 = -1 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25<=2 & dep_sum==.
+	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25<=2 & epds_score==.
 	replace DEPR_SITE_ANC32 = 0 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & dep_sum !=.
+	TYPE_VISIT>=4 & TYPE_VISIT<=5  & epds_score !=.
 	replace DEPR_SITE_ANC32  = 1 if /// 
-	SITE=="Ghana" & dep_sum>=11 	& dep_sum!=. & ///
+	SITE=="Ghana" & epds_score>=11 	& epds_score!=. & ///
 	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="India-CMC" & dep_sum>=8 	& dep_sum!=. & ///
+	SITE=="India-CMC" & epds_score>=8 	& epds_score!=. & ///
 	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="India-SAS" & dep_sum>=10 & dep_sum!=. & ///
+	SITE=="India-SAS" & epds_score>=10 & epds_score!=. & ///
 	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="Kenya" & dep_sum>=13 	& dep_sum!=. & ///
+	SITE=="Kenya" & epds_score>=13 	& epds_score!=. & ///
 	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="Pakistan" & dep_sum>=14 	& dep_sum!=. & ///
+	SITE=="Pakistan" & epds_score>=14 	& epds_score!=. & ///
 	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="Zambia" & dep_sum>=10 	& dep_sum!=. & ///
+	SITE=="Zambia" & epds_score>=10 	& epds_score!=. & ///
 	TYPE_VISIT>=4 & TYPE_VISIT<=5  
 	label var DEPR_SITE_ANC32 "SITE-specific cutoff"
-	gen DEPR_SCORE_ANC32 =dep_sum if TYPE_VISIT>=4 & TYPE_VISIT<=5  
+	gen DEPR_SCORE_ANC32 =epds_score if TYPE_VISIT>=4 & TYPE_VISIT<=5  
 
 **PNC-6
 	gen DEPR_STND_PNC6 = -5 if ///
@@ -476,11 +483,11 @@ gen DEPR_SCORE_ANC20=dep_sum if TYPE_VISIT<=2
 	replace DEPR_STND_PNC6 = -2 if ///
 	TYPE_VISIT==10 & MAT_VISIT_MNH25>=3
 	replace DEPR_STND_PNC6 = -1 if ///
-	TYPE_VISIT==10 & MAT_VISIT_MNH25<=2 & dep_sum==.
+	TYPE_VISIT==10 & MAT_VISIT_MNH25<=2 & epds_score==.
 	replace DEPR_STND_PNC6 = 0 if ///
-	TYPE_VISIT==10 & dep_sum !=.
+	TYPE_VISIT==10 & epds_score !=.
 	replace DEPR_STND_PNC6 = 1 if ///
-	TYPE_VISIT==10  & dep_sum !=. & dep_sum>=11 
+	TYPE_VISIT==10  & epds_score !=. & epds_score>=11 
 	label var DEPR_STND_PNC6 "Standard cutoff"
 
 	gen DEPR_SITE_PNC6 = -5 if ///
@@ -488,23 +495,23 @@ gen DEPR_SCORE_ANC20=dep_sum if TYPE_VISIT<=2
 	replace DEPR_SITE_PNC6 = -2 if ///
 	TYPE_VISIT==10 & MAT_VISIT_MNH25>=3
 	replace DEPR_SITE_PNC6 = -1 if ///
-	TYPE_VISIT==10 & MAT_VISIT_MNH25<=2 & dep_sum==.
+	TYPE_VISIT==10 & MAT_VISIT_MNH25<=2 & epds_score==.
 	replace DEPR_SITE_PNC6 = 0 if ///
-	TYPE_VISIT==10  & dep_sum !=.
+	TYPE_VISIT==10  & epds_score !=.
 	replace DEPR_SITE_PNC6  = 1 if /// 
-	SITE=="Ghana" & dep_sum>=11 & dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="India-CMC" & dep_sum>=8 	& dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="India-SAS" & dep_sum>=10 & dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="Kenya" & dep_sum>=13 	& dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="Pakistan" & dep_sum>=14 	& dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="Zambia" & dep_sum>=10 	& dep_sum!=. & TYPE_VISIT==10 
+	SITE=="Ghana" & epds_score>=11 & epds_score!=. & TYPE_VISIT==10  | ///
+	SITE=="India-CMC" & epds_score>=8 	& epds_score!=. & TYPE_VISIT==10  | ///
+	SITE=="India-SAS" & epds_score>=10 & epds_score!=. & TYPE_VISIT==10  | ///
+	SITE=="Kenya" & epds_score>=13 	& epds_score!=. & TYPE_VISIT==10  | ///
+	SITE=="Pakistan" & epds_score>=14 	& epds_score!=. & TYPE_VISIT==10  | ///
+	SITE=="Zambia" & epds_score>=10 	& epds_score!=. & TYPE_VISIT==10 
 	label var DEPR_SITE_PNC6 "SITE-specific cutoff"
-	gen DEPR_SCORE_PNC6 = dep_sum if TYPE_VISIT==10 
+	gen DEPR_SCORE_PNC6 = epds_score if TYPE_VISIT==10 
 
 	notes : Data date: $datadate TS
 	label data "Depression form, all $datadate data, long"
 save "$wrk/mnh25.dta", replace
-drop if dep_sum==.
+drop if epds_score==.
 bysort MOMID PREGID DATE (TYPE_VISIT) : gen VISNUM=_n
 keep if VISNUM==1
 drop VISNUM
@@ -543,7 +550,13 @@ save "$wrk/mnh25_collapsed.dta", replace
 		//check not missing SITE for any observations
 **********ANC-20***********
 	**denominator for data completeness table
-	gen DEPR_MISS_ANC20_DENOM = 1 if ANC20_EXP ==1 | inrange(DEPR_STND_ANC20,0,1)
+	gen DEPR_ANC20_EXP = ANC20_EXP
+		*ANC20_EXP is based on the woman's visit window & her closeout date
+	*Note one issue: Ghana started testing depression late
+	*If a woman's ANC20 late visit window passed before the depression start date, set that woman as 'not expected'
+	
+	replace DEPR_ANC20_EXP = 0 if ANC20_LATE_WINDOW < date("2023-06-15", "YMD") & SITE == "Ghana"
+	gen DEPR_MISS_ANC20_DENOM = 1 if DEPR_ANC20_EXP ==1 | inrange(DEPR_STND_ANC20,0,1)
 		**those expected and/or have data
 	gen DEPR_ANC20_DENOM = 1 if ///
 	(DEPR_STND_ANC20 ==0 | DEPR_STND_ANC20==1) 
@@ -559,7 +572,8 @@ save "$wrk/mnh25_collapsed.dta", replace
 	
 	**MISSING
 	gen DEPR_MISS_ANC20 =DEPR_STND_ANC20 if DEPR_STND_ANC20<0
-	replace DEPR_MISS_ANC20 = -2 if ANC20_EXP ==1 & DEPR_STND_ANC20==.
+	replace DEPR_MISS_ANC20 = -2 if DEPR_ANC20_EXP ==1 & DEPR_STND_ANC20==.
+		*-2 is visit not completed; we will code this if she's expected but there's no score for her
 	replace DEPR_MISS_ANC20 = . if DEPR_MISS_ANC20_DENOM !=1
 		*if no data and not expected, we don't care about missingness reason
 	label define MISS -2"Visit not completed" -1"No summary score"
@@ -570,7 +584,9 @@ save "$wrk/mnh25_collapsed.dta", replace
 **********ANC-32***********
 
 	* "full" denominator for missingness table in the report
-	gen DEPR_MISS_ANC32_DENOM =1 if ANC32_EXP == 1 | inrange(DEPR_STND_ANC32,0,1)
+	gen DEPR_ANC32_EXP = ANC32_EXP
+	replace DEPR_ANC32_EXP = 0 if ANC36_LATE_WINDOW < date("2023-06-15", "YMD") & SITE == "Ghana"
+	gen DEPR_MISS_ANC32_DENOM =1 if DEPR_ANC32_EXP == 1 | inrange(DEPR_STND_ANC32,0,1)
 		**have data and/or are expected
 		
 	*denominator of those with valid data
@@ -589,7 +605,7 @@ save "$wrk/mnh25_collapsed.dta", replace
 	"Numerator of those screening for depression at ANC32, SITE cutoff"
 	**MISSING
 	gen DEPR_MISS_ANC32 = DEPR_STND_ANC32 if DEPR_STND_ANC32<0
-	replace DEPR_MISS_ANC32 = -2 if  ANC32_EXP == 1 & DEPR_STND_ANC32==.
+	replace DEPR_MISS_ANC32 = -2 if  DEPR_ANC32_EXP == 1 & DEPR_STND_ANC32==.
 	replace  DEPR_MISS_ANC32=. if DEPR_MISS_ANC32_DENOM !=1
 		*if no data and not expected, we don't care about missingness reason
 	label val DEPR_MISS_ANC32 MISS
@@ -598,6 +614,8 @@ save "$wrk/mnh25_collapsed.dta", replace
 **********PNC-6***********
 	**DENOMINATOR
 	*full denominator for the report
+	gen DEPR_PNC6_EXP = PNC6_EXP
+	replace DEPR_PNC6_EXP = 0 if SITE == "Ghana" & PNC6_LATE_WINDOW < date("2023-06-15", "YMD")
 	gen DEPR_MISS_PNC6_DENOM = 1 if PNC6_EXP == 1 | inrange(DEPR_STND_PNC6,0,1)
 		// those who have data or are expected
 	
@@ -666,7 +684,7 @@ keep SITE MOMID PREGID DEPR_STND_ANC20 DEPR_SITE_ANC20 DEPR_SCORE_ANC20 DEPR_STN
 
 label data "Depression score, $datadate, `c(username)', $today"
 notes replace _dta in 1 : Outcome dataset for $datadate data TS
-
+assert SITE != ""
 save "$wrk/MAT_DEPR-$datadate.dta", replace
 *Review and save to outcome folder:
 *save "$outcomes/MAT_DEPR.dta" , replace
