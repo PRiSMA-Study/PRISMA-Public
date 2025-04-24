@@ -6521,24 +6521,19 @@ knitr::include_graphics(paste0(path_to_save, "prolong_tab_output.png"))
 
 ## 12. Thyroid Dysfunction
 
-**Reference ranges:** 
+**Reference ranges:**
 
 
 |Trimester | TSH | Free T4 |
 |--------- | ----|---------|
-|1st| 0.6-3.4 µIU/mL | 0.8-1.2 ng/dL |
+|1st| 0.6 - 3.4 µIU/mL | 0.8-1.2 ng/dL |
 |2nd| 0.37 - 3.6 µIU/mL | 0.6-1.0 ng/dL |
-|3rd| 0.38-4.04 µIU/mL | 0.5-0.8 ng/dL |
+|3rd| 0.38 - 4.04 µIU/mL | 0.5-0.8 ng/dL |
 
-<!-- -   1st trimester: TSH 0.6-3.4 µIU/mL; T4: 0.8-1.2 ng/dL -->
-
-<!-- -   2nd trimester: TSH 0.37 - 3.6 µIU/mL; T4:0.6-1 ng/dL -->
-
-<!-- -   3rd trimester: TSH 0.38-4.04 µIU/mL; T4:0.5-0.8 ng/dL -->
 
 **Definition:**
 
-|Classification | TSH | Free T4 | 
+|Classification | TSH | Free T4 |
 |-------------- | ----|---------|
 |Overt hyperthyroidism| low | high |
 |Subclinical hyperthyroidism| low | normal |
@@ -6548,24 +6543,9 @@ knitr::include_graphics(paste0(path_to_save, "prolong_tab_output.png"))
 |Unclassified| low | low |
 |Unclassified| high | high |
 
-<!-- -   Overt hyperthyroidism: low TSH & high free T4 -->
+**Expected Denominator:** For enrollment, all women are expected to have thyroid testing until the stop date (Ghana: 2024-09-01; India-CMC: 2024-10-17; India-SAS: n/a; Kenya: 2025-01-14; Pakistan: 2024-10-03; Zambia: 2024-10-11). For **ANC32**, expected participants are those who have passed the window and have not closed out or closed out after the window
 
-<!-- -   Subclinical hyperthyroidism: low TSH & normal free T4 -->
-
-<!-- -   Overt hypothyroidism: high TSH & low free T4 -->
-
-<!-- -   Subclinical hypothyroidism: high TSH & normal free T4 -->
-
-<!-- -   Euthyroid: normal TSH -->
-
-<!-- -   Unclassified: (high TSH + high T4) or (low TSH + low T4) -->
-
-
-**Expected Denominator:** Women who have passed the window and have not closed out or closed out after the window
-
-**Common causes of missingness:** 
-
--   Missing estimated due date based on BOE (cannot calculate trimester or visit window)
+**Common causes of missingness:**
 
 -   Missing thyroid lab test date [THYROID_LBTSTDAT]
 
@@ -6577,65 +6557,114 @@ knitr::include_graphics(paste0(path_to_save, "prolong_tab_output.png"))
 ### Table 12a. Thyroid Dysfunction at Enrollment
 ```{r}
 
-thy_tab <- thy %>% 
-  rowwise() %>% 
-  group_by(SITE) %>% 
+thy_tab <- thy %>%
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
-     "Expected number at Enrollment^a^" = paste0(
-      format(sum(THYR_ANC20_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-     
+
+     "Expected number at Enrollment, T1^a^" = paste0(
+      format(sum(THYR_ENROLL_EXP_T1 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
      "Missing" = paste0(
-      format(sum(THYR_ANC20 == 55 & THYR_ANC20_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(THYR_ENROLL_T1 == 55 & THYR_ENROLL_EXP_T1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(THYR_ANC20 == 55 & THYR_ANC20_EXP == 1, na.rm = TRUE)/sum(THYR_ANC20_EXP == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),  
-     
-    "Denominator (non-missing)" = paste0(
-      format(sum(THYR_ANC20_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-     
+      format(round(sum(THYR_ENROLL_T1 == 55 & THYR_ENROLL_EXP_T1 == 1, na.rm = TRUE)/sum(THYR_ENROLL_EXP_T1 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator for T1 (non-missing)" = paste0(
+      format(sum(THYR_ENROLL_T1 < 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
      "Euthyroid" = paste0(
-      format(sum(THYR_ANC20 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(THYR_ENROLL_T1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(THYR_ANC20 == 1, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),  
-    
+      format(round(sum(THYR_ENROLL_T1 == 1, na.rm = TRUE)/sum(THYR_ENROLL_T1 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
      "Overt hyperthyroidism" = paste0(
-      format(sum(THYR_ANC20 == 3, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(THYR_ENROLL_T1 == 3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(THYR_ANC20 == 3, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(THYR_ENROLL_T1 == 3, na.rm = TRUE)/sum(THYR_ENROLL_T1 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-     
+
      "Subclinical hyperthyroidism" = paste0(
-      format(sum(THYR_ANC20 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(THYR_ENROLL_T1 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(THYR_ANC20 == 2, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(THYR_ENROLL_T1 == 2, na.rm = TRUE)/sum(THYR_ENROLL_T1 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-     
+
      "Overt hypothyroidism" = paste0(
-      format(sum(THYR_ANC20 == 5, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(THYR_ENROLL_T1 == 5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(THYR_ANC20 == 5, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(THYR_ENROLL_T1 == 5, na.rm = TRUE)/sum(THYR_ENROLL_T1 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-     
+
      "Subclinical hypothyroidism" = paste0(
-      format(sum(THYR_ANC20 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(THYR_ENROLL_T1 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(THYR_ANC20 == 4, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(THYR_ENROLL_T1 == 4, na.rm = TRUE)/sum(THYR_ENROLL_T1 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-     
+
      "Unclassified" = paste0(
-      format(sum(THYR_ANC20 == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(THYR_ENROLL_T1 == 0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(THYR_ANC20 == 0, na.rm = TRUE)/sum(THYR_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(THYR_ENROLL_T1 == 0, na.rm = TRUE)/sum(THYR_ENROLL_T1 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+     "Expected number at Enrollment, T2^a^" = paste0(
+      format(sum(THYR_ENROLL_EXP_T2 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+     "Missing " = paste0(
+      format(sum(THYR_ENROLL_T2 == 55 & THYR_ENROLL_EXP_T2 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ENROLL_T2 == 55 & THYR_ENROLL_EXP_T2 == 1, na.rm = TRUE)/sum(THYR_ENROLL_EXP_T2 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator for T2 (non-missing)" = paste0(
+      format(sum(THYR_ENROLL_T2 < 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+     "Euthyroid " = paste0(
+      format(sum(THYR_ENROLL_T2 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ENROLL_T2 == 1, na.rm = TRUE)/sum(THYR_ENROLL_T2 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Overt hyperthyroidism " = paste0(
+      format(sum(THYR_ENROLL_T2 == 3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ENROLL_T2 == 3, na.rm = TRUE)/sum(THYR_ENROLL_T2 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Subclinical hyperthyroidism " = paste0(
+      format(sum(THYR_ENROLL_T2 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ENROLL_T2 == 2, na.rm = TRUE)/sum(THYR_ENROLL_T2 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Overt hypothyroidism " = paste0(
+      format(sum(THYR_ENROLL_T2 == 5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ENROLL_T2 == 5, na.rm = TRUE)/sum(THYR_ENROLL_T2 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Subclinical hypothyroidism " = paste0(
+      format(sum(THYR_ENROLL_T2 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ENROLL_T2 == 4, na.rm = TRUE)/sum(THYR_ENROLL_T2 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Unclassified " = paste0(
+      format(sum(THYR_ENROLL_T2 == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(THYR_ENROLL_T2 == 0, na.rm = TRUE)/sum(THYR_ENROLL_T2 < 55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-  
-    ) %>% 
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)  %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
 
 ```
 
@@ -6643,23 +6672,40 @@ thy_tab <- thy %>%
 # replace NA with 0s (this likely means there is not yet data)
 thy_tab[is.na(thy_tab)] <- paste0("0 (0)")
 
-thy_tab_output <- tb_theme1(thy_tab) %>% 
+thy_tab_output <- tb_theme1(thy_tab) %>%
   tab_header(
-    title = md("**Table 12a**")) %>% 
+    title = md("**Table 12a**")) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness</span>"),
-        rows = 1:2
+    label = html("<span style='font-size: 18px'>Enrollment: Trimester 1</span>"),
+        rows = 1:9
     ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Thyroid function at Enrollment</span>"),
-        rows = 3:9
+    label = html("<span style='font-size: 18px'>Enrollment: Trimester 2</span>"),
+        rows = 10:18
     ) %>%
- row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
-                            "<span style='font-size: 18px'>Thyroid function at Enrollment</span>"))  %>% 
+ row_group_order(groups = c( "<span style='font-size: 18px'>Enrollment: Trimester 1</span>",
+                            "<span style='font-size: 18px'>Enrollment: Trimester 2</span>"))  %>%
+  
+   # bold denominator row
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator for T1 (non-missing)",
+                 "Denominator for T2 (non-missing)"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator for T1 (non-missing)",
+                 "Denominator for T2 (non-missing)"))) %>%
+  
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" )) %>% 
+    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" )) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who have passed the late window for ANC20</span>" ))
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who were enrolled before enrollment thyroid testing was stopped (Ghana: 2024-09-01; India-CMC: 2024-10-17; India-SAS: n/a; Kenya: 2025-01-14; Pakistan: 2024-10-03; Zambia: 2024-10-11)</span>" ))
 
 
 
@@ -6676,65 +6722,65 @@ knitr::include_graphics(paste0(path_to_save, "thy_tab_output.png"))
 ### Table 12b. Thyroid Dysfunction at ANC-32
 ```{r}
 
-thy_tab32 <- thy %>% 
-  rowwise() %>% 
-  group_by(SITE) %>% 
+thy_tab32 <- thy %>%
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
+
      "Expected number at ANC32^a^" = paste0(
       format(sum(THYR_ANC32_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-     
+
      "Missing" = paste0(
       format(sum(THYR_ANC32 == 55 & THYR_ANC32_EXP == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 55 & THYR_ANC32_EXP == 1, na.rm = TRUE)/sum(THYR_ANC32_EXP == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),  
-     
+      ")"),
+
     "Denominator (non-missing)" = paste0(
       format(sum(THYR_ANC32_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-     
+
      "Euthyroid at ANC32" = paste0(
       format(sum(THYR_ANC32 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 1, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),  
-    
+      ")"),
+
      "Overt hyperthyroidism" = paste0(
       format(sum(THYR_ANC32 == 3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 3, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-     
+
      "Subclinical hyperthyroidism" = paste0(
       format(sum(THYR_ANC32 == 2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 2, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-     
+
      "Overt hypothyroidism" = paste0(
       format(sum(THYR_ANC32 == 5, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 5, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-     
+
      "Subclinical hypothyroidism" = paste0(
       format(sum(THYR_ANC32 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 4, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-     
+
      "Unclassified" = paste0(
       format(sum(THYR_ANC32 == 0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(THYR_ANC32 == 0, na.rm = TRUE)/sum(THYR_ANC32_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-  
-    ) %>% 
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)  %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
 
 ```
 
@@ -6742,9 +6788,9 @@ thy_tab32 <- thy %>%
 # replace NA with 0s (this likely means there is not yet data)
 thy_tab32[is.na(thy_tab32)] <- paste0("0 (0)")
 
-thy_tab_output32 <- tb_theme1(thy_tab32) %>% 
+thy_tab_output32 <- tb_theme1(thy_tab32) %>%
   tab_header(
-    title = md("**Table 12b**")) %>% 
+    title = md("**Table 12b**")) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness</span>"),
         rows = 1:2
@@ -6754,9 +6800,9 @@ thy_tab_output32 <- tb_theme1(thy_tab32) %>%
         rows = 3:9
     ) %>%
  row_group_order(groups = c( "<span style='font-size: 18px'>Data completeness</span>",
-                            "<span style='font-size: 18px'>Thyroid function at ANC-32</span>"))  %>% 
+                            "<span style='font-size: 18px'>Thyroid function at ANC-32</span>"))  %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" )) %>% 
+    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" )) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who have passed the late window for ANC36</span>" ))
 
@@ -6770,6 +6816,7 @@ gtsave(thy_tab_output32, file = "thy_tab_output32.png", path = path_to_save, exp
 knitr::include_graphics(paste0(path_to_save, "thy_tab_output32.png"))
 
 ```
+
 
 \newpage
 
