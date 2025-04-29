@@ -10,7 +10,7 @@ output:
     keep_tex: true
 ---
 
-**Date of included data upload to Synapse: ** 2025-03-07
+**Date of included data upload to Synapse: ** 2025-04-04
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%", fig.align = "center") 
@@ -488,8 +488,6 @@ tb1_2 <- tb_theme2(matrix1 %>% slice(16:33)) %>%
 ```  
 
 ```{r define matrix function}
-
-
 missing_fun <- function(num, visit) {
  #*******************table 2.1 ********************
   matrix2_1 <- df_lab %>%
@@ -580,10 +578,10 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
                                "Missing POC HIV results"
     )) %>%
     tab_footnote(
-      footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+      footnote = c("*Denominator: Participants with complete MNH06 in person")
     ) %>%
       tab_footnote(
-      footnote = c("**Denominator: Same denominator as above except known HIV +ve as documented by MOH doesn't expect POC HIV results in Kenya")
+      footnote = c("**Denominator: Same denominator as above except known HIV+ as documented by MOH doesn't expect POC HIV results in Kenya")
     ) %>%
     tab_footnote(
       footnote = c("Note: Pakistan stopped Malaria test on 2024-05-01. Total number excluded Pakistan.")
@@ -680,16 +678,16 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
                                  "Missing CBC HB Test Results in MNH08"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("**Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person or by phone ")
+        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
       tab_source_note(
-        source_note = "Note: Grey fonts indicate test not done/required by site. Please check if it's truly not required."
+        source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
       tab_style(
         style = list(
@@ -789,22 +787,22 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
                                  "Missing CBC HB Test Results in MNH08"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("**Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person or by phone ")
+        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
-      tab_footnote(
-        footnote = c("Pakistan note: CBC test stopped from April 2024.")
-      ) %>%
-      tab_footnote(
-        footnote = c("Kenya note: CBC collected for ReMAPP only.")
-      ) %>%
+      # tab_footnote(
+      #   footnote = c("Pakistan note: CBC test stopped from April 2024.")
+      # ) %>%
+      # tab_footnote(
+      #   footnote = c("Kenya note: CBC collected for ReMAPP only.")
+      # ) %>%
       tab_source_note(
-        source_note = "Note: Grey fonts indicate test not done/required by site. Please check if it's truly not required."
+        source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
       tab_style(
         style = list(
@@ -908,16 +906,16 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
                                  "Missing CBC HB Test Results in MNH08"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("**Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person or by phone ")
+        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
       tab_source_note(
-        source_note = "Note: Grey fonts indicate test not done/required by site. Please check if it's truly not required."
+        source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
       tab_style(
         style = list(
@@ -1024,19 +1022,19 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
                                  "Missing CBC HB Test Results in MNH08"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("**Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person or by phone")
+        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person")
       ) %>% 
       tab_footnote(
         footnote = c("Note: Showing missingess on/after the date v5.2 protocol of October 2023 was fully implemented (2024-03-01) for Kenya")
       ) %>%
       tab_source_note(
-        source_note = "Note: Grey fonts indicate test not done/required by site. Please check if it's truly not required."
+        source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
       tab_style(
         style = list(
@@ -1140,16 +1138,16 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
                                  "Missing CBC HB Test Results in MNH08"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("**Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person or by phone ")
+        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
       tab_source_note(
-        source_note = "Note: Grey fonts indicate test not done/required by site. Please check if it's truly not required."
+        source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
       tab_style(
         style = list(
@@ -1253,19 +1251,19 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
                                  "Missing CBC HB Test Results in MNH08"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("**Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person or by phone ")
+        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
       tab_footnote(
         footnote = c("Kenya note: CBC collected for ReMAPP only. Only expect CBC when SCRN_OBSSTDAT >= 2023-04-03.")
       ) %>%
       tab_source_note(
-        source_note = "Note: Grey fonts indicate test not done/required by site. Please check if it's truly not required."
+        source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
       tab_style(
         style = list(
@@ -1367,16 +1365,16 @@ tb2_1 <- tb_theme2(matrix2_1) %>%
                                  "Missing CBC HB Test Results in MNH08"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("**Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person or by phone ")
+        footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
       tab_source_note(
-        source_note = "Note: Grey fonts indicate test not done/required by site. Please check if it's truly not required."
+        source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
       tab_style(
         style = list(
@@ -1596,10 +1594,10 @@ df_ogtt <- df_ogtt %>%
                                  "Missing Oral Glucose-tolerance (2-hour) Results"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("**Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
         footnote = c("Note: POC blood glucose is not performed at CMC, SAS and Pakistan. Expected lab results from MNH06 and total number excluded CMC, SAS and Pakistan")
@@ -1611,7 +1609,7 @@ df_ogtt <- df_ogtt %>%
         footnote = c("Note: Test completed at ANC32 or ANC36 or unscheduled visit on/after 26 gestational weeks are also included.")
       ) %>%
       tab_footnote(
-        footnote = c("Ghana note: Poc glucose test between 2023-10-20 and 2024-04-08. Denominator removed this period.")
+        footnote = c("Ghana note: Poc glucose test not done between 2023-10-20 and 2024-04-08. Denominator removed this period.")
       ) %>%
       gtsave(paste0("results/missing_m06_", visit, "_3.png"), expand = 10)
     
@@ -1710,10 +1708,10 @@ df_ogtt <- df_ogtt %>%
       # stubhead label
       tab_stubhead(label = "Part IV. Syphilis Test Results") %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH06 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH06 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with a positive treponemal RDT, for whom the site has initiated a Syphilis titer test, and who have completed MNH08 either in person or by phone")
+        footnote = c("**Denominator: Participants with a positive treponemal RDT, for whom the site has initiated a Syphilis titer test, and who have completed MNH08 either in person")
       ) %>%
       tab_footnote(
         footnote = c("***Denominator: Participants with positive non-treponemal antibody titer. This denominator will likely differ from the denominator used for “Expected Syphilis Titers Lab Test” as participants may have a positive RDT and then a negative non-treponemal antibody titer lab test")
@@ -1853,10 +1851,10 @@ df_ogtt <- df_ogtt %>%
       # stubhead label
       tab_stubhead(label = "Part IV. Syphilis Test Results") %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with negative treponemal RDT at enrollment and complete MNH06 in person or by phone at ANC32 visit")
+        footnote = c("*Denominator: Participants with negative treponemal RDT at enrollment and complete MNH06 in person at ANC32 visit")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants with a positive treponemal RDT at enrollment or at ANC32 visit, for whom the site has initiated a Syphilis titer test for ANC32 visit, and who have completed MNH08 either in person or by phone.")
+        footnote = c("**Denominator: Participants with a positive treponemal RDT at enrollment or at ANC32 visit, for whom the site has initiated a Syphilis titer test for ANC32 visit, and who have completed MNH08 either in person.")
       ) %>%
       tab_footnote(
         footnote = c("***Denominator: Participants with positive non-treponemal antibody titer. This denominator will likely differ from the denominator used for “Expected Syphilis Titers Lab Test” as participants may have a positive RDT and then a negative non-treponemal antibody titer lab test")
@@ -1930,7 +1928,7 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
                              "Missing Blood Typing Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
   gtsave(paste0("results/missing_m08_", visit, "_1.png"), expand = 10)
 }
@@ -2142,7 +2140,7 @@ tb3_1 <- tb_theme2(matrix3_1) %>%
       mutate_all(funs(str_replace(., "(NaN)", "-")))
 
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
-    matrix3_2[c(5,7,14,18,19), c("Pakistan")] = "n/a"
+    matrix3_2[c(5,7,14,16,18,19), c("Pakistan")] = "n/a"
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
 
 tb3_2 <- tb_theme2(matrix3_2) %>%
@@ -2160,7 +2158,7 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
                              "Missing CBC Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
       tab_footnote(
     footnote = c("Note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, plateletcrit, platelet distribution width are not performed at Pakistan. Total number excluded Pakistan.")
@@ -2180,12 +2178,20 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
  if(num %in% c(2)) {
     matrix3_2 <- df_lab %>%
       # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
-        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
-                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
-                                                                              (SITE == "Pakistan" & denom_remapp==1) |
-                                                                              (SITE == "Ghana" & denom_remapp==1)|
-                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
-                                                                              )) %>%
+      mutate(M08_LBSTDAT_1 = ymd(M08_LBSTDAT_1),
+             M08_LBSTDAT_2 = ymd(M08_LBSTDAT_2),
+             M08_LBSTDAT_3 = ymd(M08_LBSTDAT_3),
+             M08_LBSTDAT_5 = ymd(M08_LBSTDAT_5),
+             M08_LBSTDAT_10 = ymd(M08_LBSTDAT_10)
+             
+      ) %>% 
+      # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                            (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                            (SITE == "Pakistan" & denom_remapp==1) |
+                                                                            (SITE == "Ghana" & denom_remapp==1)|
+                                                                            (SITE == "India-SAS" & eval(parse(text = paste0("M08_LBSTDAT_", num))) >= "2024-07-22")
+      )) %>%
       group_by(SITE) %>%
       summarise(
         "Expected Lab Results from MNH08: N" = n(),
@@ -2296,12 +2302,20 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
       add_column(
         .after = 6,
         "Total" = df_lab %>%
-        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
-                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
-                                                                              (SITE == "Pakistan" & denom_remapp==1) |
-                                                                              (SITE == "Ghana" & denom_remapp==1)|
-                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
-                                                                              )) %>%
+      mutate(M08_LBSTDAT_1 = ymd(M08_LBSTDAT_1),
+             M08_LBSTDAT_2 = ymd(M08_LBSTDAT_2),
+             M08_LBSTDAT_3 = ymd(M08_LBSTDAT_3),
+             M08_LBSTDAT_5 = ymd(M08_LBSTDAT_5),
+             M08_LBSTDAT_10 = ymd(M08_LBSTDAT_10)
+             
+      ) %>% 
+      # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                            (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                            (SITE == "Pakistan" & denom_remapp==1) |
+                                                                            (SITE == "Ghana" & denom_remapp==1)|
+                                                                            (SITE == "India-SAS" & eval(parse(text = paste0("M08_LBSTDAT_", num))) >= "2024-07-22")
+      )) %>%
           summarise(
             "Expected Lab Results from MNH08: N" = n(),
             "Missing Hematocrit (HCT): n (%)*" = paste0(
@@ -2402,7 +2416,7 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
 
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
     # matrix3_2[, c("Pakistan")] = "n/a"
-    matrix3_2[c(5,7,14,18,19), c("Pakistan")] = "n/a" ## 15/16 removed
+    matrix3_2[c(5,7,14,16,18,19), c("Pakistan")] = "n/a" ## 15/16 removed
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
     matrix3_2 <- matrix3_2 %>% relocate(Pakistan, .after = Kenya)
 
@@ -2421,14 +2435,14 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
                              "Missing CBC Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
       tab_footnote(
     footnote = c("Pakistan note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count,  plateletcrit, platelet distribution width are not performed. Remaining CBC testing stopped from 2024-04-05") ## eosinophils %, eosinophils full cell count,
   ) %>%
-     tab_footnote(
-    footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
-  ) %>%
+  #    tab_footnote(
+  #   footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
+  # ) %>%
     tab_footnote(
     footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
   ) %>%
@@ -2444,12 +2458,20 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
 #CBC for Kenya only for ReMAPP
   if(num %in% c(3,10)) {
     matrix3_2 <- df_lab %>%
-        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
-                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
-                                                                              (SITE == "Pakistan" & denom_remapp==1) |
-                                                                              (SITE == "Ghana" & denom_remapp==1)|
-                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
-                                                                              )) %>%
+      mutate(M08_LBSTDAT_1 = ymd(M08_LBSTDAT_1),
+             M08_LBSTDAT_2 = ymd(M08_LBSTDAT_2),
+             M08_LBSTDAT_3 = ymd(M08_LBSTDAT_3),
+             M08_LBSTDAT_5 = ymd(M08_LBSTDAT_5),
+             M08_LBSTDAT_10 = ymd(M08_LBSTDAT_10)
+             
+      ) %>% 
+      # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                            (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                            (SITE == "Pakistan" & denom_remapp==1) |
+                                                                            (SITE == "Ghana" & denom_remapp==1)|
+                                                                            (SITE == "India-SAS" & eval(parse(text = paste0("M08_LBSTDAT_", num))) >= "2024-07-22")
+      )) %>%
       group_by(SITE) %>%
       summarise(
         "Expected Lab Results from MNH08: N" = n(),
@@ -2553,12 +2575,20 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
       add_column(
         .after = 6,
         "Total" = df_lab %>%
-        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
-                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
-                                                                              (SITE == "Pakistan" & denom_remapp==1) |
-                                                                              (SITE == "Ghana" & denom_remapp==1)|
-                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
-                                                                              )) %>%
+      mutate(M08_LBSTDAT_1 = ymd(M08_LBSTDAT_1),
+             M08_LBSTDAT_2 = ymd(M08_LBSTDAT_2),
+             M08_LBSTDAT_3 = ymd(M08_LBSTDAT_3),
+             M08_LBSTDAT_5 = ymd(M08_LBSTDAT_5),
+             M08_LBSTDAT_10 = ymd(M08_LBSTDAT_10)
+             
+      ) %>% 
+      # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                            (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                            (SITE == "Pakistan" & denom_remapp==1) |
+                                                                            (SITE == "Ghana" & denom_remapp==1)|
+                                                                            (SITE == "India-SAS" & eval(parse(text = paste0("M08_LBSTDAT_", num))) >= "2024-07-22")
+      )) %>%
           summarise(
             "Expected Lab Results from MNH08: N" = n(),
             "Missing Hematocrit (HCT): n (%)*" = paste0(
@@ -2659,7 +2689,7 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
       mutate_all(funs(str_replace(., "(NaN)", "-")))
 
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
-    matrix3_2[c(5,7,14,18,19), c("Pakistan")] = "n/a"
+    matrix3_2[c(5,7,14,16,18,19), c("Pakistan")] = "n/a"
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
     
   tb3_2 <- tb_theme2(matrix3_2) %>%
@@ -2677,14 +2707,14 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
                              "Missing CBC Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
     tab_footnote(
     footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
   ) %>%
-    tab_footnote(
-    footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
-  ) %>%
+  #   tab_footnote(
+  #   footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
+  # ) %>%
     tab_footnote(
     footnote = c("Kenya note: CBC collected for ReMAPP only. Only expect CBC when SCRN_OBSSTDAT >= 2023-04-03.")
   ) %>%
@@ -2701,12 +2731,20 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
        #CBC for Kenya only for ReMAPP
   if(num %in% c(5)) {
     matrix3_2 <- df_lab %>%
-        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
-                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
-                                                                              (SITE == "Pakistan" & denom_remapp==1) |
-                                                                              (SITE == "Ghana" & denom_remapp==1)|
-                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
-                                                                              )) %>%
+      mutate(M08_LBSTDAT_1 = ymd(M08_LBSTDAT_1),
+             M08_LBSTDAT_2 = ymd(M08_LBSTDAT_2),
+             M08_LBSTDAT_3 = ymd(M08_LBSTDAT_3),
+             M08_LBSTDAT_5 = ymd(M08_LBSTDAT_5),
+             M08_LBSTDAT_10 = ymd(M08_LBSTDAT_10)
+             
+      ) %>% 
+      # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                            (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                            (SITE == "Pakistan" & denom_remapp==1) |
+                                                                            (SITE == "Ghana" & denom_remapp==1)|
+                                                                            (SITE == "India-SAS" & eval(parse(text = paste0("M08_LBSTDAT_", num))) >= "2024-07-22")
+      )) %>%
       group_by(SITE) %>%
       summarise(
         "Expected Lab Results from MNH08: N" = n(),
@@ -2811,13 +2849,20 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
       add_column(
         .after = 6,
         "Total" = df_lab %>%
-        # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (SITE != "Kenya" | (SITE == "Kenya" & denom_remapp == 1)) & SITE != "Pakistan") %>%
-        filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
-                                                                              (SITE == "Kenya" & denom_remapp == 1) | 
-                                                                              (SITE == "Pakistan" & denom_remapp==1) |
-                                                                              (SITE == "Ghana" & denom_remapp==1)|
-                                                                              (SITE == "India-SAS" & denom_post_enrll_cbc==1)
-                                                                              )) %>%
+      mutate(M08_LBSTDAT_1 = ymd(M08_LBSTDAT_1),
+             M08_LBSTDAT_2 = ymd(M08_LBSTDAT_2),
+             M08_LBSTDAT_3 = ymd(M08_LBSTDAT_3),
+             M08_LBSTDAT_5 = ymd(M08_LBSTDAT_5),
+             M08_LBSTDAT_10 = ymd(M08_LBSTDAT_10)
+             
+      ) %>% 
+      # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
+      filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
+                                                                            (SITE == "Kenya" & denom_remapp == 1) | 
+                                                                            (SITE == "Pakistan" & denom_remapp==1) |
+                                                                            (SITE == "Ghana" & denom_remapp==1)|
+                                                                            (SITE == "India-SAS" & eval(parse(text = paste0("M08_LBSTDAT_", num))) >= "2024-07-22")
+      )) %>%
           summarise(
             "Expected Lab Results from MNH08: N" = n(),
             "Missing Hematocrit (HCT): n (%)*" = paste0(
@@ -2919,7 +2964,7 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
 
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
-    matrix3_2[c(5,7,14,18,19), c("Pakistan")] = "n/a"
+    matrix3_2[c(5,7,14,16,18,19), c("Pakistan")] = "n/a"
 
   tb3_2 <- tb_theme2(matrix3_2) %>%
   # table title
@@ -2936,7 +2981,7 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
                              "Missing CBC Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
   tab_footnote(
         footnote = c("Pakistan note: Neutrophils full cell count, lymphocytes full cell count, monocyte full cell count, plateletcrit, platelet distribution width are not performed. Remaing CBC testing stopped from 2024-04-05.")
@@ -2944,9 +2989,9 @@ tb3_2 <- tb_theme2(matrix3_2) %>%
     tab_footnote(
     footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
   ) %>%
-    tab_footnote(
-    footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
-  ) %>%
+  #   tab_footnote(
+  #   footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
+  # ) %>%
     tab_footnote(
     footnote = c("Kenya note: CBC collected for ReMAPP only. Only expect CBC when SCRN_OBSSTDAT >= 2023-04-03.")
   ) %>%
@@ -3185,10 +3230,10 @@ tb3_3 <- tb_theme2(matrix3_3) %>%
                              "Missing Kidney (Renal) Function Test Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>% 
     tab_footnote(
-    footnote = c("Note: Magnesium is optional. Not perfomred at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17. Total number only included Ghana and Zambia")
+    footnote = c("Note: Magnesium is optional at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17. Total number only included Ghana and Zambia")
   ) %>%
     tab_footnote(
     footnote = c("Kenya Note: started carbon dioxide testing on 2023-04-01.")
@@ -3436,10 +3481,10 @@ tb3_3 <- tb_theme2(matrix3_3) %>%
                              "Missing Kidney (Renal) Function Test Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
     tab_footnote(
-    footnote = c("Note: Magnesium is optional. Not perfomred at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17. Total number only included Ghana and Zambia")
+    footnote = c("Note: Magnesium is optional at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17. Total number only included Ghana and Zambia")
   ) %>%
   # tab_footnote(
   #   footnote = c("Note: CMC stopped Liver and kidney function tests on 2024-10-14 for ANC32 visit. Total number excluded CMC")
@@ -3614,20 +3659,20 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
                              "Missing Micronutrient Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
  tab_footnote(
     footnote = c("Note: holoTC stopped testing: 2024-09-01 (Ghana); 2024-10-15 (CMC); 2024-09-02 (SAS); 2025-01-14 (Kenya); 2024-10-03 (Pakistan); 2024-10-11 (Zambia)")
   ) %>%
-  tab_footnote(
-    footnote = c("Note: Vitamin B12 total cobalamin and holoTC results delay for Kenya and Zambia due to shipment to KHRC and not start with new kit for Pakistan as of 2024-11-18")
-  ) %>%
-  tab_footnote(
-    footnote = c("Note: Folate results delay for Kenya and Pakistan due to shipment to KHRC")
-  ) %>%
-  tab_footnote(
-    footnote = c("Pakistan note: Quansys is ongoing and plan to complete by end Jan 2025.")
-  ) %>%
+  # tab_footnote(
+  #   footnote = c("Note: Vitamin B12 total cobalamin and holoTC results delay for Kenya and Zambia due to shipment to KHRC and not start with new kit for Pakistan as of 2024-11-18")
+  # ) %>%
+  # tab_footnote(
+  #   footnote = c("Note: Folate results delay for Kenya and Pakistan due to shipment to KHRC")
+  # ) %>%
+  # tab_footnote(
+  #   footnote = c("Pakistan note: Quansys is ongoing and plan to complete by end Jan 2025.")
+  # ) %>%
   gtsave(paste0("results/missing_m08_", visit, "_4.png"), expand = 10)
  }
 
@@ -3788,17 +3833,17 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
                              "Missing Micronutrient Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
-  tab_footnote(
-    footnote = c("Note: Vitamin B12 total cobalamin and holoTC results delay for Kenya and Zambia due to shipment to KHRC and not start with new kit for Pakistan as of 2024-11-18")
-  ) %>%
-  tab_footnote(
-    footnote = c("Note: Folate results delay for Kenya and Pakistan due to shipment to KHRC")
-  ) %>%
-  tab_footnote(
-    footnote = c("Pakistan note: Quansys is ongoing and plan to complete by end Jan 2025.")
-  ) %>%
+  # tab_footnote(
+  #   footnote = c("Note: Vitamin B12 total cobalamin and holoTC results delay for Kenya and Zambia due to shipment to KHRC and not start with new kit for Pakistan as of 2024-11-18")
+  # ) %>%
+  # tab_footnote(
+  #   footnote = c("Note: Folate results delay for Kenya and Pakistan due to shipment to KHRC")
+  # ) %>%
+  # tab_footnote(
+  #   footnote = c("Pakistan note: Quansys is ongoing and plan to complete by end Jan 2025.")
+  # ) %>%
   gtsave(paste0("results/missing_m08_", visit, "_4.png"), expand = 10)
  }
 
@@ -3877,10 +3922,10 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
                                  "Missing Thyroid Panel Results"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("Note: thyroid testing stopped on 2024-09-01 (Ghana); 2024-10-17 (CMC); 2024-01-14 (Kenya); 2024-10-03 (Pakistan); 2014-10-11 (Zambia); ongoing (SAS).")
+        footnote = c("Note: thyroid testing stopped on 2024-09-01 (Ghana); 2024-10-17 (CMC); 2024-01-14 (Kenya); 2024-10-03 (Pakistan); 2024-10-11 (Zambia); ongoing (SAS).")
       ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_5.png"), expand = 10)
   }
@@ -3962,10 +4007,10 @@ tb3_4 <- tb_theme2(matrix3_4) %>%
                                  "Missing Free T3, Free T4 Results"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+        footnote = c("*Denominator: Participants with complete MNH08 in person")
       ) %>%
       tab_footnote(
-        footnote = c("**Denominator: Participants who completed MNH08 either in person or by phone initially, but later only participants with abnormal TSH levels (< 0.3 mIU/L or > 4.0 mIU/L) at ANC32 after a specific date: 2024-09-01 (Ghana); 2024-10-14 (CMC); 2024-01-14 (Kenya); 2024-10-03 (Pakistan); 2014-10-11 (Zambia); ongoing (SAS).. Other sites please provide the date for change.")
+        footnote = c("**Denominator: Participants who completed MNH08 either in person initially, but later only participants with abnormal TSH levels (< 0.3 mIU/L or > 4.0 mIU/L) at ANC32 after a specific date: 2024-09-01 (Ghana); 2024-10-14 (CMC); 2024-01-14 (Kenya); 2024-10-03 (Pakistan); 2024-10-11 (Zambia); ongoing (SAS).")
       ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_5.png"), expand = 10)
   }
@@ -4032,7 +4077,7 @@ tb3_6 <- tb_theme2(matrix3_6) %>%
                              "Missing Hemoglobin A1c (HbA1c) Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
   tab_footnote(
     footnote = c("Note: India-CMC, India-SAS, Kenya and Pakistan only report %, no Discrete value expected. Total number excluded India-CMC, India-SAS, Kenya and Pakistan.")
@@ -4204,7 +4249,7 @@ matrix3_7 <- df_rbc %>%
       " (",
       format(round(sum(eval(parse(text = paste0("M08_RBC_THALA_LBORRES_", num, " == 1 & is.na(M08_RBC_THALA_19_", num, ")"))), na.rm = TRUE)/sum(eval(parse(text = paste0("M08_RBC_THALA_LBORRES_", num, " == 1"))), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    #total
+  # total
   ) %>%
   t() %>% as.data.frame() %>%
   `colnames<-`(c(.[1,])) %>%
@@ -4348,13 +4393,13 @@ tb3_7 <- tb_theme2(matrix3_7) %>%
                              "Missing Hemoglobinopathies & Thalassemias Specified Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: ReMAPP participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: ReMAPP participants with complete MNH08 in person")
   ) %>%
     tab_footnote(
     footnote = c("**Denominator: ReMAPP participants with positive hemoglobinopathies & thalassemias results")
   ) %>%
     tab_footnote(
-    footnote = c("Note: RBC disorder test are for ReMAPP primary cohort exclusively. All sits are using screen date start at/after ReMAPP launch date, except Pakistan is using lab test between REMAPP launch date and test end date.")
+    footnote = c("Note: RBC disorder test are for ReMAPP primary cohort exclusively. All sites are using screen date start at/after ReMAPP launch date, except Pakistan is using lab test between REMAPP launch date and test end date.")
   ) %>%
     tab_footnote(
     footnote = c("Zambia note: Thalassemias, sickle cell results delayed due to shipment to KHRC for testing")
@@ -4363,7 +4408,7 @@ tb3_7 <- tb_theme2(matrix3_7) %>%
     footnote = c("CMC note: Tests performed at any visit are included to account for the catch-up tests.")
   ) %>%
   tab_source_note(
-    source_note = c("Note: Included data with SCRN_OBSSTDAT at/after: 2022-12-28 (Ghana); 2023-06-20(CMC); 2023-12-12(SAS); 2023-04-03(Kenya); 2022-12-15(Zambia); LBSTDAT between: 2022-09-22 (Pakistan). Each site please double check dates variable used and the exact dates.")
+    source_note = c("Note: Included data with SCRN_OBSSTDAT at/after: 2022-12-28 (Ghana); 2023-06-20(CMC); 2023-12-12(SAS); 2023-04-03(Kenya); 2022-12-15(Zambia); LBSTDAT between: 2022-09-22 (Pakistan).")
   ) %>%
   tab_source_note(
     source_note = c("Note: Testing stopped: 2024-10-29(Ghana); 2024-04-05(Pakistan).")
@@ -4450,7 +4495,7 @@ tb3_7 <- tb_theme2(matrix3_7) %>%
                              "Missing Urinalysis Test Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person")
   ) %>%
   #column width (main table part)
   tab_options(table.width = pct(100)) %>%
@@ -4522,7 +4567,7 @@ tb3_9 <- tb_theme2(matrix3_9) %>%
   # stubhead label
   tab_stubhead(label = "Part IX. Tuberculosis (TB) Test Results") %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with positive symptom screen on W4SS at visit and with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with positive symptom screen on W4SS at visit and with complete MNH08 in person")
   ) %>%
     tab_footnote(
     footnote = c("**Denominator: Participants with positive Gene Xpert/MTB-RIF Culture results at visit")
@@ -4533,8 +4578,8 @@ tb3_9 <- tb_theme2(matrix3_9) %>%
 
 #******************table 3.10*****************
 if (num %in% c(1,4)) {
-     matrix3_10 <- df_lab %>%
-    filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
+matrix3_10 <- df_lab %>%
+    filter(eval(parse(text = paste0("denom_ctng_", num, " == 1")))) %>%
   group_by(SITE) %>%
   summarise(
 "Expected Lab Results from MNH08: N" = n(),
@@ -4557,7 +4602,7 @@ if (num %in% c(1,4)) {
   add_column(
     .after = 6,
     "Total" = df_lab %>%
-    filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
+    filter(eval(parse(text = paste0("denom_ctng_", num, " == 1")))) %>%
   summarise(
 "Expected Lab Results from MNH08: N" = n(),
 #EN, ANC32
@@ -4591,287 +4636,288 @@ tb3_10 <- tb_theme2(matrix3_10) %>%
                              "Missing Chlamydia and Gonorrhea Test Results"
   )) %>%
   tab_footnote(
-    footnote = c("*Denominator: Participants with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: Participants with complete MNH08 in person with a specimen collection date after expansion dates: Ghana: 2024-04-09; CMC: 2024-07-03; SAS: 2024-03-11; Kenya: 2024-03-07; Pakistan: 2024-04-25; Zambia: 2023-11-09")
   ) %>%
   tab_footnote(
-    footnote = c("Note: We do not expect CT/NG test results at this time for most sites, as the testing plans are to batch test in 2025.")
+    footnote = c("Kenya Note: CT/NG testing stopped 2025-02-27.")
   ) %>%
+  # tab_footnote(
+  #   footnote = c("Note: We do not expect CT/NG test results at this time for most sites, as the testing plans are to batch test in 2025.")
+  # ) %>%
   gtsave(paste0("results/missing_m08_", visit, "_10.png"), expand = 10)
  }
 
 #******************table 3.11*****************
  if (num %in% c(1)) {
-    matrix3_11 <- df_lab %>%
+matrix3_11 <- df_lab %>%
+  filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
+  group_by(SITE) %>%
+  summarise(
+    "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000),
+    #EN, ANC32, PNC6
+    "Missing ZIKV IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        ) / 
+          min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing ZIKV IgG Test Results : n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/
+          min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing DENV IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/
+          min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing DENV IgG Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/
+          min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing CHKV IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/
+          min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing CHKV IgG Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/
+          min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Expected Leptospirosis IgM Test Results from MNH08: N" = min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000),
+    "Missing Leptospirosis IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)),
+      " (",
+      format(round(
+        min(max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Expected Leptospirosis IgG Test Results from MNH08: N" = min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000),
+    "Missing Leptospirosis IgG Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Expected Hepatitis E IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000),
+    "Missing HEV IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE), 
+        sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE), 
+          sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing HEV IgG Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE), 
+        sum(eval(parse(text = paste0("is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE), 
+          sum(eval(parse(text = paste0("is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+        )/min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    #total
+  ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+  add_column(
+    .after = 6,
+    "Total" = df_lab %>%
       filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
-      group_by(SITE) %>%
-      summarise(
-        "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd == 1, na.rm = TRUE), 1000),
+        summarise(
+          "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000),
         #EN, ANC32, PNC6
         "Missing ZIKV IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+          ),
           " (",
           format(round(
             min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
             ) / 
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing ZIKV IgG Test Results : n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+            )/
+              min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing DENV IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+          ),
           " (",
           format(round(
             min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                           sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
             )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing DENV IgG Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+          ),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+            )/
+              min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing CHKV IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+            )/
+              min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing CHKV IgG Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+          ),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+            )/
+              min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Expected Leptospirosis IgM Test Results from MNH08: N" = min(sum(denom_lept_igm == 1, na.rm = TRUE), 1000),
-        "Missing Leptospirosis IgM Test Results: n (%)**" = paste0(
+        "Expected Leptospirosis IgM Test Results from MNH08: N" = min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000),
+        "Missing Leptospirosis IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)),
           " (",
           format(round(
-            min(max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)
-                )/min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+            min(max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+            )/min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Expected Leptospirosis IgG Test Results from MNH08: N" = min(sum(denom_lept_igg == 1, na.rm = TRUE), 1000),
-        "Missing Leptospirosis IgG Test Results: n (%)***" = paste0(
+        "Expected Leptospirosis IgG Test Results from MNH08: N" = min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000),
+        "Missing Leptospirosis IgG Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_lept_igg == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_lept_igg == 1"))), na.rm = TRUE)),
-          " (",
-          format(round(
-            min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_lept_igg == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_lept_igg == 1"))), na.rm = TRUE)
-              )/min(sum(denom_lept_igg == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
-          ")"),
-        "Expected Hepatitis E IgM/IgG Test Results from MNH08: N" = min(sum(denom_hev == 1, na.rm = TRUE), 1000),
-        "Missing HEV IgM Test Results: n (%)****" = paste0(
-          min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-            sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-              sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
-              )/min(sum(denom_hev == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+            )/min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Missing HEV IgG Test Results: n (%)****" = paste0(
+        "Expected Hepatitis E IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000),
+        "Missing HEV IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-            sum(eval(parse(text = paste0("is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE), 
+            sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-              sum(eval(parse(text = paste0("is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
-              )/min(sum(denom_hev == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE), 
+              sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+            )/min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        #total
-      ) %>%
-      t() %>% as.data.frame() %>%
-      `colnames<-`(c(.[1,])) %>%
-      slice(-1) %>%
-      add_column(
-        .after = 6,
-        "Total" = df_lab %>%
-          filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
-          summarise(
-            "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd == 1, na.rm = TRUE), 6000),
-            # "Expected Lab Results from MNH08: N" = n(),
-            #EN, ANC32, PNC6
-            "Missing ZIKV IgM Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                ) / 
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing ZIKV IgG Test Results : n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing DENV IgM Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing DENV IgG Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing CHKV IgM Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing CHKV IgG Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Expected Leptospirosis IgM Test Results from MNH08: N" = min(sum(denom_lept_igm == 1, na.rm = TRUE), 6000),
-            "Missing Leptospirosis IgM Test Results: n (%)**" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)),
-              " (",
-              format(round(
-                min(max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
-                    sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)
-                )/min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Expected Leptospirosis IgG Test Results from MNH08: N" = min(sum(denom_lept_igg == 1, na.rm = TRUE), 6000),
-            "Missing Leptospirosis IgG Test Results: n (%)***" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_lept_igg == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_lept_igg == 1"))), na.rm = TRUE)),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_lept_igg == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_LEPT_IGG_LBORRES_", num, ") & denom_lept_igg == 1"))), na.rm = TRUE)
-                )/min(sum(denom_lept_igg == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Expected Hepatitis E IgM/IgG Test Results from MNH08: N" = min(sum(denom_hev == 1, na.rm = TRUE), 6000),
-            "Missing HEV IgM Test Results: n (%)****" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-                sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-                  sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
-                )/min(sum(denom_hev == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing HEV IgG Test Results: n (%)****" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-                sum(eval(parse(text = paste0("is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-                  sum(eval(parse(text = paste0("is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
-                )/min(sum(denom_hev == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-          ) %>%
-          t() %>% unlist()
-      ) %>%
-      mutate_all(funs(str_replace(., "(NaN)", "-")))
+        "Missing HEV IgG Test Results: n (%)*" = paste0(
+          min(
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE), 
+            sum(eval(parse(text = paste0("is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+          ),
+          " (",
+          format(round(
+            min(
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1")))), na.rm = TRUE), 
+              sum(eval(parse(text = paste0("is.na(M08_HEV_IGG_LBORRES_", num, ") & denom_zcd_lept_hev_1 == 1"))), na.rm = TRUE)
+            )/min(sum(denom_zcd_lept_hev_1 == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2)
+        ) ) %>%
+      t() %>% unlist()
+  ) %>%
+  mutate_all(funs(str_replace(., "(NaN)", "-")))
     
-    tb3_11 <- tb_theme2(matrix3_11) %>%
+tb3_11 <- tb_theme2(matrix3_11) %>%
       # table title
       tab_header(
         title = paste0("Table 3. MNH08 lab result missingness by site - ", visit)
@@ -4900,25 +4946,22 @@ tb3_10 <- tb_theme2(matrix3_10) %>%
                                  "Missing Hepatitis E IgM/IgG Test Results"
       )) %>%
       tab_footnote(
-        footnote = c("*Denominator: Participants with testing date (ZCD_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
+        footnote = c("*Denominator: Participants with laboratory results on/after test start date at enrollment and with complete MNH08 in person.")
       ) %>%
-      tab_footnote(
-        footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
-      ) %>%
-      tab_footnote(
-        footnote = c("***Denominator: Participants with testing date (LEPT_IGG_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
-      ) %>%
-      tab_footnote(
-        footnote = c("****Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
-      ) %>%
+      # tab_footnote(
+      #   footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
+      # ) %>%
+      # tab_footnote(
+      #   footnote = c("***Denominator: Participants with testing date (LEPT_IGG_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
+      # ) %>%
+      # tab_footnote(
+      #   footnote = c("****Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
+      # ) %>%
       tab_footnote(
         footnote = c("Note: We only expect 1000 participants per site. There will be no miss if the goal is reached")
       ) %>%
       tab_footnote(
-        footnote = c("Note: ZCD test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
-      ) %>%
-      tab_footnote(
-        footnote = c("Note: HEV test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
+        footnote = c("Note: ZCD/HEV/Lepto test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-11; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
       ) %>%
       tab_footnote(
         footnote = c("SAS Note: ZCD/HEV/Lepto testing ended on 2025-02-01")
@@ -4928,229 +4971,227 @@ tb3_10 <- tb_theme2(matrix3_10) %>%
 
 #******************table 3.13 (3.11 for anc32 & pnc6 removing hev)*****************
  if (num %in% c(4,10)) {
-    matrix3_13 <- df_lab %>%
+matrix3_13 <- df_lab %>%
+  filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
+  group_by(SITE) %>%
+  summarise(
+    "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000),
+    #EN, ANC32, PNC6
+    "Missing ZIKV IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+        ) / 
+          min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing ZIKV IgG Test Results : n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+        )/
+          min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing DENV IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+        )/
+          min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing DENV IgG Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+        )/
+          min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing CHKV IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+        )/
+          min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Missing CHKV IgG Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+      ),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+          sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+        )/
+          min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Expected Leptospirosis IgM Test Results from MNH08: N*" = min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000),
+    "Missing Leptospirosis IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+        sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)),
+      " (",
+      format(round(
+        min(max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+        )/min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    "Expected Hepatitis E IgM/IgG Test Results from MNH08: N*" = min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000),
+    "Missing HEV IgM Test Results: n (%)*" = paste0(
+      min(
+        max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1")))), na.rm = TRUE), 
+        sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1")))), na.rm = TRUE),
+      " (",
+      format(round(
+        min(
+          max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1")))), na.rm = TRUE), 
+          sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+        )/min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+      ")")
+    
+    #total
+  ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+  add_column(
+    .after = 6,
+    "Total" = df_lab %>%
       filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
-      group_by(SITE) %>%
       summarise(
-        "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd == 1, na.rm = TRUE), 1000),
+        "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000),
         #EN, ANC32, PNC6
         "Missing ZIKV IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+          ),
           " (",
           format(round(
             min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
             ) / 
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing ZIKV IgG Test Results : n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+            )/
+              min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing DENV IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+          ),
           " (",
           format(round(
             min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                           sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
             )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing DENV IgG Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+          ),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+            )/
+              min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing CHKV IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+            )/
+              min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
         "Missing CHKV IgG Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-            ),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+          ),
           " (",
           format(round(
             min(
-              max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              )/
-              min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+              sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+            )/
+              min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Expected Leptospirosis IgM Test Results from MNH08: N" = min(sum(denom_lept_igm == 1, na.rm = TRUE), 1000),
-        "Missing Leptospirosis IgM Test Results: n (%)**" = paste0(
+        "Expected Leptospirosis IgM Test Results from MNH08: N*" = min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000),
+        "Missing Leptospirosis IgM Test Results: n (%)*" = paste0(
           min(
-            max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
-            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)),
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+            sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)),
           " (",
           format(round(
-            min(max(0, 1000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)
-                )/min(sum(denom_zcd == 1, na.rm = TRUE), 1000)*100, 2), nsmall = 0, digits = 2),
+            min(max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)), 
+                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+            )/min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
           ")"),
-        "Expected Hepatitis E IgM/IgG Test Results from MNH08: N" = min(sum(denom_hev == 1, na.rm = TRUE), 6000),
-            "Missing HEV IgM Test Results: n (%)***" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-                sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-                  sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
-                )/min(sum(denom_hev == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")")
+        "Expected Hepatitis E IgM/IgG Test Results from MNH08: N*" = min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000),
+        "Missing HEV IgM Test Results: n (%)*" = paste0(
+          min(
+            max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1")))), na.rm = TRUE), 
+            sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1")))), na.rm = TRUE),
+          " (",
+          format(round(
+            min(
+              max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1")))), na.rm = TRUE), 
+              sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_zcd_lept_hev_" , num,  "== 1"))), na.rm = TRUE)
+            )/min(sum(eval(parse(text = paste0("denom_zcd_lept_hev_", num, " == 1"))), na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
+          ")")) %>%
+      t() %>% unlist()
+  ) %>%
+  mutate_all(funs(str_replace(., "(NaN)", "-")))
 
-        #total
-      ) %>%
-      t() %>% as.data.frame() %>%
-      `colnames<-`(c(.[1,])) %>%
-      slice(-1) %>%
-      add_column(
-        .after = 6,
-        "Total" = df_lab %>%
-          filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1")))) %>%
-          summarise(
-            "Expected Zika-Dengue-Chikungunya (ZCD) IgM/IgG Test Results from MNH08: N" = min(sum(denom_zcd == 1, na.rm = TRUE), 6000),
-            # "Expected Lab Results from MNH08: N" = n(),
-            #EN, ANC32, PNC6
-            "Missing ZIKV IgM Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                ) / 
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing ZIKV IgG Test Results : n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_ZIKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing DENV IgM Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing DENV IgG Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_DENIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing CHKV IgM Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGM_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Missing CHKV IgG Test Results: n (%)*" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-              ),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)), 
-                  sum(eval(parse(text = paste0("is.na(M08_ZCD_CHKIGG_LBORRES_", num, ") & denom_zcd == 1"))), na.rm = TRUE)
-                )/
-                  min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-            "Expected Leptospirosis IgM Test Results from MNH08: N" = min(sum(denom_lept_igm == 1, na.rm = TRUE), 6000),
-            "Missing Leptospirosis IgM Test Results: n (%)**" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
-                sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)),
-              " (",
-              format(round(
-                min(max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)), 
-                    sum(eval(parse(text = paste0("is.na(M08_LEPT_IGM_LBORRES_", num, ") & denom_lept_igm == 1"))), na.rm = TRUE)
-                )/min(sum(denom_zcd == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")"),
-          "Expected Hepatitis E IgM Test Results from MNH08: N" = min(sum(denom_hev == 1, na.rm = TRUE), 6000),
-            "Missing HEV IgM Test Results: n (%)***" = paste0(
-              min(
-                max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-                sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE),
-              " (",
-              format(round(
-                min(
-                  max(0, 6000-sum(eval(parse(text = paste0("!is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1")))), na.rm = TRUE), 
-                  sum(eval(parse(text = paste0("is.na(M08_HEV_IGM_LBORRES_", num, ") & denom_hev == 1"))), na.rm = TRUE)
-                )/min(sum(denom_hev == 1, na.rm = TRUE), 6000)*100, 2), nsmall = 0, digits = 2),
-              ")")
-          ) %>%
-          t() %>% unlist()
-      ) %>%
-      mutate_all(funs(str_replace(., "(NaN)", "-")))
-    
     tb3_13 <- tb_theme2(matrix3_13) %>%
       # table title
       tab_header(
@@ -5174,25 +5215,33 @@ tb3_10 <- tb_theme2(matrix3_10) %>%
                                  "Missing Leptospirosis IgM Test Results",
                                  "Missing Hepatitis E IgM Test Results"
       )) %>%
-
       tab_footnote(
-        footnote = c("*Denominator: Participants with testing date (ZCD_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
+        footnote = c("*Denominator: Participants with laboratory results on/after test start date at enrollment and with complete MNH08 in person.")
       ) %>%
-      tab_footnote(
-        footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
-      ) %>%
-      tab_footnote(
-        footnote = c("***Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person or by phone.")
-      ) %>%
+      # tab_footnote(
+      #   footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
+      # ) %>%
+      # tab_footnote(
+      #   footnote = c("***Denominator: Participants with testing date (LEPT_IGG_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
+      # ) %>%
+      # tab_footnote(
+      #   footnote = c("****Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
+      # ) %>%
+      # tab_footnote(
+      #   footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
+      # ) %>%
+      # tab_footnote(
+      #   footnote = c("***Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
+      # ) %>%
       tab_footnote(
         footnote = c("Note: We only expect 1000 participants per site. There will be no miss if the goal is reached")
       ) %>%
       tab_footnote(
-        footnote = c("Note: ZCD test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
+        footnote = c("Note: ZCD/HEV/Lepto test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-11; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
       ) %>%
-      tab_footnote(
-        footnote = c("Note: HEV test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
-      ) %>%
+      # tab_footnote(
+      #   footnote = c("Note: HEV test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
+      # ) %>%
       tab_footnote(
         footnote = c("SAS Note: ZCD/HEV/Lepto testing ended on 2025-02-01")
       ) %>%
@@ -5255,7 +5304,7 @@ tb3_12 <- tb_theme2(matrix3_12) %>%
   # stubhead label
   tab_stubhead(label = "Part XII. G6PD Test Results") %>%
   tab_footnote(
-    footnote = c("*Denominator: ReMAPP participants (after ReMAPP start date and before ReMAPP end date) with complete MNH08 in person or by phone")
+    footnote = c("*Denominator: ReMAPP participants (after ReMAPP start date and before ReMAPP end date) with complete MNH08 in person")
   ) %>%
     tab_footnote(
     footnote = c("Note: Current missingness is showing if missing at all time points, including PNC and unschedule visits")
@@ -5264,7 +5313,7 @@ tb3_12 <- tb_theme2(matrix3_12) %>%
     footnote = c("Note: G6PD is for ReMAPP primary cohort exclusively. ")
   ) %>%
   tab_source_note(
-    source_note = c("Note: Included data with SCRN_OBSSTDAT at/after: 2022-12-28 (Ghana); 2023-06-20(CMC); 2023-12-12(SAS); 2023-04-03(Kenya); 2022-12-15(Zambia); LBSTDAT between: 2022-09-22 (Pakistan). Each site please double check dates variable used and the exact dates.")
+    source_note = c("Note: Included data with SCRN_OBSSTDAT at/after: 2022-12-28 (Ghana); 2023-06-20(CMC); 2023-12-12(SAS); 2023-04-03(Kenya); 2022-12-15(Zambia); LBSTDAT between: 2022-09-22 (Pakistan).")
   ) %>%
   tab_source_note(
     source_note = c("Note: Testing stopped: 2024-10-29(Ghana); 2024-04-05(Pakistan).")
@@ -5329,7 +5378,6 @@ else if (num == 12) {knit<- knitr::include_graphics(c(fig22_path))}
 
 ```
 
-
 \newpage
 
 # Form missingness 
@@ -5341,11 +5389,11 @@ else if (num == 12) {knit<- knitr::include_graphics(c(fig22_path))}
   knitr::include_graphics("results/missing_form_2.png")
 ```
 
-
 For data collected as part of PRISMA Protocol Versions ≤1.8, MNH08 is expected at PNC-6 only. However, there are instances of MNH08 being completed at other PNC visits to record additional CBC collections and/or G6PD catch-up at sites.
 Following the implementation of PRISMA Protocol V.1.9 at sites, MNH08 is additionally expected at PNC-52 for women who tested positive for gestational diabetes during ANC.
 
 \newpage
+
 # Lab results missingness
 
 ## Missingness at enrollment
@@ -5439,4 +5487,3 @@ tb_pnc52 <- missing_fun(12, "PNC52")
 tb_pnc52
 
 ```
-
