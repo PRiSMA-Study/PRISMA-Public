@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2025 May 01)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2025 May 05)"
 output:
   pdf_document:
     toc: no
@@ -8,6 +8,10 @@ output:
     keep_tex: false
 include-in-header:
 - \usepackage{booktabs,longtable}
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                    encoding=encoding, 
+                    output_file= paste( './Output/' , Sys.Date(), '-Maternal-Outcomes-Report.pdf', sep='')) })
 editor_options: 
   markdown: 
     wrap: 72
@@ -33,6 +37,8 @@ library(gt) ## for table gen
 library(webshot2) ## for table gen
 library(haven)
 library(dplyr)
+library("rmarkdown")
+
 
 # set path to save 
 # Stacie's path:
@@ -47,21 +53,23 @@ library(dplyr)
 path_to_data <- "Z:/Outcome Data/2025-04-18/" 
 path_to_save <- "D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/2025-04-18/"
 
+
+
 mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
-#hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
+hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
 depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper) %>% filter(SITE != "")
-#anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION-CTNG-EXPANSION", ".csv"))
-#near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
+anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
+near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
 thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-#placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -143,7 +151,7 @@ g_legend <- function(p) {
 
 ```
 
-**Includes data from synapse last updated:** 2025 April 18
+**Includes data from synapse last updated:** 2025-04-18
 
 \setcounter{tocdepth}{6}
 \tableofcontents
@@ -786,10 +794,10 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
 
 -   Any death: any death that occurs at any point during the study, from any cause.
 
-*NOTE: cause of death data is currently based on csvs provided by sites, in the future this will be updated to reflect causes provided in MNH37*
+*NOTE: cause of death data is based on MNH37.*
 
 
-**Denominator:** TBD
+**Denominator:** Number of pregnancy endpoints. 
 
 **To be included as "non-missing" for this outcome, a participant must have:**
 
@@ -801,11 +809,11 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
 
 **4.** Form indicates non default value for maternal death date.
 
-**5.** *For maternal and late maternal mortality:*  Cause of death is not due to accidental or incidental causes but is due to pregnancy or management of pregnancy [MNH27].
+**5.** *For maternal and late maternal mortality:*  Cause of death is not due to accidental or incidental causes but is due to pregnancy or management of pregnancy [MNH37].
 
 **Common causes for a participant to be marked as "Missing":**
 
-**-** Cause of death is missing: analysis of verbal autopsy data [MNH27] is forthcoming.
+**-** Cause of death is missing: analysis of verbal autopsy data [MNH37] is forthcoming.
 
 
 ### Table 1. Maternal mortality
@@ -836,7 +844,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
     "Obstetric cause, n^d^" = paste0(
        format(sum(MAT_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Not due to pregnancy, n" = paste0(
+    "Non-obstetric, n" = paste0(
        format(sum(MAT_MORTALITY == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Unknown/unclear, n^e^" = paste0(
@@ -888,7 +896,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
     "Obstetric cause, n^d^" = paste0(
        format(sum(MAT_MORTALITY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Not due to pregnancy, n" = paste0(
+    "Non-obstetric, n" = paste0(
        format(sum(MAT_MORTALITY == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Unknown/unclear, n^e^" = paste0(
@@ -931,7 +939,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
    tab_header(
      title = md("**Table 1**")) %>%
    tab_row_group(
-     label = html("<span style='font-size: 18px'>Deaths occurring at any point during pregnancy</span>"),
+     label = html("<span style='font-size: 18px'>Deaths occurring at any point during PRISMA</span>"),
      rows = 1:3
    ) %>%
     tab_row_group(
@@ -942,7 +950,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
      label = html("<span style='font-size: 18px'>Deaths occurring 42-365 days postpartum</span>"),
      rows = 9:13
    ) %>%
- row_group_order(groups = c("<span style='font-size: 18px'>Deaths occurring at any point during pregnancy</span>",
+ row_group_order(groups = c("<span style='font-size: 18px'>Deaths occurring at any point during PRISMA</span>",
                    "<span style='font-size: 18px'>Deaths occurring during pregnancy up to 42 days postpartum</span>",
                    "<span style='font-size: 18px'>Deaths occurring 42-365 days postpartum</span>"
                   )) %>%
@@ -967,10 +975,10 @@ tab_style(
                  "Any death, n^c^",
                  "Any death, n^g^"))) %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes. Denominator: number of pregnancy end points.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes. Per 100,000 pregnancy endpoints.</span>")
   ) %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>b</sup>Date of death missing;  date of death has been estimated as the midpoint between when the woman was last seen alive and when her death was reported.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Date of death missing. Date of death has been estimated as the midpoint between when the woman was last seen alive and when her death was reported. This estimated death date is used to categorize the death as either pregnancy-related death (during pregnancy up to 42 days postpartum) or late pregnancy related death (42-365 days postpartum).</span>")
   ) %>%
   tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>c</sup>Pregnancy-related deaths are those occuring during pregnancy and up to 42 days postpartum, for any reason.</span>")
@@ -1719,7 +1727,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri3_output.png"))
 
 ```{r, out.width = '100%', fig.align='center'}
 
-knitr::include_graphics(paste0(path_to_data, "anemia-fig.jpg"))
+knitr::include_graphics(paste0(path_to_data, "anemia-fig.pdf"))
 
 ```
 
@@ -2894,7 +2902,7 @@ tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Visit not completed indicates that either the MNH25 form was filled out for that visit type, but the visit was not completed (MAT_VISIT >=3) or the observation was expected and there is no form for that participant.</span>")
  )  %>%
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is number of those who have passed the window, have closed out after the window or have not closed out, or have MNH25 filled out for that visit type.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup>Non-missing.</span>")
  )
 
 ```
@@ -5475,9 +5483,9 @@ ggvenn(data = list(`Fasting glucose` = GDM_pre,
 -   Expected denominator: all women who have passed 42 days postpartum
 
 -   Near-miss denominator: passed 42 days postpartum, MINUS:
--       "healthy" and closed out during the window
--       "healthy" and did not have a MNH09/MNH12/MNH19 form
--       "healthy" and not seen 42+ days postpartum
+  -   "healthy" and closed out during the window
+  -   "healthy" and did not have a MNH09/MNH12/MNH19 form
+  -   "healthy" and not seen 42+ days postpartum
 
 
 *Note: "healthy" indicates a woman who is alive, did not experience a potentially life-threatening condition, and did not experience near-miss criteria. Under this definition, a women who e.g., closed out before 42 days postpartum but also experienced a PLTC would still be included in the denominator*
@@ -5591,6 +5599,8 @@ tab_style(
                  "Expected denominator, n",
                  "Near miss denominator, n"))) %>%
 
+    
+
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup>Healthy indicates a women who is alive, did not experience a potentially life-threatening condition, and did not experience  near-miss criteria.</span>")
  )
@@ -5660,7 +5670,7 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(PLTC==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "PPH" = paste0(
+    "Post partum hemorrhage" = paste0(
       format(sum(HEM_PPH == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -5799,7 +5809,7 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(PLTC==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "PPH" = paste0(
+    "Post partum hemorrhage" = paste0(
       format(sum(HEM_PPH == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -5957,9 +5967,18 @@ tab_style(
       locations = cells_stub(rows = c(
                  "Near-miss denominator, n",
                  "Near-miss denominator, n"))) %>%
+  
+    tab_style(
+        style = list(
+          cell_text(color = "grey") 
+        ),
+        locations = list(
+          cells_body(columns = c("Ghana", "India-CMC", "India-SAS","Kenya","Pakistan","Zambia", "Total"),
+                     rows = c(7))
+        )) %>%
 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>*</sup>These outcomes will be added to PLTC once constructed.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>*</sup>Sepsis and severe infection will be added to PLTC once constructed.</span>")
  )
 
 
@@ -6190,6 +6209,14 @@ tab_style(
       locations = cells_stub(rows = c(
                  "Near-miss denominator, n",
                  "Near-miss denominator, n"))) %>%
+   tab_style(
+        style = list(
+          cell_text(color = "grey") 
+        ),
+        locations = list(
+          cells_body(columns = c("Ghana", "India-CMC", "India-SAS","Kenya","Pakistan","Zambia", "Total"),
+                     rows = c(10))
+        )) %>%
 
    tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup>Participants may have more than one criteria, e.g., severe post partum hemorrhage & transfusion.</span>")
@@ -6531,11 +6558,12 @@ knitr::include_graphics(paste0(path_to_save, "prolong_tab_output.png"))
 |Subclinical hyperthyroidism| low | normal |
 |Overt hypothyroidism| high | low |
 |Subclinical hypothyroidism| high | normal |
-|Euthyroid| normal | not considered |
+|Normal/Euthyroid| normal | not considered |
 |Unclassified| low | low |
 |Unclassified| high | high |
+Table: Classifications of thyroid dysfunction.
 
-**Expected Denominator:** For enrollment, all women are expected to have thyroid testing until the stop date (Ghana: 2024-09-01; India-CMC: 2024-10-17; India-SAS: n/a; Kenya: 2025-01-14; Pakistan: 2024-10-03; Zambia: 2024-10-11). For **ANC32**, expected participants are those who have passed the window and have not closed out or closed out after the window
+**Expected Denominator:**   For **enrollment**, all women are expected to have thyroid testing until the stop date (Ghana: 2024-09-01; India-CMC: 2024-10-17; India-SAS: n/a; Kenya: 2025-01-14; Pakistan: 2024-10-03; Zambia: 2024-10-11).  For **ANC32**, expected participants are those who have passed the window and have not closed out or closed out after the window
 
 **Common causes of missingness:**
 
@@ -6697,7 +6725,7 @@ tab_style(
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note:</sup> Unclassified refers to categories not specified above, i.e., (high TSH + high free T4) OR (low TSH + low free T4)</span>" )) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who were enrolled during that trimester, before enrollment thyroid testing was stopped (Ghana: 2024-09-01; India-CMC: 2024-10-17; India-SAS: n/a; Kenya: 2025-01-14; Pakistan: 2024-10-03; Zambia: 2024-10-11)</span>" )) %>%
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who were enrolled during that trimester, before date enrollment thyroid testing was stopped (Ghana: 2024-09-01; India-CMC: 2024-10-17; India-SAS: n/a; Kenya: 2025-01-14; Pakistan: 2024-10-03; Zambia: 2024-10-11)</span>" )) %>%
     tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup>Observed: non-missing</span>" ))
 
