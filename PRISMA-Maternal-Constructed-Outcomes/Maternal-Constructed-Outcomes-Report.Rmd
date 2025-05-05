@@ -5435,23 +5435,17 @@ library(dplyr)
 library(RColorBrewer)
 library(ggvenn)
 library(wesanderson)
-
-gdm_vd <- subset(gdm, gdm$DIAB_GEST_DENOM==1 & (DIAB_GEST_FASTING!=55 | DIAB_GEST_1HR!=55 | DIAB_GEST_1HR!=55) & gdm$SITE!="India-SAS")
-
+gdm_vd <- subset(gdm, (DIAB_GEST_FASTING==1 | DIAB_GEST_1HR==1 | DIAB_GEST_2HR==1) & gdm$SITE!="India-SAS")
 gdm_vd$DIAB_GEST_FASTING<-ifelse(gdm_vd$DIAB_GEST_FASTING==55,0,gdm_vd$DIAB_GEST_FASTING)
 gdm_vd$DIAB_GEST_1HR<-ifelse(gdm_vd$DIAB_GEST_1HR==55,0,gdm_vd$DIAB_GEST_1HR)
 gdm_vd$DIAB_GEST_2HR<-ifelse(gdm_vd$DIAB_GEST_2HR==55,0,gdm_vd$DIAB_GEST_2HR)
-
 # VennDiagram - All site
 GDM_pre <- gdm_vd %>% filter(DIAB_GEST_FASTING==1) %>%
-  select(MOMID) %>% unlist()
-
+  select(PREGID) %>% unlist()
 GDM_1 <- gdm_vd %>% filter(DIAB_GEST_1HR==1) %>%
-  select(MOMID) %>% unlist()
-
+  select(PREGID) %>% unlist()
 GDM_2 <- gdm_vd %>% filter(DIAB_GEST_2HR==1) %>%
-  select(MOMID) %>% unlist()
-
+  select(PREGID) %>% unlist()
 # Package ggvenn
 ggvenn(data = list(`Fasting glucose` = GDM_pre,
                    `1-hr OGTT` = GDM_1,
