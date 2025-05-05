@@ -3535,9 +3535,9 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
 
   "Method unknown" = paste0(
-      format(sum(BLOOD_LOSS_METHOD_IPC %in% c(99, 55), na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(BLOOD_LOSS_METHOD_IPC ==99 na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(BLOOD_LOSS_METHOD_IPC %in% c(99, 55) , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(BLOOD_LOSS_METHOD_IPC ==9, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   ## procedures for PPH (among participants with PPH)
@@ -4803,7 +4803,9 @@ all_infection_output <- tb_theme1(all_infection_tab) %>%
                   "N with enrollment visit"))) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit.</span>")
- )
+ ) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'>Note: Infections included: HIV, syphilis, chlamydia, gonorrhea, genital ulcers, other STIs (Table 7a); malaria (Table 7b); Hep B, Hep C, Hep E (Table 7c); TB (Table 7d); zika, dengue, chikungunya, and leptospirosis (Table 7e).</span>"))
 
 ```
 
