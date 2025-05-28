@@ -8,22 +8,34 @@ library(lubridate)
 library(naniar)
 library(haven)
 library(openxlsx)
+library(readxl)
 
-UploadDate = "2025-01-10"
+UploadDate = "2025-04-18"
 
 #****************************************************************************
 #1.Load and merge data
 #****************************************************************************
-#load MAT_ENROLL
-MAT_ENROLL <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENROLL.dta"))
+
+# set path to save 
+path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/"
+path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
+
+# set path to data 
+path_to_data <- paste0("D:/Users/stacie.loisate/Documents/import/", UploadDate)
 
 #load mnh00
-mnh00 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh00_merged.csv")) %>% 
+#load MAT_ENROLL
+MAT_ENROLL <- read.xlsx(paste0(path_to_tnt, "MAT_ENROLL" ,".xlsx"))
+
+# MAT_ENROLL <- read.csv(paste0(path_to_tnt, "/MAT_ENROLL.csv"))
+# MAT_ENROLL <- read.xlsx(paste0(path_to_tnt, "/MAT_ENROLL.xlsx"))
+
+mnh00 <- read.csv(paste0(path_to_data, "/mnh00_merged.csv")) %>% # paste0("Z:/Stacked Data/",UploadDate,"/mnh00_merged.csv")
   select(SITE, SCRNID, 
          M00_BRTHDAT, M00_ESTIMATED_AGE, M00_SCHOOL_YRS_SCORRES, M00_SCHOOL_SCORRES)
 
 #load mnh01
-mnh01 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh01_merged.csv")) %>% 
+mnh01 <- read.csv(paste0(path_to_data, "/mnh01_merged.csv")) %>% 
   filter(M01_TYPE_VISIT == 1) %>% 
   group_by(SITE, SCRNID, MOMID, PREGID) %>% 
   mutate(n = n()) %>% 
@@ -34,7 +46,7 @@ mnh01 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh01_merged.csv")) %>%
          M01_FETUS_CT_PERES_US)
 
 #load mnh03
-mnh03 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh03_merged.csv")) %>% 
+mnh03 <- read.csv(paste0(path_to_data,"/mnh03_merged.csv")) %>% 
   select(SITE, MOMID, PREGID, 
          M03_MARITAL_SCORRES, M03_MARITAL_AGE,
          M03_HEAD_HH_FCORRES, M03_HEAD_HH_SPFY_FCORRES,
@@ -48,7 +60,7 @@ mnh03 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh03_merged.csv")) %>%
          M03_PD_DM_SCORRES)
 
 #load mnh04
-mnh04 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh04_merged.csv")) %>% 
+mnh04 <- read.csv(paste0(path_to_data,"/mnh04_merged.csv")) %>% 
   filter(M04_TYPE_VISIT == 1) %>% 
   select(SITE, MOMID, PREGID, 
          M04_PH_PREV_RPORRES, M04_PH_PREVN_RPORRES, M04_PH_LIVE_RPORRES, 
@@ -57,12 +69,12 @@ mnh04 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh04_merged.csv")) %>%
          M04_MISCARRIAGE_RPORRES, M04_MISCARRIAGE_CT_RPORRES)
 
 #load mnh05
-mnh05 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh05_merged.csv")) %>% 
+mnh05 <- read.csv(paste0(path_to_data,"/mnh05_merged.csv")) %>% 
   filter(M05_TYPE_VISIT == 1) %>% 
   select(SITE, MOMID, PREGID, M05_WEIGHT_PERES, M05_HEIGHT_PERES, M05_MUAC_PERES)
 
 #load mnh06
-mnh06 <- read.csv(paste0("Z:/Stacked Data/",UploadDate,"/mnh06_merged.csv")) %>% 
+mnh06 <- read.csv(paste0(path_to_data,"/mnh06_merged.csv")) %>% 
   filter(M06_TYPE_VISIT == 1) %>% 
   select(SITE, MOMID, PREGID, M06_SINGLETON_PERES)
 
@@ -106,6 +118,11 @@ prep_demo <- df_maternal %>%
   #replace default value 7s with NA
   mutate(across(everything(), ~ ifelse(. < 0, NA, .))) %>% 
   mutate(across(everything(), ~ ifelse(. %in% c("1907-07-07", "1905-05-05"), NA, .))) %>% 
+  mutate(M04_PH_PREV_RPORRES = case_when(M04_PH_PREV_RPORRES > 20 ~ 77, TRUE ~ M04_PH_PREV_RPORRES)) %>% 
+  mutate(M04_PH_LIVE_RPORRES = case_when(M04_PH_LIVE_RPORRES %in% c(-5,-7,55,77) ~ NA, TRUE ~ M04_PH_LIVE_RPORRES),
+         M04_STILLBIRTH_CT_RPORRES = case_when(M04_STILLBIRTH_CT_RPORRES %in% c(-5,-7,55,77) ~ NA,  TRUE ~ M04_STILLBIRTH_CT_RPORRES),
+         M04_PH_PREV_RPORRES = case_when(M04_PH_PREV_RPORRES %in% c(-5,-7,55,77) ~ NA,  TRUE ~ M04_PH_PREV_RPORRES),
+         ) %>% 
   mutate(M04_PH_PREV_RPORRES = ifelse(M04_PH_PREV_RPORRES == 77, NA, M04_PH_PREV_RPORRES))
 
 #other baseline variable
@@ -188,7 +205,8 @@ df_demo <- prep_demo %>%
     ga_wks_enroll = BOE_GA_DAYS_ENROLL/7,
     #Years of formal education 
     school_yrs = case_when(
-      M00_SCHOOL_YRS_SCORRES >= 0 ~ as.numeric(M00_SCHOOL_YRS_SCORRES), 
+      M00_SCHOOL_YRS_SCORRES >= 0 & (M00_SCHOOL_YRS_SCORRES<mat_age) ~ as.numeric(M00_SCHOOL_YRS_SCORRES),
+      M00_SCHOOL_YRS_SCORRES < mat_age ~ 55,
       M00_SCHOOL_SCORRES == 0 ~ 0,
       TRUE ~ NA_real_
     ),
@@ -347,7 +365,7 @@ df_demo <- prep_demo %>%
     #Miscarriage
     miscarriage = case_when(
       M04_MISCARRIAGE_RPORRES %in% c(0,1) ~ M04_MISCARRIAGE_RPORRES,
-      M04_PH_PREV_RPORRES == 0 ~ 0,
+      M04_PH_PREV_RPORRES == 0 | M04_PH_OTH_RPORRES == 0 ~ 0,
       TRUE ~ NA_real_
     ),
     # number of miscarriages
@@ -367,8 +385,38 @@ df_demo <- prep_demo %>%
   dplyr::select(-c(matches("M\\d{2}_"), BOE_GA_DAYS_ENROLL, PREG_START_DATE, other_job, age_temp)) %>% 
   rename_with(toupper)
 
-save(df_maternal, file = "derived_data/df_maternal.rda")
-save(df_demo, file = "derived_data/df_demo.rda")
-write.csv(df_demo, file = "derived_data/MAT_DEMOGRAPHIC.csv", row.names = FALSE)
-write.xlsx(df_demo, file = "derived_data/MAT_DEMOGRAPHIC.xlsx")
-write_dta(df_demo, path = "derived_data/MAT_DEMOGRAPHIC.dta")
+
+df_demo_d <- df_demo %>%
+  select(SITE, GA_WKS_ENROLL) %>%
+  mutate(across(everything(), ~ ifelse(. < 0, NA, .))) %>% 
+  mutate(
+         # mean = mean(GA_WKS_ENROLL, na.rm = TRUE),
+         # mean_floor = floor(mean(GA_WKS_ENROLL, na.rm = TRUE)),
+         # mean_round = round(mean(GA_WKS_ENROLL, na.rm = TRUE),1),
+         # sd = sd(GA_WKS_ENROLL, na.rm = TRUE),
+         iqr2 = round(quantile(GA_WKS_ENROLL, 3/4, na.rm = TRUE),2),
+         iqr1 = round(quantile(GA_WKS_ENROLL, 1/4, na.rm = TRUE),2),
+         median = round(IQR(GA_WKS_ENROLL, na.rm = TRUE),2)
+         )
+
+# IQR(x) = quantile(x, 3/4) - quantile(x, 1/4).
+test <- df_demo_d  %>% filter(SITE == "India-CMC") 
+
+table(test$NUM_MISCARRIAGE)
+table(df_demo_d$NUM_MISCARRIAGE, df_demo_d$SITE)
+
+
+mean(test$NUM_MISCARRIAGE)
+  
+
+save(df_maternal, file= paste(path_to_save,"/df_maternal", ".RData",sep = ""))
+save(df_demo, file= paste(path_to_save,"/df_maternal", ".RData",sep = ""))
+write.csv(df_demo, file = paste0(path_to_tnt, "MAT_DEMOGRAPHIC.csv"), row.names = FALSE)
+write.xlsx(df_demo, file = paste0(path_to_tnt, "MAT_DEMOGRAPHIC.xlsx"), rownames = FALSE) 
+write_dta(df_demo, path = paste0(path_to_tnt, "MAT_DEMOGRAPHIC.dta"))
+ 
+# save(df_maternal, file = "derived_data/df_maternal.rda")
+# save(df_demo, file = "derived_data/df_demo.rda")
+# write.csv(df_demo, file = "derived_data/MAT_DEMOGRAPHIC.csv", row.names = FALSE)
+# write.xlsx(df_demo, file = "derived_data/MAT_DEMOGRAPHIC.xlsx")
+# write_dta(df_demo, path = "derived_data/MAT_DEMOGRAPHIC.dta")
