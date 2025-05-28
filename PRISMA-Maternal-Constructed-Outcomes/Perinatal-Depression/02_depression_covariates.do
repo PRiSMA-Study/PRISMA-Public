@@ -4,12 +4,12 @@
 ***********************************
 ***Part 1: Directories and data import
 ***********************************
-* Update each session:
-global datadate "2025-04-04"
-//update with data date
+* Update each new data date:
+global datadate "2025-04-18"
+
 
 global runqueries = 1
-//set this depending on whether you want to run queries or no
+//logical: export queries?
 
 
 *******************************************************************
@@ -178,6 +178,20 @@ if _rc > 0 {
 	label var NUMVISIT "Visit order"
 	
 	save "$wrk/mnh25_long_covariates.dta", replace
+	
+	*If available: merge in singleton/twin/triplet
+	merge m:1 MOMID PREGID using "$outcomes/MAT_PLACENTA_PREVIA.dta", nogen
+	
+	merge m:1 SITE MOMID PREGID using "$outcomes/MAT_HDP.dta", nogen keepusing(HTN_ANY)
+	merge m:1 SITE MOMID PREGID using "$outcomes/MAT_GDM.dta", nogen keepusing(DIAB_OVERT_ANY)
+	merge m:1 SITE MOMID PREGID using "$outcomes/MAT_risks.dta", nogen keepusing(WEALTH_QUINT)
+	merge m:1 SITE MOMID PREGID using "$outcomes/MAT_PREVPREG_COMPLICATIONS.dta", nogen
+	
+	
+	
+	save "$wrk/mnh25_long_covariates.dta", replace
+	
+	
 	
 	
 preserve
