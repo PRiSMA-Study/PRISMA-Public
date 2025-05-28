@@ -24,7 +24,7 @@
 ***Part 1: Directories and data import
 ***********************************
 * Update each session:
-global datadate "2025-04-04"
+global datadate "2025-04-18"
 //update with data date
 
 global runqueries = 1
@@ -685,6 +685,27 @@ keep SITE MOMID PREGID DEPR_STND_ANC20 DEPR_SITE_ANC20 DEPR_SCORE_ANC20 DEPR_STN
 label data "Depression score, $datadate, `c(username)', $today"
 notes replace _dta in 1 : Outcome dataset for $datadate data TS
 assert SITE != ""
+
+sort SITE MOMID PREGID
+order SITE MOMID PREGID  DEPR_SCORE_ANC20 DEPR_SCORE_ANC32 DEPR_SCORE_PNC6 DEPR_STND_ANC20 DEPR_STND_ANC32 DEPR_STND_PNC6 DEPR_SITE_ANC20 DEPR_SITE_ANC32 DEPR_SITE_PNC6 DEPR_MISS_ANC20_DENOM DEPR_MISS_ANC20 DEPR_ANC20_DENOM DEPR_STND_ANC20_NUM DEPR_SITE_ANC20_NUM DEPR_MISS_ANC32_DENOM DEPR_MISS_ANC32 DEPR_ANC32_DENOM DEPR_STND_ANC32_NUM DEPR_SITE_ANC32_NUM DEPR_MISS_PNC6_DENOM DEPR_MISS_PNC6 DEPR_PNC6_DENOM DEPR_STND_PNC6_NUM DEPR_SITE_PNC6_NUM DEPR_ANC_EVER_DENOM DEPR_STND_ANC_EVER_NUM DEPR_SITE_ANC_EVER_NUM DEPR_EVER_DENOM DEPR_STND_EVER_NUM DEPR_SITE_EVER_NUM
+
+foreach time in "ANC20" "ANC32" "PNC6" {
+	
+	foreach cutoff in "STND" "SITE" {
+		
+	label var DEPR_SCORE_`time' ///
+		"Worst (highest) depression score at `time'"
+	label var DEPR_`cutoff'_`time' ///
+		"Depression (`cutoff' cutoff) at `time'"
+	}
+	
+	label var DEPR_MISS_`time'_DENOM ///
+		"Denom of expected or has data at `time'"
+	label var DEPR_MISS_`time' "Reasons for missing at `time'"
+	label var DEPR_`time'_DENOM "Has data at `time'"
+}
+
+
 save "$wrk/MAT_DEPR-$datadate.dta", replace
 *Review and save to outcome folder:
 *save "$outcomes/MAT_DEPR.dta" , replace
