@@ -4,7 +4,7 @@
 
 Demographic data for all PRISMA participants at enrollment, along with code for the report on the demographic characteristics of the participants.
 
-#### :pushpin: Updated on 2025-01-23
+#### :pushpin: Updated on 2025-05-28
 #### :pushpin: Originally drafted by: Xiaoyan Hu (xyh@gwu.edu)
 
 ## File structure
