@@ -947,12 +947,12 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
      rows = 4:8
    ) %>%
       tab_row_group(
-     label = html("<span style='font-size: 18px'>Deaths occurring 42-365 days postpartum</span>"),
+     label = html("<span style='font-size: 18px'>Deaths occurring 43-365 days postpartum</span>"),
      rows = 9:13
    ) %>%
  row_group_order(groups = c("<span style='font-size: 18px'>Deaths occurring at any point during PRISMA</span>",
                    "<span style='font-size: 18px'>Deaths occurring during pregnancy up to 42 days postpartum</span>",
-                   "<span style='font-size: 18px'>Deaths occurring 42-365 days postpartum</span>"
+                   "<span style='font-size: 18px'>Deaths occurring 43-365 days postpartum</span>"
                   )) %>%
 
 
@@ -978,7 +978,7 @@ tab_style(
      footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes. Per 100,000 pregnancy endpoints.</span>")
   ) %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>b</sup>Date of death missing. Date of death has been estimated as the midpoint between when the woman was last seen alive and when her death was reported. This estimated death date is used to categorize the death as either pregnancy-related death (during pregnancy up to 42 days postpartum) or late pregnancy related death (42-365 days postpartum).</span>")
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Date of death missing. Date of death has been estimated as the midpoint between when the woman was last seen alive and when her death was reported. This estimated death date is used to categorize the death as either pregnancy-related death (during pregnancy up to 42 days postpartum) or late pregnancy related death (43-365 days postpartum).</span>")
   ) %>%
   tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>c</sup>Pregnancy-related deaths are those occuring during pregnancy and up to 42 days postpartum, for any reason.</span>")
@@ -993,11 +993,11 @@ tab_style(
      footnote = html("<span style='font-size: 18px'><sup>f</sup>Cause of death missing: InterVA not yet completed</span>")
   )  %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>g</sup>Late pregnancy-related deaths are those occuring 42-365 days postpartum, for any reason.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>g</sup>Late pregnancy-related deaths are those occuring 43-365 days postpartum, for any reason.</span>")
   )  %>%
 
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>h</sup>Late maternal mortality: deaths occurring 42-365 days postpartum, due to causes related to pregnancy or its management.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>h</sup>Late maternal mortality: deaths occurring 43-365 days postpartum, due to causes related to pregnancy or its management.</span>")
   )
 
 ```
