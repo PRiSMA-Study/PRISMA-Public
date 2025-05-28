@@ -1,18 +1,17 @@
 ---
-title: "Demographic Table"
-date: "`r Sys.Date()`"
+title: "<span style='font-size: 18px'> <span style='text-align: center'>Demographics Report (Issued: 2025-04-24)"
+# date: "`r Sys.Date()`"
 output:
   pdf_document:
     toc: no
     toc_depth: 3
     latex_engine: xelatex
     keep_tex: true
-    
 ---
 
 *Demographic table is showing baseline household and individual characteristic.*
 
-**Date of included data upload to Synapse: ** 2025-01-10
+**Date of included data upload to Synapse: ** 2025-04-18
 
 \tableofcontents
 
@@ -31,7 +30,8 @@ library(officer)
 library(kableExtra)
 library(ggh4x)
 
-load("derived_data/df_demo.rda")
+# load("derived_data/df_demo.rda")
+load("~/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/df_demo.RData")
 
 #table format 1
 tb_theme1 <- function(matrix){
@@ -108,7 +108,6 @@ tb_theme1 <- function(matrix){
 } 
 
 ```
-
 
 \newpage
 
@@ -217,16 +216,16 @@ matrix_demo_a <- df_demo_a %>%
     "Private toilet: N* (%)" = 
       paste0(sum(!is.na(TOILET_SHARED)), 
              " (", format(sum(!is.na(TOILET_SHARED))/n()*100, digits = 2, nsmall = 2), ")"),
-    "MP: Personally own: n (%*)" = 
+    "Personally own: n (%*)" = 
       paste0(sum(PHONE_ACCESS == 1, na.rm = TRUE), 
              " (", format(sum(PHONE_ACCESS == 1, na.rm = TRUE)/sum(!is.na(PHONE_ACCESS))*100, digits = 2, nsmall = 2), ")"),
-    "MP: Share with others: n (%*)" = 
+    "Share with others: n (%*)" = 
       paste0(sum(PHONE_ACCESS == 2, na.rm = TRUE), 
              " (", format(sum(PHONE_ACCESS == 2, na.rm = TRUE)/sum(!is.na(PHONE_ACCESS))*100, digits = 2, nsmall = 2), ")"),
-    "MP: No access: n (%*)" = 
+    "No access: n (%*)" = 
       paste0(sum(PHONE_ACCESS == 3, na.rm = TRUE), 
              " (", format(sum(PHONE_ACCESS == 3, na.rm = TRUE)/sum(!is.na(PHONE_ACCESS))*100, digits = 2, nsmall = 2), ")"),
-    "MP: N* (%)" = 
+    "N* (%)" = 
       paste0(sum(!is.na(PHONE_ACCESS)), 
              " (", format(sum(!is.na(PHONE_ACCESS))/n()*100, digits = 2, nsmall = 2), ")"),
     "HH members smokes: n (%*)" = 
@@ -240,7 +239,6 @@ matrix_demo_a <- df_demo_a %>%
   ) %>% 
   mutate_all(funs(str_replace(., "(NaN)", "-")))
 ```
-
 
 ```{r}
 #generate table 
@@ -286,7 +284,7 @@ tb_demo_a <- tb_theme1(matrix_demo_a) %>%
                              "Household smoke exposure")) %>% 
   tab_footnote(
     footnote = c("N* = total participants with non-missing data;", 
-                 "%*: the denominator is N*")
+                 "%*: denominator is N*")
   ) %>%
   tab_footnote(
     footnote = c("Improved water source* includes: Piped water into dwelling, Piped to yard/plot, 
@@ -303,17 +301,17 @@ tb_demo_a <- tb_theme1(matrix_demo_a) %>%
 
 ```
 
-
 ```{r, out.width = '100%'}
 png_demo_a <- tb_demo_a %>% gtsave("demo_a.png", expand = 10)
 knitr::include_graphics("demo_a.png")
 ```
 
 \newpage
+
 ### Table 2. Individual Characteristics
 ```{r}
 df_demo_b <- df_demo %>%
-  select(SITE, AGE, AGE18,  BMI_LEVEL, HEIGHT_GROUP, 
+  select(SITE, MAT_AGE, MAT_AGE_UNDER18,  BMI_LEVEL_ENROLL, HEIGHT_GROUP, 
          MARRIED, MARRY_AGE, EDUCATED, SCHOOL_YRS, PRIMIGRAVIDA, NULLIPAROUS,
          PAID_WORK) %>%
   mutate(across(everything(), ~ ifelse(. < 0, NA, .)))
@@ -323,23 +321,23 @@ matrix_demo_b <- df_demo_b %>%
   summarise(
     "Total participants: N" = n(),
     "Age: mean (SD)" =
-      paste0(round(mean(AGE, na.rm = TRUE)),
-             " (", format(sd(AGE, na.rm = TRUE), digits = 1, nsmall = 1),")"),
+      paste0(round(mean(MAT_AGE, na.rm = TRUE)),
+             " (", format(sd(MAT_AGE, na.rm = TRUE), digits = 1, nsmall = 1),")"),
     "Age: median (IQR)" =
-      paste0(median(AGE, na.rm = TRUE),
-             " (", IQR(AGE, na.rm = TRUE),")"),
+      paste0(median(MAT_AGE, na.rm = TRUE),
+             " (", IQR(MAT_AGE, na.rm = TRUE),")"),
     "Age: < 20 n (%*)" =
-      paste0(sum(AGE > 0 & AGE < 20, na.rm = TRUE),
-             " (", format(sum(AGE > 0 & AGE < 20, na.rm = TRUE)/sum(!is.na(AGE))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(MAT_AGE > 0 & MAT_AGE < 20, na.rm = TRUE),
+             " (", format(sum(MAT_AGE > 0 & MAT_AGE < 20, na.rm = TRUE)/sum(!is.na(MAT_AGE))*100, digits = 2, nsmall = 2), ")"),
     "Age: 20-34 n (%*)" =
-      paste0(sum(AGE >= 20 & AGE <= 34, na.rm = TRUE),
-             " (", format(sum(AGE >= 20 & AGE <= 34, na.rm = TRUE)/sum(!is.na(AGE))*100, digits = 2, nsmall = 2), ")"),
-    "Age: ≥ 35 n (%*)" =
-      paste0(sum(AGE >= 35, na.rm = TRUE),
-             " (", format(sum(AGE >= 35, na.rm = TRUE)/sum(!is.na(AGE))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(MAT_AGE >= 20 & MAT_AGE <= 34, na.rm = TRUE),
+             " (", format(sum(MAT_AGE >= 20 & MAT_AGE <= 34, na.rm = TRUE)/sum(!is.na(MAT_AGE))*100, digits = 2, nsmall = 2), ")"),
+    "Age: >= 35 n (%*)" =
+      paste0(sum(MAT_AGE >= 35, na.rm = TRUE),
+             " (", format(sum(MAT_AGE >= 35, na.rm = TRUE)/sum(!is.na(MAT_AGE))*100, digits = 2, nsmall = 2), ")"),
     "Age: N* (%)" =
-      paste0(sum(!is.na(AGE)),
-             " (", format(sum(!is.na(AGE))/n()*100, digits = 1, nsmall = 1),")"),
+      paste0(sum(!is.na(MAT_AGE)),
+             " (", format(sum(!is.na(MAT_AGE))/n()*100, digits = 1, nsmall = 1),")"),
     "Height: <145 n (%*)" =
       paste0(sum(HEIGHT_GROUP == 1, na.rm = TRUE),
              " (", format(sum(HEIGHT_GROUP == 1, na.rm = TRUE)/sum(!is.na(HEIGHT_GROUP))*100, digits = 2, nsmall = 2), ")"),
@@ -356,20 +354,20 @@ matrix_demo_b <- df_demo_b %>%
       paste0(sum(!is.na(HEIGHT_GROUP)),
              " (", format(sum(!is.na(HEIGHT_GROUP))/n()*100, digits = 2, nsmall = 2), ")"),
     "BMI: <18.5 n (%*)" =
-      paste0(sum(BMI_LEVEL == 1, na.rm = TRUE),
-             " (", format(sum(BMI_LEVEL == 1, na.rm = TRUE)/sum(!is.na(BMI_LEVEL))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(BMI_LEVEL_ENROLL == 1, na.rm = TRUE),
+             " (", format(sum(BMI_LEVEL_ENROLL == 1, na.rm = TRUE)/sum(!is.na(BMI_LEVEL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
     "BMI: 18.5 to <25 n (%*)" =
-      paste0(sum(BMI_LEVEL == 2, na.rm = TRUE),
-             " (", format(sum(BMI_LEVEL == 2, na.rm = TRUE)/sum(!is.na(BMI_LEVEL))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(BMI_LEVEL_ENROLL == 2, na.rm = TRUE),
+             " (", format(sum(BMI_LEVEL_ENROLL == 2, na.rm = TRUE)/sum(!is.na(BMI_LEVEL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
     "BMI: 25 to <30 n (%*)" =
-      paste0(sum(BMI_LEVEL == 3, na.rm = TRUE),
-             " (", format(sum(BMI_LEVEL == 3, na.rm = TRUE)/sum(!is.na(BMI_LEVEL))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(BMI_LEVEL_ENROLL == 3, na.rm = TRUE),
+             " (", format(sum(BMI_LEVEL_ENROLL == 3, na.rm = TRUE)/sum(!is.na(BMI_LEVEL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
     "BMI: 30+ n (%*)" =
-      paste0(sum(BMI_LEVEL == 4, na.rm = TRUE),
-             " (", format(sum(BMI_LEVEL == 4, na.rm = TRUE)/sum(!is.na(BMI_LEVEL))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(BMI_LEVEL_ENROLL == 4, na.rm = TRUE),
+             " (", format(sum(BMI_LEVEL_ENROLL == 4, na.rm = TRUE)/sum(!is.na(BMI_LEVEL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
     "BMI: N* (%)" =
-      paste0(sum(!is.na(BMI_LEVEL)),
-             " (", format(sum(!is.na(BMI_LEVEL))/n()*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(!is.na(BMI_LEVEL_ENROLL)),
+             " (", format(sum(!is.na(BMI_LEVEL_ENROLL))/n()*100, digits = 2, nsmall = 2), ")"),
     "Married/cohabitating n (%*)" =
       paste0(sum(MARRIED == 1, na.rm = TRUE),
              " (", format(sum(MARRIED == 1, na.rm = TRUE)/sum(!is.na(MARRIED))*100, digits = 2, nsmall = 2), ")"),
@@ -388,37 +386,37 @@ matrix_demo_b <- df_demo_b %>%
     "Marital age: N* (%)" =
       paste0(sum(!is.na(MARRY_AGE)),
              " (", format(sum(!is.na(MARRY_AGE))/n()*100, digits = 2, nsmall = 2),")"),
-    "Educate: Attended primary, secondary, or higher n (%*)" =
+    "Attended primary, secondary, or higher, n (%*)" =
       paste0(sum(EDUCATED == 1, na.rm = TRUE),
              " (", format(sum(EDUCATED == 1, na.rm = TRUE)/sum(!is.na(EDUCATED))*100, digits = 2, nsmall = 2), ")"),
-    "Educate: N* (%)" =
+    "N* (%)" =
       paste0(sum(!is.na(EDUCATED)),
              " (", format(sum(!is.na(EDUCATED))/n()*100, digits = 2, nsmall = 2), ")"),
-    "Edu years: mean (SD)" =
+    "mean (SD)" =
       paste0(round(mean(SCHOOL_YRS, na.rm = TRUE)),
              " (", format(sd(SCHOOL_YRS, na.rm = TRUE), digits = 1, nsmall = 1),")"),
-    "Edu years: median (IQR)" =
+    "median (IQR)" =
       paste0(median(SCHOOL_YRS, na.rm = TRUE),
              " (", IQR(SCHOOL_YRS, na.rm = TRUE),")"),
-    "Edu years: N* (%)" =
+    "N* (%)" =
       paste0(sum(!is.na(SCHOOL_YRS)),
              " (", format(sum(!is.na(SCHOOL_YRS))/n()*100, digits = 2, nsmall = 2),")"),
-    "Primigravida: n (%*)" =
+    "Primigravida, n (%*)" =
       paste0(sum(PRIMIGRAVIDA == 1, na.rm = TRUE),
              " (", format(sum(PRIMIGRAVIDA == 1, na.rm = TRUE)/sum(!is.na(PRIMIGRAVIDA))*100, digits = 2, nsmall = 2), ")"),
-    "Primigravida: N* (%)" =
+    "Primigravida, N* (%)" =
       paste0(sum(!is.na(PRIMIGRAVIDA)),
              " (", format(sum(!is.na(PRIMIGRAVIDA))/n()*100, digits = 2, nsmall = 2), ")"),
-    "Nulliparous: n (%*)" =
+    "Nulliparous, n (%*)" =
       paste0(sum(NULLIPAROUS == 1, na.rm = TRUE),
              " (", format(sum(NULLIPAROUS == 1, na.rm = TRUE)/sum(!is.na(NULLIPAROUS))*100, digits = 2, nsmall = 2), ")"),
     "Nulliparous: N* (%)" =
       paste0(sum(!is.na(NULLIPAROUS)),
              " (", format(sum(!is.na(NULLIPAROUS))/n()*100, digits = 2, nsmall = 2), ")"),
-    "Paid work: n (%*)" =
+    "Paid work, n (%*)" =
       paste0(sum(PAID_WORK == 1, na.rm = TRUE),
              " (", format(sum(PAID_WORK == 1, na.rm = TRUE)/sum(!is.na(PAID_WORK))*100, digits = 2, nsmall = 2), ")"),
-    "Paid work: N* (%)" =
+    "Paid work, N* (%)" =
       paste0(sum(!is.na(PAID_WORK)),
              " (", format(sum(!is.na(PAID_WORK))/n()*100, digits = 2, nsmall = 2), ")"),
   ) %>%
@@ -430,103 +428,103 @@ matrix_demo_b <- df_demo_b %>%
     "Total" = df_demo_b %>%
       summarise(
     "Total participants: N" = n(),
-    "Age: mean (SD)" =
-      paste0(round(mean(AGE, na.rm = TRUE)),
-             " (", format(sd(AGE, na.rm = TRUE), digits = 1, nsmall = 1),")"),
-    "Age: median (IQR)" =
-      paste0(median(AGE, na.rm = TRUE),
-             " (", IQR(AGE, na.rm = TRUE),")"),
-    "Age: < 20 n (%*)" =
-      paste0(sum(AGE > 0 & AGE < 20, na.rm = TRUE),
-             " (", format(sum(AGE > 0 & AGE < 20, na.rm = TRUE)/sum(!is.na(AGE))*100, digits = 2, nsmall = 2), ")"),
-    "Age: 20-34 n (%*)" =
-      paste0(sum(AGE >= 20 & AGE <= 34, na.rm = TRUE),
-             " (", format(sum(AGE >= 20 & AGE <= 34, na.rm = TRUE)/sum(!is.na(AGE))*100, digits = 2, nsmall = 2), ")"),
-    "Age: ≥ 35 n (%*)" =
-      paste0(sum(AGE >= 35, na.rm = TRUE),
-             " (", format(sum(AGE >= 35, na.rm = TRUE)/sum(!is.na(AGE))*100, digits = 2, nsmall = 2), ")"),
-    "Age: N* (%)" =
-      paste0(sum(!is.na(AGE)),
-             " (", format(sum(!is.na(AGE))/n()*100, digits = 2, nsmall = 2),")"),
-    "Height: <145 n (%*)" =
+    "Age mean (SD)" =
+      paste0(round(mean(MAT_AGE, na.rm = TRUE)),
+             " (", format(sd(MAT_AGE, na.rm = TRUE), digits = 1, nsmall = 1),")"),
+    "Age median (IQR)" =
+      paste0(median(MAT_AGE, na.rm = TRUE),
+             " (", IQR(MAT_AGE, na.rm = TRUE),")"),
+    "Age < 20 n (%*)" =
+      paste0(sum(MAT_AGE > 0 & MAT_AGE < 20, na.rm = TRUE),
+             " (", format(sum(MAT_AGE > 0 & MAT_AGE < 20, na.rm = TRUE)/sum(!is.na(MAT_AGE))*100, digits = 2, nsmall = 2), ")"),
+    "Age 20-34 n (%*)" =
+      paste0(sum(MAT_AGE >= 20 & MAT_AGE <= 34, na.rm = TRUE),
+             " (", format(sum(MAT_AGE >= 20 & MAT_AGE <= 34, na.rm = TRUE)/sum(!is.na(MAT_AGE))*100, digits = 2, nsmall = 2), ")"),
+    "Age: >= 35 n (%*)" =
+      paste0(sum(MAT_AGE >= 35, na.rm = TRUE),
+             " (", format(sum(MAT_AGE >= 35, na.rm = TRUE)/sum(!is.na(MAT_AGE))*100, digits = 2, nsmall = 2), ")"),
+    "Age N* (%)" =
+      paste0(sum(!is.na(MAT_AGE)),
+             " (", format(sum(!is.na(MAT_AGE))/n()*100, digits = 2, nsmall = 2),")"),
+    "Height <145 n (%*)" =
       paste0(sum(HEIGHT_GROUP == 1, na.rm = TRUE),
              " (", format(sum(HEIGHT_GROUP == 1, na.rm = TRUE)/sum(!is.na(HEIGHT_GROUP))*100, digits = 2, nsmall = 2), ")"),
-    "Height: 145 to <150 n (%*)" =
+    "Height 145 to <150 n (%*)" =
       paste0(sum(HEIGHT_GROUP == 2, na.rm = TRUE),
              " (", format(sum(HEIGHT_GROUP == 2, na.rm = TRUE)/sum(!is.na(HEIGHT_GROUP))*100, digits = 2, nsmall = 2), ")"),
-    "Height: 150 to <155 n (%*)" =
+    "Height 150 to <155 n (%*)" =
       paste0(sum(HEIGHT_GROUP == 3, na.rm = TRUE),
              " (", format(sum(HEIGHT_GROUP == 3, na.rm = TRUE)/sum(!is.na(HEIGHT_GROUP))*100, digits = 2, nsmall = 2), ")"),
-    "Height: 155+ n (%*)" =
+    "Height 155+ n (%*)" =
       paste0(sum(HEIGHT_GROUP == 4, na.rm = TRUE),
              " (", format(sum(HEIGHT_GROUP == 4, na.rm = TRUE)/sum(!is.na(HEIGHT_GROUP))*100, digits = 2, nsmall = 2), ")"),
-    "Height: N* (%)" =
+    "Height N* (%)" =
       paste0(sum(!is.na(HEIGHT_GROUP)),
              " (", format(sum(!is.na(HEIGHT_GROUP))/n()*100, digits = 2, nsmall = 2), ")"),
-    "BMI: <18.5 n (%*)" =
-      paste0(sum(BMI_LEVEL == 1, na.rm = TRUE),
-             " (", format(sum(BMI_LEVEL == 1, na.rm = TRUE)/sum(!is.na(BMI_LEVEL))*100, digits = 2, nsmall = 2), ")"),
-    "BMI: 18.5 to <25 n (%*)" =
-      paste0(sum(BMI_LEVEL == 2, na.rm = TRUE),
-             " (", format(sum(BMI_LEVEL == 2, na.rm = TRUE)/sum(!is.na(BMI_LEVEL))*100, digits = 2, nsmall = 2), ")"),
-    "BMI: 25 to <30 n (%*)" =
-      paste0(sum(BMI_LEVEL == 3, na.rm = TRUE),
-             " (", format(sum(BMI_LEVEL == 3, na.rm = TRUE)/sum(!is.na(BMI_LEVEL))*100, digits = 2, nsmall = 2), ")"),
-    "BMI: 30+ n (%*)" =
-      paste0(sum(BMI_LEVEL == 4, na.rm = TRUE),
-             " (", format(sum(BMI_LEVEL == 4, na.rm = TRUE)/sum(!is.na(BMI_LEVEL))*100, digits = 2, nsmall = 2), ")"),
-    "BMI: N* (%)" =
-      paste0(sum(!is.na(BMI_LEVEL)),
-             " (", format(sum(!is.na(BMI_LEVEL))/n()*100, digits = 2, nsmall = 2), ")"),
+    "BMI <18.5 n (%*)" =
+      paste0(sum(BMI_LEVEL_ENROLL == 1, na.rm = TRUE),
+             " (", format(sum(BMI_LEVEL_ENROLL == 1, na.rm = TRUE)/sum(!is.na(BMI_LEVEL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
+    "BMI 18.5 to <25 n (%*)" =
+      paste0(sum(BMI_LEVEL_ENROLL == 2, na.rm = TRUE),
+             " (", format(sum(BMI_LEVEL_ENROLL == 2, na.rm = TRUE)/sum(!is.na(BMI_LEVEL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
+    "BMI 25 to <30 n (%*)" =
+      paste0(sum(BMI_LEVEL_ENROLL == 3, na.rm = TRUE),
+             " (", format(sum(BMI_LEVEL_ENROLL == 3, na.rm = TRUE)/sum(!is.na(BMI_LEVEL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
+    "BMI 30+ n (%*)" =
+      paste0(sum(BMI_LEVEL_ENROLL == 4, na.rm = TRUE),
+             " (", format(sum(BMI_LEVEL_ENROLL == 4, na.rm = TRUE)/sum(!is.na(BMI_LEVEL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
+    "BMI N* (%)" =
+      paste0(sum(!is.na(BMI_LEVEL_ENROLL)),
+             " (", format(sum(!is.na(BMI_LEVEL_ENROLL))/n()*100, digits = 2, nsmall = 2), ")"),
      "Married/cohabitating n (%*)" =
       paste0(sum(MARRIED == 1, na.rm = TRUE),
              " (", format(sum(MARRIED == 1, na.rm = TRUE)/sum(!is.na(MARRIED))*100, digits = 2, nsmall = 2), ")"),
     "Single/divorced/separated/ widowed n (%*)" =
       paste0(sum(MARRIED == 0, na.rm = TRUE),
              " (", format(sum(MARRIED == 0, na.rm = TRUE)/sum(!is.na(MARRIED))*100, digits = 2, nsmall = 2), ")"),
-    "Marital status: N* (%)" =
+    "Marital status N* (%)" =
       paste0(sum(!is.na(MARRIED)),
              " (", format(sum(!is.na(MARRIED))/n()*100, digits = 2, nsmall = 2), ")"),
-     "Marital age: mean (SD)" =
+     "Marital age mean (SD)" =
       paste0(round(mean(MARRY_AGE, na.rm = TRUE)),
              " (", format(sd(MARRY_AGE, na.rm = TRUE), digits = 1, nsmall = 1),")"),
-    "Marital age: median (IQR)" =
+    "Marital age median (IQR)" =
       paste0(median(MARRY_AGE, na.rm = TRUE),
              " (", IQR(MARRY_AGE, na.rm = TRUE),")"),
-    "Marital age: N* (%)" =
+    "Marital age N* (%)" =
       paste0(sum(!is.na(MARRY_AGE)),
              " (", format(sum(!is.na(MARRY_AGE))/n()*100, digits = 2, nsmall = 2),")"),
-    "Educate: Attended primary, secondary, or higher n (%*)" =
+    "Educate Attended primary, secondary, or higher n (%*)" =
       paste0(sum(EDUCATED == 1, na.rm = TRUE),
              " (", format(sum(EDUCATED == 1, na.rm = TRUE)/sum(!is.na(EDUCATED))*100, digits = 2, nsmall = 2), ")"),
-    "Educate: N* (%)" =
+    "Educate N* (%)" =
       paste0(sum(!is.na(EDUCATED)),
              " (", format(sum(!is.na(EDUCATED))/n()*100, digits = 2, nsmall = 2), ")"),
-    "Edu years: mean (SD)" =
+    "Edu years mean (SD)" =
       paste0(round(mean(SCHOOL_YRS, na.rm = TRUE)),
              " (", format(sd(SCHOOL_YRS, na.rm = TRUE), digits = 1, nsmall = 1),")"),
-    "Edu years: median (IQR)" =
+    "Edu years median (IQR)" =
       paste0(median(SCHOOL_YRS, na.rm = TRUE),
              " (", IQR(SCHOOL_YRS, na.rm = TRUE),")"),
-    "Edu years: N* (%)" =
+    "Edu years N* (%)" =
       paste0(sum(!is.na(SCHOOL_YRS)),
              " (", format(sum(!is.na(SCHOOL_YRS))/n()*100, digits = 2, nsmall = 2),")"),
-       "Primigravida: n (%*)" =
+    "Primigravida n (%*)" =
       paste0(sum(PRIMIGRAVIDA == 1, na.rm = TRUE),
              " (", format(sum(PRIMIGRAVIDA == 1, na.rm = TRUE)/sum(!is.na(PRIMIGRAVIDA))*100, digits = 2, nsmall = 2), ")"),
-    "Primigravida: N* (%)" =
+    "Primigravida N* (%)" =
       paste0(sum(!is.na(PRIMIGRAVIDA)),
              " (", format(sum(!is.na(PRIMIGRAVIDA))/n()*100, digits = 2, nsmall = 2), ")"),
-    "Nulliparous: n (%*)" =
+    "Nulliparous n (%*)" =
       paste0(sum(NULLIPAROUS == 1, na.rm = TRUE),
              " (", format(sum(NULLIPAROUS == 1, na.rm = TRUE)/sum(!is.na(NULLIPAROUS))*100, digits = 2, nsmall = 2), ")"),
-    "Nulliparous: N* (%)" =
+    "Nulliparous N* (%)" =
       paste0(sum(!is.na(NULLIPAROUS)),
              " (", format(sum(!is.na(NULLIPAROUS))/n()*100, digits = 2, nsmall = 2), ")"),
-    "Paid work: n (%*)" =
+    "Paid work n (%*)" =
       paste0(sum(PAID_WORK == 1, na.rm = TRUE),
              " (", format(sum(PAID_WORK == 1, na.rm = TRUE)/sum(!is.na(PAID_WORK))*100, digits = 2, nsmall = 2), ")"),
-    "Paid work: N* (%)" =
+    "Paid work N* (%)" =
       paste0(sum(!is.na(PAID_WORK)),
              " (", format(sum(!is.na(PAID_WORK))/n()*100, digits = 2, nsmall = 2), ")"),
       ) %>%
@@ -540,7 +538,6 @@ matrix_demo_b_p1 <- matrix_demo_b %>%
 matrix_demo_b_p2 <- matrix_demo_b %>%
   slice(1,24:34)
 ```
-
 
 ```{r}
 #generate table
@@ -578,12 +575,11 @@ tb_demo_b_p1 <- tb_theme1(matrix_demo_b_p1) %>%
                              "Marital age"
                              )) %>%
   tab_footnote(
-    footnote = c("N* = total participants with non-missing data;",
-                 "%*: the denominator is N*")
-  ) #%>%
-  # tab_footnote(
-  #   footnote = c("Body Mass Index* is calculated at enrollment visit (earlier pregnancy)")
-  # )
+    footnote = c("N* = total participants with non-missing data;")
+  ) %>%
+  tab_footnote(
+    footnote = c("%*: denominator is N*")
+  )
 
 tb_demo_b_p2 <- tb_theme1(matrix_demo_b_p2) %>%
   #table title
@@ -620,11 +616,12 @@ tb_demo_b_p2 <- tb_theme1(matrix_demo_b_p2) %>%
                              "Paid work"
                              )) %>%
   tab_footnote(
-    footnote = c("N* = total participants with non-missing datar;",
-                 "%*: the denominator is N*")
-  ) 
+    footnote = c("N* = total participants with non-missing data;")
+  ) %>%
+  tab_footnote(
+    footnote = c("%*: denominator is N*")
+  )
 ```
-
 
 ```{r, out.width = '98%'}
 #knit tables
@@ -640,7 +637,7 @@ pdf("test.pdf", onefile=TRUE)
 
 ```{r}
 df_demo_c <- df_demo %>%
-  select(SITE, SMOKE, CHEW_TOBACCO, CHEW_BETELNUT, DRINK, FOLIC, UNDER_NET,
+  select(SITE, SMOKE, CHEW_TOBACCO, CHEW_BETELNUT, DRINK, FOLIC_SUPPL_ENROLL, SLEEP_UNDER_NET,
          BIRTH_FACILITY) %>%
   mutate(across(everything(), ~ ifelse(. < 0, NA, .)))
 
@@ -673,17 +670,17 @@ matrix_demo_c <- df_demo_c %>%
       paste0(sum(!is.na(DRINK)),
              " (", format(sum(!is.na(DRINK))/n()*100, digits = 2, nsmall = 2), ")"),
     "Receives folic supplements: n (%*)" =
-      paste0(sum(FOLIC == 1, na.rm = TRUE),
-             " (", format(sum(FOLIC == 1, na.rm = TRUE)/sum(!is.na(FOLIC))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(FOLIC_SUPPL_ENROLL == 1, na.rm = TRUE),
+             " (", format(sum(FOLIC_SUPPL_ENROLL == 1, na.rm = TRUE)/sum(!is.na(FOLIC_SUPPL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
     "Receives folic supplements: N* (%)" =
-      paste0(sum(!is.na(FOLIC)),
-             " (", format(sum(!is.na(FOLIC))/n()*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(!is.na(FOLIC_SUPPL_ENROLL)),
+             " (", format(sum(!is.na(FOLIC_SUPPL_ENROLL))/n()*100, digits = 2, nsmall = 2), ")"),
     "Sleeps under net: n (%*)" =
-      paste0(sum(UNDER_NET == 1, na.rm = TRUE),
-             " (", format(sum(UNDER_NET == 1, na.rm = TRUE)/sum(!is.na(UNDER_NET))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(SLEEP_UNDER_NET == 1, na.rm = TRUE),
+             " (", format(sum(SLEEP_UNDER_NET == 1, na.rm = TRUE)/sum(!is.na(SLEEP_UNDER_NET))*100, digits = 2, nsmall = 2), ")"),
     "Sleeps under net: N* (%)" =
-      paste0(sum(!is.na(UNDER_NET)),
-             " (", format(sum(!is.na(UNDER_NET))/n()*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(!is.na(SLEEP_UNDER_NET)),
+             " (", format(sum(!is.na(SLEEP_UNDER_NET))/n()*100, digits = 2, nsmall = 2), ")"),
     "Facility birth: n (%*)" =
       paste0(sum(BIRTH_FACILITY == 1, na.rm = TRUE),
              " (", format(sum(BIRTH_FACILITY == 1, na.rm = TRUE)/sum(!is.na(BIRTH_FACILITY))*100, digits = 2, nsmall = 2), ")"),
@@ -724,17 +721,17 @@ matrix_demo_c <- df_demo_c %>%
       paste0(sum(!is.na(DRINK)),
              " (", format(sum(!is.na(DRINK))/n()*100, digits = 2, nsmall = 2), ")"),
     "Receives folic supplements: n (%*)" =
-      paste0(sum(FOLIC == 1, na.rm = TRUE),
-             " (", format(sum(FOLIC == 1, na.rm = TRUE)/sum(!is.na(FOLIC))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(FOLIC_SUPPL_ENROLL == 1, na.rm = TRUE),
+             " (", format(sum(FOLIC_SUPPL_ENROLL == 1, na.rm = TRUE)/sum(!is.na(FOLIC_SUPPL_ENROLL))*100, digits = 2, nsmall = 2), ")"),
     "Receives folic supplements: N* (%)" =
-      paste0(sum(!is.na(FOLIC)),
-             " (", format(sum(!is.na(FOLIC))/n()*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(!is.na(FOLIC_SUPPL_ENROLL)),
+             " (", format(sum(!is.na(FOLIC_SUPPL_ENROLL))/n()*100, digits = 2, nsmall = 2), ")"),
     "Sleeps under net: n (%*)" =
-      paste0(sum(UNDER_NET == 1, na.rm = TRUE),
-             " (", format(sum(UNDER_NET == 1, na.rm = TRUE)/sum(!is.na(UNDER_NET))*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(SLEEP_UNDER_NET == 1, na.rm = TRUE),
+             " (", format(sum(SLEEP_UNDER_NET == 1, na.rm = TRUE)/sum(!is.na(SLEEP_UNDER_NET))*100, digits = 2, nsmall = 2), ")"),
     "Sleeps under net: N* (%)" =
-      paste0(sum(!is.na(UNDER_NET)),
-             " (", format(sum(!is.na(UNDER_NET))/n()*100, digits = 2, nsmall = 2), ")"),
+      paste0(sum(!is.na(SLEEP_UNDER_NET)),
+             " (", format(sum(!is.na(SLEEP_UNDER_NET))/n()*100, digits = 2, nsmall = 2), ")"),
     "Facility birth: n (%*)" =
       paste0(sum(BIRTH_FACILITY == 1, na.rm = TRUE),
              " (", format(sum(BIRTH_FACILITY == 1, na.rm = TRUE)/sum(!is.na(BIRTH_FACILITY))*100, digits = 2, nsmall = 2), ")"),
@@ -792,9 +789,11 @@ tb_demo_c <- tb_theme1(matrix_demo_c) %>%
                              "Plan to give birth at facility"
   )) %>%
   tab_footnote(
-    footnote = c("N* = total participants with non-missing data;",
-                 "%*: the denominator is N*")
-  ) 
+    footnote = c("N* = total participants with non-missing data;")
+  ) %>%
+  tab_footnote(
+    footnote = c("%*: denominator is N*")
+  )
 ```
 
 ```{r, out.width = '100%'}
@@ -807,7 +806,7 @@ knitr::include_graphics("demo_c.png")
 ### Table 4. Maternal/fetal Characteristics
 ```{r}
 df_demo_d <- df_demo %>%
-  select(SITE, GA_WKS_ENROLL, NUM_FETUS, MISCARRIAGE, NUM_MISCARRIAGE, MUAC) %>%
+  select(SITE, GA_WKS_ENROLL, NUM_FETUS, MISCARRIAGE, NUM_MISCARRIAGE, MUAC_ENROLL) %>%
   mutate(across(everything(), ~ ifelse(. < 0, NA, .)))
 
 matrix_demo_d <- df_demo_d %>%
@@ -836,7 +835,7 @@ matrix_demo_d <- df_demo_d %>%
           paste0(sum(!is.na(MISCARRIAGE)),
                  " (", format(sum(!is.na(MISCARRIAGE))/n()*100, digits = 2, nsmall = 2), ")"),
     "num of miscarriage: mean (SD)" =
-          paste0(floor(mean(NUM_MISCARRIAGE, na.rm = TRUE)),
+          paste0(round(mean(NUM_MISCARRIAGE, na.rm = TRUE),1),
                  " (", format(sd(NUM_MISCARRIAGE, na.rm = TRUE), digits = 1, nsmall = 1),")"),
     "num of miscarriage: median (IQR)" =
           paste0(round(median(NUM_MISCARRIAGE, na.rm = TRUE)),
@@ -844,15 +843,15 @@ matrix_demo_d <- df_demo_d %>%
     "num of miscarriage: N* (%)" =
           paste0(sum(!is.na(NUM_MISCARRIAGE), na.rm = TRUE),
                  " (", format(sum(!is.na(NUM_MISCARRIAGE), na.rm = TRUE)/n()*100, digits = 2, nsmall = 2),")"),
-    "MUAC: mean (SD)" =
-          paste0(floor(mean(MUAC, na.rm = TRUE)),
-                 " (", format(sd(MUAC, na.rm = TRUE), digits = 1, nsmall = 1),")"),
-    "MUAC: median (IQR)" =
-          paste0(round(median(MUAC, na.rm = TRUE)),
-                 " (", format(IQR(MUAC, na.rm=TRUE), digits=1, nsmall=1),")"),
-    "MUAC: N* (%)" = 
-          paste0(sum(!is.na(MUAC)),
-                 " (", format(sum(!is.na(MUAC))/n()*100, digits = 2, nsmall = 2),")"),
+    "MUAC_ENROLL: mean (SD)" =
+          paste0(floor(mean(MUAC_ENROLL, na.rm = TRUE)),
+                 " (", format(sd(MUAC_ENROLL, na.rm = TRUE), digits = 1, nsmall = 1),")"),
+    "MUAC_ENROLL: median (IQR)" =
+          paste0(round(median(MUAC_ENROLL, na.rm = TRUE)),
+                 " (", format(IQR(MUAC_ENROLL, na.rm=TRUE), digits=1, nsmall=1),")"),
+    "MUAC_ENROLL: N* (%)" = 
+          paste0(sum(!is.na(MUAC_ENROLL)),
+                 " (", format(sum(!is.na(MUAC_ENROLL))/n()*100, digits = 2, nsmall = 2),")"),
   ) %>%
   t() %>% as.data.frame() %>%
   `colnames<-`(c(.[1,])) %>%
@@ -892,15 +891,15 @@ matrix_demo_d <- df_demo_d %>%
         "num of miscarriage: N* (%)" =
           paste0(sum(!is.na(NUM_MISCARRIAGE), na.rm = TRUE),
                  " (", format(sum(!is.na(NUM_MISCARRIAGE), na.rm = TRUE)/n()*100, digits = 2, nsmall = 2),")"),
-        "MUAC: mean (SD)" =
-          paste0(floor(mean(MUAC, na.rm = TRUE)),
-                 " (", format(sd(MUAC, na.rm = TRUE), digits = 1, nsmall = 1),")"),
-        "MUAC: median (IQR)" =
-          paste0(round(median(MUAC, na.rm = TRUE)),
-                 " (", format(IQR(MUAC, na.rm=TRUE), digits=1, nsmall=1),")"),
-        "MUAC: N* (%)" = 
-          paste0(sum(!is.na(MUAC)),
-                 " (", format(sum(!is.na(MUAC))/n()*100, digits = 2, nsmall = 2),")"),
+        "MUAC_ENROLL: mean (SD)" =
+          paste0(floor(mean(MUAC_ENROLL, na.rm = TRUE)),
+                 " (", format(sd(MUAC_ENROLL, na.rm = TRUE), digits = 1, nsmall = 1),")"),
+        "MUAC_ENROLL: median (IQR)" =
+          paste0(round(median(MUAC_ENROLL, na.rm = TRUE)),
+                 " (", format(IQR(MUAC_ENROLL, na.rm=TRUE), digits=1, nsmall=1),")"),
+        "MUAC_ENROLL: N* (%)" = 
+          paste0(sum(!is.na(MUAC_ENROLL)),
+                 " (", format(sum(!is.na(MUAC_ENROLL))/n()*100, digits = 2, nsmall = 2),")"),
       ) %>%
       t() %>% unlist()
   ) %>% 
@@ -928,19 +927,21 @@ tb_demo_d <- tb_theme1(matrix_demo_d) %>%
     rows = 7:11
   ) %>%
     tab_row_group(
-    label = "Mid-upper arm circumference (MUAC)",
+    label = "Mid-upper arm circumference (MUAC_ENROLL)",
     rows = 12:14
   ) %>%
   row_group_order(groups = c(NA, 
                              "GA at enrollment",
                              "Number of fetuses",
                              "Previous miscarriage",
-                             "Mid-upper arm circumference (MUAC)"
+                             "Mid-upper arm circumference (MUAC_ENROLL)"
   )) %>%
   tab_footnote(
-    footnote = c("N* = total participants with non-missing data;",
-                 "%*: the denominator is N*")
+    footnote = c("N* = total participants with non-missing data;")
   ) %>%
+  tab_footnote(
+    footnote = c("%*: denominator is N*")
+  )
   tab_footnote(
     footnote = c("Note: The denominator for the number of previous miscarriages excludes participants with no previous pregnancies.")
   ) 
