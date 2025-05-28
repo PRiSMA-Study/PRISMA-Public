@@ -444,7 +444,7 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = hemorrhage %>%
         plyr::summarise(
 
-    "Antepartum hemorrhage ^a^" = paste0(
+    "Antepartum  ^a^" = paste0(
       format(sum(HEM_APH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Postpartum hemorrhage ^a^" = paste0(
@@ -3763,13 +3763,13 @@ hemorrhage_figs <- hemorrhage %>%
   select(SITE, MOMID, PREGID, EST_BLOOD_LOSS_IPC,HEM_PPH, HEM_PPH_SEV) %>%
   filter(EST_BLOOD_LOSS_IPC > 0) %>%
   mutate(CUTOFF = case_when(EST_BLOOD_LOSS_IPC >= 1000~ "Severe Hemorrhage(>=1000mL)",
-                            EST_BLOOD_LOSS_IPC >= 500 & EST_BLOOD_LOSS_IPC < 1000~ "Hemorrhage (>=500mL)",
+                            EST_BLOOD_LOSS_IPC >= 500 & EST_BLOOD_LOSS_IPC < 1000~ "Hemorrhage (>=500mL to <1000mL)",
                             TRUE ~ "No hemorrhage (<500mL)"))
 
 # Define the order of legend labels
-hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL)",
+hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL to <1000mL)",
                                                                     "Severe Hemorrhage(>=1000mL)"))
-ggplot() +
+hem_fig <- ggplot() +
                     geom_histogram(data = hemorrhage_figs, aes(x = EST_BLOOD_LOSS_IPC, fill = CUTOFF),  color = "gray", binwidth = 50) +
                     scale_fill_manual(values = c("darkgreen", "darkorange","darkred"), name = "") +
                     facet_grid(rows = vars(SITE), scales = "free_y") +
@@ -3784,6 +3784,11 @@ ggplot() +
                           legend.position="bottom",
                           legend.title = element_blank(),
                           panel.grid.minor = element_blank())
+
+ggsave(paste0("hem_fig", ".pdf"), path = path_to_data,
+       width = 8, height = 8)
+
+knitr::include_graphics(paste0(path_to_data, "hem_fig.pdf"))
 
 ```
 
