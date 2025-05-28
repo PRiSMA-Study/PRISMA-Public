@@ -23,7 +23,7 @@ cap log close
 *Directory structure:
 
 	// Savannah's folders: 
-global dadate "2025-02-07" // SYNAPSE/UPLOAD DATE 
+global dadate "2025-05-16" // SYNAPSE/UPLOAD DATE 
 global runquery = 1
 global dir  "Z:\Savannah_working_files\Endpoints/$dadate" 
 *global log "$dir/logs"
@@ -82,13 +82,8 @@ global queries "Z:\Savannah_working_files\Endpoints/$dadate\queries"
 		
 */
 
-		
-
-
 
 *Step 0: check for duplicates in MAT_ENROLL:
-
-
 		
 	clear 
 	import delimited "Z:/Outcome Data/$dadate/MAT_ENROLL", case(upper)
@@ -949,6 +944,119 @@ global queries "Z:\Savannah_working_files\Endpoints/$dadate\queries"
 	save  "$wrk/mnh12_collapsed.dta" , replace
 	
 	
+/////////////////////////////////////////////////////////////
+***Incorporate new form : MNH37
+/////////////////////////////////////////////////////////////
+	import delimited "Z:\SynapseCSVs\Ghana/$dadate/mnh37.csv", ///
+	bindquote(strict) varnames(1) case(upper) clear
+	gen SITE="Ghana"
+	cap tab VA_TYPE
+	if _rc > 0 {
+		keep SITE MOMID PREGID FINAL_MAT_DAT 
+	}
+	else  {
+		keep SITE MOMID PREGID FINAL_MAT_DAT VA_TYPE
+	}
+	
+	save "$wrk/mnh37_GH.dta",replace
+
+	
+	import delimited "Z:\SynapseCSVs\India_CMC/$dadate/mnh37.csv", ///
+	bindquote(strict) varnames(1) case(upper) clear
+	gen SITE="India-CMC"
+	rename FINAL_MAT_DAT FINAL_MAT_DAT_STR
+	gen FINAL_MAT_DAT=date(FINAL_MAT_DAT,"YMD")
+	cap tab VA_TYPE
+	if _rc > 0 {
+		keep SITE MOMID PREGID FINAL_MAT_DAT 
+	}
+	else  {
+		keep SITE MOMID PREGID FINAL_MAT_DAT VA_TYPE
+		keep if VA_TYPE==1
+	}
+	
+	
+	save "$wrk/mnh37_CMC.dta",replace
+	
+	
+	import delimited "Z:\SynapseCSVs\India_SAS/$dadate/mnh37.csv", ///
+	bindquote(strict) varnames(1) case(upper) clear
+	gen SITE="India-SAS"
+	rename FINAL_MAT_DAT FINAL_MAT_DAT_STR
+	gen FINAL_MAT_DAT=date(FINAL_MAT_DAT,"YMD")
+	cap tab VA_TYPE
+	if _rc > 0 {
+		keep SITE MOMID PREGID FINAL_MAT_DAT 
+	}
+	else  {
+		keep SITE MOMID PREGID FINAL_MAT_DAT VA_TYPE
+		keep if VA_TYPE==1
+	}
+	
+	save "$wrk/mnh37_SAS.dta",replace
+	
+	
+	import delimited "Z:\SynapseCSVs\Kenya/$dadate/mnh37.csv", ///
+	bindquote(strict) varnames(1) case(upper) clear
+	gen SITE="Kenya"
+	rename FINAL_MAT_DAT FINAL_MAT_DAT_STR
+	gen FINAL_MAT_DAT=date(FINAL_MAT_DAT,"YMD")
+	cap tab VA_TYPE
+	if _rc > 0 {
+		keep SITE MOMID PREGID FINAL_MAT_DAT 
+	}
+	else  {
+		keep SITE MOMID PREGID FINAL_MAT_DAT VA_TYPE
+		keep if VA_TYPE==1
+	}
+	
+	save "$wrk/mnh37_KY.dta",replace
+	
+	
+	import delimited "Z:\SynapseCSVs\Pakistan/$dadate/mnh37.csv", ///
+	bindquote(strict) varnames(1) case(upper) clear
+	gen SITE="Pakistan"
+	rename FINAL_MAT_DAT FINAL_MAT_DAT_STR
+	gen FINAL_MAT_DAT=date(FINAL_MAT_DAT,"DMY")
+	cap tab VA_TYPE
+	if _rc > 0 {
+		keep SITE MOMID PREGID FINAL_MAT_DAT 
+	}
+	else  {
+		keep SITE MOMID PREGID FINAL_MAT_DAT VA_TYPE
+		keep if VA_TYPE==1
+	}
+	
+	save "$wrk/mnh37_PK.dta",replace
+	
+	
+	import delimited "Z:\SynapseCSVs\Zambia/$dadate/mnh37.csv", ///
+	bindquote(strict) varnames(1) case(upper) clear
+	gen SITE="Zambia"
+	rename FINAL_MAT_DAT FINAL_MAT_DAT_STR
+	gen FINAL_MAT_DAT=date(FINAL_MAT_DAT,"DMY")
+	cap tab VA_TYPE
+	if _rc > 0 {
+		keep SITE MOMID PREGID FINAL_MAT_DAT 
+	}
+	else  {
+		keep SITE MOMID PREGID FINAL_MAT_DAT VA_TYPE
+		keep if VA_TYPE==1
+	}
+	
+	save "$wrk/mnh37_ZM.dta",replace
+	
+	use "$wrk/mnh37_GH.dta", clear
+	append using "$wrk/mnh37_CMC.dta"
+	append using "$wrk/mnh37_SAS.dta"
+	append using "$wrk/mnh37_KY.dta"
+	append using "$wrk/mnh37_PK.dta"
+	append using "$wrk/mnh37_ZM.dta"
+	
+	format FINAL_MAT_DAT %td
+	save "$wrk/mnh37.dta", replace
+	
+	
 ///////////////////////////////////////////////////////////////////////
 *** MERGE IN PREGNANCY ENDPOINT DATASET WITH CLOSEOUT & DEATH INDICATORS 
 
@@ -1017,17 +1125,20 @@ global queries "Z:\Savannah_working_files\Endpoints/$dadate\queries"
 		gen MAT_DEATH_DATE = min( PREG_DEATH_DATE_MNH04, MAT_DEATH_MNH09_DATE, MAT_DEATH_MNH10_DATE, MAT_DEATH_MNH12_DATE, MAT_DEATH_DATE_M19, MAT_DEATH_DATE_M23)
 		gen MAT_DEATH_MISSDATE = 1 if MAT_DEATH_DATE==. & MAT_DEATH == 1
 		
-		list SITE MOMID site_MNH23 PREG_DEATH_MNH04 MAT_DEATH_MNH09 MAT_DEATH_M23 MAT_DEATH_MNH10 MAT_DEATH_MNH12 MAT_DEATH_M19 if MAT_DEATH_MISSDATE==1
 		
-replace SITE = site_MNH23 if SITE == ""
+		replace SITE = site_MNH23 if SITE == ""
 replace SITE = site if SITE == ""
 replace SITE = site_MNH19 if SITE == ""
+		
+		list SITE MOMID PREG_DEATH_MNH04 MAT_DEATH_MNH09 MAT_DEATH_M23 MAT_DEATH_MNH10 MAT_DEATH_MNH12 MAT_DEATH_M19 if MAT_DEATH_MISSDATE==1
+		
+
 		
 		
 if $runquery == 1 {
 		levelsof(SITE) if MAT_DEATH_MISSDATE==1 , local(sitelev) clean
 		foreach site of local sitelev {
-			export excel SITE MOMID PREGID  using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if SITE=="`site'" & MAT_DEATH_MISSDATE==1 , sheet("missing-DoD",modify)  firstrow(variables) 
+			export excel SITE MOMID PREGID PREG_DEATH_MNH04  MAT_DEATH_MNH09 MAT_DEATH_MNH10 MAT_DEATH_MNH12 MAT_DEATH_M19 MAT_DEATH_M23  using "$queries/`site'-endpoints-queries-$dadate.xlsx"  if SITE=="`site'" & MAT_DEATH_MISSDATE==1 , sheet("missing-DoD",modify)  firstrow(variables) 
 		}
 	}
 		
@@ -1045,9 +1156,9 @@ if $runquery == 1 {
 			
 		*check when last seen alive and date when death was recorded
 		
-		list SITE VISIT_LAST_ALIVE_MNH09 VISIT_LAST_ALIVE_MNH10 VISIT_LAST_ALIVE_MNH12 VISIT_DOD_MNH09 VISIT_DOD_MNH10 VISIT_DOD_MNH12_DATE  if MAT_DEATH_MISSDATE==1, abbr(15)
+		list SITE VISIT_LAST_ALIVE_MNH09 VISIT_LAST_ALIVE_MNH10 VISIT_LAST_ALIVE_MNH12 VISIT_DOD_MNH09 VISIT_DOD_MNH10 VISIT_DOD_MNH12_DATE LASTALIVE_M19 if MAT_DEATH_MISSDATE==1, abbr(15)
 		
-	
+	/*
 	gen LASTALIVE = ///
 	max(VISIT_LAST_ALIVE_MNH09, VISIT_LAST_ALIVE_MNH10, VISIT_LAST_ALIVE_MNH12)
 	gen VISIT_DOD = ///
@@ -1068,10 +1179,10 @@ if $runquery == 1 {
 		}	
 	}
 
-		
+	*/	
 
-	**Use the below code if death occurs during ANC:
-	/*	preserve
+	**Find midpoint between date last seen alive & date death reported
+		preserve
 			keep if MAT_DEATH_MISSDATE==1
 			
 			drop  VISIT_LAST_ALIVE_MNH04 LASTALIVE_M19 VISIT_LAST_ALIVE_MNH09
@@ -1095,7 +1206,7 @@ if $runquery == 1 {
 			
 			list VISIT_LAST_ALIVE_MNH04 VISIT_LAST_ALIVE_MNH09 LASTALIVE_M19 VISIT_LAST_ALIVE_MNH10 VISIT_LAST_ALIVE_MNH12 CLOSEOUT_DT
 			
-		gen VISIT_DOD = min(VISIT_DOD_MNH09, VISIT_DOD_MNH10, VISIT_DOD_MNH12_DATE)	
+		gen VISIT_DOD = min(VISIT_DOD_MNH09, VISIT_DOD_MNH10, VISIT_DOD_MNH12_DATE, FORMCOMPL_DTHDAT_M19)	
 		format VISIT_DOD %td
 		label var VISIT_DOD "date of first visit where mother was recorded died"
 			
@@ -1113,7 +1224,7 @@ if $runquery == 1 {
 	restore
 	
 	merge 1:1 MOMID PREGID using "$wrk/MAT_DEATH_MISSDATE", keepusing(MIDPOINT_LASTALIVE_DEAD)
-*/	
+
 	
 	replace MAT_DEATH_DATE= MIDPOINT_LASTALIVE_DEAD if MAT_DEATH_DATE==.
 		
@@ -1128,11 +1239,12 @@ if $runquery == 1 {
 	MAT_DEATH==1 & MAT_DEATH_DATE != . & PREG_END_DATE != . & PREG_END == 1
 	bigtab PREG_END  MAT_DEATH_GA MAT_DEATH_INFAGE if MAT_DEATH==1
 	
-	
+	format MAT_DEATH_DATE %td
+	sort SITE MOMID
 	*identify any maternal deaths during pregnancy & not yet documented:
-	list site* PREG_START_DATE  CLOSEOUT_DT CLOSEOUT_GA MAT_DEATH_DATE ///
+	list SITE PREG_START_DATE  CLOSEOUT_DT CLOSEOUT_GA MAT_DEATH_DATE ///
 		MAT_DEATH_GA PREG_END PREG_END_DATE PREG_END_GA MNH04_ANY MNH19_ANY ///
-		MNH09_FORM_INCOMPLETE if MAT_DEATH == 1  
+		MNH09_FORM_INCOMPLETE if MAT_DEATH == 1  , sepby(SITE) 
 		
 	* Deaths with no reported pregnancy endpoint are (for now) reported 
 	* as completed pregnancies. We will set the date to the date of maternal 
@@ -1159,7 +1271,7 @@ if $runquery == 1 {
 	
 	*review info: 
 	*histogram PREG_END_GA, by(site,col(1)) percent
-	bigtab site PREG_END_GA if PREG_END_GA>300 & PREG_END_GA<.
+	bigtab site PREG_END_GA MAT_DEATH if PREG_END_GA>300 & PREG_END_GA<.
 	
 	if $runquery == 1 {
 		levelsof(SITE) if PREG_END_GA>300 & PREG_END_GA<., local(sitelev) clean
@@ -1312,9 +1424,9 @@ drop ENROLL_MERGE
 	
 //step 3: code if within 42 days
 	gen MAT_DEATH_42 = 1 if /// occured during pregnancy - 42 days pp
-	MAT_DEATH_DATE < PREG_END_PP42_DT
-	replace MAT_DEATH_42 =2 if /// occured 42+ days pp
-	MAT_DEATH_DATE >= PREG_END_PP42_DT & MAT_DEATH_INFAGE<=365
+	MAT_DEATH_DATE <= PREG_END_PP42_DT
+	replace MAT_DEATH_42 =2 if /// occured >42 days pp
+	MAT_DEATH_DATE > PREG_END_PP42_DT & MAT_DEATH_INFAGE<=365
 	replace MAT_DEATH_42 = 55 if /// missing
 	MAT_DEATH_DATE<0
 	//negative values are the default values, meaning DoD unknown
@@ -1501,6 +1613,7 @@ drop ENROLL_MERGE
 		
 	}
 
+	keep SITE MOMID PREGID PREG_END PREG_END_GA PREG_END_DATE PREG_LOSS PREG_LOSS_INDUCED PREG_LOSS_DEATH CLOSEOUT CLOSEOUT_DT CLOSEOUT_GA CLOSEOUT_TYPE MAT_DEATH MAT_DEATH_DATE MAT_DEATH_GA STOP_DATE PREG_END_SOURCE MAT_DEATH_MISSDATE MAT_DEATH_INFAGE PREG_END_PP42_DT MAT_DEATH_42 CLOSEOUT_DAYS_PP PNC0_* PNC1_* PNC4_* PNC6_* PNC26_*  PNC52_* 
 	save "$OUT/MAT_ENDPOINTS", replace 
 	
 	*Save to outcomes folder once reviewed:
@@ -1535,9 +1648,10 @@ drop ENROLL_MERGE
 	}
 	
 	
-	/*	
+	
 	clear 
 	
+	/*
 //////////////////////////////////////////////
 * * * For 9-16: Review empty MNH09s * * * 
 //////////////////////////////////////////////
