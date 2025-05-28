@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 ######### Set Dates ############
       
-    datadate <- "2025-04-04"
+    datadate <- "2025-04-18"
       
     today    <- Sys.Date()
     
@@ -53,6 +53,9 @@ path_to_save <- paste0(path_to_data, "reports/")
 
 
 ######### Import data #####
+
+
+
 # ALL VISITS:
 data_long<- read_dta(paste0(path_to_data, "mnh25_long_covariates.dta"))  %>% 
   rename_all(toupper)  
@@ -68,18 +71,25 @@ data_long$SITE_R <- factor(data_long$SITE,
 #FIRST VISIT PER WOMAN:
 data1<- data_long  %>% filter(NUMVISIT==1)  %>% 
    mutate(
- MAT_AGE25 = case_when(
-    MAT_AGE<25 ~ 0,
-    MAT_AGE>=25 & MAT_AGE<=50 ~ 1 ),
-  MAT_AGE35 = case_when(
-    MAT_AGE<35 ~ 0,
-    MAT_AGE>=35 & MAT_AGE<=50 ~ 1 ),
+ MAT_AGE_CAT = case_when(
+    MAT_AGE<20 ~ 0,
+    MAT_AGE>=20 & MAT_AGE<35 ~ 1,
+    MAT_AGE>=35 & MAT_AGE<=50 ~2),
   OBESE_CLASS = case_when(
     BMI_ENROLL<30  ~ 0,
     BMI_ENROLL>=30 & BMI_ENROLL<35 ~ 1,
     BMI_ENROLL>=35 & BMI_ENROLL<40 ~ 2,
-    BMI_ENROLL>=40 & BMI_ENROLL<100 ~ 3
-  ))
+    BMI_ENROLL>=40 & BMI_ENROLL<100 ~ 3 ),
+ DEPR_ANC20_STND = case_when(
+   EPDS_SCORE >=11 & EPDS_SCORE <= 30 ~ "Possible depression" ,
+    EPDS_SCORE >=0 & EPDS_SCORE < 11 ~ "Likely not depressed" ,
+   TRUE ~ NA )
+ )
+
+#Wide data for tables 6-8
+
+depression <- read_dta(paste0("Z:/Outcome Data/2025-04-18/","MAT_DEPR.dta")) %>%
+                         rename_all(toupper)
 
 custom_fill2 <- scale_fill_manual(
   values = c("Yes" =  "#71BBB2", "No" = "#27445D" ),
@@ -151,7 +161,135 @@ tb_theme1 <- function(matrix){
     cols_width(1 ~ px(225))
 }
  
+tb_theme2 <- function(matrix){
+  tb <- matrix %>%
+    gt(
+      rownames_to_stub = TRUE
+    ) %>%
+    opt_align_table_header(align = "left") %>%
+    tab_spanner(
+      label = "Prevalence of depression",
+      columns = c(-Total)
+    ) %>%
+    opt_stylize(style = 6, color = 'gray') %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#27445D"),
+        #cell_text(weight = "bold"),
+        cell_text(v_align = "middle"),
+        cell_text(color = "white", size = px(18))
+      ),
+      locations = list(
+        cells_title()
+      ) 
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#71BBB2"), # #f0b7b3,#f7cbc8, 
+        cell_text( color = "black", size = px(18)),
+        cell_text(v_align = "middle")
+      ),
+      locations = list(
+        cells_stubhead(),
+        cells_column_spanners(),
+        cells_column_labels()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#F0F0F0"),
+        cell_text(v_align = "middle", size = px(18))
+      ),
+      locations = list(
+        cells_stub()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_column_labels(columns = everything())
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_body(columns = everything())
+      )
+    ) %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_options(table.width = pct(100)) %>%
+    cols_width(1 ~ px(225))
+}
 
+#Table theme 3 - for prevalence of depression over time (narrow 1st column)
+tb_theme3 <- function(matrix){
+  tb <- matrix %>%
+    gt(
+      rownames_to_stub = TRUE
+    ) %>%
+    opt_align_table_header(align = "left") %>%
+    tab_spanner(
+      label = "Sites"
+    ) %>%
+    opt_stylize(style = 6, color = 'gray') %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#27445D"),
+        #cell_text(weight = "bold"),
+        cell_text(v_align = "middle"),
+        cell_text(color = "white", size = px(18))
+      ),
+      locations = list(
+        cells_title()
+      ) 
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#71BBB2"), # #f0b7b3,#f7cbc8, 
+        cell_text( color = "black", size = px(18)),
+        cell_text(v_align = "middle")
+      ),
+      locations = list(
+        cells_stubhead(),
+        cells_column_spanners(),
+        cells_column_labels()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#F0F0F0"),
+        cell_text(v_align = "middle", size = px(18))
+      ),
+      locations = list(
+        cells_stub()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_column_labels(columns = everything())
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_body(columns = everything())
+      )
+    ) %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_options(table.width = pct(100)) %>%
+    cols_width(1 ~ px(175))
+}
+
+tablenum <- 1
 ```
 
 
@@ -164,7 +302,7 @@ tb_theme1 <- function(matrix){
 
 \newpage
 # Part 1: Demographics
-## Table 1. Demographics of those with a depression score at enrollment/ANC20
+## Demographics of those with a depression score at enrollment/ANC20
 ```{r demographics-table}
 
 table1 <- data1 %>% 
@@ -185,34 +323,18 @@ table1 <- data1 %>%
      "Denominator, n " = paste0(
       format(sum(MARRY_STATUS<55, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Married, n (%)" = paste0(
-      format(sum(MARRY_STATUS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    
+    "Married/cohabitating, n (%)" = paste0(
+      format(sum(MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MARRY_STATUS==1 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MARRY_STATUS<=2 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-     "Cohabitating, n (%)" = paste0(
-      format(sum(MARRY_STATUS==2, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MARRY_STATUS==2 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
     
-     "Divorced, n (%)" = paste0(
-      format(sum(MARRY_STATUS==3, na.rm = TRUE), nsmall = 0, digits = 2),
+     "Not married/cohabitating, n (%)" = paste0(
+      format(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MARRY_STATUS==3 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-    "Widowed, n (%)" = paste0(
-      format(sum(MARRY_STATUS==4, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MARRY_STATUS==4 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-     "Single, n (%)" = paste0(
-      format(sum(MARRY_STATUS==5, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MARRY_STATUS==5 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     
@@ -224,44 +346,12 @@ table1 <- data1 %>%
       format(round(quantile(SCHOOL_YRS, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
      ", " ,  format(round(quantile(SCHOOL_YRS, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
 
-      "Denominator, n   " = paste0(
-      format(sum(PARITY_CAT<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+     "Any education, n (%)" = paste0(
+      format(sum(EDUCATED==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EDUCATED==1 , na.rm = TRUE)/sum(EDUCATED<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
 
-    "Nulliparous, n (%)" = paste0(
-      format(sum(PARITY_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(PARITY_CAT==0 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-     "1 previous birth, n (%)" = paste0(
-      format(sum(PARITY_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(PARITY_CAT==1 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
-     "2+ previous births, n (%)" = paste0(
-      format(sum(PARITY_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(PARITY_CAT==2 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-        
-    "Denominator, n    " = sum(!is.na(BMI_ENROLL)),
-    
-     "Median BMI, (Q1, Q3)" = paste0(
-      format(median(BMI_ENROLL, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(quantile(BMI_ENROLL, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
-     ", " ,  format(round(quantile(BMI_ENROLL, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
-    
-     "Denominator, n    " = sum(!is.na(BMI_ENROLL)),
-    
-     "Median BMI, (Q1, Q3)" = paste0(
-      format(median(BMI_ENROLL, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(quantile(BMI_ENROLL, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
-     ", " ,  format(round(quantile(BMI_ENROLL, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
-    
-    
      "Denominator, n^a^" = paste0(
       format(sum(PAID_WORK!= 55, na.rm = TRUE), nsmall = 0, digits = 2)),
 
@@ -271,12 +361,143 @@ table1 <- data1 %>%
       format(round(sum(PAID_WORK==1 , na.rm = TRUE)/sum(PAID_WORK!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
  
+     "Denominator, n    " = paste0(
+      format(sum(WEALTH_QUINT!= 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Quintile 1 (poorest), n (%)" = paste0(
+      format(sum(WEALTH_QUINT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==1 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+     "Quintile 2, n (%)" = paste0(
+      format(sum(WEALTH_QUINT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==2 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+     "Quintile 3, n (%)" = paste0(
+      format(sum(WEALTH_QUINT==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==3 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+    "Quintile 4, n (%)" = paste0(
+      format(sum(WEALTH_QUINT==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==4 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+     "Quintile 5 (least poor), n (%)" = paste0(
+      format(sum(WEALTH_QUINT==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==5 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+    
     ) %>% 
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+  
+  add_column(
+  .before = 1,
+  "Total" = data1 %>%
+    filter(ANC20==1) %>%
+    summarise(
+      
+ "Denominator, n" = sum(!is.na(MAT_AGE)),
+    
+    "Maternal age, median years (Q1, Q3)" = paste0(
+      format(median(MAT_AGE, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(MAT_AGE, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(MAT_AGE, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+     "Denominator, n " = paste0(
+      format(sum(MARRY_STATUS<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    
+    "Married/cohabitating, n (%)" = paste0(
+      format(sum(MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS<=2 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+     "Not married/cohabitating, n (%)" = paste0(
+      format(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+     "Denominator, n  " = sum(!is.na(SCHOOL_YRS)),
+    
+     "Median years of school, (Q1, Q3)" = paste0(
+      format(median(SCHOOL_YRS, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(SCHOOL_YRS, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(SCHOOL_YRS, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+
+     "Any education, n (%)" = paste0(
+      format(sum(EDUCATED==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EDUCATED==1 , na.rm = TRUE)/sum(EDUCATED<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Denominator, n^a^" = paste0(
+      format(sum(PAID_WORK!= 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Paid work, n (%)^a^" = paste0(
+      format(sum(PAID_WORK==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PAID_WORK==1 , na.rm = TRUE)/sum(PAID_WORK!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+     "Denominator, n    " = paste0(
+      format(sum(WEALTH_QUINT!= 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Quintile 1 (poorest), n (%)" = paste0(
+      format(sum(WEALTH_QUINT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==1 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+     "Quintile 2, n (%)" = paste0(
+      format(sum(WEALTH_QUINT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==2 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+     "Quintile 3, n (%)" = paste0(
+      format(sum(WEALTH_QUINT==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==3 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+    "Quintile 4, n (%)" = paste0(
+      format(sum(WEALTH_QUINT==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==4 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+ 
+     "Quintile 5 (least poor), n (%)" = paste0(
+      format(sum(WEALTH_QUINT==5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(WEALTH_QUINT==5 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      
+    ) %>%
+    
+        
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+)
+  
+#  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
 
 
 # replace NA with 0s (this likely means there is not yet data)
@@ -284,48 +505,185 @@ table1[is.na(table1)] <- paste0("0 (0)")
 
 table1 <- tb_theme1(table1) %>% 
   tab_header(
-    title = md("**Table 1. Demographics**")) %>% 
+    title = md(paste0("**Table ", tablenum,". Demographics**"))) %>% 
    tab_row_group(
     label = html("<span style='font-size: 18px'>Maternal age at enrollment</span>"),
         rows = 1:2 ) %>%
    tab_row_group(
     label = html("<span style='font-size: 18px'>Marital status</span>"),
-        rows = 3:8 ) %>%
+        rows = 3:5 ) %>%
    tab_row_group(
     label = html("<span style='font-size: 18px'>Schooling</span>"),
+        rows = 6:8) %>%
+    tab_row_group(
+    label = html("<span style='font-size: 18px'>Occupation</span>"),
         rows = 9:10) %>%
    tab_row_group(
-    label = html("<span style='font-size: 18px'>Parity</span>"),
-        rows = 11:14) %>%
-   tab_row_group(
-    label = html("<span style='font-size: 18px'>BMI at enrollment</span>"),
-        rows = 15:16) %>%
-   tab_row_group(
-    label = html("<span style='font-size: 18px'>Main occupation</span>"),
-        rows = 17:18) %>%
+    label = html("<span style='font-size: 18px'>Wealth</span>"),
+        rows = 11:16) %>%
+  
   
  row_group_order(groups = c( 
    "<span style='font-size: 18px'>Maternal age at enrollment</span>",
    "<span style='font-size: 18px'>Marital status</span>",
    "<span style='font-size: 18px'>Schooling</span>",
-   "<span style='font-size: 18px'>Parity</span>",
-   "<span style='font-size: 18px'>BMI at enrollment</span>",
-   "<span style='font-size: 18px'>Main occupation</span>"
-                ) ) %>% 
+   "<span style='font-size: 18px'>Occupation</span>",
+   "<span style='font-size: 18px'>Wealth</span>"
+                ) )    %>%
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) %>% 
-tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup>Zambia began collecting this information partway through the PRISMA study</span>")) 
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Zambia began collecting this information partway through the PRISMA study</span>"))
 
 gtsave(table1, file = "table1.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "Table1.png"))
 
+
+tablenum <- tablenum+1
 ```
 \newpage
 
-### Figure 1. Maternal age
+```{r demographics-table-bydepression}
+# 
+# demo.by.depression <- data1 %>% 
+#   filter(ANC20==1 & !is.na(DEPR_ANC20_STND)) %>%
+#   rowwise() %>% 
+#   group_by(DEPR_ANC20_STND) %>% 
+#   summarise(
+# 
+#       
+#     "Denominator, n" = sum(!is.na(MAT_AGE)),
+#     
+#     "Maternal age, median years (Q1, Q3)" = paste0(
+#       format(median(MAT_AGE, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(quantile(MAT_AGE, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+#      ", " ,  format(round(quantile(MAT_AGE, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+#     
+#      "Denominator, n " = paste0(
+#       format(sum(MARRY_STATUS<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+# 
+#     
+#     "Married/cohabitating, n (%)" = paste0(
+#       format(sum(MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(MARRY_STATUS<=2 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#     
+#     
+#      "Not married/cohabitating, n (%)" = paste0(
+#       format(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#     
+#     
+#      "Denominator, n  " = sum(!is.na(SCHOOL_YRS)),
+#     
+#      "Median years of school, (Q1, Q3)" = paste0(
+#       format(median(SCHOOL_YRS, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(quantile(SCHOOL_YRS, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+#      ", " ,  format(round(quantile(SCHOOL_YRS, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+# 
+#      "Any education, n (%)" = paste0(
+#       format(sum(EDUCATED==1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(EDUCATED==1 , na.rm = TRUE)/sum(EDUCATED<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+# 
+#      "Denominator, n^a^" = paste0(
+#       format(sum(PAID_WORK!= 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+# 
+#     "Paid work, n (%)^a^" = paste0(
+#       format(sum(PAID_WORK==1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(PAID_WORK==1 , na.rm = TRUE)/sum(PAID_WORK!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#  
+#      "Denominator, n    " = paste0(
+#       format(sum(WEALTH_QUINT!= 55, na.rm = TRUE), nsmall = 0, digits = 2)),
+# 
+#     "Quintile 1 (poorest), n (%)" = paste0(
+#       format(sum(WEALTH_QUINT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(WEALTH_QUINT==1 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#  
+#      "Quintile 2, n (%)" = paste0(
+#       format(sum(WEALTH_QUINT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(WEALTH_QUINT==2 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#  
+#      "Quintile 3, n (%)" = paste0(
+#       format(sum(WEALTH_QUINT==3, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(WEALTH_QUINT==3 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#  
+#     "Quintile 4, n (%)" = paste0(
+#       format(sum(WEALTH_QUINT==4, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(WEALTH_QUINT==4 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#  
+#      "Quintile 5 (least poor), n (%)" = paste0(
+#       format(sum(WEALTH_QUINT==5, na.rm = TRUE), nsmall = 0, digits = 2),
+#       " (",
+#       format(round(sum(WEALTH_QUINT==5 , na.rm = TRUE)/sum(WEALTH_QUINT!=55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#       ")"),
+#  
+#     
+#     ) %>% 
+#   t() %>% as.data.frame() %>% 
+#   `colnames<-`(c(.[1,])) %>% 
+#   slice(-1)  %>% 
+#   mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#   mutate_all(funs(str_replace(., "NA", "0"))) 
+# 
+# 
+# # replace NA with 0s (this likely means there is not yet data)
+# demo.by.depression[is.na(demo.by.depression)] <- paste0("0 (0)")
+# 
+# demo.by.depression <- tb_theme2(demo.by.depression) %>% 
+#   tab_header(
+#     title = md(paste0("**Table ", tablenum,". Demographics (pooled) by possible depression at Enrollment/ANC20**"))) %>% 
+#    tab_row_group(
+#     label = html("<span style='font-size: 18px'>Maternal age at enrollment</span>"),
+#         rows = 1:2 ) %>%
+#    tab_row_group(
+#     label = html("<span style='font-size: 18px'>Marital status</span>"),
+#         rows = 3:5 ) %>%
+#    tab_row_group(
+#     label = html("<span style='font-size: 18px'>Schooling</span>"),
+#         rows = 6:8) %>%
+#     tab_row_group(
+#     label = html("<span style='font-size: 18px'>Occupation</span>"),
+#         rows = 9:10) %>%
+#    tab_row_group(
+#     label = html("<span style='font-size: 18px'>Wealth</span>"),
+#         rows = 11:16) %>%
+#   
+#   
+#  row_group_order(groups = c( 
+#    "<span style='font-size: 18px'>Maternal age at enrollment</span>",
+#    "<span style='font-size: 18px'>Marital status</span>",
+#    "<span style='font-size: 18px'>Schooling</span>",
+#    "<span style='font-size: 18px'>Occupation</span>",
+#    "<span style='font-size: 18px'>Wealth</span>"
+#                 ) )    %>%
+# tab_footnote(
+#     footnote = html("<span style='font-size: 18px'><sup>a</sup>Zambia began collecting this information partway through the PRISMA study</span>"))
+# 
+# gtsave(demo.by.depression, file = "demo_by_depression.png", path = path_to_save, expand = 10)
+# #knitr::include_graphics(paste0(path_to_save, "demo_by_depression.png"))
+# 
+# 
+# tablenum <- tablenum+1
+```
+
+### Maternal age
 ```{r age-figure}
-age <- ggplot(data1, aes(MAT_AGE)) + facet_wrap(~SITE_R, scales="free") + 
+age <- ggplot(data1, aes(MAT_AGE)) + facet_wrap(~SITE, scales="free") + 
   theme_classic() +
   geom_histogram(binwidth = 1, fill="white", colour="black") +  
   guides(fill="none") + 
@@ -333,7 +691,7 @@ age <- ggplot(data1, aes(MAT_AGE)) + facet_wrap(~SITE_R, scales="free") +
   scale_x_continuous(breaks=seq(15,50,5), limits = c(15,50)) 
 
 ggsave(paste0("age", ".png"), path = path_to_save,
-                                  width = 8, height = 5)
+                                  width = 8, height = 6)
 knitr::include_graphics(paste0(path_to_save, "age.png"))
 
 
@@ -342,29 +700,27 @@ knitr::include_graphics(paste0(path_to_save, "age.png"))
 depression_age <- ggplot(subset(data1, MAT_AGE_CAT %in% c(0,1,2) ), 
        aes(x=MAT_AGE_CAT_STR, y=EPDS_SCORE, fill=MAT_AGE_CAT_STR) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
+  facet_wrap(~SITE,nrow=1) +
   scale_fill_brewer(palette = "Blues") +  
   theme_classic() +
-  labs(title = "Depression by maternal age", 
+  labs(title = "Depression score at first visit, by maternal age", 
        tag="", y="Depression",
        caption = "Note: outliers not visualized") + 
   guides(fill=guide_legend(title="Age group:")) + 
   scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   geom_hline(yintercept=11, linetype="dashed")
 
+ggsave(paste0("depression_age", ".png"), path = path_to_save,
+                                  width = 8, height = 4.5)
+knitr::include_graphics(paste0(path_to_save, "depression_age.png"))
 
 
-#age_fig <- plot_grid(age, depression_age,  ncol = 1, nrow = 2)
-#ggsave(paste0("age_fig", ".png"), path = path_to_save, width = 8, height = 8)
-#knitr::include_graphics(paste0(path_to_save, "age_fig.png"))
 
 ```
 
-\textcolor{blue}{**Question for discussion: what maternal age cutoffs are relevant, given the literature and these data?**}
 
-### Table 2. Maternal age
 ```{r age-table}
 
 table_age <- data1 %>% 
@@ -373,33 +729,109 @@ table_age <- data1 %>%
   group_by(SITE) %>% 
   summarise(
       
-    "Denominator, n" = sum(!is.na(MAT_AGE)),
+    "Denominator of those with age data, n" = sum(!is.na(MAT_AGE)),
     
-    "Maternal age, median years (Q1, Q3)" = paste0(
+    "Maternal age, \n median years (Q1, Q3)" = paste0(
       format(median(MAT_AGE, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(quantile(MAT_AGE, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
      ", " ,  format(round(quantile(MAT_AGE, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
     
-     "Maternal age 25+, n (%)" = paste0(
-      format(sum(MAT_AGE25==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_AGE25==1 , na.rm = TRUE)/sum(MAT_AGE25<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+     "Denominator, n" = paste0(
+      format(sum(MAT_AGE_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    "Maternal age 35+, n (%)" = paste0(
-      format(sum(MAT_AGE35==1, na.rm = TRUE), nsmall = 0, digits = 2),
+     "Depressed, n(%)^a^" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAT_AGE35==1 , na.rm = TRUE)/sum(MAT_AGE35<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==0 , na.rm = TRUE)/sum(MAT_AGE_CAT==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+    
+     "Denominator, n " = paste0(
+      format(sum(MAT_AGE_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^ " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==1 , na.rm = TRUE)/sum(MAT_AGE_CAT==1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+     "Denominator, n  " = paste0(
+      format(sum(MAT_AGE_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^  " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==2 , na.rm = TRUE)/sum(MAT_AGE_CAT==2 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
 
     
     ) %>% 
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+  
+   add_column(
+      .before = 1,
+    "Total" = data1 %>%
+      filter(ANC20==1) %>%
+        summarise(
+          
+           "Denominator of those with age data, n" = sum(!is.na(MAT_AGE)),
+    
+    "Maternal age, \n median years (Q1, Q3)" = paste0(
+      format(median(MAT_AGE, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(MAT_AGE, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(MAT_AGE, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+     "Denominator, n" = paste0(
+      format(sum(MAT_AGE_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+     "Depressed, n(%)^a^" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==0 , na.rm = TRUE)/sum(MAT_AGE_CAT==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+    
+     "Denominator, n " = paste0(
+      format(sum(MAT_AGE_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^ " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==1 , na.rm = TRUE)/sum(MAT_AGE_CAT==1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+     "Denominator, n  " = paste0(
+      format(sum(MAT_AGE_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^  " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_AGE_CAT==2 , na.rm = TRUE)/sum(MAT_AGE_CAT==2 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+          
+          
+        ) %>%
+
+        t() %>% as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+
+
+  
+  #mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  #mutate_all(funs(str_replace(., "NA", "0"))) 
 
 
 # replace NA with 0s (this likely means there is not yet data)
@@ -407,7 +839,27 @@ table_age[is.na(table_age)] <- paste0("0 (0)")
 
 table_age <- tb_theme1(table_age) %>% 
   tab_header(
-    title = md("**Table 2. Maternal Age**")) %>% 
+    title = md(paste0("**Table ", tablenum , ". Maternal Age**"))) %>% 
+
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal age < 20 years</span>"),
+        rows = 3:4 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal age 20-34 years</span>"),
+        rows = 5:6 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal age 35+ years</span>"),
+        rows = 7:8 ) %>%
+  
+  
+ row_group_order(groups = c( NA,
+   "<span style='font-size: 18px'>Maternal age < 20 years</span>",
+   "<span style='font-size: 18px'>Maternal age 20-34 years</span>",
+   "<span style='font-size: 18px'>Maternal age 35+ years</span>"
+                ) )  %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Possible depression according to standard cutoff (EPDS score >= 11).</span>"))    %>%
   
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) 
@@ -415,10 +867,11 @@ tab_footnote(
 gtsave(table_age, file = "table_age.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "table_age.png"))
 
+tablenum <- tablenum + 1
 ```
 
 \newpage
-### Figure 2. Marital status
+### Marital status
 ```{r marriage-figure}
 
  data1 <-  data1 %>% 
@@ -438,7 +891,7 @@ depression_marriage <- ggplot(subset(data1,
                                     "Not married/cohabitating") ), 
        aes(x=MARRIAGE_BIN, y=EPDS_SCORE, fill=MARRIAGE_BIN) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) + 
+  facet_wrap(~SITE,nrow=1) + 
   scale_fill_manual(values=c( "#71BBB2", "#27445D"  )) +
   theme_classic() +
   labs(title = "Depression by marital status", 
@@ -452,16 +905,11 @@ depression_marriage <- ggplot(subset(data1,
  
 ggsave(paste0("depression_marriage", ".png"), path = path_to_save,
        width = 8, height = 4)
-knitr::include_graphics(paste0(path_to_save, "depression_marriage.png"))
+ knitr::include_graphics(paste0(path_to_save, "depression_marriage.png"))
 
 ```
 
-\textcolor{blue}{**Question for discussion: should we combine to make two groups?**}
 
-\textcolor{blue}{1.   married or cohabitating}
-\textcolor{blue}{2.   divorced, widowed, or single}
-
-### Table 3. Marital status
 ```{r marriage-table}
 
 table_single <- data1 %>% 
@@ -471,36 +919,100 @@ table_single <- data1 %>%
   summarise(
 
     
-     "Denominator, n " = paste0(
+     "Marital status denominator, n " = paste0(
       format(sum(MARRY_STATUS<55, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Married/cohabitating, n (%)" = paste0(
-      format(sum(MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MARRY_STATUS<=2 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+    "Denominator, n" = paste0(
+      format(sum(MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2)),
     
-    
-     "Not married/cohabitating, n (%)" = paste0(
-      format(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE), nsmall = 0, digits = 2),
+    "Depressed, n(%)^a^" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE)/sum(MARRY_STATUS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MARRY_STATUS<=2 , na.rm = TRUE)/sum(MARRY_STATUS<=2 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+     "Denominator, n " = paste0(
+      format(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+     "Depressed, n(%)^a^ " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MARRY_STATUS>=3 & MARRY_STATUS<=5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE)/sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
     
     ) %>% 
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1)  %>% 
+  
+  add_column(
+  .before = 1,
+  "Total" = data1 %>%
+  filter(ANC20==1) %>%
+    summarise(
+      
+  
+     "Marital status denominator, n " = paste0(
+      format(sum(MARRY_STATUS<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Denominator, n" = paste0(
+      format(sum(MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MARRY_STATUS<=2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MARRY_STATUS<=2 , na.rm = TRUE)/sum(MARRY_STATUS<=2 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+     "Denominator, n " = paste0(
+      format(sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+     "Depressed, n(%)^a^ " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MARRY_STATUS>=3 & MARRY_STATUS<=5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MARRY_STATUS>=3 & MARRY_STATUS<=5 , na.rm = TRUE)/sum(MARRY_STATUS>=3 & MARRY_STATUS<=5 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+      
+      
+    ) %>%
+    
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+)
+table_single <- table_single %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
   mutate_all(funs(str_replace(., "NA", "0"))) 
+  
+ # mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
 
 
 # replace NA with 0s (this likely means there is not yet data)
 table_single[is.na(table_single)] <- paste0("0 (0)")
 
 table_single <- tb_theme1(table_single) %>% 
+
   tab_header(
-    title = md("**Table 3. Marital status**")) %>% 
+    title = md(paste0("**Table ", tablenum, ". Marital status**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Married/cohabitating</span>"),
+        rows = 2:3 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Not married or cohabitating</span>"),
+        rows = 4:5 ) %>%
+  
+  
+ row_group_order(groups = c( NA,
+   "<span style='font-size: 18px'>Married/cohabitating</span>",
+   "<span style='font-size: 18px'>Not married or cohabitating</span>"
+                ) )    %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Possible depression according to standard cutoff (EPDS score>= 11).</span>"))  %>%
   
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) 
@@ -508,82 +1020,1424 @@ tab_footnote(
 gtsave(table_single, file = "table_single.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "table_single.png"))
 
+tablenum <- tablenum + 1
 ```
 
 \newpage
-### Figure 3. Schooling
+### Schooling
 ```{r schooling-figure}
 
-school <- ggplot(data1, aes(SCHOOL_YRS)) + facet_wrap(~SITE_R, scales="free") + 
+school <- ggplot(data1, aes(SCHOOL_YRS)) + facet_wrap(~SITE, scales="free") + 
   theme_classic() +
   geom_histogram(binwidth = 1, fill="white", colour="black") +  
   guides(fill="none") + 
   labs(title = "Schooling by site", x="Schooling (yrs)",
        caption="Outliers > 20 years of school not visualized") +
-  scale_x_continuous(breaks=seq(0,20,3), limits = c(0,20)) +
-  scale_y_continuous(breaks=seq(0,1000,200), limits = c(0,1000)) 
+  scale_x_continuous(breaks=seq(0,20,3), limits = c(-1,20))
 
 ggsave(paste0("school", ".png"), path = path_to_save,
        width = 8, height = 5)
 knitr::include_graphics(paste0(path_to_save, "school.png"))
 ```
 
-\textcolor{blue}{**Question for discussion: what years of schooling cutoffs are relevant, given the literature and these data?**}.
 
+\textcolor{blue}{**Question for discussion: what years of schooling cutoffs are relevant, given the literature and these data?**}.
+\newpage
+
+```{r schooling-figure2}
+ data1 <-  data1 %>% 
+   mutate(
+  SCHOOL_BIN = case_when(
+    SCHOOL_YRS == 0  ~ "No school",
+   SCHOOL_YRS> 0 & SCHOOL_YRS <=10  ~ "1-10 Years",
+   SCHOOL_YRS> 10 & SCHOOL_YRS < 55  ~ "> 10 Years"
+  ) )
+
+data1$SCHOOL_BIN <- factor(data1$SCHOOL_BIN, 
+                           levels=c("No school",
+                                    "1-10 Years",
+                                    "> 10 Years"))
+
+depression_school <- ggplot(subset(data1, 
+                                SCHOOL_BIN %in% 
+                                  c("No school",
+                                    "1-10 Years",
+                                    "> 10 Years") ), 
+       aes(x=SCHOOL_BIN, y=EPDS_SCORE, fill=SCHOOL_BIN) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE,nrow=1) + 
+  scale_fill_manual(values=c("darkorange" , "#27445D", "#71BBB2"  )) +
+  theme_classic() +
+  labs(title = "Depression score at first visit, by years of schooling", 
+       tag="", y="Depression",
+       caption = "Note: Depression outliers not visualized") + 
+  guides(fill=guide_legend(title="Status:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "left", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+ 
+ggsave(paste0("depression_school", ".png"), path = path_to_save,
+       width = 8, height = 4)
+ knitr::include_graphics(paste0(path_to_save, "depression_school.png"))
+
+
+```
+
+```{r school-table}
+
+table_school <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+      
+    "Denominator of those with education data, n" = sum(SCHOOL_YRS<55,na.rm=TRUE),
+   
+    
+     "Denominator, n" = paste0(
+      format(sum(SCHOOL_YRS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+     "Depressed, n(%)^a^" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS==0 , na.rm = TRUE)/sum(SCHOOL_YRS==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+    
+     "Denominator, n " = paste0(
+      format(sum(SCHOOL_YRS>0 & SCHOOL_YRS <= 10, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^ " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS>0 & SCHOOL_YRS <= 10, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS>0 & SCHOOL_YRS <= 10 , na.rm = TRUE)/sum(SCHOOL_YRS>0 & SCHOOL_YRS <= 10 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+     "Denominator, n  " = paste0(
+      format(sum(SCHOOL_YRS>10 & SCHOOL_YRS<=20, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^  " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS>10 & SCHOOL_YRS<=20, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 &  SCHOOL_YRS>10 & SCHOOL_YRS<=20 , na.rm = TRUE)/sum( SCHOOL_YRS>10 & SCHOOL_YRS<=20 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+   add_column(
+      .before = 1,
+    "Total" = data1 %>%
+      filter(ANC20==1) %>%
+        summarise(
+          
+ "Denominator of those with education data, n" = sum(SCHOOL_YRS<55,na.rm=TRUE),
+   
+    
+     "Denominator, n" = paste0(
+      format(sum(SCHOOL_YRS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+     "Depressed, n(%)^a^" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS==0 , na.rm = TRUE)/sum(SCHOOL_YRS==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+    
+     "Denominator, n " = paste0(
+      format(sum(SCHOOL_YRS>0 & SCHOOL_YRS <= 10, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^ " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS>0 & SCHOOL_YRS <= 10, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS>0 & SCHOOL_YRS <= 10 , na.rm = TRUE)/sum(SCHOOL_YRS>0 & SCHOOL_YRS <= 10 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+     "Denominator, n  " = paste0(
+      format(sum(SCHOOL_YRS>10 & SCHOOL_YRS<=20, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Depressed, n(%)^a^  " = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & SCHOOL_YRS>10 & SCHOOL_YRS<=20, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 &  SCHOOL_YRS>10 & SCHOOL_YRS<=20 , na.rm = TRUE)/sum( SCHOOL_YRS>10 & SCHOOL_YRS<=20 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+          
+        ) %>%
+
+        t() %>% as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+
+table_school <- table_school %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  mutate_all(funs(str_replace(., "NA", "0"))) 
+  
+
+# replace NA with 0s (this likely means there is not yet data)
+table_school[is.na(table_school)] <- paste0("0 (0)")
+
+table_school <- tb_theme1(table_school) %>% 
+  tab_header(
+    title = md(paste0("**Table ", tablenum, ". Maternal Education**"))) %>% 
+
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>No maternal education</span>"),
+        rows = 2:3 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal education 1-10 years</span>"),
+        rows = 4:5 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Maternal education > 10 years</span>"),
+        rows = 6:7 ) %>%
+  
+  
+ row_group_order(groups = c( NA,
+   "<span style='font-size: 18px'>No maternal education</span>",
+   "<span style='font-size: 18px'>Maternal education 1-10 years</span>",
+   "<span style='font-size: 18px'>Maternal education > 10 years</span>"
+                ) )  %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Possible depression according to standard cutoff (EPDS score >= 11).</span>"))    %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) 
+
+gtsave(table_school, file = "table_school.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_school.png"))
+
+tablenum <- tablenum + 1
+```
 
 \newpage
-### Figure 4. Parity
+
+### Occupation
+
+```{r job-figure}
+
+data1$PAID_WORK_STR <- factor(data1$PAID_WORK_STR, levels = c("Yes", 
+                                                "No", 
+                                                "Other"))
+
+depression_job <- ggplot(subset(data1,  PAID_WORK %in% c(0,1,88) ), 
+                         aes(x=PAID_WORK_STR, y=EPDS_SCORE, fill=PAID_WORK_STR) ) +
+   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE,nrow=1) +
+  scale_fill_brewer(palette = "Paired") +    
+  theme_classic() +
+  labs(title = "Depression score at first visit, by occupation", 
+       tag="", y="Depression",
+       caption="Based on M03_JOB_SCORRES which allows an 'other, specify' option") + 
+  guides(fill=guide_legend(title="Paid work:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "left", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+
+ggsave(paste0("depression_job", ".png"), path = path_to_save,
+                                  width = 8, height = 5)
+knitr::include_graphics(paste0(path_to_save, "depression_job.png"))
+
+
+```
+\newpage
+### Depression by wealth index
+```{r wealth-figure}
+
+ data1 <-  data1 %>% 
+   mutate(
+  WEALTH_STR = case_when(
+    WEALTH_QUINT == 1  ~ "1st (Poorest)",
+    WEALTH_QUINT == 2  ~ "2nd",
+    WEALTH_QUINT == 3  ~ "3rd",
+    WEALTH_QUINT == 4  ~ "4th",
+    WEALTH_QUINT == 5  ~ "5th (Least poor)",
+  ) )
+
+depression_wealth <- ggplot(subset(data1, 
+                                WEALTH_STR %in% 
+                                  c("1st (Poorest)",
+                                    "2nd",
+                                    "3rd",
+                                    "4th",
+                                    "5th (Least poor)") ), 
+       aes(x=WEALTH_STR, y=EPDS_SCORE, fill=WEALTH_STR) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
+  facet_wrap(~SITE,nrow=1) + 
+  scale_fill_manual(values=c(  "#27445D" ,"#4E6688", "#AFDDFF","#71BBB2", "#E3EEB2","darkorange" )) +
+  theme_classic() +
+  labs(title = "Depression score at first visit, by wealth quintile", 
+       tag="", y="Depression",
+       caption = "Note: Depression outliers not visualized") + 
+  guides(fill=guide_legend(title="Status:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "left", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+ 
+ggsave(paste0("depression_wealth", ".png"), path = path_to_save,
+       width = 8, height = 4)
+ knitr::include_graphics(paste0(path_to_save, "depression_wealth.png"))
+
+```
+
+
+
+```{r wealth-table}
+
+table_wealth <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+#Quintile #1
+   
+    
+    "Among poorest quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 1 , na.rm = TRUE)/sum(MARRY_STATUS<=2 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+  
+    
+     "Among 2nd quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 2 , na.rm = TRUE)/sum(WEALTH_QUINT == 2 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+  #Quintile #3
+    
+     "Among 3rd quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 3 , na.rm = TRUE)/sum(WEALTH_QUINT == 3 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+    
+  #Quintile #4
+    
+     "Among 4th quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 4 , na.rm = TRUE)/sum(WEALTH_QUINT == 4 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+      
+  #Quintile #5
+    
+     "Among least poor quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 5 , na.rm = TRUE)/sum(WEALTH_QUINT == 5 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),  
+
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+  add_column(
+      .before = 1,
+    "Total" = data1 %>%
+      filter(ANC20==1) %>%
+        summarise(
+          
+   
+    "Among poorest quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 1 , na.rm = TRUE)/sum(MARRY_STATUS<=2 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+  
+    
+     "Among 2nd quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 2 , na.rm = TRUE)/sum(WEALTH_QUINT == 2 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+  #Quintile #3
+    
+     "Among 3rd quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 3 , na.rm = TRUE)/sum(WEALTH_QUINT == 3 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+    
+  #Quintile #4
+    
+     "Among 4th quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 4 , na.rm = TRUE)/sum(WEALTH_QUINT == 4 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+      
+  #Quintile #5
+    
+     "Among least poor quintile" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 5, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & WEALTH_QUINT == 5 , na.rm = TRUE)/sum(WEALTH_QUINT == 5 &  EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),  
+          
+        ) %>%
+
+        t() %>% as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+ # mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_wealth[is.na(table_wealth)] <- paste0("0 (0)")
+
+
+
+table_wealth <- tb_theme1(table_wealth) %>% 
+
+  tab_header(
+    title = md(paste0("**Table ", tablenum , ". Wealth index**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prevalence of possible depression, by quintile</span>"),
+        rows = 1:5 ) %>%
+  
+  
+  
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Prevalence of possible depression, by quintile</span>"
+                ) )    %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20. Possible depression according to standard cutoff (EPDS score>= 11).</span>")) 
+
+gtsave(table_wealth, file = "table_wealth.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_wealth.png"))
+
+tablenum <- tablenum + 1
+```
+
+\newpage
+
+## Obstetric history
+
+``` {r obstetric-history}
+
+obstetric_history <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+      "Denominator, n" = paste0(
+      format(sum(PARITY_CAT<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Nulliparous, n (%)" = paste0(
+      format(sum(PARITY_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==0 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "1 previous birth, n (%)" = paste0(
+      format(sum(PARITY_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==1 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "2+ previous births, n (%)" = paste0(
+      format(sum(PARITY_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==2 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      "Denominator, n " = paste0(
+      format(sum(MAT_PREVPREG_PPH<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior PPH, n (%)" = paste0(
+      format(sum(MAT_PREVPREG_PPH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_PREVPREG_PPH==1 , na.rm = TRUE)/sum(MAT_PREVPREG_PPH<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+       
+      "Denominator, n  " = paste0(
+      format(sum(MAT_PREVPREG_CES_UNPLAN<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior unplanned C-section, n (%)" = paste0(
+      format(sum(MAT_PREVPREG_CES_UNPLAN==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_PREVPREG_CES_UNPLAN==1 , na.rm = TRUE)/sum(MAT_PREVPREG_CES_UNPLAN<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+     "Denominator, n   " = paste0(
+      format(sum(MISCARRIAGE<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior miscarriage, n (%)" = paste0(
+      format(sum(MISCARRIAGE==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MISCARRIAGE==1 , na.rm = TRUE)/sum(MISCARRIAGE<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+  add_column(
+  .before = 1,
+  "Total" = data1 %>%
+    filter(ANC20==1) %>%
+    summarise(
+      
+  "Denominator, n" = paste0(
+      format(sum(PARITY_CAT<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Nulliparous, n (%)" = paste0(
+      format(sum(PARITY_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==0 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "1 previous birth, n (%)" = paste0(
+      format(sum(PARITY_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==1 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "2+ previous births, n (%)" = paste0(
+      format(sum(PARITY_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==2 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      "Denominator, n " = paste0(
+      format(sum(MAT_PREVPREG_PPH<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior PPH, n (%)" = paste0(
+      format(sum(MAT_PREVPREG_PPH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_PREVPREG_PPH==1 , na.rm = TRUE)/sum(MAT_PREVPREG_PPH<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+       
+      "Denominator, n  " = paste0(
+      format(sum(MAT_PREVPREG_CES_UNPLAN<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior unplanned C-section, n (%)" = paste0(
+      format(sum(MAT_PREVPREG_CES_UNPLAN==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_PREVPREG_CES_UNPLAN==1 , na.rm = TRUE)/sum(MAT_PREVPREG_CES_UNPLAN<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+     "Denominator, n   " = paste0(
+      format(sum(MISCARRIAGE<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior miscarriage, n (%)" = paste0(
+      format(sum(MISCARRIAGE==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MISCARRIAGE==1 , na.rm = TRUE)/sum(MISCARRIAGE<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      
+    ) %>%
+    
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+)
+  
+#  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+obstetric_history[is.na(obstetric_history)] <- paste0("0 (0)")
+
+obstetric_history <- tb_theme1(obstetric_history) %>% 
+  tab_header(
+    title = md(paste0("**Table ", tablenum, ". Prior obstetric history**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Parity</span>"),
+        rows = 1:4 ) %>%
+  
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prior post partum hemorrhage (PPH)</span>"),
+        rows = 5:6 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prior unplanned cesarean section</span>"),
+        rows = 7:8 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prior miscarriage</span>"),
+        rows = 9:10 ) %>%
+  
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Parity</span>",
+   "<span style='font-size: 18px'>Prior post partum hemorrhage (PPH)</span>",
+   "<span style='font-size: 18px'>Prior unplanned cesarean section</span>",
+   "<span style='font-size: 18px'>Prior miscarriage</span>"
+                ) )   
+
+gtsave(obstetric_history, file = "obstetric_history.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "obstetric_history.png"))
+
+tablenum <- tablenum + 1
+```
+
+``` {r obstetric-history2}
+
+depr_ob_history <- data1 %>% 
+  filter(ANC20==1 & !is.na(EPDS_SCORE)) %>%
+  rowwise() %>% 
+  group_by(DEPR_ANC20_STND) %>% 
+  summarise(
+
+      "Denominator, n" = paste0(
+      format(sum(PARITY_CAT<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Nulliparous, n (%)" = paste0(
+      format(sum(PARITY_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==0 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "1 previous birth, n (%)" = paste0(
+      format(sum(PARITY_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==1 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "2+ previous births, n (%)" = paste0(
+      format(sum(PARITY_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==2 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      "Denominator, n " = paste0(
+      format(sum(MAT_PREVPREG_PPH<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior PPH, n (%)" = paste0(
+      format(sum(MAT_PREVPREG_PPH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_PREVPREG_PPH==1 , na.rm = TRUE)/sum(MAT_PREVPREG_PPH<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+       
+      "Denominator, n  " = paste0(
+      format(sum(MAT_PREVPREG_CES_UNPLAN<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior unplanned C-section, n (%)" = paste0(
+      format(sum(MAT_PREVPREG_CES_UNPLAN==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_PREVPREG_CES_UNPLAN==1 , na.rm = TRUE)/sum(MAT_PREVPREG_CES_UNPLAN<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+     "Denominator, n   " = paste0(
+      format(sum(MISCARRIAGE<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior miscarriage, n (%)" = paste0(
+      format(sum(MISCARRIAGE==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MISCARRIAGE==1 , na.rm = TRUE)/sum(MISCARRIAGE<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+   add_column(
+      .before = 1,
+    "Total" = data1 %>%
+      filter(ANC20==1) %>%
+        summarise(
+      
+          
+      "Denominator, n" = paste0(
+      format(sum(PARITY_CAT<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Nulliparous, n (%)" = paste0(
+      format(sum(PARITY_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==0 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "1 previous birth, n (%)" = paste0(
+      format(sum(PARITY_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==1 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "2+ previous births, n (%)" = paste0(
+      format(sum(PARITY_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PARITY_CAT==2 , na.rm = TRUE)/sum(PARITY_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      "Denominator, n " = paste0(
+      format(sum(MAT_PREVPREG_PPH<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior PPH, n (%)" = paste0(
+      format(sum(MAT_PREVPREG_PPH==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_PREVPREG_PPH==1 , na.rm = TRUE)/sum(MAT_PREVPREG_PPH<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+       
+      "Denominator, n  " = paste0(
+      format(sum(MAT_PREVPREG_CES_UNPLAN<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior unplanned C-section, n (%)" = paste0(
+      format(sum(MAT_PREVPREG_CES_UNPLAN==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_PREVPREG_CES_UNPLAN==1 , na.rm = TRUE)/sum(MAT_PREVPREG_CES_UNPLAN<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+     "Denominator, n   " = paste0(
+      format(sum(MISCARRIAGE<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Prior miscarriage, n (%)" = paste0(
+      format(sum(MISCARRIAGE==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MISCARRIAGE==1 , na.rm = TRUE)/sum(MISCARRIAGE<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+          
+        ) %>%
+
+        t() %>% as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+ # mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+depr_ob_history[is.na(depr_ob_history)] <- paste0("0 (0)")
+
+depr_ob_history <- tb_theme2(depr_ob_history) %>% 
+  tab_header(
+    title = md(paste0("**Table ", tablenum, ". Possible depression at Enrolment/ANC20 (pooled), by prior obstetric history**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Parity</span>"),
+        rows = 1:4 ) %>%
+  
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prior post partum hemorrhage (PPH)</span>"),
+        rows = 5:6 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prior unplanned cesarean section</span>"),
+        rows = 7:8 ) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prior miscarriage</span>"),
+        rows = 9:10 ) %>%
+  
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Parity</span>",
+   "<span style='font-size: 18px'>Prior post partum hemorrhage (PPH)</span>",
+   "<span style='font-size: 18px'>Prior unplanned cesarean section</span>",
+   "<span style='font-size: 18px'>Prior miscarriage</span>"
+                ) )   
+
+gtsave(depr_ob_history, file = "depr_obstetric_history.png", path = path_to_save, expand = 10)
+#knitr::include_graphics(paste0(path_to_save, "depr_obstetric_history.png"))
+
+tablenum <- tablenum + 1
+```
+
+\newpage
+### Parity
 ```{r parity-figure}
 
-parity <- ggplot(data1, aes(PARITY)) + facet_wrap(~SITE_R, scales="free") + 
+parity <- ggplot(data1, aes(PARITY)) + facet_wrap(~SITE, scales="free") + 
   theme_classic() +
   geom_histogram(binwidth = 1, fill="white", colour="black") +  
   guides(fill="none") + 
   labs(title = "Parity by site", x="Parity",
        caption="Does not include current pregnancy") +
-  scale_x_continuous(breaks=seq(0,15,5), limits = c(0,15)) 
+  scale_x_continuous(breaks=seq(0,15,5), limits = c(-1,15))
+
+
+ggsave(paste0("parity", ".png"), path = path_to_save,
+                                  width = 8, height = 8)
+knitr::include_graphics(paste0(path_to_save, "parity.png"))
+
+
+
+
+```
+\newpage
+```{r depression-parity2}
 
 depression_parity <- ggplot(subset(data1, 
-                                PARITY_CAT_STR %in% c("0", 
-                                                      "1", 
-                                                      "2+") ), 
+                                PARITY_CAT_STR %in% c("0", "1", "2+") ), 
                          aes(x=PARITY_CAT_STR, y=EPDS_SCORE, fill=PARITY_CAT_STR) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
-  scale_fill_brewer(palette = "Blues") +  
-  theme_classic() +
+  facet_wrap(~SITE,nrow=1) +
+  scale_fill_brewer(palette = "Blues") + theme_classic() +
   labs(title = "Depression by parity", 
        tag="", y="Depression",
        caption = "Note: does not include current pregnancy") + 
   guides(fill=guide_legend(title="Parity:")) + 
   scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   geom_hline(yintercept=11, linetype="dashed")
 
-parity_fig <- plot_grid(parity, depression_parity, 
-                      ncol = 1, nrow = 2)
-ggsave(paste0("parity_fig", ".png"), path = path_to_save,
-                                  width = 8, height = 8)
-knitr::include_graphics(paste0(path_to_save, "parity_fig.png"))
+ggsave(paste0("depression_parity", ".png"), path = path_to_save,
+                                  width = 8, height = 5)
+knitr::include_graphics(paste0(path_to_save, "depression_parity.png"))
+```
 
+```{r parity-table}
+
+table_parity <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+   
+    "Among nulliparous" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY == 0 , na.rm = TRUE)/sum(PARITY == 0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+    "Among those with 1 birth" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY == 1 , na.rm = TRUE)/sum(PARITY == 1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+     "Among those with 2+ births" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY> 1 & PARITY <=20, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY> 1 & PARITY <=20 , na.rm = TRUE)/sum(PARITY> 1 & PARITY <=20 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+   add_column(
+      .before = 1,
+    "Total" = data1 %>%
+      filter(ANC20==1) %>%
+        summarise(
+          
+      "Among nulliparous" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY == 0 , na.rm = TRUE)/sum(PARITY == 0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+    "Among those with 1 birth" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY == 1 , na.rm = TRUE)/sum(PARITY == 1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+    
+     "Among those with 2+ births" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY> 1 & PARITY <=20, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & PARITY> 1 & PARITY <=20 , na.rm = TRUE)/sum(PARITY> 1 & PARITY <=20 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+          
+        ) %>%
+
+        t() %>% as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+  #mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+  #mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_parity[is.na(table_parity)] <- paste0("0 (0)")
+
+table_parity <- tb_theme1(table_parity) %>% 
+
+  tab_header(
+    title = md(paste0("**Table ", tablenum , ". Parity**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prevalence of possible depression, by parity</span>"),
+        rows = 1:3 ) %>%
+  
+  
+  
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Prevalence of possible depression, by parity</span>"
+                ) )    %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20. Possible depression according to standard cutoff (EPDS score>= 11).</span>")) 
+
+gtsave(table_parity, file = "table_parity.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_parity.png"))
+
+tablenum <- tablenum + 1
+```
+
+\newpage
+### Prior PPH
+```{r PPH-figure}
+
+ data_long <-  data_long %>% 
+   mutate(
+  PPH_STR = case_when(
+    MAT_PREVPREG_PPH == 1 ~ "Yes",
+    MAT_PREVPREG_PPH == 0 ~ "No",
+    TRUE ~ NA
+                     ) ,
+  UNPL_CES_STR = case_when(
+    MAT_PREVPREG_CES_UNPLAN == 1 ~ "Yes" ,
+    MAT_PREVPREG_CES_UNPLAN == 0 ~ "No" ,
+    TRUE ~ NA
+  )
+  )
+
+#generate figure --   prior PPH
+depr_pph <- ggplot(subset(data_long, PPH_STR %in%   c("No", "Yes") &
+                                  TYPE_VISIT %in% c(1,2)), 
+       aes(x=PPH_STR, y=DEPR_SCORE_ANC20, fill=PPH_STR) ) +
+   geom_boxplot(alpha=0.8, outlier.shape=NA) +  facet_wrap(~SITE,nrow=1) + 
+  theme_classic() +  scale_fill_manual(values=c("#27445D" ,"#71BBB2" )) +
+  labs(title = "Depression score at Enrolment/ANC20, 
+  by history of post partum hemorrhage", 
+       tag="", y="Depression score", caption = "Note: Depression outliers not visualized") + 
+  guides(fill=guide_legend(title="Prior PPH:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "left", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+ 
+ggsave(paste0("depr_pph", ".png"), path = path_to_save,
+       width = 8, height = 4)
+ knitr::include_graphics(paste0(path_to_save, "depr_pph.png"))
 
 ```
+
+```{r pph-table}
+
+table_pph <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+   
+    "Among those with prior PPH" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_PPH == 1 , na.rm = TRUE)/sum(MAT_PREVPREG_PPH==1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+    "Among no prior PPH" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_PPH == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_PPH == 0 , na.rm = TRUE)/sum(MAT_PREVPREG_PPH==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+  
+  add_column(
+      .before = 1,
+    "Total" = data1 %>%
+      filter(ANC20==1) %>%
+        summarise(
+
+   
+    "Among those with prior PPH" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_PPH == 1 , na.rm = TRUE)/sum(MAT_PREVPREG_PPH==1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+    "Among no prior PPH" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_PPH == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_PPH == 0 , na.rm = TRUE)/sum(MAT_PREVPREG_PPH==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+          
+          
+        ) %>%
+
+        t() %>% as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+ # mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_pph[is.na(table_pph)] <- paste0("0 (0)")
+
+table_pph <- tb_theme1(table_pph) %>% 
+
+  tab_header(
+    title = md(paste0("**Table ", tablenum , ". Prior PPH**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prevalence of possible depression, by history of miscarriage</span>"),
+        rows = 1:2 ) %>%
+  
+  
+  
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Prevalence of possible depression, by history of miscarriage</span>"
+                ) )    %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20. Possible depression according to standard cutoff (EPDS score>= 11).</span>")) 
+
+gtsave(table_pph, file = "table_pph.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_pph.png"))
+
+tablenum <- tablenum + 1
+```
+
 \newpage
-### Figure 5. BMI
+
+### Prior Unplanned C-section
+``` {r unpl-ces-figure}
+
+ #Generate figure --  unplanned c-section
+ depr_unpl_ces <- ggplot(subset(data_long, UNPL_CES_STR %in% c("No", "Yes") &
+                                  TYPE_VISIT %in% c(1,2)), 
+       aes(x=UNPL_CES_STR, y=DEPR_SCORE_ANC20, fill=UNPL_CES_STR) ) +
+ geom_boxplot(alpha=0.8, outlier.shape=NA) + 
+  facet_wrap(~SITE,nrow=1) + 
+  scale_fill_manual(values=c("#27445D" ,"#71BBB2")) +
+  theme_classic() + 
+  labs(title = "Depression score at Enrolment/ANC20, by history of unplanned c-section", 
+       tag="", y="Depression score",
+       caption = "Note: Depression outliers not visualized") + 
+  guides(fill=guide_legend(title="Prior \n unplanned \n c-section:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "left", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+ 
+ggsave(paste0("depr_unpl_ces", ".png"), path = path_to_save,
+       width = 8, height = 4)
+ knitr::include_graphics(paste0(path_to_save, "depr_unpl_ces.png"))
+  
+ 
+```
+
+```{r unpl-ces-table}
+
+table_ces <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+   
+    
+    "Among those with prior unplanned C-section" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_CES_UNPLAN == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_CES_UNPLAN == 1 , na.rm = TRUE)/sum(MAT_PREVPREG_CES_UNPLAN==1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+    "Among no prior unplanned C-section" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_CES_UNPLAN == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_CES_UNPLAN == 0 , na.rm = TRUE)/sum(MAT_PREVPREG_CES_UNPLAN==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+  
+  add_column(
+      .before = 1,
+    "Total" = data1 %>%
+      filter(ANC20==1) %>%
+        summarise(
+
+
+    "Among those with prior unplanned C-section" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_CES_UNPLAN == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_CES_UNPLAN == 1 , na.rm = TRUE)/sum(MAT_PREVPREG_CES_UNPLAN==1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+    "Among no prior unplanned C-section" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_CES_UNPLAN == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MAT_PREVPREG_CES_UNPLAN == 0 , na.rm = TRUE)/sum(MAT_PREVPREG_CES_UNPLAN==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+          
+          
+        ) %>%
+
+        t() %>% as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+  
+ # mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_ces[is.na(table_ces)] <- paste0("0 (0)")
+
+table_ces <- tb_theme1(table_ces) %>% 
+
+  tab_header(
+    title = md(paste0("**Table ", tablenum , ". Prior unplanned C-section**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prevalence of possible depression, by history of unplanned C-section</span>"),
+        rows = 1:2 ) %>%
+
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Prevalence of possible depression, by history of unplanned C-section</span>"
+                ) )    %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20. Possible depression according to standard cutoff (EPDS score>= 11).</span>")) 
+
+gtsave(table_ces, file = "table_ces.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_ces.png"))
+
+tablenum <- tablenum + 1
+```
+
+### Prior miscarriage
+
+```{r miscarriage-figure}
+ #Generate figure  --   miscarriage
+ depr_miscarriage <- ggplot(subset(data_long, 
+                                MISCARRIAGE_STR %in% c("No", "Yes") &
+                                  TYPE_VISIT %in% c(1,2)), 
+       aes(x=MISCARRIAGE_STR, y=DEPR_SCORE_ANC20, 
+           fill=MISCARRIAGE_STR ) ) +
+  geom_boxplot(alpha=0.8, outlier.shape = NA ) + 
+  facet_wrap(~SITE,nrow=1) + theme_classic() + 
+   scale_fill_manual(values=c(  "#27445D" ,"#71BBB2" )) +
+  labs(title = "Depression score at Enrolment/ANC20, by prior miscarriage", 
+       tag="", y="Depression score",
+       caption = "Note: Depression outliers not visualized") + 
+  guides(fill=guide_legend(title="Prior \n miscarriage:")) + 
+  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
+  theme(legend.position = "left", axis.title.x = element_blank(),
+        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  geom_hline(yintercept=11, linetype="dashed")
+ 
+ggsave(paste0("depr_miscarriage", ".png"), path = path_to_save,
+       width = 8, height = 4)
+ knitr::include_graphics(paste0(path_to_save, "depr_miscarriage.png"))
+```
+
+```{r miscarriage-table}
+
+table_miscarriage <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+   
+    "Among those with prior miscarriage" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MISCARRIAGE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MISCARRIAGE == 1 , na.rm = TRUE)/sum(MISCARRIAGE==1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+    "Among no prior miscarriage" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MISCARRIAGE == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MISCARRIAGE == 0 , na.rm = TRUE)/sum(MISCARRIAGE==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+  
+  
+add_column(
+  .before = 1,
+  "Total" = data1 %>%
+    filter(ANC20==1) %>%
+    summarise(
+      
+ 
+    "Among those with prior miscarriage" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MISCARRIAGE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MISCARRIAGE == 1 , na.rm = TRUE)/sum(MISCARRIAGE==1 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+   
+    "Among no prior miscarriage" = paste0(
+      
+       format(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MISCARRIAGE == 0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPDS_SCORE >=11 & EPDS_SCORE<=30 & MISCARRIAGE == 0 , na.rm = TRUE)/sum(MISCARRIAGE==0 & EPDS_SCORE<=30, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      "%)"),
+
+      
+      
+    ) %>%
+    
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+)
+  
+  
+#  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+table_miscarriage[is.na(table_miscarriage)] <- paste0("0 (0)")
+
+table_miscarriage <- tb_theme1(table_miscarriage) %>% 
+
+  tab_header(
+    title = md(paste0("**Table ", tablenum , ". Prior miscarriage**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Prevalence of possible depression, by history of miscarriage</span>"),
+        rows = 1:2 ) %>%
+  
+  
+  
+ row_group_order(groups = c( 
+   "<span style='font-size: 18px'>Prevalence of possible depression, by history of miscarriage</span>"
+                ) )    %>%
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20. Possible depression according to standard cutoff (EPDS score>= 11).</span>")) 
+
+gtsave(table_miscarriage, file = "table_miscarriage.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "table_miscarriage.png"))
+
+tablenum <- tablenum + 1
+```
+
+
+## Health factors - current pregnancy
+
+```{r current-preg}
+
+current_preg <- data1 %>% 
+  filter(ANC20==1) %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+
+     "Denominator, n" = sum(!is.na(BMI_ENROLL)),
+    
+     "Median BMI, (Q1, Q3)" = paste0(
+      format(median(BMI_ENROLL, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(BMI_ENROLL, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(BMI_ENROLL, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+    
+  "Denominator, n " = paste0(
+      format(sum(FETUS_CT_PERES_US>0, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Singleton, n (%)" = paste0(
+      format(sum(FETUS_CT_PERES_US==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FETUS_CT_PERES_US==1 , na.rm = TRUE)/sum(FETUS_CT_PERES_US>0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+    "Multiple gestation, n (%)" = paste0(
+      format(sum(FETUS_CT_PERES_US>=2 & FETUS_CT_PERES_US<=4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FETUS_CT_PERES_US>=2 & FETUS_CT_PERES_US<=4 , na.rm = TRUE)/sum(FETUS_CT_PERES_US>0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+       
+  "Denominator, n  " = paste0(
+      format(sum(DIAB_OVERT_ANY<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Overt diabetes, n (%)" = paste0(
+      format(sum(DIAB_OVERT_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT_ANY==1 , na.rm = TRUE)/sum(DIAB_OVERT_ANY<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  
+   "Denominator, n^a^" = paste0(
+      format(sum(HTN_ANY<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Chronic hypertension, n (%)" = paste0(
+      format(sum(HTN_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HTN_ANY==1 , na.rm = TRUE)/sum(HTN_ANY<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    ) %>% 
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+  
+  
+add_column(
+  .before = 1,
+  "Total" = data1 %>%
+    filter(ANC20==1) %>%
+    summarise(
+      
+    "Denominator, n" = sum(!is.na(BMI_ENROLL)),
+    
+     "Median BMI, (Q1, Q3)" = paste0(
+      format(median(BMI_ENROLL, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(quantile(BMI_ENROLL, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
+     ", " ,  format(round(quantile(BMI_ENROLL, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
+    
+    
+  "Denominator, n " = paste0(
+      format(sum(FETUS_CT_PERES_US>0, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Singleton, n (%)" = paste0(
+      format(sum(FETUS_CT_PERES_US==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FETUS_CT_PERES_US==1 , na.rm = TRUE)/sum(FETUS_CT_PERES_US>0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+    "Multiple gestation, n (%)" = paste0(
+      format(sum(FETUS_CT_PERES_US>=2 & FETUS_CT_PERES_US<=4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FETUS_CT_PERES_US>=2 & FETUS_CT_PERES_US<=4 , na.rm = TRUE)/sum(FETUS_CT_PERES_US>0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    
+       
+  "Denominator, n  " = paste0(
+      format(sum(DIAB_OVERT_ANY<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Overt diabetes, n (%)" = paste0(
+      format(sum(DIAB_OVERT_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DIAB_OVERT_ANY==1 , na.rm = TRUE)/sum(DIAB_OVERT_ANY<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+  
+   "Denominator, n^a^" = paste0(
+      format(sum(HTN_ANY<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Chronic hypertension, n (%)" = paste0(
+      format(sum(HTN_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HTN_ANY==1 , na.rm = TRUE)/sum(HTN_ANY<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+      
+    ) %>%
+    
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+)
+  
+#  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
+
+
+# replace NA with 0s (this likely means there is not yet data)
+current_preg[is.na(current_preg)] <- paste0("0 (0)")
+
+current_preg <- tb_theme1(current_preg) %>% 
+  tab_header(
+    title = md(paste0("**Table ", tablenum, ". Health factors - current pregnancy**"))) %>% 
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>BMI at enrollment</span>"),
+        rows = 1:2) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Multiple gestation</span>"),
+        rows = 3:5) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Overt diabetes</span>"),
+        rows = 6:7) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Chronic hypertension</span>"),
+        rows = 8:9) %>%
+  
+ row_group_order(groups = c( 
+
+   "<span style='font-size: 18px'>BMI at enrollment</span>",
+   "<span style='font-size: 18px'>Multiple gestation</span>",
+   "<span style='font-size: 18px'>Overt diabetes</span>",
+   "<span style='font-size: 18px'>Chronic hypertension</span>"
+   
+                ) ) %>%
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>This outcome available among those with a pregnancy end point</span>")) 
+
+gtsave(current_preg, file = "current_preg.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "current_preg.png"))
+
+
+tablenum <- tablenum + 1
+```
+
+\newpage
+### BMI
 ```{r bmi-figure}
 
-data1 <- data1 %>%
-  mutate()
 
-bmi <- ggplot(data1, aes(BMI_ENROLL)) + facet_wrap(~SITE_R, scales="free") + theme_classic() +
+bmi <- ggplot(data1, aes(BMI_ENROLL)) + facet_wrap(~SITE, scales="free") + theme_classic() +
   geom_histogram(binwidth = 1, fill="white", colour="black") +  guides(fill="none") + 
   labs(title = "BMI by site", x="BMI",
        caption="Note: outliers BMI>50 not visualized") +
   scale_x_continuous(breaks=seq(0,50,10), limits = c(0,50)) 
 
 ggsave(paste0("bmi", ".png"), path = path_to_save,
-                                  width = 8, height = 4)
+                                  width = 8, height = 6)
 knitr::include_graphics(paste0(path_to_save, "bmi.png"))
 
 depression_bmi <- ggplot(subset(data1, 
@@ -593,7 +2447,7 @@ depression_bmi <- ggplot(subset(data1,
                                                           "30+") ), 
        aes(x=BMI_ENROLL_CAT_STR, y=EPDS_SCORE, fill=BMI_ENROLL_CAT_STR) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
+  facet_wrap(~SITE,nrow=1) +
   scale_fill_brewer(palette = "Blues") +  
   theme_classic() +
   labs(title = "Depression by enrollment BMI", 
@@ -601,20 +2455,17 @@ depression_bmi <- ggplot(subset(data1,
        caption = "Note: outliers not visualized") + 
   guides(fill=guide_legend(title="BMI:")) + 
   scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   geom_hline(yintercept=11, linetype="dashed")
  
 ggsave(paste0("depression_bmi", ".png"), path = path_to_save,
-                                  width = 8, height = 4)
-#knitr::include_graphics(paste0(path_to_save, "depression_bmi.png"))
+                                  width = 8, height = 5)
+knitr::include_graphics(paste0(path_to_save, "depression_bmi.png"))
 
 
 ```
 
-\textcolor{blue}{**Question for discussion: should we use the typical BMI cutoffs for our analysis, given the literature and these data distributions?**}
-
-### Table 4. BMI
 ```{r bmi_table}
 
 table_bmi <- data1 %>% 
@@ -650,41 +2501,75 @@ table_bmi <- data1 %>%
       format(round(sum(BMI_ENROLL_CAT==3 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-     "Obese class 1, n (%)^e^" = paste0(
-      format(sum(OBESE_CLASS==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(OBESE_CLASS==1 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+#     "Obese class 1, n (%)^e^" = paste0(
+#      format(sum(OBESE_CLASS==1, na.rm = TRUE), nsmall = 0, digits = 2),
+#      " (",
+#      format(round(sum(OBESE_CLASS==1 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#      ")"),
     
-    "Obese class 2, n (%)^f^" = paste0(
-      format(sum(OBESE_CLASS==2, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(OBESE_CLASS==2 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+#    "Obese class 2, n (%)^f^" = paste0(
+#      format(sum(OBESE_CLASS==2, na.rm = TRUE), nsmall = 0, digits = 2),
+#      " (",
+#      format(round(sum(OBESE_CLASS==2 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#      ")"),
     
     
-    "Obese class 3, n (%)^g^" = paste0(
-      format(sum(OBESE_CLASS==3, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(OBESE_CLASS==3 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-  
-    
-    #   
-    # "Median BMI, (Q1, Q3)" = paste0(
-    #   format(median(BMI_ENROLL, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(quantile(BMI_ENROLL, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
-    #  ", " ,  format(round(quantile(BMI_ENROLL, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
-    # 
-    # 
+#    "Obese class 3, n (%)^g^" = paste0(
+#      format(sum(OBESE_CLASS==3, na.rm = TRUE), nsmall = 0, digits = 2),
+#      " (",
+#      format(round(sum(OBESE_CLASS==3 , na.rm = TRUE)/sum(OBESE_CLASS<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+#      ")"),
     
     ) %>% 
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+  
+  
+add_column(
+  .before = 1,
+  "Total" = data1 %>%
+    filter(ANC20==1) %>%
+    summarise(
+      
+    
+    "Denominator, n" = sum(!is.na(BMI_ENROLL)),
+  
+
+    "Underweight, n (%)^a^" = paste0(
+      format(sum(BMI_ENROLL_CAT==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI_ENROLL_CAT==0 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Normal weight, n (%)^b^" = paste0(
+      format(sum(BMI_ENROLL_CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI_ENROLL_CAT==1 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Overweight, n (%)^c^" = paste0(
+      format(sum(BMI_ENROLL_CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI_ENROLL_CAT==2 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Obese (any class), n (%)^d^" = paste0(
+      format(sum(BMI_ENROLL_CAT==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI_ENROLL_CAT==3 , na.rm = TRUE)/sum(BMI_ENROLL_CAT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+      
+      
+    ) %>%
+    
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+)
+  
+#  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
 
 
 # replace NA with 0s (this likely means there is not yet data)
@@ -692,22 +2577,22 @@ table_bmi[is.na(table_bmi)] <- paste0("0 (0)")
 
 table_bmi <- tb_theme1(table_bmi) %>% 
   tab_header(
-    title = md("**Table 3. BMI at Enrollment**")) %>% 
+    title = md(paste0("**Table ", tablenum , ". BMI at Enrollment**"))) %>% 
    tab_row_group(
     label = html("<span style='font-size: 18px'>BMI class</span>"),
-        rows = 2:8) %>%
+        rows = 2:5) %>%
  row_group_order(groups = c(NA,
    "<span style='font-size: 18px'>BMI class</span>",NA
                 ) ) %>% 
    
 # indent categories
-  tab_style(
-      style = list(
-        cell_text(indent = px(20), size = 24)
-        ),
-      locations = cells_stub(rows = c("Obese class 1, n (%)^e^",
-                                      "Obese class 2, n (%)^f^",
-                                      "Obese class 3, n (%)^g^"))) %>%
+#  tab_style(
+#      style = list(
+#        cell_text(indent = px(20), size = 24)
+#        ),
+#      locations = cells_stub(rows = c("Obese class 1, n (%)^e^",
+#                                      "Obese class 2, n (%)^f^",
+#                                      "Obese class 3, n (%)^g^"))) %>%
   
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Includes only women with a valid depression score at enrollment/ANC20.</span>")) %>%
@@ -719,42 +2604,16 @@ tab_footnote(
 gtsave(table_bmi, file = "table_bmi.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "table_bmi.png"))
 
+tablenum <- tablenum + 1
 ```
 
-### Figure 6. Main occupation
-```{r job-figure}
 
-data1$PAID_WORK_STR <- factor(data1$PAID_WORK_STR, levels = c("Yes", 
-                                                "No", 
-                                                "Other"))
-
-depression_job <- ggplot(subset(data1, 
-                                PAID_WORK %in% c(0,1,88) ), 
-                         aes(x=PAID_WORK_STR, y=EPDS_SCORE, fill=PAID_WORK_STR) ) +
-  geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
-  scale_fill_brewer(palette = "Paired") +  
-  theme_classic() +
-  labs(title = "Depression by occupation", 
-       tag="", y="Depression",
-       caption="Based on M03_JOB_SCORRES which allows an 'other, specify' option") + 
-  guides(fill=guide_legend(title="Paid work:")) + 
-  scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
-        axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
-  geom_hline(yintercept=11, linetype="dashed")
-
-ggsave(paste0("depression_job", ".png"), path = path_to_save,
-                                  width = 8, height = 5)
-knitr::include_graphics(paste0(path_to_save, "depression_job.png"))
-
-
-```
 
 \newpage
-\newpage
+
 # Part 2: Health behaviors
-## Table 5. Health behaviors
+
+## Substance use (tobacco, betel nut, smoking, alcohol)
 
 ```{r behaviors-table}
 
@@ -808,8 +2667,60 @@ table_behaviors <- data1 %>%
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+  
+  add_column(
+  .before = 1,
+  "Total" = data1 %>%
+    filter(ANC20==1) %>%
+    summarise(
+      
+ 
+     "Denominator, n" = paste0(
+      format(sum(CHEW_TOBACCO<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Chewed tobacco, n (%)^a^" = paste0(
+      format(sum(CHEW_TOBACCO==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHEW_TOBACCO==1 , na.rm = TRUE)/sum(CHEW_TOBACCO<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Denominator, n " = paste0(
+      format(sum(CHEW_BETELNUT<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Chewed betel nut, n (%)^a^" = paste0(
+      format(sum(CHEW_BETELNUT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHEW_BETELNUT==1 , na.rm = TRUE)/sum(CHEW_BETELNUT<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Denominator, n  " = paste0(
+      format(sum(SMOKE<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Smoked, n (%)^b^" = paste0(
+      format(sum(SMOKE==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(SMOKE==1 , na.rm = TRUE)/sum(SMOKE<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Denominator, n   " = paste0(
+      format(sum(DRINK<55, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Consumed alcohol, n (%)^a^" = paste0(
+      format(sum(DRINK==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DRINK==1 , na.rm = TRUE)/sum(DRINK<55, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+      
+      
+    ) %>%
+    
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+)
+  
+#  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
+#  mutate_all(funs(str_replace(., "NA", "0"))) 
 
 
 # replace NA with 0s (this likely means there is not yet data)
@@ -817,7 +2728,7 @@ table_behaviors[is.na(table_behaviors)] <- paste0("0 (0)")
 
 table_behaviors <- tb_theme1(table_behaviors) %>% 
   tab_header(
-    title = md("**Table 5. Health Behaviors**")) %>% 
+    title = md(paste0("**Table ", tablenum, ". Substance Use**"))) %>% 
   tab_row_group(
     label = html("<span style='font-size: 18px'>Chewing tobacco usage</span>"),
         rows = 1:2) %>%
@@ -851,9 +2762,10 @@ tab_footnote(
 gtsave(table_behaviors, file = "table_behaviors.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "table_behaviors.png"))
 
+tablenum <- tablenum + 1
 ```
 
-### Figure 7. Substance use 
+
 ```{r substance-figure}
 
 depression_tobacco <- ggplot(subset(data1, 
@@ -861,7 +2773,7 @@ depression_tobacco <- ggplot(subset(data1,
                                                          "Yes") ), 
                             aes(x=CHEW_TOBACCO_STR, y=EPDS_SCORE, fill=CHEW_TOBACCO_STR) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
+  facet_wrap(~SITE,nrow=1) +
   scale_fill_brewer(palette = "Blues") +  
   theme_classic() +
   labs(title = "Depression by tobacco usage", 
@@ -870,7 +2782,7 @@ depression_tobacco <- ggplot(subset(data1,
   custom_fill2 +
   guides(fill=guide_legend(title="Tobacco usage:")) + 
   scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   geom_hline(yintercept=11, linetype="dashed")
 
@@ -880,7 +2792,7 @@ depression_betelnut <- ggplot(subset(data1,
                                  y=EPDS_SCORE, 
                                  fill=CHEW_BETELNUT_STR) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
+  facet_wrap(~SITE,nrow=1) +
   custom_fill2 + 
   theme_classic() +
   labs(title = "Depression by betel nut usage", 
@@ -888,7 +2800,7 @@ depression_betelnut <- ggplot(subset(data1,
        caption = "Note: chewing betel nut") + 
   guides(fill=guide_legend(title="Betel nut usage:")) + 
   scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   geom_hline(yintercept=11, linetype="dashed")
 
@@ -897,7 +2809,7 @@ chew_fig <- plot_grid(depression_tobacco, depression_betelnut,
                           ncol = 1, nrow = 2)
 ggsave(paste0("chew_fig", ".png"), path = path_to_save,
                                   width = 8, height = 8)
-knitr::include_graphics(paste0(path_to_save, "chew_fig.png"))
+# knitr::include_graphics(paste0(path_to_save, "chew_fig.png"))
 
 
 depression_drink <- ggplot(subset(data1, 
@@ -905,7 +2817,7 @@ depression_drink <- ggplot(subset(data1,
                                                          "Yes") ), 
                             aes(x=DRINK_STR, y=EPDS_SCORE, fill=DRINK_STR) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
+  facet_wrap(~SITE,nrow=1) +
   scale_fill_brewer(palette = "Blues") +  
   theme_classic() +
   labs(title = "Depression by alcohol consumption", 
@@ -914,7 +2826,7 @@ depression_drink <- ggplot(subset(data1,
   custom_fill2 +
   guides(fill=guide_legend(title="Alcohol intake:")) + 
   scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   geom_hline(yintercept=11, linetype="dashed")
 
@@ -924,7 +2836,7 @@ depression_smoke <- ggplot(subset(data1,
                                  y=EPDS_SCORE, 
                                  fill=SMOKE_STR) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
+  facet_wrap(~SITE,nrow=1) +
   custom_fill2 + 
   theme_classic() +
   labs(title = "Depression by smoking", 
@@ -932,7 +2844,7 @@ depression_smoke <- ggplot(subset(data1,
        caption = "Note: cigarettes, cigar, or pipe") + 
   guides(fill=guide_legend(title="Smoking:")) + 
   scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   geom_hline(yintercept=11, linetype="dashed")
 
@@ -941,13 +2853,13 @@ drinksmoke_fig <- plot_grid(depression_drink, depression_smoke,
                           ncol = 1, nrow = 2)
 ggsave(paste0("drinksmoke_fig", ".png"), path = path_to_save,
                                   width = 8, height = 8)
-knitr::include_graphics(paste0(path_to_save, "drinksmoke_fig.png"))
+# knitr::include_graphics(paste0(path_to_save, "drinksmoke_fig.png"))
 
 ```
 
 \newpage
 # Part 3: Depression over time
-## Figure 8. Timing of Depression Assessment
+## Timing of Depression Assessment - Box plot
 ```{r timing}
 
 depression_vistype <- ggplot(subset(data_long, 
@@ -956,16 +2868,16 @@ depression_vistype <- ggplot(subset(data_long,
                                                    "PNC6")), 
                                     aes(x=VISTYPE, y=EPDS_SCORE, fill=VISTYPE) ) +
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
+  facet_wrap(~SITE,nrow=1) +
   scale_fill_brewer(palette = "Paired") + 
   scale_color_brewer(palette = "Paired", guide="none") + 
   theme_classic() +
   labs(title = "Depression by visit type", 
-       tag="", y="Depression",
+       tag="", y="Depression score",
        caption = "No outliers") + 
   guides(fill=guide_legend(title="Time")) + 
   scale_y_continuous(breaks=seq(0,20,5), limits = c(0,20)) +
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   geom_hline(yintercept=11, linetype="dashed")
 
@@ -981,197 +2893,551 @@ depression_vistype_jitter <- ggplot(subset(data_long,
                           aes(x=VISTYPE, y=EPDS_SCORE, fill=VISTYPE) ) +
   geom_jitter( aes(color=VISTYPE), width=0.15,alpha=0.5, size=0.2) + 
   geom_boxplot(alpha=0.8, outlier.shape = NA) + 
-  facet_wrap(~SITE_R,nrow=1) +
+  facet_wrap(~SITE,nrow=1) +
   scale_fill_brewer(palette = "Paired") + 
   scale_color_brewer(palette = "Paired", guide="none") + 
   theme_classic() +
   labs(title = "Depression by visit type", tag="", y="Depression") + 
   guides(fill=guide_legend(title="Time")) + 
-  theme(legend.position = "bottom", axis.title.x = element_blank(),
+  theme(legend.position = "left", axis.title.x = element_blank(),
         axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
    geom_hline(yintercept=11, linetype="dashed")
 
 ggsave(paste0("depression_vistype_jitter", ".png"), path = path_to_save,
-       width = 8, height = 5)
+       width = 8, height = 4)
+```
 
- hist_anc20 <- ggplot(subset(data_long,  VISTYPE %in% c("ENROLL/ANC20")), 
-                          aes(x=EPDS_SCORE,) )  + 
-   facet_wrap(~SITE_R, nrow =1, scales="free") + theme_classic() +
-   geom_histogram(binwidth = 1, fill="white", colour="black") +  guides(fill="none") + 
-   labs(title = "ENROLL/ANC20", x="Depression score") +
-   scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30))
+## Histogram - Ghana
+```{r fig9a-ghana}
+ hist_gh <- ggplot(subset(data_long, SITE=="Ghana" & TYPE_VISIT %in% c(1,2,4,5,10)), 
+        aes(x=EPDS_SCORE,) )  + 
+     facet_wrap(~VISTYPE, ncol =1, scales="free") + theme_classic() +
+    geom_histogram(binwidth = 1, fill="#006666", colour="grey") +  guides(fill="none") + 
+     labs(title = "Ghana", x="Depression score") +
+     scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30))
+
+  ggsave(paste0("hist_gh", ".png"), path = path_to_save,
+       width = 8, height = 10)
+knitr::include_graphics(paste0(path_to_save, "hist_gh.png"))
+``` 
+## Histogram - India-CMC 
+```{r fig9b-cmc} 
+  hist_cmc <- ggplot(subset(data_long, SITE=="India-CMC" & TYPE_VISIT %in% c(1,2,4,5,10)), 
+        aes(x=EPDS_SCORE,) )  + 
+     facet_wrap(~VISTYPE, ncol =1, scales="free") + theme_classic() +
+    geom_histogram(binwidth = 1, fill="#7c1158", colour="grey") +  guides(fill="none") + 
+     labs(title = "India-CMC", x="Depression score") +
+     scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30))
+  
+    ggsave(paste0("hist_cmc", ".png"), path = path_to_save,
+       width = 8, height = 10)
+knitr::include_graphics(paste0(path_to_save, "hist_cmc.png"))
+```
+## Histogram - India-SAS
+```{r fig9c-sas}
+   hist_sas <- ggplot(subset(data_long, SITE=="India-SAS" & TYPE_VISIT %in% c(1,2,4,5,10)), 
+        aes(x=EPDS_SCORE,) )  + 
+     facet_wrap(~VISTYPE, ncol =1, scales="free") + theme_classic() +
+    geom_histogram(binwidth = 1, fill="#1a53ff", colour="black") +  guides(fill="none") + 
+     labs(title = "India-SAS", x="Depression score") +
+     scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30))
+   
+ggsave(paste0("hist_sas", ".png"), path = path_to_save,
+       width = 8, height = 10)
+knitr::include_graphics(paste0(path_to_save, "hist_sas.png"))
+```
+## Histogram - Kenya
+```{r fig9d-kenya}
+   hist_ky <- ggplot(subset(data_long, SITE=="Kenya" & TYPE_VISIT %in% c(1,2,4,5,10)), 
+        aes(x=EPDS_SCORE,) )  + 
+     facet_wrap(~VISTYPE, ncol =1, scales="free") + theme_classic() +
+    geom_histogram(binwidth = 1, fill="#00b7c7", colour="black") +  guides(fill="none") + 
+     labs(title = "Kenya", x="Depression score") +
+     scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30))
+   
+     ggsave(paste0("hist_ky", ".png"), path = path_to_save,
+       width = 8, height = 10)
+knitr::include_graphics(paste0(path_to_save, "hist_ky.png"))
+```
+## Histogram - Pakistan
+```{r fig9e-pakistan}
+ hist_pak <- ggplot(subset(data_long, SITE=="Pakistan" & TYPE_VISIT %in% c(1,2,4,5,10)), 
+        aes(x=EPDS_SCORE,) )  + 
+     facet_wrap(~VISTYPE, ncol =1, scales="free") + theme_classic() +
+    geom_histogram(binwidth = 1, fill="#c44c35", colour="black") +  guides(fill="none") + 
+     labs(title = "Pakistan", x="Depression score") +
+     scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30))
  
-  hist_anc32 <- ggplot(subset(data_long,  VISTYPE %in% c("ANC32/36")), 
-                          aes(x=EPDS_SCORE,) )  + 
-    facet_wrap(~SITE_R, nrow =1, scales="free") + theme_classic() +
-  geom_histogram(binwidth = 1, fill="#71BBB2", colour="#27445D") +  guides(fill="none") + 
-  labs(title = "ANC32/ANC36", x="Depression score") +
-  scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30)) 
+   ggsave(paste0("hist_pak", ".png"), path = path_to_save,
+       width = 8, height = 10)
+knitr::include_graphics(paste0(path_to_save, "hist_pak.png"))
+```
+## Histogram - Zambia
+```{r fig9f-zambia}
+  hist_zm <- ggplot(subset(data_long, SITE=="Zambia" & TYPE_VISIT %in% c(1,2,4,5,10)), 
+        aes(x=EPDS_SCORE,) )  + 
+     facet_wrap(~VISTYPE, ncol =1, scales="free") + theme_classic() +
+    geom_histogram(binwidth = 1, fill="#d896ff", colour="black") +  guides(fill="none") + 
+     labs(title = "Zambia", x="Depression score") +
+     scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30))
   
-   hist_pnc6 <- ggplot(subset(data_long,  VISTYPE %in% c("PNC6")), 
-                          aes(x=EPDS_SCORE,) )  + 
-     facet_wrap(~SITE_R, nrow =1, scales="free") + theme_classic() +
-  geom_histogram(binwidth = 1, fill="#27445D", colour="grey") +  guides(fill="none") + 
-  labs(title = "PNC6", x="Depression score") +
-  scale_x_continuous(breaks=seq(0,30,10), limits = c(-1,30)) 
-  
-  
-depression_hist <- plot_grid(hist_anc20, hist_anc32, hist_pnc6,
-                          ncol = 1, nrow = 3)
-ggsave(paste0("depression_hist", ".png"), path = path_to_save,
-                                  width = 8, height = 10)
-knitr::include_graphics(paste0(path_to_save, "depression_hist.png"))
+    ggsave(paste0("hist_zm", ".png"), path = path_to_save,
+       width = 8, height = 10)
+knitr::include_graphics(paste0(path_to_save, "hist_zm.png"))
+```
 
+## Screening for Perinatal Depression
+
+**Definition:** Screening for *possible* major depression using Edinburgh Postnatal Depression Scale (EPDS) using a standard cutoff across sites (score $\geq$ 11) (Table 7) or site-specific cutoff (Table 8).
+
+**To be included as "non-missing" for this outcome, a participant must have:**
+
+**1.** Visit was completed either in person or by telephone.
+
+**2.** Visit type recorded as enrollment, ANC-20, ANC-32, ANC-36, or PNC-6.
+
+*NOTE: we are not considering if non-scheduled routine visit is indicated*
+
+**3.** Valid responses are calculated from EPDS variables (varname [form]: `EPDS0101` – `EPDS0110` [MNH25])
+
+**Common causes of missingness by visit type:**
+
+**-** Form was filled but visit not completed (varname [form]: `MAT_VISIT_MNHXX` [MNH25] > 2).
+
+**-** Visit was completed but unable to calculate depression score (variables `EPDS0101` – `EPDS0110` [MNH25] unable to calculate because all relevant variables are reported as 77, Not applicable).   
+
+**Definition:** Screening for possible major depression using Edinburgh Postnatal Depression Scale (EPDS) using a standard or site-specific cutoff: 
+
+**Numerator:** Valid depression score $\geq$ threshold (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
+
+**Denominator:** MNH25 with a valid depression score (calculated from variables `EPDS0101` – `EPDS0110` [MNH25]) AND visit type = i (`TYPE_VISIT` [MNH25]).
+
+
+**Cutoff scores for possible depression:**
+
+
+
+|Site | Threshold|
+|---- | ---------|
+|Standard| 11 |
+|Ghana| 11 |
+|India-CMC| 8 |
+|India-SAS| 10 |
+|Kenya| 13 |
+|Pakistan| 14 |
+|Zambia| 10 |
+
+
+\newpage
+
+### Data completeness 
+```{r data-completeness}
+
+depression_complete_tab <- depression %>%
+  rowwise() %>%
+  group_by(SITE) %>%
+  summarise(
+
+    ## ANC20
+    "Expected denominator^a^" = paste0(
+      format(sum(DEPR_MISS_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Visit not completed^b^, n (%)" = paste0(
+      format(sum(DEPR_MISS_ANC20== -2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_MISS_ANC20== -2, na.rm = TRUE)/sum(DEPR_MISS_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Visit completed but no summary score, n (%)" = paste0(
+      format(sum(DEPR_MISS_ANC20==-1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_MISS_ANC20==-1, na.rm = TRUE)/sum(DEPR_MISS_ANC20_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Observed denominator^c^" = paste0(
+      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    ## ANC32
+    "Expected denominator^a^ " = paste0(
+      format(sum(DEPR_MISS_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Visit not completed^b^, n (%) " = paste0(
+      format(sum(DEPR_MISS_ANC32== -2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_MISS_ANC32== -2, na.rm = TRUE)/sum(DEPR_MISS_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Visit completed but no summary score, n (%) " = paste0(
+      format(sum(DEPR_MISS_ANC32==-1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_MISS_ANC32==-1, na.rm = TRUE)/sum(DEPR_MISS_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Observed denominator^c^ " = paste0(
+      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    ## PNC6
+    "Expected denominator^a^  " = paste0(
+      format(sum(DEPR_MISS_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Visit not completed^b^, n (%)  " = paste0(
+      format(sum(DEPR_MISS_PNC6==-2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_MISS_PNC6== -2, na.rm = TRUE)/sum(DEPR_MISS_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Visit completed but no summary score, n (%)  " = paste0(
+      format(sum(DEPR_MISS_PNC6==-1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEPR_MISS_PNC6==-1, na.rm = TRUE)/sum(DEPR_MISS_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Observed denominator^c^  " = paste0(
+      format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2))
+
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)  %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
+
+
+# replace NA with 0s (this likely means there is not yet data)
+depression_complete_tab[is.na(depression_complete_tab)] <- paste0("0 (0)")
+
+depression_complete_output <- tb_theme1(depression_complete_tab) %>%
+  tab_header(
+    title = md(paste0("**Table ",tablenum , ". Data Completeness**"))) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness at ANC-20</span>"),
+        rows = 1:4
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness at ANC-32</span>"),
+        rows = 5:8
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data Completeness at PNC-6</span>"),
+        rows = 9:12
+    ) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Data Completeness at ANC-20</span>",
+                            "<span style='font-size: 18px'>Data Completeness at ANC-32</span>",
+                            "<span style='font-size: 18px'>Data Completeness at PNC-6</span>")) %>%
+
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are those who have passed the window, have closed out after the window or have not closed out; or they have data for this visit.</span>")
+ )  %>%
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Visit not completed indicates that either the MNH25 form was filled out for that visit type, but the visit was not completed (MAT_VISIT >=3) or the observation was expected and there is no form for that participant.</span>")
+ )  %>%
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is number of those who have passed the window, have closed out after the window or have not closed out, or have MNH25 filled out for that visit type.</span>")
+ )
+tablenum <- tablenum + 1
+```
+
+```{r, out.width = '100%'}
+gtsave(depression_complete_output, file = "depression_complete_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "depression_complete_output.png"))
+```
+
+\newpage
+
+### Possible perinatal depression, using standard cutoff score
+
+```{r prev-stnd-cutoff}
+
+depression_standard_tab <- depression %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+ 
+    "ANC, ever" = paste0(
+      format(round(sum(DEPR_STND_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                         "% \n (" , 
+      format(sum(DEPR_STND_ANC_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),  "/",
+       format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),    ")"
+      ),
+ 
+    "Enroll/ANC20" = paste0(
+       format(round(sum(DEPR_STND_ANC20_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_STND_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                            ),
+
+    "ANC32/36" = paste0(
+      
+       format(round(sum(DEPR_STND_ANC32_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_STND_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                              ),
+
+    "PNC6" = paste0(
+      
+       format(round(sum(DEPR_STND_PNC6_NUM==1 , na.rm = TRUE)/sum(DEPR_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_STND_PNC6_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+      
+      ),
+
+   
+   
+    "Ever" = paste0(
+      
+       format(round(sum(DEPR_STND_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_STND_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                        ), 
+    
+    ) %>% 
+  
+   
+  
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)  %>% 
+   add_column(
+  .before = 1,
+  "Total" = depression %>%
+    summarise(
+      
+     "ANC, ever" = paste0(
+      format(round(sum(DEPR_STND_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                         "% \n (" , 
+      format(sum(DEPR_STND_ANC_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),  "/",
+       format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),    ")"
+      ),
+ 
+    "Enroll/ANC20" = paste0(
+       format(round(sum(DEPR_STND_ANC20_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_STND_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                            ),
+
+    "ANC32/36" = paste0(
+      
+       format(round(sum(DEPR_STND_ANC32_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_STND_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                              ),
+
+    "PNC6" = paste0(
+      
+       format(round(sum(DEPR_STND_PNC6_NUM==1 , na.rm = TRUE)/sum(DEPR_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_STND_PNC6_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+      
+      ),
+
+   
+   
+    "Ever" = paste0(
+      
+       format(round(sum(DEPR_STND_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                  "% \n (" , 
+      format(sum(DEPR_STND_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                        ), 
+           
+    ) %>%
+    
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+  )
+
+# replace NA with 0s (this likely means there is not yet data)
+depression_standard_tab[is.na(depression_standard_tab)] <- paste0("0 (0)")
+
+depression_standard_output <- tb_theme3(depression_standard_tab) %>% 
+  tab_header(
+    title = md(paste0("**Table " , tablenum , ". Possible Depression (Standard Cutoff)**"))) %>% 
+ 
+tab_style(
+      style = list(
+        cell_text(indent = px(20))
+        ),
+      locations = cells_stub(rows = c(
+        "Enroll/ANC20",         
+        "ANC32/36"))
+      ) %>% 
+  tab_style(
+      style = list(
+        cell_text(indent = px(20))
+        ),
+      locations = cells_stub(rows = c(
+       "Enroll/ANC20",         
+        "ANC32/36"))
+      )   %>% 
+  
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>All data shown as % (n/N).</span>")) 
+
+tablenum <- tablenum + 1
 
 ```
-\newpage
-# Appendix A
-## Table 6. Missed Questions
 
-Note: Several participants were administered EPDS, but are missing data on 1 or more questions. The most commonly missed question is Q10, which queries thoughts of self-harm.
+```{r , out.width = '100%'}
 
-```{r questions-missed}
+gtsave(depression_standard_output, file = "depression_standard_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "depression_standard_output.png"))
 
-table_missq <- data_long %>% 
-  filter(QUERY_MISS_DEPSCORE==0) %>%
+```
+
+### Possible perinatal depression, using site-specific cutoff score
+```{r prev-site-cutoff}
+depression_site_tab <- depression %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
     
-     "Denominator, n " = paste0(
-      format(sum(QUERY_MISS_DEPSCORE==0, na.rm = TRUE), nsmall = 0, digits = 2)),
-
-    "Answered < 10 questions, n (%)" = paste0(
-      format(sum(Q_ANSWERED<10, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(Q_ANSWERED<10 , na.rm = TRUE)/sum(QUERY_MISS_DEPSCORE==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
+    "Cutoff score used" = sum(is.na(DEPR_EVER_DENOM)), 
     
-     "Missed Q1, n" = sum(is.na(EPDS0101_R)),
-     "Missed Q2, n" = sum(is.na(EPDS0102_R)),
-     "Missed Q3, n" = sum(is.na(EPDS0103_R)),
-     "Missed Q4, n" = sum(is.na(EPDS0104_R)),
-     "Missed Q5, n" = sum(is.na(EPDS0105_R)),
-     "Missed Q6, n" = sum(is.na(EPDS0106_R)),
-     "Missed Q7, n" = sum(is.na(EPDS0107_R)),
-     "Missed Q8, n" = sum(is.na(EPDS0108_R)),
-     "Missed Q9, n" = sum(is.na(EPDS0109_R)),
-     "Missed Q10, n" = sum(is.na(EPDS0110_R))
+   ##Ever ANC  
+    "ANC, ever" = paste0(
+      format(round(sum(DEPR_SITE_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                         "% \n (" , 
+      format(sum(DEPR_SITE_ANC_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),  "/",
+       format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),    ")"
+      ),
+ 
+    "Enroll/ANC20" = paste0(
+       format(round(sum(DEPR_SITE_ANC20_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_SITE_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                            ),
+
+    "ANC32/36" = paste0(
+      
+       format(round(sum(DEPR_SITE_ANC32_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_SITE_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                              ),
+
+  #PNC6 
+    "PNC6" = paste0(
+      
+       format(round(sum(DEPR_SITE_PNC6_NUM==1 , na.rm = TRUE)/sum(DEPR_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "%  \n (" , 
+      format(sum(DEPR_SITE_PNC6_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+      
+      ),
+
+   
+     ##Ever   
+   
+    "Ever" = paste0(
+      
+       format(round(sum(DEPR_SITE_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_SITE_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                        ), 
     
     ) %>% 
+  
+   mutate(
+            
+            `Cutoff score used` = 
+              case_when(
+                SITE =="Ghana" ~ "11", 
+                SITE =="India-CMC" ~ "8",
+                SITE =="India-SAS" ~ "10",
+                SITE =="Kenya" ~ "13",
+                SITE =="Pakistan" ~ "14",
+                SITE =="Zambia" ~ "10",
+                ),
+           
+
+            
+          ) %>% 
+  
   t() %>% as.data.frame() %>% 
   `colnames<-`(c(.[1,])) %>% 
   slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
+  add_column(
+  .before = 1,
+  "Total" = depression %>%
+    summarise(
+      
+       "Cutoff score used" =paste0(" "), 
+    
+   ##Ever ANC  
+    "ANC, ever" = paste0(
+      format(round(sum(DEPR_SITE_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                         "% \n (" , 
+      format(sum(DEPR_SITE_ANC_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),  "/",
+       format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),    ")"
+      ),
+ 
+    "Enroll/ANC20" = paste0(
+       format(round(sum(DEPR_SITE_ANC20_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_SITE_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                            ),
 
+    "ANC32/36" = paste0(
+      
+       format(round(sum(DEPR_SITE_ANC32_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_SITE_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                              ),
+
+  #PNC6 
+    "PNC6" = paste0(
+      
+       format(round(sum(DEPR_SITE_PNC6_NUM==1 , na.rm = TRUE)/sum(DEPR_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "%  \n (" , 
+      format(sum(DEPR_SITE_PNC6_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_PNC6_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+      
+      ),
+
+   
+     ##Ever   
+   
+    "Ever" = paste0(
+      
+       format(round(sum(DEPR_SITE_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),                                                          "% \n (" , 
+      format(sum(DEPR_SITE_EVER_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),   "/",
+       format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),      ")"
+                        ), 
+           
+    ) %>%
+    
+    
+    
+    t() %>% as.data.frame() %>%
+    `colnames<-`(c(.[1,])) %>% unlist()
+    )
 
 # replace NA with 0s (this likely means there is not yet data)
-table_missq[is.na(table_missq)] <- paste0("0 (0)")
+depression_site_tab[is.na(depression_site_tab)] <- paste0("0 (0)")
 
-table_missq <- tb_theme1(table_missq) %>% 
+depression_site_output <- tb_theme3(depression_site_tab) %>% 
   tab_header(
-    title = md("**Table 5. Missed Questions**"))  %>% 
+    title = md(paste0("**Table " , tablenum , ". Possible Depression (Site-specific Cutoff)**"))) %>% 
+
+  
+tab_style(
+      style = list(
+        cell_text(indent = px(20))
+        ),
+      locations = cells_stub(rows = c(
+        "Enroll/ANC20",         
+        "ANC32/36"))
+      ) %>% 
+  tab_style(
+      style = list(
+        cell_text(indent = px(20))
+        ),
+      locations = cells_stub(rows = c(
+       "Enroll/ANC20",         
+        "ANC32/36"))
+      )   %>% 
   
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Some women missed multiple questions.</span>")) 
-
-gtsave(table_missq, file = "table_missq.png", path = path_to_save, expand = 10)
-knitr::include_graphics(paste0(path_to_save, "table_missq.png"))
-
-```
-\newpage
-
-## Figure 9. Administration at India-CMC (self vs. staff)
-
-Note: India-CMC changed the administration from self-administered EPDS to staff-administered EPDS on December 8, 2023. Depression scores differed substantially based on administration format.
-
-```{r admin-figure}
-
-data_long <- data_long %>%
-   mutate(
-  CMC_ADMIN_STR = case_when(
-   CMC_ADMIN==0 ~ "Self-administered",
-   CMC_ADMIN==1 ~ "Staff-administered"
-  ))
-  
-
-depression_admin <- ggplot(subset(data_long, SITE=="India-CMC"), aes(EPDS_SCORE)) + facet_wrap(~CMC_ADMIN_STR, ncol=1, scales="free") + 
-    theme_classic() +
-    geom_histogram(binwidth = 1, fill="white", colour="black") +  
-    guides(fill="none") + 
-    labs(title = "Depression in India-CMC by administration date", 
-         x="Depression score", caption="Staff-administered after 8 December 2023") +
-    scale_x_continuous(breaks=seq(0,30,5), limits = c(-1,30))
-
-ggsave(paste0("depression_admin", ".png"), path = path_to_save,
-       width = 8, height = 5)
-knitr::include_graphics(paste0(path_to_save, "depression_admin.png"))
-```
- 
-## Table 6. Administration at India-CMC (self vs. staff)
-```{r admin-table}
-
-data_long <- data_long %>%
-    mutate(
-  EPDS_STND = case_when(
-     EPDS_SCORE>=11 & EPDS_SCORE<=30 ~ 1,
-     EPDS_SCORE <11 ~ 0))
-
-admin_table <- data_long %>% 
-  filter(SITE=="India-CMC" & CMC_ADMIN <= 1) %>%
-  rowwise() %>% 
-  group_by(CMC_ADMIN_STR) %>% 
-  summarise(
-
-    "Denominator, n" = sum(!is.na(EPDS_SCORE)),
-    
-    "Depression score, median (Q1, Q3)" = paste0(
-      format(median(EPDS_SCORE, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(quantile(EPDS_SCORE, probs=0.25, na.rm = TRUE), 2), nsmall = 0, digits = 2),
-     ", " ,  format(round(quantile(EPDS_SCORE, probs=0.75, na.rm = TRUE), 2), nsmall = 0, digits = 2), ")"),
-    
-     "Depression score 11+, n (%)" = paste0(
-      format(sum(EPDS_STND==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(EPDS_STND==1 , na.rm = TRUE)/sum(EPDS_STND<=1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-    
- 
-    ) %>% 
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1)  %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) %>% 
-  mutate_all(funs(str_replace(., "NA", "0"))) 
-
-
-# replace NA with 0s (this likely means there is not yet data)
-admin_table[is.na(admin_table)] <- paste0("0 (0)")
-
-admin_table <- tb_theme1(admin_table) %>% 
-  tab_header(
-    title = md("**Table 6. Administration Format (India-CMC)**"))
-  
-  
-
-
-gtsave(admin_table, file = "admin_table.png", path = path_to_save, expand = 10)
-knitr::include_graphics(paste0(path_to_save, "admin_table.png"))
-
-
-ranksum <- wilcox.test(EPDS_SCORE ~ CMC_ADMIN, 
-                         data=subset(data_long, SITE=="India-CMC" & CMC_ADMIN<=1))
-ranksum_pval <- ranksum$p.value
-
-ttest <- t.test(EPDS_SCORE ~ CMC_ADMIN, 
-                         data=subset(data_long, SITE=="India-CMC" & CMC_ADMIN<=1))
-
-ttest_pval <- ttest$p.value
+    footnote = html("<span style='font-size: 18px'><sup>Note: </sup>All data shown as % (n/N).</span>")) 
+   
 
 ```
 
-**P-value of Wilcoxon rank-sum test:** `r (paste0(ranksum_pval))`
+```{r, out.width = '100%'}
 
-**P-value of t-test:** `r (paste0(ttest_pval))`
+gtsave(depression_site_output, file = "depression_site_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "depression_site_output.png"))
+
+```
