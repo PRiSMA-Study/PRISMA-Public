@@ -9,9 +9,6 @@ This folder contains all codes used to generate datasetst that feed into the mar
 
 **`Infant-Constructed-Variables.R`** Includes coding for low birthweight, pre-term birth, sga, mortality, stillbirth, fetal loss, perinatal birth asphyxia, hyperbilirubinemia, PSBI, neonatal sepsis, etc.
 
-**`Infant-Constructed-Variables.R`** Includes coding for low birthweight, pre-term birth, sga, mortality, stillbirth, fetal loss, perinatal birth asphyxia, hyperbilirubinemia, PSBI, neonatal sepsis, etc.
-
-
 
 ## Report rendering scripts:
 
