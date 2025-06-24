@@ -3,7 +3,7 @@
 
 ## Description
 
-This folder contains all codes used to generate datasetst that feed into the markdown files that render reports for PRISMA quarterly readouts. 
+This folder contains all codes used to generate datasetst that feed into the markdown files that render reports for Q2 PRISMA quarterly readout. The data upload used to generate reports is 2025-04-18. 
 
 ## Outcome scripts:
 
