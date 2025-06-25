@@ -6,7 +6,7 @@ This folder contains all codes used to generate the maternal demographics report
 
 ## Codes to generate outcomes:
 
-**`MAT_DEMOGRAPHICS.R** Code to construct variables that will be included in the maternal demographics report including household, individual, maternal health, and maternal/infant characteristics. 
+**`MAT_DEMOGRAPHICS.R`** Code to construct variables that will be included in the maternal demographics report including household, individual, maternal health, and maternal/infant characteristics. 
 
 ## Code to generate report:
 
