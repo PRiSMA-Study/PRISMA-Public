@@ -1,5 +1,3 @@
-# PRISMA Infant Outcomes Report
-
 ## Description
 
 This folder contains all codes used to generate the infant outcomes report. 
