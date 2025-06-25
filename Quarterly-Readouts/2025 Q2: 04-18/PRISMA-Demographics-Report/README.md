@@ -2,7 +2,7 @@
 
 This folder contains all codes used to generate the maternal demographics report. 
 
-✏️ Authors: Stacie Loisate (stacie.loisate@gwu.edu)
+✏️ Author: Stacie Loisate (stacie.loisate@gwu.edu)
 
 ## Codes to generate outcomes:
 
