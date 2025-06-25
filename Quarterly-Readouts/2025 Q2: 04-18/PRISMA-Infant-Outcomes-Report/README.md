@@ -2,6 +2,7 @@
 
 This folder contains all codes used to generate the infant outcomes report. 
 
+✏️ Authors: Precious Williams (williams_pj@gwu.edu) and Stacie Loisate (stacie.loisate@gwu.edu)
 ## Codes to generate outcomes:
 
 **`INF_OUTCOMES.R`** Includes coding for low birthweight, pre-term birth, sga, mortality, stillbirth, fetal loss, perinatal birth asphyxia, hyperbilirubinemia, PSBI, neonatal sepsis, etc.
