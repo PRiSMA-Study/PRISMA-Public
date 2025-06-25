@@ -11,6 +11,8 @@ This folder contains all codes used to generate datasetst that feed into the mar
 
 [📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Biliruler-Ouctomes-Report) **Biliruler Ouctomes Report** Report of outcomes related to the Bili-ruler Substudy including Distribution of Bili-ruler and MST, Bili-ruler vs TCB, Matches between 2 staff using Bili-ruler, Tables Se/Sp of Bili-ruler cutoffs vs TCB cutoffs, ROC and AUC curves.
 
+[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Demographics-Report) **PRISMA-Demographics-Report** Report includes definition of demographic characteristics (household, individual, maternal health, maternal/infant characteristics).
+
 [📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Infant-Outcomes-Report) **Infant Outcomes Report** Report of infant outcomes including low birthweight, pre-term birth, sga, mortality, stillbirth, fetal loss, perinatal birth asphyxia, hyperbilirubinemia, PSBI, neonatal sepsis, etc.
 
 [📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Maternal-Nutrition-Report) **Maternal Nutrition Report** Report of quansys panel, b-vitamins, MCV, and GWG.
