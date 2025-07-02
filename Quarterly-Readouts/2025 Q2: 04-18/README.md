@@ -7,6 +7,8 @@ This folder contains all codes used to generate datasetst that feed into the mar
 
 ❗*Note: Most codes require the output generated from `MAT_ENROLL.R`. This file is not included in each specific folder, rather is stored above in the 2025 Q2: 04-18 folder. This code outputes the list of enrolled ids, boe, edd, and visit window dates.* 
 
+For detailed descriptions and response options for variables generated in all codes provided in the folders above, please refer to `PRISMA-Outcomes-DataDictionary-Q2-2025-04-18.xlsx`.
+
 ## Reports included in the readout:
 
 [📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Biliruler-Ouctomes-Report) **Biliruler Ouctomes Report** Report of outcomes related to the Bili-ruler Substudy including Distribution of Bili-ruler and MST, Bili-ruler vs TCB, Matches between 2 staff using Bili-ruler, Tables Se/Sp of Bili-ruler cutoffs vs TCB cutoffs, ROC and AUC curves.
