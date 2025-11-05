@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2025-01-10)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2025-11-05)"
 output:
   pdf_document:
     toc: no
@@ -30,18 +30,34 @@ library(naniar)
 library(RColorBrewer)
 library(gt) ## for table gen
 library(webshot2)  ## for table gen
+library(readxl)
 
-UploadDate = "2025-01-24"
-path_to_data <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/data/"
+UploadDate = "2025-10-31"
+# path_to_data <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/data/"
+path_to_data <- "D:/Users/stacie.loisate/Documents/import/outcomes/"
+
 path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/output/"
 path_to_save_figures <- "D:/Users/stacie.loisate/Documents"
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
-psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
-infant_trajectory <- read.csv(paste0(path_to_tnt, "INF_GROWTH_WIDE", ".csv"))
-all_plus_outcome <- read.csv(paste0(path_to_tnt, "INF_GROWTH_LONG", ".csv"))
+# UploadDate = "2025-04-18"
+mat_enroll <- read_xlsx(paste0("Z:/Outcome Data/", UploadDate, "/MAT_ENROLL.xlsx"))
+infant_outcomes <- read_xlsx(paste0("Z:/Outcome Data/", UploadDate, "/INF_OUTCOMES.xlsx"))
+remapp_ids <- mat_enroll %>% filter(REMAPP_ENROLL ==1)
+
+infant_trajectory <- read.csv(paste0(path_to_data, "INF_GROWTH_WIDE", ".csv"))
+all_plus_outcome <- read.csv(paste0(path_to_data, "INF_GROWTH_LONG", ".csv"))
+psbi_outcome <- read.csv(paste0(path_to_data, "INF_PSBI_LONG", ".csv"))
+infant_outcomes <- read.csv(paste0(path_to_data, "INF_OUTCOMES", ".csv"))
+
+# infant_trajectory <- read.csv(paste0(path_to_tnt, "INF_GROWTH_WIDE", ".csv"))
+# all_plus_outcome <- read.csv(paste0(path_to_tnt, "INF_GROWTH_LONG", ".csv"))
+# psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
 # infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
-infant_outcomes <- read.csv(paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/", "INF_OUTCOMES-SEPSIS", ".csv"))
+
+# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
+# infant_outcomes <- read.csv(paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/", "INF_OUTCOMES-UPDATED", ".csv"))
+# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES-UPDATED", ".csv"))
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -125,7 +141,7 @@ g_legend <- function(p) {
 setwd(paste0(path_to_save))
 ```
 
-**Includes data from synapse last updated:** 2025-04-18
+**Includes data from synapse last updated:** 2025-10-31
 
 \tableofcontents
 
@@ -154,9 +170,9 @@ setwd(paste0(path_to_save))
 ## asphyxia
 all_births <- infant_outcomes %>%
   ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  # # ## Add empty rows for missing SITE values if the specific site doesn't exist
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
     rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
@@ -188,9 +204,9 @@ all_births <- infant_outcomes %>%
   
 lbw_sum <- infant_outcomes %>% 
   ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   filter(LBW_CAT_ANY != 55) %>%  ## remove missing
   rowwise() %>% 
   group_by(SITE) %>% 
@@ -239,9 +255,9 @@ lbw_sum <- infant_outcomes %>%
 ## preterm:
 preterm_sum <- infant_outcomes %>% 
   ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   filter(PRETERMBIRTH_CAT != 55) %>%  ## remove missing
   rowwise() %>% 
   group_by(SITE) %>% 
@@ -277,9 +293,9 @@ preterm_sum <- infant_outcomes %>%
 #sga
 sga_sum <- infant_outcomes %>%
   ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   filter(SGA_CAT != 55) %>%  ## remove missing
   rowwise() %>% 
   group_by(SITE) %>% 
@@ -338,53 +354,53 @@ sga_sum <- infant_outcomes %>%
 )
 
 # neonatal mortality (no missing here)infant_outcomes
-neo_mort_sum <- infant_outcomes %>% 
-  ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+neo_mort_sum <- infant_outcomes %>%
+  ## If india-SAS doesn't have data, add emprty row here
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  rowwise() %>% 
-  group_by(SITE) %>% 
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
-    "Neonatal mortality, n per 1000^b^" = paste0(
-      format(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE)/sum(D28_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
-      ")")
-    
-  )  %>%
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1) %>% 
-        add_column(
-      .before = 1,
-    "Total" = infant_outcomes %>%
-        plyr::summarise(
-        
+
     "Neonatal mortality, n per 1000^b^" = paste0(
       format(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE)/sum(D28_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
       ")")
 
-    
+  )  %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+        add_column(
+      .before = 1,
+    "Total" = infant_outcomes %>%
+        plyr::summarise(
+
+    "Neonatal mortality, n per 1000^b^" = paste0(
+      format(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM==1, na.rm = TRUE)/sum(D28_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
+      ")")
+
+
   ) %>%
         t() %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
-) %>% 
+) %>%
    mutate_all(funs(str_replace(., "NaN", "0")))
-        
+
   #   "Neonatal mortality, n per 1000^a^" = paste0(
   #     format(sum(TOTAL_NEO_DEATHS==1, na.rm = TRUE), nsmall = 0, digits = 2),
   #     " (",
   #     format(round(sum(TOTAL_NEO_DEATHS==1, na.rm = TRUE)/sum(D28_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
   #     ")")
-  # 
-  #   
+  #
+  #
   # ) %>%
 
-## remove infant mortality for now -- add back in when we have data 
+## remove infant mortality for now -- add back in when we have data
 inf_mort_sum <- infant_outcomes %>%
   rowwise() %>%
   group_by(SITE) %>%
@@ -421,43 +437,43 @@ inf_mort_sum <- infant_outcomes %>%
 
 # Stillbirth
 stillbirth_sum <- infant_outcomes %>%
-  ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  ## If india-SAS doesn't have data, add emprty row here
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   filter(STILLBIRTH_GESTAGE_CAT != 55) %>%  ## remove missing
-  rowwise() %>% 
-  group_by(SITE) %>% 
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
+
     "Stillbirth >=20wks, n per 1000^d^" = paste0(
       format(sum(STILLBIRTH_20WK==1 & STILLBIRTH_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(STILLBIRTH_20WK==1 & STILLBIRTH_DENOM==1, na.rm = TRUE)/sum(STILLBIRTH_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
       ")"),
-    
+
     "Stillbirth >=28wks, n per 1000^d^" = paste0(
       format(sum(STILLBIRTH_28WK==1 & STILLBIRTH_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(STILLBIRTH_28WK==1 & STILLBIRTH_DENOM==1, na.rm = TRUE)/sum(STILLBIRTH_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
       ")")
-    
+
 
   )  %>%
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1) %>% 
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
         add_column(
       .before = 1,
     "Total" = infant_outcomes %>%
         plyr::summarise(
-        
+
     "Stillbirth >=20wks, n per 1000^d^" = paste0(
       format(sum(STILLBIRTH_20WK==1 & STILLBIRTH_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(STILLBIRTH_20WK==1 & STILLBIRTH_DENOM==1, na.rm = TRUE)/sum(STILLBIRTH_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
       ")"),
-    
+
     "Stillbirth >=28wks, n per 1000^d^" = paste0(
       format(sum(STILLBIRTH_28WK==1 & STILLBIRTH_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -468,197 +484,197 @@ stillbirth_sum <- infant_outcomes %>%
         t() %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
-) %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) 
+) %>%
+  mutate_all(funs(str_replace(., "NaN", "0")))
 
 
 # Fetal death (no missing)
 fetal_dth_sum <- infant_outcomes %>%
-  ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  ## If india-SAS doesn't have data, add emprty row here
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
-  rowwise() %>% 
-  group_by(SITE) %>% 
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
+
     "Total fetal deaths, n (%)^e^" = paste0(
       format(sum(INF_FETAL_DTH == 1 & INF_FETAL_DTH_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(INF_FETAL_DTH == 1 & INF_FETAL_DTH_DENOM==1, na.rm = TRUE)/sum(INF_FETAL_DTH_DENOM==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-    
+
   )  %>%
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1) %>% 
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
         add_column(
       .before = 1,
     "Total" = infant_outcomes %>%
         plyr::summarise(
-          
+
     "Total fetal deaths, n (%)^e^" = paste0(
       format(sum(INF_FETAL_DTH == 1 & INF_FETAL_DTH_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(INF_FETAL_DTH == 1 & INF_FETAL_DTH_DENOM==1, na.rm = TRUE)/sum(INF_FETAL_DTH_DENOM==1, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-    
+
   ) %>%
         t() %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
-) %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) 
+) %>%
+  mutate_all(funs(str_replace(., "NaN", "0")))
 
 
 # asphyxia (no missing)
-birth_asphyxia_sum <- infant_outcomes %>% 
-  ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+birth_asphyxia_sum <- infant_outcomes %>%
+  ## If india-SAS doesn't have data, add emprty row here
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
-  rowwise() %>% 
-  group_by(SITE) %>% 
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
+
     "Perinatal birth asphyxia, n (%)" = paste0(
       format(sum(INF_ASPH == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(INF_ASPH == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-    
+
   )  %>%
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1) %>% 
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
         add_column(
       .before = 1,
     "Total" = infant_outcomes %>%
         plyr::summarise(
-          
+
     "Perinatal birth asphyxia, n (%)" = paste0(
       format(sum(INF_ASPH == 1 & LIVEBIRTH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(INF_ASPH == 1 & LIVEBIRTH == 1, na.rm = TRUE)/sum(LIVEBIRTH == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-    
+
   ) %>%
         t() %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
-) %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) 
+) %>%
+  mutate_all(funs(str_replace(., "NaN", "0")))
 
 
 
 # hyperbili by AAP (no missing)
-hyperbili_sum <- infant_outcomes %>% 
-  filter(LIVEBIRTH==1) %>% 
-  ## If india-SAS doesn't have data, add emprty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+hyperbili_sum <- infant_outcomes %>%
+  filter(LIVEBIRTH==1) %>%
+  ## If india-SAS doesn't have data, add emprty row here
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
-  rowwise() %>% 
-  group_by(SITE) %>% 
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
-    "Hyperbilirubinemia by AAP threshold, n (%)^e^" = paste0(
-      format(sum((INF_HYPERBILI_AAP_24HR == 1 | 
-                (INF_HYPERBILI_AAP_5DAY == 1) |
-                (INF_HYPERBILI_AAP_14DAY == 1)) & DENOM_HYPERBILI_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum((INF_HYPERBILI_AAP_24HR == 1 | 
-                (INF_HYPERBILI_AAP_5DAY == 1) |
-                (INF_HYPERBILI_AAP_14DAY == 1)) & DENOM_HYPERBILI_ANY==1, na.rm = TRUE)/sum(DENOM_HYPERBILI_ANY==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"), 
-    
-    "Any jaundice identified at any time^g^" = paste0(
-      format(sum((INF_JAUN_NON_SEV_ANY==1 | 
-                   INF_JAUN_SEV_24HR == 1 |
-                   INF_JAUN_SEV_GREATER_24HR == 1) & DENOM_JAUN == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum((INF_JAUN_NON_SEV_ANY==1 | 
-                         INF_JAUN_SEV_24HR == 1 |
-                         INF_JAUN_SEV_GREATER_24HR == 1) & DENOM_JAUN == 1, na.rm = TRUE)/sum(DENOM_JAUN == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")")
 
-    
-  )  %>%
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1) %>% 
-        add_column(
-      .before = 1,
-    "Total" = infant_outcomes %>%
-        filter(LIVEBIRTH==1) %>% 
-        plyr::summarise(
-          
-    "Hyperbilirubinemia by AAP threshold, n (%)^f^" = paste0(
-      format(sum((INF_HYPERBILI_AAP_24HR == 1 | 
+    "Hyperbilirubinemia by AAP threshold, n (%)^e^" = paste0(
+      format(sum((INF_HYPERBILI_AAP_24HR == 1 |
                 (INF_HYPERBILI_AAP_5DAY == 1) |
                 (INF_HYPERBILI_AAP_14DAY == 1)) & DENOM_HYPERBILI_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum((INF_HYPERBILI_AAP_24HR == 1 | 
+      format(round(sum((INF_HYPERBILI_AAP_24HR == 1 |
                 (INF_HYPERBILI_AAP_5DAY == 1) |
                 (INF_HYPERBILI_AAP_14DAY == 1)) & DENOM_HYPERBILI_ANY==1, na.rm = TRUE)/sum(DENOM_HYPERBILI_ANY==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
+
     "Any jaundice identified at any time^g^" = paste0(
-      format(sum((INF_JAUN_NON_SEV_ANY==1 | 
+      format(sum((INF_JAUN_NON_SEV_ANY==1 |
                    INF_JAUN_SEV_24HR == 1 |
                    INF_JAUN_SEV_GREATER_24HR == 1) & DENOM_JAUN == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum((INF_JAUN_NON_SEV_ANY==1 | 
+      format(round(sum((INF_JAUN_NON_SEV_ANY==1 |
                          INF_JAUN_SEV_24HR == 1 |
                          INF_JAUN_SEV_GREATER_24HR == 1) & DENOM_JAUN == 1, na.rm = TRUE)/sum(DENOM_JAUN == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-    
+
+
+  )  %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+        add_column(
+      .before = 1,
+    "Total" = infant_outcomes %>%
+        filter(LIVEBIRTH==1) %>%
+        plyr::summarise(
+
+    "Hyperbilirubinemia by AAP threshold, n (%)^f^" = paste0(
+      format(sum((INF_HYPERBILI_AAP_24HR == 1 |
+                (INF_HYPERBILI_AAP_5DAY == 1) |
+                (INF_HYPERBILI_AAP_14DAY == 1)) & DENOM_HYPERBILI_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum((INF_HYPERBILI_AAP_24HR == 1 |
+                (INF_HYPERBILI_AAP_5DAY == 1) |
+                (INF_HYPERBILI_AAP_14DAY == 1)) & DENOM_HYPERBILI_ANY==1, na.rm = TRUE)/sum(DENOM_HYPERBILI_ANY==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Any jaundice identified at any time^g^" = paste0(
+      format(sum((INF_JAUN_NON_SEV_ANY==1 |
+                   INF_JAUN_SEV_24HR == 1 |
+                   INF_JAUN_SEV_GREATER_24HR == 1) & DENOM_JAUN == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum((INF_JAUN_NON_SEV_ANY==1 |
+                         INF_JAUN_SEV_24HR == 1 |
+                         INF_JAUN_SEV_GREATER_24HR == 1) & DENOM_JAUN == 1, na.rm = TRUE)/sum(DENOM_JAUN == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+
   ) %>%
         t() %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
-) %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) 
+) %>%
+  mutate_all(funs(str_replace(., "NaN", "0")))
 
 
 # psbi
-psbi_sum <- infant_outcomes %>% 
-  ## If india-SAS doesn't have data, add empty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+psbi_sum <- infant_outcomes %>%
+  ## If india-SAS doesn't have data, add empty row here
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
   # ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
-  rowwise() %>% 
-  group_by(SITE) %>% 
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  rowwise() %>%
+  group_by(SITE) %>%
   summarise(
-    
+
     "PSBI at IPC, n (%)^h^" = paste0(
       format(sum(INF_PSBI_IPC == 1 & INF_PSBI_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(INF_PSBI_IPC == 1 & INF_PSBI_DENOM == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-    
+
   )  %>%
-  t() %>% as.data.frame() %>% 
-  `colnames<-`(c(.[1,])) %>% 
-  slice(-1) %>% 
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
         add_column(
       .before = 1,
     "Total" = infant_outcomes %>%
         plyr::summarise(
-          
+
     "PSBI at IPC, n (%)^h^" = paste0(
       format(sum(INF_PSBI_IPC == 1 & INF_PSBI_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(INF_PSBI_IPC == 1 & INF_PSBI_DENOM == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
-    
+
   ) %>%
         t() %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
-) %>% 
-  mutate_all(funs(str_replace(., "NaN", "0"))) 
-
+) %>%
+  mutate_all(funs(str_replace(., "NaN", "0")))
+# 
 ```
 
 ```{r}
@@ -666,11 +682,12 @@ psbi_sum <- infant_outcomes %>%
 
 infantoutcomes_combined <- bind_rows(all_births, lbw_sum, preterm_sum, sga_sum, neo_mort_sum,inf_mort_sum, stillbirth_sum, fetal_dth_sum, birth_asphyxia_sum, hyperbili_sum, psbi_sum) %>% select("Total", "Ghana", "India-CMC","India-SAS", "Kenya", "Pakistan", "Zambia")
 
+
 infantoutcomes_output <-  infantoutcomes_combined %>% 
   select(-Total) 
 
 # replace NA with 0s (this likely means there is not yet data)
-infantoutcomes_combined[is.na(infantoutcomes_combined)] <- paste0("0 (0)")
+infantoutcomes_combined[is.na(infantoutcomes_combined)] <- paste0("- (-)")
 
 infantoutcomes_output <- tb_theme1(infantoutcomes_combined) %>% 
   tab_header(
@@ -1308,6 +1325,318 @@ ggplot(data=infant_outcomes %>% filter(LIVEBIRTH == 1 | STILLBIRTH_20WK==1),
 <span style="font-size: 88%;">
 Figure 3b. Among all deliveries (stillbirths and livebirths). Gestational age at birth was calculated by taking the difference between the DOB and "estimated conception date" determined by BOE.  
 </span>
+
+
+<!-- ### Table 3. Preterm delivery -->
+
+<!-- ```{r} -->
+
+<!-- # N(%) without both US and LMP; (MISSING_BOTH_US_LMP) -->
+<!-- # Distribution of GA_DIFF_DAYS;  -->
+<!-- # N% where US is used vs. where LMP is used. (BOE_METHOD (where 1 = US and 2 = LMP)) -->
+<!-- # Histograms of GA at birth (GA_AT_BIRTH_WKS) -->
+
+<!-- # a. Post-term delivery (>=41 weeks): Delivery after 41 weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_GT41] -->
+<!-- # b. Term delivery (37 to <41 weeks): Delivery between 37 and <41 weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT41] -->
+<!-- # c. Preterm delivery (<37 weeks): Delivery prior to 37 completed weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT37] -->
+<!-- # d. Preterm delivery (<34 weeks): Delivery prior to 34 completed weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT34] -->
+<!-- # e. Preterm delivery (<32 weeks): Delivery prior to 32 completed weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT32] -->
+<!-- # f. Preterm delivery (<28 weeks): Delivery prior to 28 completed weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT28] -->
+<!-- # g. Preterm delivery severity (categorical): Late preterm (34 to <37 wks), early preterm (32 to <34 wks), very preterm (28 to <32 wks), extremely preterm (<28 weeks) [varname: PRETERMBIRTH_CAT] -->
+
+
+<!-- preterm_birth_tab <- preterm_birth %>% -->
+<!--   ## If India-SAS doesn't have data, add empty row here  -->
+<!--   mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>% -->
+<!--   ## Add empty rows for missing SITE values if the specific site doesn't exist -->
+<!--   complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>% -->
+<!--   rowwise() %>%  -->
+<!--   group_by(SITE) %>%  -->
+<!--   summarise( -->
+
+<!--     "Denominator^a^  " =  paste0( -->
+<!--       format(sum(BIRTH_OUTCOME_REPORTED ==1, na.rm = TRUE), nsmall = 0, digits = 2)), -->
+
+<!--     "20 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 20, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 20, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "21 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 21, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 21, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "22 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 22, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 22, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "23 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 23, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 23, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "24 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 24, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 24, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "25 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 25, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 25, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "26 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 26, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 26, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "27 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 27, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 27, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "28 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 28, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 28, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "29 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 29, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 29, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "30 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 30, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 30, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "31 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 31, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 31, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "32 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 32, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 32, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "33 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 33, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 33, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "34 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 34, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 34, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"),  -->
+<!--      "35 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 35, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 35, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "36 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 36, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 36, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"),  -->
+
+<!--      "37 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 37, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 37, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "38 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 38, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 38, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"),    -->
+
+<!--     "39 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 39, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 39, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "40 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE == 40, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE == 40, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--     "41 weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE ==41, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE ==41, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+
+<!--     "42+ weeks" = paste0( -->
+<!--           format(sum(GESTAGEBIRTH_BOE >=42, na.rm = TRUE), nsmall = 0, digits = 2), -->
+<!--           " (", -->
+<!--           format(round(sum(GESTAGEBIRTH_BOE >=42, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+<!--           ")"), -->
+
+<!--   )  %>% -->
+<!--   t() %>% as.data.frame() %>%  -->
+<!--   `colnames<-`(c(.[1,])) %>%  -->
+<!--   slice(-1)  -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- preterm_tab2 <- preterm_birth_tab %>%  -->
+<!--   # `rownames<-` (c( -->
+<!--   #   "Denominator", -->
+<!--   #   "Missing both US and LMP GA, n (%)", -->
+<!--   #   "BOE = Ultrasound, n (%)", -->
+<!--   #   "BOE = LMP, n (%)", -->
+<!--   #    -->
+<!--   #   "Denominator ", -->
+<!--   #   "Extremely preterm (<28wks)", -->
+<!--   #   "Very preterm (28 to <32wks)", -->
+<!--   #   "Moderate preterm (32 to <34wks)", -->
+<!--   #   "Late preterm (34 to <37wks)", -->
+<!--   #   "Term (37 to <41wks)", -->
+<!--   #   "Postterm (>=41wks)", -->
+<!--   #  -->
+<!--   #   "Denominator  ", -->
+<!--   #   "Extremely preterm (<28wks) ", -->
+<!--   #   "Very preterm (28 to <32wks) ", -->
+<!--   #   "Moderate preterm (32 to <34wks) ", -->
+<!--   #   "Late preterm (34 to <37wks) ", -->
+<!--   #   "Term (37 to <41wks) ", -->
+<!--   #   "Postterm (>=41wks) " -->
+<!--   #  -->
+<!--   # ) -->
+<!--   # ) %>%  -->
+<!--   mutate_all(funs(str_replace(., "NaN", "0")))  -->
+
+<!-- # replace NA with 0s (this likely means there is not yet data) -->
+<!-- preterm_tab2[is.na(preterm_tab2)] <- paste0("0 (0)") -->
+
+<!-- preterm_output2 <- tb_theme1(preterm_tab2) %>%  -->
+<!--   tab_header( -->
+<!--     title = md("**Table 3**") -->
+<!--   ) %>% -->
+<!--   tab_row_group( -->
+<!--     label = html("<span style='font-size: 18px'>Preterm delivery severity (live & stillbirths) (continuous), n (%)</span>"), -->
+<!--     rows = 1:24 -->
+<!--   ) %>% -->
+<!--   row_group_order(groups = c("<span style='font-size: 18px'>Preterm delivery severity (live & stillbirths) (continuous), n (%)</span>") -->
+<!--                   ) %>%  -->
+<!--     tab_style( -->
+<!--       style = list( -->
+<!--         cell_text(weight = "bold") -->
+<!--         ), -->
+<!--       locations = cells_body(rows = c( -->
+<!--                  "Denominator^a^  "))) %>%  -->
+<!--   tab_style( -->
+<!--       style = list( -->
+<!--         cell_text(weight = "bold") -->
+<!--         ), -->
+<!--       locations = cells_stub(rows = c( -->
+<!--                  "Denominator^a^  "))) %>%  -->
+<!--     tab_footnote( -->
+<!--     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with a reported live birth or stillbirth.</span>") -->
+<!--  ) %>%  -->
+<!--       ## indent severe categories  -->
+<!--   tab_style( -->
+<!--       style = list( -->
+<!--         cell_text(indent = px(40), size = 24) -->
+<!--         ), -->
+<!--       locations = cells_stub(rows = rownames(preterm_birth_tab)[-1])  -->
+<!--       )  -->
+
+
+
+<!-- ``` -->
+
+<!-- ```{r, out.width = '100%'} -->
+<!-- preterm_output2 <- preterm_output2 %>% gtsave("preterm_output2.png", expand = 10) -->
+<!-- knitr::include_graphics("preterm_output2.png") -->
+<!-- ``` -->
+
+
+<!-- \newpage -->
+
+<!-- ### Figure 3c. Distribution of stillbirths and livebirths among all deliveries by gestational age, by site.  -->
+
+<!-- ```{r, out.width = '100%', out.height='100%'} -->
+
+<!-- # Define a custom labeling function -->
+<!-- custom_labels <- function(x) { -->
+<!--   ifelse(x == 42, "42+", as.character(x)) -->
+<!-- } -->
+
+<!-- test <- preterm_birth %>% -->
+<!--   filter(BIRTH_OUTCOME_REPORTED == 1) %>% -->
+<!--     mutate(GESTAGEBIRTH_BOE = as.numeric(GESTAGEBIRTH_BOE)) %>%  -->
+<!--   filter(GESTAGEBIRTH_BOE>=20) %>%  -->
+<!--   select(SITE, LIVEBIRTH, GESTAGEBIRTH_BOE) %>% -->
+<!--   mutate(GESTAGEBIRTH_BOE = ifelse(GESTAGEBIRTH_BOE >= 42, 42, GESTAGEBIRTH_BOE)) %>% -->
+<!--   group_by(SITE, GESTAGEBIRTH_BOE, LIVEBIRTH) %>% -->
+<!--   summarise(n = n(), .groups = 'drop') %>%  -->
+<!--   ungroup() %>%  -->
+<!--   group_by(SITE, GESTAGEBIRTH_BOE) %>%  -->
+<!--   mutate(n_total_week = sum(n)) %>%  -->
+<!--   ungroup() %>%  -->
+<!--   group_by(SITE, GESTAGEBIRTH_BOE, LIVEBIRTH) %>% -->
+<!--   mutate(pct_week = round(n/n_total_week*100, 1))  -->
+
+<!-- test$LIVEBIRTH <- factor(test$LIVEBIRTH, levels = c(1, 0)) -->
+
+<!-- out <- ggplot(test, aes(fill=as.factor(LIVEBIRTH), y=n, x=GESTAGEBIRTH_BOE)) +  -->
+<!--     geom_bar(position="stack", stat="identity") +  -->
+<!--     facet_grid(vars(SITE), scales = "free") + -->
+
+<!--     scale_fill_manual(values = c("#78c57e","darkred"), name = "", #   -->
+<!--                       labels = c("0" = "Stillbirth", "1" = "Live birth")) +  -->
+<!--     ylab("N events") +  -->
+<!--     xlab("GA at delivery (weeks)") + -->
+
+<!--   scale_x_continuous(breaks = seq(20, 42, 2), labels = custom_labels) + -->
+
+<!--   theme_bw() +  -->
+<!--   theme(strip.background = element_rect(fill = "white"), -->
+<!--          strip.text = element_text(size = 9),  -->
+<!--          axis.text.x = element_text(size = 12, vjust = 1, hjust = 0.5), -->
+<!--          axis.text.y = element_text(size = 10), -->
+<!--          axis.title.x = element_text(size = 11), -->
+<!--          axis.title.y = element_text(size = 11), -->
+<!--          legend.text = element_text(size = 11), -->
+<!--          legend.position = "bottom", -->
+<!--          legend.title = element_blank(), -->
+<!--          panel.grid.minor = element_blank()) -->
+
+<!-- ggsave(paste0("PRISMA_live-still_bysite", ".png"), path = path_to_save_figures, -->
+<!--        width = 6, height = 5) -->
+
+<!-- ``` -->
+
+<!-- ```{r, out.width = '100%'} -->
+<!-- knitr::include_graphics("D:/Users/stacie.loisate/Documents/PRISMA_live-still_bysite.png") -->
+
+<!-- ``` -->
 
 \newpage
 
@@ -3250,9 +3579,9 @@ knitr::include_graphics("neonatal_sepsis_output.png")
 
 inf_traj_birth_tab <- infant_trajectory %>% 
   ## If India-SAS doesn't have data, add empty row here 
-  mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
+  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
+  # ## Add empty rows for missing SITE values if the specific site doesn't exist
+  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
