@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Outcomes (Issued: 2025 May 05)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> ReMAPP-Maternal-Outcomes [Issued: 2025 May 07]"
 output:
   pdf_document:
     toc: no
@@ -11,7 +11,7 @@ include-in-header:
 knit: (function(inputFile, encoding) { 
       rmarkdown::render(inputFile,
                     encoding=encoding, 
-                    output_file= paste( './Output/' , Sys.Date(), '-Maternal-Outcomes-Report.pdf', sep='')) })
+                    output_file= paste( './Output/' , Sys.Date(), '-Maternal-Outcomes-Report-ReMAPP.pdf', sep='')) })
 editor_options: 
   markdown: 
     wrap: 72
@@ -38,6 +38,7 @@ library(webshot2) ## for table gen
 library(haven)
 library(dplyr)
 library("rmarkdown")
+library(readxl)
 
 
 # set path to save 
@@ -54,22 +55,46 @@ path_to_data <- "Z:/Outcome Data/2025-04-18/"
 path_to_save <- "D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/2025-04-18/"
 
 
+#remapp.moms <- read_dta(paste0(path_to_data, "MAT_ENROLL.dta")) %>% 
+#  rename_all(toupper) %>% select(SITE, MOMID, PREGID, REMAPP_ENROLL) %>%
+#  filter(REMAPP_ENROLL == 1)
 
-mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% rename_all(toupper)
-hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
-depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper) %>% filter(SITE != "")
-anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
-near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
-thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
-placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+
+remind.moms <- read_excel(paste0("Z:/ReMAPP_Aim3_IDs/ReMIND-InfantIDs/remind-infantids_2025-05-21.xlsx")) %>% 
+  rename_all(toupper) %>% select(SITE, MOMID, PREGID, REMIND_ENROLLMENT_STATUS) %>%
+  filter(REMIND_ENROLLMENT_STATUS == 1)
+
+
+mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% 
+  rename_all(toupper) %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper) %>%
+  #filter(PREGID %in% remind.moms$PREGID)
+depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
+#%>% filter(PREGID %in% remind.moms$PREGID)
+preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv")) %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% #filter(PREGID %in% remind.moms$PREGID)
+hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
+placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+  #filter(PREGID %in% remind.moms$PREGID)
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -444,7 +469,7 @@ summary_tab1 <- MAT_INFECTION %>%
     "Total" = hemorrhage %>%
         plyr::summarise(
 
-    "Antepartum  ^a^" = paste0(
+    "Antepartum hemorrhage ^a^" = paste0(
       format(sum(HEM_APH == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Postpartum hemorrhage ^a^" = paste0(
@@ -993,7 +1018,7 @@ tab_style(
      footnote = html("<span style='font-size: 18px'><sup>f</sup>Cause of death missing: InterVA not yet completed</span>")
   )  %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>g</sup>Late pregnancy-related deaths are those occuring 43-365 days postpartum, for any reason.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>g</sup>Late pregnancy-related deaths are those occuring 42-365 days postpartum, for any reason.</span>")
   )  %>%
 
   tab_footnote(
@@ -3535,9 +3560,9 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
 
   "Method unknown" = paste0(
-      format(sum(BLOOD_LOSS_METHOD_IPC ==99 na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(BLOOD_LOSS_METHOD_IPC %in% c(99, 55), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(BLOOD_LOSS_METHOD_IPC ==9, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(BLOOD_LOSS_METHOD_IPC %in% c(99, 55) , na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
   ## procedures for PPH (among participants with PPH)
@@ -3763,13 +3788,13 @@ hemorrhage_figs <- hemorrhage %>%
   select(SITE, MOMID, PREGID, EST_BLOOD_LOSS_IPC,HEM_PPH, HEM_PPH_SEV) %>%
   filter(EST_BLOOD_LOSS_IPC > 0) %>%
   mutate(CUTOFF = case_when(EST_BLOOD_LOSS_IPC >= 1000~ "Severe Hemorrhage(>=1000mL)",
-                            EST_BLOOD_LOSS_IPC >= 500 & EST_BLOOD_LOSS_IPC < 1000~ "Hemorrhage (>=500mL to <1000mL)",
+                            EST_BLOOD_LOSS_IPC >= 500 & EST_BLOOD_LOSS_IPC < 1000~ "Hemorrhage (>=500mL)",
                             TRUE ~ "No hemorrhage (<500mL)"))
 
 # Define the order of legend labels
-hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL to <1000mL)",
+hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL)",
                                                                     "Severe Hemorrhage(>=1000mL)"))
-hem_fig <- ggplot() +
+ggplot() +
                     geom_histogram(data = hemorrhage_figs, aes(x = EST_BLOOD_LOSS_IPC, fill = CUTOFF),  color = "gray", binwidth = 50) +
                     scale_fill_manual(values = c("darkgreen", "darkorange","darkred"), name = "") +
                     facet_grid(rows = vars(SITE), scales = "free_y") +
@@ -3784,11 +3809,6 @@ hem_fig <- ggplot() +
                           legend.position="bottom",
                           legend.title = element_blank(),
                           panel.grid.minor = element_blank())
-
-ggsave(paste0("hem_fig", ".pdf"), path = path_to_data,
-       width = 8, height = 8)
-
-knitr::include_graphics(paste0(path_to_data, "hem_fig.pdf"))
 
 ```
 
@@ -4808,9 +4828,7 @@ all_infection_output <- tb_theme1(all_infection_tab) %>%
                   "N with enrollment visit"))) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit.</span>")
- ) %>% 
-  tab_footnote(
-    footnote = html("<span style='font-size: 18px'>Note: Infections included: HIV, syphilis, chlamydia, gonorrhea, genital ulcers, other STIs (Table 7a); malaria (Table 7b); Hep B, Hep C, Hep E (Table 7c); TB (Table 7d); zika, dengue, chikungunya, and leptospirosis (Table 7e).</span>"))
+ )
 
 ```
 
@@ -5481,7 +5499,7 @@ ggvenn(data = list(`Fasting glucose` = GDM_pre,
 
 **Denominator for maternal near miss:**
 
--   Expected denominator: all women who have passed 42 days postpartum
+-   Expected denominator: all women who have passed 42 days postpartum. If pregnancy end date is not known, estimated due date is used to calculate the window.
 
 -   Near-miss denominator: passed 42 days postpartum, MINUS:
   -   "healthy" and closed out during the window
@@ -6033,9 +6051,9 @@ near_miss_tabc <- near_miss %>%
       ")"),
 
       "Near-miss transfusion^b^" = paste0(
-      format(sum(TRANSFUSION==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(TRANSFUSION_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(TRANSFUSION==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(TRANSFUSION_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
       "Severe PPH" = paste0(
@@ -6119,9 +6137,9 @@ near_miss_tabc <- near_miss %>%
       ")"),
 
       "Near-miss transfusion^b^" = paste0(
-      format(sum(TRANSFUSION==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(TRANSFUSION_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(TRANSFUSION==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(TRANSFUSION_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
       "Severe PPH" = paste0(
@@ -6568,7 +6586,7 @@ Table: Classifications of thyroid dysfunction.
 
 **Common causes of missingness:**
 
--   Missing thyroid lab test date [THYROID_LBTSTDAT]
+-   Missing lab test date [LBSTDAT]
 
 -   Missing TSH [THYROID_TSH_LBORRES]
 
