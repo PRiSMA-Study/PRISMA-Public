@@ -202,34 +202,34 @@ summary_tab1 <- MAT_INFECTION %>%
     "HIV prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
       format(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HIV_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     # Syphilis
     "Syphilis prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
       format(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM ==1 & SYPH_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     ## Malaria
     "Malaria prevalence at enrollment (positive RDT or diagnosed) ^a^" = paste0(
-      format(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(MAL_POSITIVE_ENROLL == 1 & MAL_RDT_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & MAL_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAL_POSITIVE_ENROLL == 1 & MAL_RDT_PERF_ENROLL == 1, na.rm = TRUE)/sum(ENROLL ==1 & MAL_RDT_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     # Hepatitis B
     "Hep B RDT positive at enrollment ^a^" = paste0(
-      format(sum(HBV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HBV_POSITIVE_ENROLL == 1 & HBV_RDT_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HBV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HBV_MEAS_MISSING_ENROLL==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HBV_POSITIVE_ENROLL == 1 & HBV_RDT_PERF_ENROLL == 1, na.rm = TRUE)/sum(HBV_RDT_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")") ,
 
       "Hep C RDT positive at enrollment ^a^" = paste0(
-      format(sum(HCV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HCV_POSITIVE_ENROLL == 1 & HCV_RDT_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HCV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(INFECTION_ENROLL_DENOM == 1 & HCV_MEAS_MISSING_ENROLL == 0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HCV_POSITIVE_ENROLL == 1 & HCV_RDT_PERF_ENROLL == 1, na.rm = TRUE)/sum(HCV_RDT_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
 
    ) %>%
@@ -261,7 +261,6 @@ summary_tab1 <- MAT_INFECTION %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
         )
-
 
 
   # Mid-pregnancy outcomes:
@@ -728,7 +727,7 @@ summary_tab_output <- tb_theme1(summary_tab) %>%
 
 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit excluding missing (missing defined as default values reported for test results).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with an enrollment visit. For malaria, Hep B and Hep C, denominator only includes particpants who have had a RDT performed at enrollment.</span>")
  ) %>%
 
   tab_footnote(
