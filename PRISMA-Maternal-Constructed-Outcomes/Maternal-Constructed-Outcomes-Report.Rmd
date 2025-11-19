@@ -3467,15 +3467,15 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
 
     ## hemorrhage subcategories:
-    "Est blood loss >= 500mL ^a^" = paste0(
+    "Est blood loss >= 500mL ^b^" = paste0(
       format(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Procedure/blood transfusion ^a^" = paste0(
-      format(sum(HEM_PPH ==1 & (RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
-                   RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
+    "Procedure/blood transfusion ^b^" = paste0(
+      format(sum(HEM_PPH ==1 & (RSN_PPH_PROC_IPC_BALLOON==1 | RSN_PPH_PROC_IPC_SURG==1 | RSN_PPH_PROC_IPC_BRACE==1|
+                   RSN_PPH_PROC_IPC_VESSEL==1 | RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum((RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
                          RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1 | RSN_BLOOD_TRANS_IPC==1) & HEM_PPH ==1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3488,13 +3488,13 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
     
     ## severe subcategories:
-    "Est blood loss >= 1000mL ^a^" = paste0(
+    "Est blood loss >= 1000mL ^b^" = paste0(
       format(sum(HEM_PPH == 1 & (RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH ==1 & (RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000), na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-    "Procedure/blood transfusion ^a^" = paste0(
+    "Procedure/blood transfusion ^b^" = paste0(
       format(sum(HEM_PPH_SEV==1 & (RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
                                      RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
