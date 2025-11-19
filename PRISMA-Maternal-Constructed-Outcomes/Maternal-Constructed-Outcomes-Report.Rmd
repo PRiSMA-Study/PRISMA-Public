@@ -3445,7 +3445,6 @@ knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
 ### Table 6. Hemorrhage
 ```{r}
 
-
 Hemorrhage_tab <- hemorrhage %>%
   rowwise() %>%
   group_by(SITE) %>%
@@ -3468,19 +3467,18 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
 
     ## hemorrhage subcategories:
-    "Est blood loss >= 500mL" = paste0(
+    "Est blood loss >= 500mL ^a^" = paste0(
       format(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    
-    "Procedure/blood transfusion" = paste0(
-      format(sum(RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
-                   RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Procedure/blood transfusion ^a^" = paste0(
+      format(sum(HEM_PPH ==1 & (RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
+                   RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
-                         RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1 | RSN_BLOOD_TRANS_IPC==1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum((RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
+                         RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1 | RSN_BLOOD_TRANS_IPC==1) & HEM_PPH ==1, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Severe postpartum hemorrhage" = paste0(
@@ -3490,22 +3488,20 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
     
     ## severe subcategories:
-    "Est blood loss >= 1000mL" = paste0(
-      format(sum(RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Est blood loss >= 1000mL ^a^" = paste0(
+      format(sum(HEM_PPH == 1 & (RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_PPH ==1 & (RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000), na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    
-    "Procedure/blood transfusion " = paste0(
+     
+    "Procedure/blood transfusion ^a^" = paste0(
       format(sum(HEM_PPH_SEV==1 & (RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
                                      RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH_SEV==1 & (RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
                                            RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-    
-    
+        
     "Any hemorrhage at any time point" = paste0(
       format(sum(HEM_APH == 1 | HEM_PPH==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3713,7 +3709,10 @@ hemorrhage_output1 <- tb_theme1(Hemorrhage_tab1) %>%
       "Denominator "))) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with a reported birth outcome.</span>")
-  )
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is participants with reported postpartum hemorrhage.</span>")
+  ) 
 
 hemorrhage_output2 <- tb_theme1(Hemorrhage_tab2) %>%
   tab_header(
