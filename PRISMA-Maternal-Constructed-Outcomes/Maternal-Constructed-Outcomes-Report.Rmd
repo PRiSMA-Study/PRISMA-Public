@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> ReMAPP-Maternal-Outcomes [Issued: 2025 May 07]"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> Maternal-Outcomes-Report"
 output:
   pdf_document:
     toc: no
@@ -11,7 +11,7 @@ include-in-header:
 knit: (function(inputFile, encoding) { 
       rmarkdown::render(inputFile,
                     encoding=encoding, 
-                    output_file= paste( './Output/' , Sys.Date(), '-Maternal-Outcomes-Report-ReMAPP.pdf', sep='')) })
+                    output_file= paste( './Output/' , Sys.Date(), '-Maternal-Outcomes-Report.pdf', sep='')) })
 editor_options: 
   markdown: 
     wrap: 72
@@ -23,8 +23,8 @@ knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
-#* Drafted: 02 April 2024, Stacie Loisate
-#* Last updated: January 29 2024, Erin Oakley, Savannah O'Malley & Stacie Loisate
+#* Drafted: Stacie Loisate
+#* Last updated: November 2025, Erin Oakley, Savannah O'Malley & Stacie Loisate
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -50,50 +50,64 @@ library(readxl)
 # path_to_data <- "Z:/Outcome Data/2025-01-10/" 
 # path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
-#Savannah's paths
-path_to_data <- "Z:/Outcome Data/2025-04-18/" 
-path_to_save <- "D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/2025-04-18/"
 
+datadate <- "2025-10-31"
+today <- Sys.Date()
+format(today, "%Y-%B-%d")
+
+#Savannah's paths
+path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
+path_to_save <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/", datadate, "/")
+
+# Check if the path_to_save directory exists
+if (!dir.exists(path_to_save)) {
+  # If it doesn't exist, create it
+  dir.create(path_to_save)
+  message(paste("Directory created:", path_to_save))
+} else {
+  message(paste("Directory already exists:", path_to_save))
+}
 
 #remapp.moms <- read_dta(paste0(path_to_data, "MAT_ENROLL.dta")) %>% 
 #  rename_all(toupper) %>% select(SITE, MOMID, PREGID, REMAPP_ENROLL) %>%
 #  filter(REMAPP_ENROLL == 1)
 
 
-remind.moms <- read_excel(paste0("Z:/ReMAPP_Aim3_IDs/ReMIND-InfantIDs/remind-infantids_2025-05-21.xlsx")) %>% 
-  rename_all(toupper) %>% select(SITE, MOMID, PREGID, REMIND_ENROLLMENT_STATUS) %>%
-  filter(REMIND_ENROLLMENT_STATUS == 1)
+#remind.moms <- read_excel(paste0("Z:/ReMAPP_Aim3_IDs/ReMIND-InfantIDs/remind-infantids_2025-05-21.xlsx")) %>% 
+#  rename_all(toupper) %>% select(SITE, MOMID, PREGID, REMIND_ENROLLMENT_STATUS) %>%
+#  filter(REMIND_ENROLLMENT_STATUS == 1)
 
 
 mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% 
-  rename_all(toupper) %>% 
+  rename_all(toupper) 
   #filter(PREGID %in% remind.moms$PREGID)
-hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper) %>%
+hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
   #filter(PREGID %in% remind.moms$PREGID)
-depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
 anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
 #%>% filter(PREGID %in% remind.moms$PREGID)
-preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
   #filter(PREGID %in% remind.moms$PREGID)
-labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
-rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
-gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
   #filter(PREGID %in% remind.moms$PREGID)
-MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv")) %>% 
+MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
   #filter(PREGID %in% remind.moms$PREGID)
-near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "") %>% 
+near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
-thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+thy<- read_dta(paste0(path_to_data, "MAT_THYR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
   #filter(PREGID %in% remind.moms$PREGID)
-end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% #filter(PREGID %in% remind.moms$PREGID)
-hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+end <- read_dta(paste0(path_to_data, "MAT_ENDPOINTS.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
+enroll <- read_dta(paste0(path_to_data, "MAT_ENROLL.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
+hdp <- read_dta(paste0(path_to_data, "MAT_HDP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
-highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
-placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") %>% 
+placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
 
 tb_theme1 <- function(matrix){
@@ -176,7 +190,9 @@ g_legend <- function(p) {
 
 ```
 
-**Includes data from synapse last updated:** 2025-04-18
+**Report issued on:** `r (paste0(today))`
+
+**Data from:** `r (paste0(datadate))`
 
 \setcounter{tocdepth}{6}
 \tableofcontents
@@ -186,6 +202,7 @@ g_legend <- function(p) {
 ### Table I. Summary of maternal outcomes
 ```{r}
 
+infection1 <- left_join(MAT_INFECTION,enroll)
 anemia1<-left_join(anemia,end)
 preterm_indication1<-left_join(preterm_indication,end)
 rupture1<-left_join(rupture,end)
@@ -193,7 +210,7 @@ rupture1<-left_join(rupture,end)
 
 # Enrollment Outcomes:
 
-summary_tab1 <- MAT_INFECTION %>%
+summary_tab1 <- infection1 %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -567,6 +584,16 @@ summary_tab1 <- MAT_INFECTION %>%
       ")")
 
   )  %>%
+    
+     mutate(
+
+            `Prolonged labor  ^d^` =
+              case_when(SITE %in% c("Ghana" , "India-CMC") ~ "--",
+                      TRUE ~ `Prolonged labor  ^d^`),
+           
+
+          ) %>%
+    
   t() %>% as.data.frame() %>%
   `colnames<-`(c(.[1,])) %>%
   slice(-1) %>%
@@ -576,9 +603,11 @@ summary_tab1 <- MAT_INFECTION %>%
         plyr::summarise(
 
     "Prolonged labor  ^d^" = paste0(
-      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1 & PRO_LABOR_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2))
+      format(sum(PREG_END_DELIV==1 & PRO_LABOR_MISS==0 & PRO_LABOR==1 & PRO_LABOR_DENOM==1 & SITE %in% c("India-SAS","Kenya","Pakistan","Zambia"), na.rm = TRUE), nsmall = 0, digits = 2))
 
   ) %>%
+    
+    
         t() %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
@@ -775,7 +804,7 @@ tab_footnote(
  )  %>%
 
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is pregnancies ending in a livebirth or stillbirth (>=20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is pregnancies ending in a livebirth or stillbirth (>=20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor).Note that this outcome is not available for Ghana and India-CMC sites due to data collection differences.</span>")
  ) %>%
 
   tab_footnote(
@@ -1751,7 +1780,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri3_output.png"))
 
 ```{r, out.width = '100%', fig.align='center'}
 
-knitr::include_graphics(paste0(path_to_data, "anemia-fig.pdf"))
+knitr::include_graphics(paste0(path_to_data, "anemia_fig.png"))
 
 ```
 
@@ -3467,13 +3496,13 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
 
     ## hemorrhage subcategories:
-    "Est blood loss >= 500mL ^b^" = paste0(
+    "Est blood loss >= 500mL^b^" = paste0(
       format(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Procedure/blood transfusion ^b^" = paste0(
+    "Procedure/blood transfusion^b^" = paste0(
       format(sum(HEM_PPH ==1 & (RSN_PPH_PROC_IPC_BALLOON==1 | RSN_PPH_PROC_IPC_SURG==1 | RSN_PPH_PROC_IPC_BRACE==1|
                    RSN_PPH_PROC_IPC_VESSEL==1 | RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3488,13 +3517,13 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
     
     ## severe subcategories:
-    "Est blood loss >= 1000mL ^b^" = paste0(
+    "Est blood loss >= 1000mL^b^" = paste0(
       format(sum(HEM_PPH == 1 & (RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH ==1 & (RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000), na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-    "Procedure/blood transfusion ^b^" = paste0(
+    "Procedure/blood transfusion^b^ " = paste0(
       format(sum(HEM_PPH_SEV==1 & (RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
                                      RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3682,14 +3711,14 @@ hemorrhage_output1 <- tb_theme1(Hemorrhage_tab1) %>%
   ## indent severe categories
   tab_style(
     style = list(
-      cell_text(indent = px(30), size = 24, whitespace =  "nowrap")
+      cell_text(indent = px(30), size = 24)
     ),
     locations = cells_stub(rows = c(
-      "Est blood loss >= 500mL",
-      "Procedure/blood transfusion",
+      "Est blood loss >= 500mL^b^",
+      "Procedure/blood transfusion^b^",
       
-      "Est blood loss >= 1000mL",
-      "Procedure/blood transfusion "
+      "Est blood loss >= 1000mL^b^",
+      "Procedure/blood transfusion^b^ "
     ))
   ) %>% 
   # bold denominator rows
@@ -3718,16 +3747,16 @@ hemorrhage_output2 <- tb_theme1(Hemorrhage_tab2) %>%
   tab_header(
     title = md("**Table 6 continued**")) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>b</sup></span>"),
+    label = html("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>c</sup></span>"),
     rows = 1:7
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>b</sup></span>"),
+    label = html("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>c</sup></span>"),
     rows = 8:16
   ) %>%
   
-  row_group_order(groups = c("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>b</sup></span>",
-                             "<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>b</sup></span>")) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>c</sup></span>",
+                             "<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>c</sup></span>")) %>%
   # bold denominator rows
   tab_style(
     style = list(
@@ -3745,7 +3774,7 @@ hemorrhage_output2 <- tb_theme1(Hemorrhage_tab2) %>%
       "Denominator   "))) %>%
   
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is all participants with postpartum hemorrhage.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all participants with postpartum hemorrhage.</span>")
   )
 
 ```
@@ -3767,17 +3796,17 @@ knitr::include_graphics(paste0(path_to_save, "hemorrhage_output2.png"))
 ```{r, out.width = '100%', fig.align='center'}
 
 hemorrhage_figs <- hemorrhage %>%
-  select(SITE, MOMID, PREGID, EST_BLOOD_LOSS_IPC,HEM_PPH, HEM_PPH_SEV) %>%
-  filter(EST_BLOOD_LOSS_IPC > 0) %>%
-  mutate(CUTOFF = case_when(EST_BLOOD_LOSS_IPC >= 1000~ "Severe Hemorrhage(>=1000mL)",
-                            EST_BLOOD_LOSS_IPC >= 500 & EST_BLOOD_LOSS_IPC < 1000~ "Hemorrhage (>=500mL)",
+  select(SITE, MOMID, PREGID, RSN_EST_BLOOD_LOSS_IPC,HEM_PPH, HEM_PPH_SEV) %>%
+  filter(RSN_EST_BLOOD_LOSS_IPC > 0) %>%
+  mutate(CUTOFF = case_when(RSN_EST_BLOOD_LOSS_IPC >= 1000~ "Severe Hemorrhage(>=1000mL)",
+                            RSN_EST_BLOOD_LOSS_IPC >= 500 & RSN_EST_BLOOD_LOSS_IPC < 1000~ "Hemorrhage (>=500mL)",
                             TRUE ~ "No hemorrhage (<500mL)"))
 
 # Define the order of legend labels
 hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL)",
                                                                     "Severe Hemorrhage(>=1000mL)"))
 ggplot() +
-                    geom_histogram(data = hemorrhage_figs, aes(x = EST_BLOOD_LOSS_IPC, fill = CUTOFF),  color = "gray", binwidth = 50) +
+                    geom_histogram(data = hemorrhage_figs, aes(x = RSN_EST_BLOOD_LOSS_IPC, fill = CUTOFF),  color = "gray", binwidth = 50) +
                     scale_fill_manual(values = c("darkgreen", "darkorange","darkred"), name = "") +
                     facet_grid(rows = vars(SITE), scales = "free_y") +
                     xlab("Estimated blood loss (mL)") +
@@ -3812,7 +3841,7 @@ ggplot() +
 ```{r}
 
 ## reorder to be output vars and then missing vars
-sti_enroll_tab <- MAT_INFECTION %>%
+sti_enroll_tab <- infection1 %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -4060,7 +4089,7 @@ knitr::include_graphics(paste0(path_to_save, "sti_enroll_output2.png"))
 
 ```{r}
 
-mal_table <- MAT_INFECTION %>% 
+mal_table <- infection1 %>% 
   # mutate(ENROLL=1) %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
@@ -4161,7 +4190,7 @@ knitr::include_graphics(paste0(path_to_save, "malaria_tab_output.png"))
 
 ```{r}
 
-hepatitis_tab <- MAT_INFECTION %>%
+hepatitis_tab <- infection1 %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -4386,7 +4415,7 @@ knitr::include_graphics(paste0(path_to_save, "hepatitis_tab_output2.png"))
 
 ```{r}
 
-tb_tab <- MAT_INFECTION %>%
+tb_tab <- infection1 %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -4499,7 +4528,7 @@ knitr::include_graphics(paste0(path_to_save, "tb_tab_output.png"))
 
 ```{r}
 
-zcd_tab <- MAT_INFECTION %>%
+zcd_tab <- infection1 %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -4862,9 +4891,9 @@ knitr::include_graphics(paste0(path_to_save, "zcd_tab_output2.png"))
 ### Table 7f. All infections combined at enrollment
 
 ```{r}
-
+infection2 <- left_join(infection1,end)
 ## reorder to be output vars and then missing vars
-all_infection_tab <- MAT_INFECTION %>%
+all_infection_tab <- infection2 %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -5807,9 +5836,9 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
     "Pre-eclampsia without severe features " = paste0(
-      format(sum(PREECLAMPSIA==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_NONSEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREECLAMPSIA==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_NONSEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Pre-clampsia with severe features/Eclampsia " = paste0(
@@ -5860,7 +5889,7 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(OBS_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-   "Prolonged labor" = paste0(
+   "Prolonged labor^a^" = paste0(
       format(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -5921,6 +5950,16 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
    )  %>%
+  
+   mutate(
+
+            `Prolonged labor^a^` =
+              case_when(SITE %in% c("Ghana" , "India-CMC") ~ "--",
+                      TRUE ~ `Prolonged labor^a^`),
+           
+
+          ) %>%
+  
   t() %>% as.data.frame() %>%
   `colnames<-`(c(.[1,])) %>%
   slice(-1) %>%
@@ -5946,9 +5985,9 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
     "Pre-eclampsia without severe features " = paste0(
-      format(sum(PREECLAMPSIA==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_NONSEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREECLAMPSIA==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_NONSEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Pre-clampsia with severe features/Eclampsia " = paste0(
@@ -5999,10 +6038,10 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(OBS_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-   "Prolonged labor" = paste0(
-      format(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+   "Prolonged labor^a^" = paste0(
+      format(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1  & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1 & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm = TRUE)/sum(NEARMISS_DENOM == 1 & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Severe abortion complications" = paste0(
@@ -6060,6 +6099,8 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
    ) %>%
+   
+   
         t() %>% as.data.frame() %>%
         `colnames<-`(c(.[1,])) %>% unlist()
     )
@@ -6109,6 +6150,10 @@ tab_style(
 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>*</sup>Sepsis and severe infection will be added to PLTC once constructed.</span>")
+ ) %>%
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Note that the prolonged labor outcome is not available for Ghana and India-CMC sites due to data collection differences.</span>")
  )
 
 
