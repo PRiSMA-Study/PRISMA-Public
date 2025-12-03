@@ -11,11 +11,11 @@ For detailed descriptions and response options for variables generated in all co
 
 ## Reports included in the readout:
 
-[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Demographics-Report) **PRISMA-Demographics-Report** Report includes definition of demographic characteristics (household, individual, maternal health, maternal/infant characteristics).
+[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q4%3A%2011-19/PRISMA-Demographics-Report) **PRISMA-Demographics-Report** Report includes definition of demographic characteristics (household, individual, maternal health, maternal/infant characteristics).
 
-[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Infant-Outcomes-Report) **Infant Outcomes Report** Report of infant outcomes including low birthweight, pre-term birth, sga, mortality, stillbirth, fetal loss, perinatal birth asphyxia, hyperbilirubinemia, PSBI, neonatal sepsis, etc.
+[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q4%3A%2011-19/PRISMA-Infant-Outcomes-Report) **Infant Outcomes Report** Report of infant outcomes including low birthweight, pre-term birth, sga, mortality, stillbirth, fetal loss, perinatal birth asphyxia, hyperbilirubinemia, PSBI, neonatal sepsis, etc.
 
-[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Maternal-Nutrition-Report) **Maternal Nutrition Report** Report of quansys panel, b-vitamins, MCV, and GWG.
+[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q4%3A%2011-19/PRISMA-Maternal-Nutrition-Report) **Maternal Nutrition Report** Report of quansys panel, b-vitamins, MCV, and GWG.
 
-[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q2%3A%2004-18/PRISMA-Maternal-Outcomes-Report) **Maternal Outcomes Report** Report of maternal constructed outcomes including anemia, depression, infection, hypertensive disorders, and near miss.
+[📄](https://github.com/PRiSMA-Study/PRISMA-Public/tree/main/Quarterly-Readouts/2025%20Q4%3A%2011-19/PRISMA-Maternal-Outcomes-Report) **Maternal Outcomes Report** Report of maternal constructed outcomes including anemia, depression, infection, hypertensive disorders, and near miss.
 
