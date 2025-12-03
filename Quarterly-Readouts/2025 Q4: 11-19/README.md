@@ -3,7 +3,7 @@
 
 ## Description
 
-This folder contains all codes used to generate datasetst that feed into the markdown files that render reports for Q4 PRISMA quarterly readout. All report-specific folders above include the codes needed to generate the reports shared. The data upload used to generate reports is 2025-04-18.
+This folder contains all codes used to generate datasetst that feed into the markdown files that render reports for Q4 PRISMA quarterly readout. All report-specific folders above include the codes needed to generate the reports shared. The data upload used to generate reports is 2025-10-31.
 
 ❗*Note: Most codes require the output generated from `MAT_ENROLL.R`. This file is not included in each specific folder, rather is stored above in the 2025 Q4: 11-19 folder. This code outputes the list of enrolled ids, boe, edd, and visit window dates.* 
 
