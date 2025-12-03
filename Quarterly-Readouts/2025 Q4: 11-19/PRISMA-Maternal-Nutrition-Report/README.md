@@ -10,7 +10,7 @@ This folder contains all codes used to generate the maternal nutrition report.
 
 **`MAT_GWG.do`** Gestational weight gain, early pregnancy BMI
 
-**`MAT_GWG.do`** Create figures for the Maternal Nutrition Report
+**`Nutrition-Figures.do`** Create figures for the Maternal Nutrition Report
 
 ## Code to generate report:
 
