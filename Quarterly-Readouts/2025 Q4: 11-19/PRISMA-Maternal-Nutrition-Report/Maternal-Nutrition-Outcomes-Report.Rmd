@@ -1,0 +1,1810 @@
+---
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Maternal-Nutrition-Outcomes"
+output:
+  pdf_document:
+    toc: no
+    toc_depth: 6
+    latex_engine: xelatex
+    keep_tex: false
+include-in-header:
+- \usepackage{booktabs,longtable}
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                    encoding=encoding, 
+                    output_file= paste('Maternal-Nutrition-Outcomes-', Sys.Date(), '.pdf', sep='')) })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%") 
+knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+#*****************************************************************************
+#* PRISMA Maternal Nutrition Outcomes -- TABLES 
+#* Based on code written by Stacie Loisate
+#*****************************************************************************
+library(knitr)
+library(tidyverse)
+library(reshape2)
+library(lubridate)
+library(kableExtra)
+library(naniar)
+library(RColorBrewer)
+library(gt) ## for table gen
+library(webshot2) ## for table gen
+library(haven)
+library(dplyr)
+
+# set path to save 
+
+# Savannah's path: 
+datadate <- "2025-10-31"
+today <- Sys.Date()
+format(today, "%Y-%B-%d")
+
+path_to_data <- paste0("D:/Users/savannah.omalley/Documents/nutrition/", datadate, "/" )
+path_to_save <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Nutrition Outcomes Report/Output/", datadate ,"/")
+
+dir.create(path_to_save)
+
+nutr<- read_dta(paste0(path_to_data, "MAT_NUTR-",datadate, ".dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+
+nutr_long <- nutr %>%
+  select(SITE, MOMID, PREGID, contains("_CONT_")) %>%
+  pivot_longer(
+    cols = contains("_CONT_"),
+    names_to = "var"
+    )
+  
+
+mnh08<- read_dta(paste0(path_to_data,"mnh08_allvisits-",datadate,".dta"))
+
+gwg<- read_dta(paste0(path_to_data, "MAT_GWG.dta"))  %>% 
+  rename_all(toupper) %>% filter(SITE != "" & SINGLETON == 1)
+
+tb_theme1 <- function(matrix){
+  tb <- matrix %>%
+    gt(
+      rownames_to_stub = TRUE
+    ) %>%
+    opt_align_table_header(align = "left") %>%
+    tab_spanner(
+      label = "Sites"
+    ) %>%
+    opt_stylize(style = 6, color = 'gray') %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#033C5A"),
+        cell_text(weight = "bold"),
+        cell_text(v_align = "middle"),
+        cell_text(color = "white", size = px(18))
+      ),
+      locations = list(
+        cells_title()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#AA9868"), # #f0b7b3,#f7cbc8, 
+        cell_text(color = "white", size = px(18)),
+        cell_text(v_align = "middle")
+      ),
+      locations = list(
+        cells_stubhead(),
+        cells_column_spanners(),
+        cells_column_labels()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#F0F0F0"),
+        cell_text(v_align = "middle", size = px(18))
+      ),
+      locations = list(
+        cells_stub()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_column_labels(columns = everything())
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_body(columns = everything())
+      )
+    ) %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_options(table.width = pct(100)) %>%
+    cols_width(1 ~ px(300))
+}
+ 
+
+# Function to extract and format legend horizontally
+g_legend <- function(p) {
+  tmp <- ggplot_gtable(ggplot_build(p))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend_gtable <- tmp$grobs[[leg]]
+  
+  # Arrange legend components horizontally
+  legend_gtable$widths <- unit(rep(1, ncol(legend_gtable)), "null")
+  legend_gtable$grobs <- legend_gtable$grobs[order(legend_gtable$layout$l)]
+  
+  return(legend_gtable)
+}
+
+```
+
+**Report issued on:** `r (paste0(today))`
+
+**Data from:** `r (paste0(datadate))`
+
+\setcounter{tocdepth}{6}
+\tableofcontents
+
+\newpage
+
+## 1. Iron, Vitamin A, Iodine, and Inflammation Biomarkers (Quansys Panel)
+
+### Reference values:
+
+
+**C-reactive protein (CRP):** > 5 mg/L indicates inflammation; CRP is generally expected to increase during pregnancy
+
+**Alpha 1-acid glycoprotein (AGP):** > 1 g/L indicates inflammation; AGP is generally expected to decrease during pregnancy
+
+**Serum ferritin:** 
+
+-   < 15 ug/L indicates iron deficiency when inflammation is not present.  
+
+-   < 70 ug/L indicates iron deficiency in the presence of inflammation without using inflammation-adjusted ferritin values.
+
+
+**Serum transferrin receptor (sTfR):** 
+
+|Trimester | Range indicating iron deficiency|
+|--------- | --------------------------------|
+|1st|> 3.61 mg/L|
+|2nd|> 4.98 mg/L|
+|3rd|> 5.94 mg/L|
+
+
+**Retinol binding protein 4 (RBP4):** 
+
+-   < 1.05 umol/L indicates *mild* vitamin a deficiency 
+
+-   < 0.70 umol/L *moderate* deficiency
+
+-   < 0.30 umol/L *severe* deficiency
+
+**Thyroglobulin (proxy for iodine status):** >3% of the population  > 43.5 ug/L indicates likely iodine deficiency
+
+
+
+
+### Table 1a. Iron, Vitamin A, Iodine, and Inflammation Biomarkers at Enrollment
+```{r}
+
+# ## without percents
+ quansys_taba <- nutr %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+# row 1
+    "Expected, n^a^" = paste0(
+       format(sum(ANC20_EXP == 1 | QUANSYS_TEST_ANC20 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+# row 2    
+    "Observed, n (%)^b^" = paste0(
+      format(sum( QUANSYS_TEST_ANC20 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum( QUANSYS_TEST_ANC20 == 1, na.rm = TRUE)/sum(ANC20_EXP == 1  | QUANSYS_TEST_ANC20 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+# row 3
+    "Iron deficient (ferritin), n (%)^c^" = paste0(
+      format(sum(FERRITIN70_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FERRITIN70_ANC20==2, na.rm = TRUE)/sum(FERRITIN_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+# row 5          
+     "Iron deficient (sTfR), n (%)" = paste0(
+      format(sum(STFR_ANC20==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STFR_ANC20==3, na.rm = TRUE)/sum(STFR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+# row 6  
+     "Mild (<1.05 umol/L), n (%)" = paste0(
+      format(sum(RBP4_ANC20==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_ANC20==3, na.rm = TRUE)/sum(RBP4_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+# row 7
+     "Moderate (<0.7 umol/L), n (%)" = paste0(
+      format(sum(RBP4_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_ANC20==2, na.rm = TRUE)/sum(RBP4_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+# row 8
+     "Severe (<0.3 umol/L), n (%)" = paste0(
+      format(sum(RBP4_ANC20==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_ANC20==1, na.rm = TRUE)/sum(RBP4_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),  
+    
+# row 9    
+    "Iodine deficient (High Tg), n (%)" = paste0(
+      format(sum(HIGH_TG_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIGH_TG_ANC20==2, na.rm = TRUE)/sum(HIGH_TG_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+
+# row 10          
+      "High CRP (>5 mg/L), n (%)" = paste0(
+      format(sum(CRP_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CRP_ANC20==2, na.rm = TRUE)/sum(CRP_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+
+# row 11          
+      "High AGP (>1 g/L), n (%)" = paste0(
+      format(sum(AGP_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(AGP_ANC20==2, na.rm = TRUE)/sum(AGP_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+
+# row 12          
+      "Any inflammation (CRP and/or AGP), n (%)" = paste0(
+      format(sum(INFLAMMATION_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INFLAMMATION_ANC20==2, na.rm = TRUE)/sum(AGP_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+
+
+   ) %>%
+  
+ 
+  
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  quansys_taba[is.na(quansys_taba)] <- paste0("0")
+
+ quansysa_output <- tb_theme1(quansys_taba) %>%
+   tab_header(
+     title = md("**Table 1a**")) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Expected and observed denominators</span>"),
+     rows = 1:2
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Iron biomarkers</span>"),
+     rows = 3:4
+   ) %>%
+    tab_row_group(
+     label = html("<span style='font-size: 18px'>Vitamin A deficiency, indicated by retinol binding protein 4 (RBP4)</span>"),
+     rows = 5:7
+   ) %>%    
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Thyroglobulin (Tg)</span>"),
+     rows = 8:8
+   ) %>%
+      tab_row_group(
+     label = html("<span style='font-size: 18px'>Inflammation</span>"),
+     rows = 9:11
+   ) %>% 
+
+ row_group_order(groups = c("<span style='font-size: 18px'>Expected and observed denominators</span>",
+                  "<span style='font-size: 18px'>Iron biomarkers</span>",
+                  "<span style='font-size: 18px'>Vitamin A deficiency, indicated by retinol binding protein 4 (RBP4)</span>",
+                  "<span style='font-size: 18px'>Thyroglobulin (Tg)</span>", 
+                  "<span style='font-size: 18px'>Inflammation</span>"
+                  )) %>%
+        tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: passed the window without closing out, or has data.</span>")
+     ) %>% 
+     tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Observed: at least one quansys measurement (excluding HRP2).</span>")
+     ) %>% 
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>c</sup>In the presence of inflammation (elevated CRP and/or AGP), low ferritin < 70 ug/L. When inflammation not present, low ferritin < 15 ug/L.</span>")
+     ) %>%
+     tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>NOTE:</sup> RBP4 and thyroglobulin are not adjusted for inflammation.</span>")
+  ) 
+
+```
+```{r, out.width = '100%'}
+gtsave(quansysa_output, file = "quansysa_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "quansysa_output.png"))
+```
+
+
+### Table 1b. Iron, Vitamin A, Iodine, and Inflammation Biomarkers at ANC-32
+```{r}
+
+# ## without percents
+ quansys_tabb <- nutr %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+    "Expected, n^a^" = paste0(
+       format(sum(ANC32_EXP == 1 | QUANSYS_TEST_ANC32 == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+# row 2    
+    "Observed, n (%)^b^" = paste0(
+      format(sum(QUANSYS_TEST_ANC32 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum( QUANSYS_TEST_ANC32 == 1, na.rm = TRUE)/sum(ANC32_EXP == 1 | QUANSYS_TEST_ANC32 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     
+    # row 3
+
+    "Iron deficient (ferritin), n (%)^c^" = paste0(
+      format(sum(FERRITIN70_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FERRITIN70_ANC32==2, na.rm = TRUE)/sum(FERRITIN_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+   
+    # row 4
+          
+     "Iron deficient (sTfR), n (%)^d^" = paste0(
+      format(sum(STFR_ANC32==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STFR_ANC32==3, na.rm = TRUE)/sum(STFR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    # row 5    
+          
+     "Mild (<1.05 umol/L), n (%)" = paste0(
+      format(sum(RBP4_ANC32==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_ANC32==3, na.rm = TRUE)/sum(RBP4_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    # row 6
+      "Moderate (<0.7 umol/L), n (%)" = paste0(
+      format(sum(RBP4_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_ANC32==2, na.rm = TRUE)/sum(RBP4_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    # row 7
+     "Severe (<0.3 umol/L), n (%)" = paste0(
+      format(sum(RBP4_ANC32==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_ANC32==1, na.rm = TRUE)/sum(RBP4_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
+ 
+    # row 8   
+    
+    "Iodine deficient (High Tg), n (%)" = paste0(
+      format(sum(HIGH_TG_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIGH_TG_ANC32==2, na.rm = TRUE)/sum(HIGH_TG_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+   
+    # row 9
+      "High CRP (>5 mg/L), n (%)" = paste0(
+      format(sum(CRP_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CRP_ANC32==2, na.rm = TRUE)/sum(CRP_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      # row 10 
+      "High AGP  (>1 g/L), n (%)" = paste0(
+      format(sum(AGP_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(AGP_ANC32==2, na.rm = TRUE)/sum(AGP_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    # row 11
+      "Any inflammation  (CRP and/or AGP), n (%)" = paste0(
+      format(sum(INFLAMMATION_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INFLAMMATION_ANC32==2, na.rm = TRUE)/sum(INFLAMMATION_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+
+   ) %>%
+   
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  quansys_tabb[is.na(quansys_tabb)] <- paste0("0")
+
+ quansysb_output <- tb_theme1(quansys_tabb) %>%
+   tab_header(
+     title = md("**Table 1b**")) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Expected and observed denominators</span>"),
+     rows = 1:2
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Iron biomarkers</span>"),
+     rows = 3:4
+   ) %>%
+    tab_row_group(
+     label = html("<span style='font-size: 18px'>Vitamin A deficiency, indicated by retinol binding protein 4 (RBP4)</span>"),
+     rows = 5:7
+   ) %>%    
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Thyroglobulin (Tg)</span>"),
+     rows = 8:8
+   ) %>%
+      tab_row_group(
+     label = html("<span style='font-size: 18px'>Inflammation</span>"),
+     rows = 9:11
+   ) %>% 
+   
+ row_group_order(groups = c("<span style='font-size: 18px'>Expected and observed denominators</span>",
+                  "<span style='font-size: 18px'>Iron biomarkers</span>",
+                  "<span style='font-size: 18px'>Vitamin A deficiency, indicated by retinol binding protein 4 (RBP4)</span>",
+                  "<span style='font-size: 18px'>Thyroglobulin (Tg)</span>", 
+                  "<span style='font-size: 18px'>Inflammation</span>"
+                  )) %>%
+ tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: passed the window without closing out, or has data.</span>")
+     ) %>% 
+     tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Observed: at least one quansys measurement (excluding HRP2).</span>")
+     ) %>% 
+  
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>c</sup>In the presence of inflammation (elevated CRP and/or AGP), low ferritin < 70 ug/L. When inflammation not present, low ferritin < 15 ug/L.</span>")
+     ) %>%
+     tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>NOTE:</sup> RBP4 and thyroglobulin are not adjusted for inflammation.</span>")
+  ) 
+   
+
+```
+```{r, out.width = '100%'}
+gtsave(quansysb_output, file = "quansysb_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "quansysb_output.png"))
+```
+
+### Table 1c. Iron, Vitamin A, Iodine, and Inflammation Biomarkers at PNC-6
+```{r}
+
+# ## without percents
+ quansys_tabc <- nutr %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+    "Expected, n^a^" = paste0(
+       format(sum(PNC6_EXP == 1 | QUANSYS_TEST_PNC6 == 1 , na.rm = TRUE), nsmall = 0, digits = 2)),
+
+     # row 2
+    "Observed, n (%)^b^" = paste0(
+      format(sum( QUANSYS_TEST_PNC6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(QUANSYS_TEST_PNC6 == 1, na.rm = TRUE)/sum(PNC6_EXP == 1 | QUANSYS_TEST_PNC6 == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    # row 3
+    "Iron deficient (ferritin), n (%)^c^" = paste0(
+      format(sum(FERRITIN70_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FERRITIN70_PNC6==2, na.rm = TRUE)/sum(FERRITIN_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     # row 4         
+     "Iron deficient (sTfR), n (%)^d^" = paste0(
+      format(sum(STFR_PNC6==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STFR_PNC6==3, na.rm = TRUE)/sum(STFR_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+       # row 5       
+     "Mild (<1.05 umol/L), n (%)" = paste0(
+      format(sum(RBP4_PNC6==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_PNC6==3, na.rm = TRUE)/sum(RBP4_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      # row 6  
+      "Moderate (<0.7 umol/L), n (%)" = paste0(
+      format(sum(RBP4_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_PNC6==2, na.rm = TRUE)/sum(RBP4_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      # row 7  
+     "Severe (<0.3 umol/L), n (%)" = paste0(
+      format(sum(RBP4_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(RBP4_PNC6==1, na.rm = TRUE)/sum(RBP4_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),    
+      # row 8 
+    "Iodine deficient (high), n (%)" = paste0(
+      format(sum(HIGH_TG_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HIGH_TG_PNC6==2, na.rm = TRUE)/sum(HIGH_TG_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+     # row 9
+      "High CRP (>5 mg/L), n (%)" = paste0(
+      format(sum(CRP_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CRP_PNC6==2, na.rm = TRUE)/sum(CRP_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      # row 10  
+      "High AGP  (>1 g/L), n (%)" = paste0(
+      format(sum(AGP_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(AGP_PNC6==2, na.rm = TRUE)/sum(AGP_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+       # row 11 
+      "Any inflammation (CRP and/or AGP), n (%)" = paste0(
+      format(sum(INFLAMMATION_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(INFLAMMATION_PNC6==2, na.rm = TRUE)/sum(INFLAMMATION_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+
+   ) %>%
+   
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+# replace NA with 0s (this likely means there is not yet data)
+  quansys_tabc[is.na(quansys_tabc)] <- paste0("0")
+
+ quansysc_output <- tb_theme1(quansys_tabc) %>%
+   tab_header(
+     title = md("**Table 1c**")) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Expected and observed denominators</span>"),
+     rows = 1:2
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Iron biomarkers</span>"),
+     rows = 3:4
+   ) %>%
+    tab_row_group(
+     label = html("<span style='font-size: 18px'>Vitamin A deficiency, indicated by retinol binding protein 4 (RBP4)</span>"),
+     rows = 5:7
+   ) %>%    
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Thyroglobulin (Tg)</span>"),
+     rows = 8:8
+   ) %>%
+      tab_row_group(
+     label = html("<span style='font-size: 18px'>Inflammation</span>"),
+     rows = 9:11
+   ) %>% 
+
+ row_group_order(groups = c("<span style='font-size: 18px'>Expected and observed denominators</span>",
+                  "<span style='font-size: 18px'>Iron biomarkers</span>",
+                  "<span style='font-size: 18px'>Vitamin A deficiency, indicated by retinol binding protein 4 (RBP4)</span>",
+                  "<span style='font-size: 18px'>Thyroglobulin (Tg)</span>", 
+                  "<span style='font-size: 18px'>Inflammation</span>"
+                  )) %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: passed the window without closing out, or has data.</span>")
+     ) %>% 
+     tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Observed: at least one quansys measurement (excluding HRP2).</span>")
+     ) %>% 
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>c</sup>In the presence of inflammation (elevated CRP and/or AGP), low ferritin < 70 ug/L. When inflammation not present, low ferritin < 15 ug/L.</span>")
+     ) %>%
+    
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>NOTE:</sup> RBP4 and thyroglobulin not adjusted for inflammation.</span>")
+   )
+
+```
+
+```{r, out.width = '100%'}
+gtsave(quansysc_output, file = "quansysc_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "quansysc_output.png"))
+```
+\newpage
+### Figure 1. Elevated CRP over time 
+```{r}
+knitr::include_graphics(paste0(path_to_save, "CRP.png"))
+```
+### Figure 2. Elevated AGP over time 
+```{r}
+knitr::include_graphics(paste0(path_to_save, "AGP.png"))
+```
+### Figure 3. Low ferritin over time 
+```{r}
+knitr::include_graphics(paste0(path_to_save, "FERRITIN70.png"))
+```
+### Figure 4. High serum transferrin receptor (sTfR) over time 
+```{r}
+knitr::include_graphics(paste0(path_to_save, "STFR.png"))
+```
+### Figure 5. High thyroglobulin over time 
+```{r}
+knitr::include_graphics(paste0(path_to_save, "TG.png"))
+```
+
+### Figure 6. Moderate or Severe Vitamin a deficiency over time 
+```{r}
+knitr::include_graphics(paste0(path_to_save, "RBP4.png"))
+```
+
+\newpage
+## 2. B-Vitamins
+
+### Reference values by trimester:
+
+Vitamin B12:
+
+-   Deficient: < 150 pmol/L
+-   Insufficient: 150-220 pmol/L
+-   Sufficient: > 220 pmol/L
+
+*Note: Vitamin B12 (total cobalamin) is reported in pg/mL but cutoff values are listed in pmol/L for ease of interpretation and comparing to other literature*
+
+
+### Table 2a. B-Vitamins at Enrollment
+```{r}
+
+# ## without percents
+ bvit_taba <- nutr %>% 
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+     
+    ##B12 (rows 1-5)
+    "Expected, n^a^" = paste0(
+       format(sum(ANC20_EXP == 1 | VITB12_COB_ANC20_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "Observed, n" = paste0(
+       format(sum(VITB12_COB_ANC20_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC20==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC20==1, na.rm = TRUE)/sum(VITB12_COB_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC20==2, na.rm = TRUE)/sum(VITB12_COB_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC20==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC20==3, na.rm = TRUE)/sum(VITB12_COB_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    ##Folate (rows 6-10)
+    
+     "Expected, n^a^ " = paste0(
+       format(sum(ANC20_EXP == 1 | FOL_ANY_ANC20_D == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "Observed, n " = paste0(
+       format(sum(FOL_ANY_ANC20_D == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%) " = paste0(
+      format(sum(FOL_ANY_ANC20==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_ANC20==1, na.rm = TRUE)/sum(FOL_ANY_ANC20_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient or possibly deficient, n (%)" = paste0(
+      format(sum(FOL_ANY_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_ANC20==2, na.rm = TRUE)/sum(FOL_ANY_ANC20_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient or elevated, n (%)" = paste0(
+      format(sum(FOL_ANY_ANC20==3 | FOL_ANY_ANC20 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_ANC20==3 | FOL_ANY_ANC20 == 4, na.rm = TRUE)/sum(FOL_ANY_ANC20_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+   ) %>%
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  bvit_taba[is.na(bvit_taba)] <- paste0("0")
+
+ bvita_output <- tb_theme1(bvit_taba) %>%
+   tab_header(
+     title = md("**Table 2a**")) %>%
+
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Total cobalamin (serum B12)</span>"),
+     rows = 1:5
+   ) %>%
+   
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Folate (serum or RBC)</span>"),
+     rows = 6:10
+   ) %>%
+  
+ row_group_order(groups = c(
+                  "<span style='font-size: 18px'>Total cobalamin (serum B12)</span>",
+                  "<span style='font-size: 18px'>Folate (serum or RBC)</span>"
+                  )) %>%
+   
+    tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: passed the window without closing out, or has data. Observed: has data.</span>")
+     ) %>% 
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>NOTE:</sup> Folate data prioritize RBC over serum; holotranscobalamin data have been removed</span>")
+  ) 
+
+gtsave(bvita_output, file = "bvita_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "bvita_output.png"))
+```
+\newpage
+
+### Table 2b. B-Vitamins at ANC32
+
+```{r}
+
+# ## without percents
+ bvit_tabb <- nutr %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+     
+    ##B12 (rows 1-5)
+    "Expected, n^a^" = paste0(
+       format(sum(ANC32_EXP == 1 | VITB12_COB_ANC32_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "Observed, n" = paste0(
+       format(sum(VITB12_COB_ANC32_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC32==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC32==1, na.rm = TRUE)/sum(VITB12_COB_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC32==2, na.rm = TRUE)/sum(VITB12_COB_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC32==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC32==3, na.rm = TRUE)/sum(VITB12_COB_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    ##Folate (rows 6-10)
+    
+     "Expected, n^a^ " = paste0(
+       format(sum(ANC32_EXP == 1 | FOL_ANY_ANC32_D == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "Observed, n " = paste0(
+       format(sum(FOL_ANY_ANC32_D == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%) " = paste0(
+      format(sum(FOL_ANY_ANC32==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_ANC32==1, na.rm = TRUE)/sum(FOL_ANY_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient or possibly deficient, n (%)" = paste0(
+      format(sum(FOL_ANY_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_ANC32==2, na.rm = TRUE)/sum(FOL_ANY_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient or elevated, n (%)" = paste0(
+      format(sum(FOL_ANY_ANC32==3 | FOL_ANY_ANC32 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_ANC32==3 | FOL_ANY_ANC32 == 4, na.rm = TRUE)/sum(FOL_ANY_ANC32_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+   ) %>%
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  bvit_tabb[is.na(bvit_tabb)] <- paste0("0")
+
+ bvitb_output <- tb_theme1(bvit_tabb) %>%
+   tab_header(
+     title = md("**Table 2b**")) %>%
+
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Total cobalamin (serum B12)</span>"),
+     rows = 1:5
+   ) %>%
+   
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Folate (serum or RBC)</span>"),
+     rows = 6:10
+   ) %>%
+  
+ row_group_order(groups = c(
+                  "<span style='font-size: 18px'>Total cobalamin (serum B12)</span>",
+                  "<span style='font-size: 18px'>Folate (serum or RBC)</span>"
+                  )) %>%
+   
+    tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: passed the window without closing out, or has data. Observed: has data.</span>")
+     ) %>% 
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>NOTE:</sup> Folate data prioritize RBC over serum; holotranscobalamin data have been removed</span>")
+  ) 
+
+gtsave(bvitb_output, file = "bvitb_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "bvitb_output.png"))
+```
+
+
+
+### Table 2c. B-Vitamins at PNC6
+```{r}
+
+# ## without percents
+ bvit_tabC <- nutr %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+     
+    ##B12 (rows 1-5)
+    "Expected, n^a^" = paste0(
+       format(sum(PNC6_EXP == 1 | VITB12_COB_PNC6_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "Observed, n" = paste0(
+       format(sum(VITB12_COB_PNC6_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%)" = paste0(
+      format(sum(VITB12_COB_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_PNC6==1, na.rm = TRUE)/sum(VITB12_COB_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_PNC6==2, na.rm = TRUE)/sum(VITB12_COB_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_PNC6==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_PNC6==3, na.rm = TRUE)/sum(VITB12_COB_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+  
+    ##Folate (rows 6-10)
+    
+     "Expected, n^a^ " = paste0(
+       format(sum(PNC6_EXP == 1 | FOL_ANY_PNC6_D == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "Observed, n " = paste0(
+       format(sum(FOL_ANY_PNC6_D == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%) " = paste0(
+      format(sum(FOL_ANY_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_PNC6==1, na.rm = TRUE)/sum(FOL_ANY_PNC6_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient or possibly deficient, n (%)" = paste0(
+      format(sum(FOL_ANY_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_PNC6==2, na.rm = TRUE)/sum(FOL_ANY_PNC6_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient or elevated, n (%)" = paste0(
+      format(sum(FOL_ANY_PNC6==3 | FOL_ANY_PNC6 == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FOL_ANY_PNC6==3 | FOL_ANY_PNC6 == 4, na.rm = TRUE)/sum(FOL_ANY_PNC6_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+   ) %>%
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  bvit_tabC[is.na(bvit_tabC)] <- paste0("0")
+
+ bvitC_output <- tb_theme1(bvit_tabC) %>%
+   tab_header(
+     title = md("**Table 2C**")) %>%
+
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Total cobalamin (serum B12)</span>"),
+     rows = 1:5
+   ) %>%
+   
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Folate (serum or RBC)</span>"),
+     rows = 6:10
+   ) %>%
+  
+ row_group_order(groups = c(
+                  "<span style='font-size: 18px'>Total cobalamin (serum B12)</span>",
+                  "<span style='font-size: 18px'>Folate (serum or RBC)</span>"
+                  )) %>%
+   
+    tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: passed the window without closing out, or has data. Observed: has data.</span>")
+     ) %>% 
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>NOTE:</sup> Folate data prioritize RBC over serum; holotranscobalamin data have been removed</span>")
+  ) 
+
+gtsave(bvitC_output, file = "bvitC_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "bvitC_output.png"))
+```
+
+\newpage
+
+## 3. Mean Cell Volume (MCV)
+
+**Mean cell volume**, also known as **mean corpuscular volume**, is useful for determining the etiology of anemia. 
+
+-   **Microcytosis:** red blood cells are too small (low MCV), commonly associated with with iron deficiency anemia.
+
+-   **Macrocytosis:** red blood cells are too large (high MCV); megaloblastic macrocytosis is associated with deficiency of cobalamin (vitamin B12) and/or folate (Vitamin B9)
+
+
+
+### Reference values by trimester:
+
+|Trimester|Reference range|
+|---------|---------------|
+|1st|85-97.8 fL|
+|2nd|85.8-99.4 fL|
+|3rd|82.4-100.4 fL|
+
+
+
+### Table 3a. Mean Cell Volume (MCV) at Enrollment
+```{r}
+
+# ## without percents
+ mcv_taba <- nutr %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+    "Expected, n^a^" = paste0(
+       format(sum(ANC20_EXP == 1 | MCV_ANC20_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "MCV denominator, n" = paste0(
+       format(sum(MCV_ANC20_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Microcytic, n (%)" = paste0(
+      format(sum(MCV_ANC20==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_ANC20==1, na.rm = TRUE)/sum(MCV_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Normal, n (%)" = paste0(
+      format(sum(MCV_ANC20==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_ANC20==2, na.rm = TRUE)/sum(MCV_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     "Macrocytic, n (%)" = paste0(
+      format(sum(MCV_ANC20==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_ANC20==3, na.rm = TRUE)/sum(MCV_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),   
+ 
+#AMONG MICROCYTIC
+      #Iron levels
+    
+ "Ferritin available, n^b^" = paste0(
+       format(sum(FERRITIN_ANC20_DENOM == 1 & MCV_ANC20 ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Iron deficient (low ferritin), n (%)" = paste0(
+      format(sum(FERRITIN70_ANC20==2 & MCV_ANC20 ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FERRITIN70_ANC20==2 & MCV_ANC20 ==1, na.rm = TRUE)/sum(FERRITIN_ANC20_DENOM== 1 & MCV_ANC20 ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    
+#AMONG MACROCYTIC
+      #B12 levels
+  
+    "Vitamin B12 available, n^c^" = paste0(
+       format(sum(VITB12_COB_ANC20_DENOM==1 & MCV_ANC20==3, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC20==1 & MCV_ANC20==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC20==1 & MCV_ANC20==3, na.rm = TRUE)/sum(VITB12_COB_ANC20_DENOM== 1 & MCV_ANC20==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC20==2 & MCV_ANC20==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC20==2 & MCV_ANC20==3, na.rm = TRUE)/sum(VITB12_COB_ANC20_DENOM== 1 & MCV_ANC20==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC20==3 & MCV_ANC20==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC20==3 & MCV_ANC20==3, na.rm = TRUE)/sum(VITB12_COB_ANC20_DENOM== 1 & MCV_ANC20==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+
+   ) %>%
+  
+   
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  mcv_taba[is.na(mcv_taba)] <- paste0("0")
+
+ mcva_output <- tb_theme1(mcv_taba) %>%
+   tab_header(
+     title = md("**Table 3a**")) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Expected denominator</span>"),
+     rows = 1:1
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Mean cell volume (MCV)</span>"),
+     rows = 2:5
+   ) %>%
+    tab_row_group(
+     label = html("<span style='font-size: 18px'>Iron deficiency among microcytic participants</span>"),
+     rows = 6:7
+   ) %>%    
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Total cobalamin (serum B12) deficiency among macrocytic participants</span>"),
+     rows = 8:11
+   ) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Expected denominator</span>",
+                  "<span style='font-size: 18px'>Mean cell volume (MCV)</span>",
+                  "<span style='font-size: 18px'>Iron deficiency among microcytic participants</span>",
+                  "<span style='font-size: 18px'>Total cobalamin (serum B12) deficiency among macrocytic participants</span>"
+                  )) %>%
+    tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: participant has passed the visit window without closing out/without pregnancy ending, or participant has data.</span>")
+  ) %>%
+   
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using ferritin values that were not BRINDA-adjusted for inflammation, the threshhold for low iron is <70 ug/L in the presence of inflammation or <15 ug/L among participants without inflammation. </span>")
+  ) %>%
+     tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>c</sup>Macrocytic participants with a total cobalamin value.</span>")
+  ) 
+
+```
+
+```{r, out.width = '100%'}
+gtsave(mcva_output, file = "mcva_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "mcva_output.png"))
+```
+
+\newpage
+
+### Table 3b. Mean Cell Volume (MCV) at ANC-32
+```{r}
+
+# ## without percents
+ mcv_tabb <- nutr %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+    "Expected, n^a^" = paste0(
+       format(sum(ANC32_EXP == 1 | MCV_ANC32_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "MCV denominator, n" = paste0(
+       format(sum(MCV_ANC32_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Microcytic, n (%)" = paste0(
+      format(sum(MCV_ANC32==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_ANC32==1, na.rm = TRUE)/sum(MCV_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Normal, n (%)" = paste0(
+      format(sum(MCV_ANC32==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_ANC32==2, na.rm = TRUE)/sum(MCV_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     "Macrocytic, n (%)" = paste0(
+      format(sum(MCV_ANC32==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_ANC32==3, na.rm = TRUE)/sum(MCV_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),   
+ 
+#AMONG MICROCYTIC
+      #Iron levels
+    
+ "Ferritin available, n^b^" = paste0(
+       format(sum(FERRITIN_ANC32_DENOM == 1 & MCV_ANC32 ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Iron deficient (low ferritin), n (%)" = paste0(
+      format(sum(FERRITIN70_ANC32==2 & MCV_ANC32 ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FERRITIN70_ANC32==2 & MCV_ANC32 ==1, na.rm = TRUE)/sum(FERRITIN_ANC32_DENOM== 1 & MCV_ANC32 ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    
+#AMONG MACROCYTIC
+      #B12 levels
+  
+    "Vitamin B12 available, n^c^" = paste0(
+       format(sum(VITB12_COB_ANC32_DENOM==1 & MCV_ANC32==3, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC32==1 & MCV_ANC32==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC32==1 & MCV_ANC32==3, na.rm = TRUE)/sum(VITB12_COB_ANC32_DENOM== 1 & MCV_ANC32==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC32==2 & MCV_ANC32==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC32==2 & MCV_ANC32==3, na.rm = TRUE)/sum(VITB12_COB_ANC32_DENOM== 1 & MCV_ANC32==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_ANC32==3 & MCV_ANC32==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_ANC32==3 & MCV_ANC32==3, na.rm = TRUE)/sum(VITB12_COB_ANC32_DENOM== 1 & MCV_ANC32==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+
+   ) %>%
+  
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  mcv_tabb[is.na(mcv_tabb)] <- paste0("0")
+
+ mcvb_output <- tb_theme1(mcv_tabb) %>%
+   tab_header(
+     title = md("**Table 3b**")) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Expected denominator</span>"),
+     rows = 1:1
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Mean cell volume (MCV)</span>"),
+     rows = 2:5
+   ) %>%
+    tab_row_group(
+     label = html("<span style='font-size: 18px'>Iron deficiency among microcytic participants</span>"),
+     rows = 6:7
+   ) %>%    
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Total cobalamin (serum B12) deficiency among macrocytic participants</span>"),
+     rows = 8:11
+   ) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Expected denominator</span>",
+                  "<span style='font-size: 18px'>Mean cell volume (MCV)</span>",
+                  "<span style='font-size: 18px'>Iron deficiency among microcytic participants</span>",
+                  "<span style='font-size: 18px'>Total cobalamin (serum B12) deficiency among macrocytic participants</span>"
+                  )) %>%
+    tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: participant has passed the visit window without closing out/without pregnancy ending, or participant has data.</span>")
+  ) %>%
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using ferritin values that were not BRINDA-adjusted for inflammation, the threshhold for low iron is <70 ug/L in the presence of inflammation or <15 ug/L among participants without inflammation.</span>")
+  ) %>%
+     tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>c</sup>Macrocytic participants with a total cobalamin value.</span>")
+  )  
+
+```
+
+```{r, out.width = '100%'}
+gtsave(mcvb_output, file = "mcvb_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "mcvb_output.png"))
+```
+
+\newpage
+
+### Table 3c. Mean Cell Volume (MCV) at PNC-6
+```{r}
+
+# ## without percents
+ mcv_tabc <- nutr %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+    "Expected, n^a^" = paste0(
+       format(sum(PNC6_EXP == 1 | MCV_PNC6_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+     
+    "MCV denominator, n" = paste0(
+       format(sum(MCV_PNC6_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Microcytic, n (%)" = paste0(
+      format(sum(MCV_PNC6==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_PNC6==1, na.rm = TRUE)/sum(MCV_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Normal, n (%)" = paste0(
+      format(sum(MCV_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_PNC6==2, na.rm = TRUE)/sum(MCV_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+     "Macrocytic, n (%)" = paste0(
+      format(sum(MCV_PNC6==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MCV_PNC6==3, na.rm = TRUE)/sum(MCV_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),   
+ 
+#AMONG MICROCYTIC
+      #Iron levels
+    
+ "Ferritin available, n^b^" = paste0(
+       format(sum(FERRITIN_PNC6_DENOM == 1 & MCV_PNC6 ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Iron deficient (low ferritin), n (%)" = paste0(
+      format(sum(FERRITIN70_PNC6==2 & MCV_PNC6 ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(FERRITIN70_PNC6==2 & MCV_PNC6 ==1, na.rm = TRUE)/sum(FERRITIN_PNC6_DENOM== 1 & MCV_PNC6 ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    
+#AMONG MACROCYTIC
+      #B12 levels
+  
+    "Vitamin B12 available, n^c^" = paste0(
+       format(sum(VITB12_COB_PNC6_DENOM==1 & MCV_PNC6==3, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Deficient, n (%)" = paste0(
+      format(sum(VITB12_COB_PNC6==1 & MCV_PNC6==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_PNC6==1 & MCV_PNC6==3, na.rm = TRUE)/sum(VITB12_COB_PNC6_DENOM== 1 & MCV_PNC6==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Insufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_PNC6==2 & MCV_PNC6==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_PNC6==2 & MCV_PNC6==3, na.rm = TRUE)/sum(VITB12_COB_PNC6_DENOM== 1 & MCV_PNC6==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      
+    "Sufficient, n (%)" = paste0(
+      format(sum(VITB12_COB_PNC6==3 & MCV_PNC6==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(VITB12_COB_PNC6==3 & MCV_PNC6==3, na.rm = TRUE)/sum(VITB12_COB_PNC6_DENOM== 1 & MCV_PNC6==3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"), 
+
+   ) %>%
+  
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  mcv_tabc[is.na(mcv_tabc)] <- paste0("0")
+
+ mcvc_output <- tb_theme1(mcv_tabc) %>%
+   tab_header(
+     title = md("**Table 3c**")) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Expected denominator</span>"),
+     rows = 1:1
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Mean cell volume (MCV)</span>"),
+     rows = 2:5
+   ) %>%
+    tab_row_group(
+     label = html("<span style='font-size: 18px'>Iron deficiency among microcytic participants</span>"),
+     rows = 6:7
+   ) %>%    
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Total cobalamin (serum B12) deficiency among macrocytic participants</span>"),
+     rows = 8:11
+   ) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Expected denominator</span>",
+                  "<span style='font-size: 18px'>Mean cell volume (MCV)</span>",
+                  "<span style='font-size: 18px'>Iron deficiency among microcytic participants</span>",
+                  "<span style='font-size: 18px'>Total cobalamin (serum B12) deficiency among macrocytic participants</span>"
+                  )) %>%
+    tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: participant has passed the visit window without closing out/without pregnancy ending, or participant has data.</span>")
+  ) %>%
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using ferritin values that were not BRINDA-adjusted for inflammation, the threshhold for low iron is <70 ug/L in the presence of inflammation or <15 ug/L among participants without inflammation. </span>")
+  ) %>%
+     tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>c</sup>Macrocytic participants with a total cobalamin value.</span>")
+  ) 
+
+```
+
+```{r, out.width = '100%'}
+gtsave(mcvc_output, file = "mcvc_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "mcvc_output.png"))
+```
+
+
+\newpage
+
+## 4. Gestational Weight Gain (GWG)
+
+Weight is monitored during all ANC visits; height is taken at enrollment visit. If weight was available $\leq$ 9 weeks gestational age (GA), observed weight was used. If weight only available > 9 weeks GA, early pregnancy weight was imputed using linear mixed model and natural cubic splines with 3 knots.
+
+BMI categories were calculated based on this observed or imputed weight at 9 weeks GA
+
+Total gestational weight gain is the last observed weight visit minus the 9 weeks GA weight.
+
+Recommended GWG is calculated for each pregnancy, adjusting for both baseline BMI and the length of pregnancy. Inadequate or excessive GWG is determined based on each individual recommended GWG.
+
+**BMI Categories and Recommended Total Weight Gain:**
+
+|Category|BMI Range|Recommended weight gain|
+|--------|---------|-----------------------|
+|Underweight| BMI <18.5|12.5-18 kg|
+|Normal| BMI 18.5-24.9|11.5-16 kg|
+|Overweight| BMI 25-29.9|7-11.5 kg|
+|Obese| BMI 30+ |5-9 kg|
+
+*Note: recommended weight gain is based on IOM standards for singleton pregnancy. Women carrying twins or triplets according to* `M01_FETUS_CT_PERES_US` *are excluded from these tables.*
+
+
+
+### Table 4a. BMI at early pregnancy
+```{r}
+
+# ## without percents
+ gwg_taba <- gwg %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+     "Expected^a^, n" = paste0(
+       format(sum(PREG_END == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+     "Missing BMI at early pregnancy, n" = paste0(
+       format(sum(BMI4CAT_MISS == 2, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Implausible BMI at early pregnancy^b^, n" = paste0(
+       format(sum(BMI4CAT_MISS == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+
+    "BMI denominator^c^, n" = paste0(
+       format(sum(BMI4CAT_D == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Underweight, n (%)" = paste0(
+      format(sum(BMI4CAT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI4CAT==1, na.rm = TRUE)/sum(BMI4CAT_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Normal, n (%)" = paste0(
+      format(sum(BMI4CAT==2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI4CAT==2, na.rm = TRUE)/sum(BMI4CAT_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Overweight, n (%)" = paste0(
+      format(sum(BMI4CAT==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI4CAT==3, na.rm = TRUE)/sum(BMI4CAT_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      "Obese, n (%)" = paste0(
+      format(sum(BMI4CAT==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(BMI4CAT==4, na.rm = TRUE)/sum(BMI4CAT_D== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+
+
+   ) %>%
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+  gwg_taba[is.na(gwg_taba)] <- paste0("0")
+
+ gwga_output <- tb_theme1(gwg_taba) %>%
+   tab_header(
+     title = md("**Table 4a**")) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Data completeness</span>"),
+     rows = 1:4
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>BMI category at early pregnancy</span>"),
+     rows = 5:8
+   ) %>%
+
+
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                  "<span style='font-size: 18px'>BMI category at early pregnancy</span>"
+                  )) %>%
+
+  # bold denominator row
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "BMI denominator^c^, n",
+                 "BMI denominator^c^, n"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "BMI denominator^c^, n",
+                 "BMI denominator^c^, n"))) %>%
+
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Number of women with a pregnancy endpoint with singleton pregnancy [M01_FETUS_CT_PERES_US].</span>")
+  ) %>%
+
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Implausible: BMI < 12 or > 50 at early pregnancy.</span>")
+  ) %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>c</sup>BMI denominator are women who have a plausible BMI calculated for early pregnancy (based on imputed or observed weight; see description above) with singleton pregnancy and a pregnancy endpoint.</span>")
+  )
+
+```
+
+```{r, out.width = '100%'}
+gtsave(gwga_output, file = "gwga_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "gwga_output.png"))
+```
+
+\newpage
+
+### Table 4b. GWG among pregnancies with a pregnancy end recorded
+```{r}
+
+# ## without percents
+ gwg_tabb <- gwg %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+     "Expected denominator, n^a^" = paste0(
+       format(sum(PREG_END == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    
+    "GWG denominator, n^b^" = paste0(
+       format(sum(GWG_VALID == 1 & BMI4CAT_D == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+
+    "Total GWG in kg, mean (SD)" = paste0(format(round(mean(GWG_TOTAL , na.rm = TRUE),2),
+                                                        nsmall=0, digits = 2), " (",format(round(sd(GWG_TOTAL,
+                                                            na.rm = TRUE),2), nsmall=0, digits = 2), ")"),
+
+ #AMONG ALL
+
+      "Inadequate, n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==1 & GWG_VALID == 1 & BMI4CAT_D == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==1  & GWG_VALID == 1 & BMI4CAT_D == 1, na.rm = TRUE)/sum(GWG_VALID == 1 & BMI4CAT_D == 1 , na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+      "Adequate, n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==2  & GWG_VALID == 1 & BMI4CAT_D == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==2  & GWG_VALID == 1 & BMI4CAT_D == 1, na.rm = TRUE)/sum(GWG_VALID == 1 & BMI4CAT_D == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      "Excessive, n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==3  & GWG_VALID == 1 & BMI4CAT_D == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==3 & GWG_VALID == 1 & BMI4CAT_D == 1 , na.rm = TRUE)/sum(GWG_VALID == 1 & BMI4CAT_D == 1 , na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+   ) %>%
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+# replace NA with 0s (this likely means there is not yet data)
+  gwg_tabb[is.na(gwg_tabb)] <- paste0("0")
+
+ gwgb_output <- tb_theme1(gwg_tabb) %>%
+   tab_header(
+     title = md("**Table 4b**")) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Data completeness</span>"),
+     rows = 1:2
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Total GWG</span>"),
+     rows = 3:3
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Among all women</span>"),
+     rows = 4:6
+   ) %>%
+
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness</span>",
+                            "<span style='font-size: 18px'>Total GWG</span>",
+                  "<span style='font-size: 18px'>Among all women</span>"
+                  )) %>%
+
+  # bold denominator row
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "GWG denominator, n^b^"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "GWG denominator, n^b^"))) %>%
+
+  tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Expected denominator are women who have a pregnancy end recorded with singleton pregnancy [M01_FETUS_CT_PERES_US].</span>")
+  ) %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>GWG denominator are women who have a pregnancy end recorded, a valid BMI, and a valid total GWG value (betweeen -10 kg and 30 kg), with singleton pregnancy [M01_FETUS_CT_PERES_US].</span>")
+  )
+
+```
+
+```{r, out.width = '100%'}
+gtsave(gwgb_output, file = "gwgb_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "gwgb_output.png"))
+```
+
+\newpage
+
+### Table 4c. GWG all pregnancies with a pregnancy end, by BMI at enrollment
+```{r}
+
+# ## without percents
+ gwg_tabc <- gwg %>%
+   rowwise() %>%
+   group_by(SITE) %>%
+   summarise(
+
+
+
+ #AMONG UNDERWEIGHT
+
+      "Underweight denominator^a^, n" = paste0(
+       format(sum(BMI4CAT == 1 & GWG_VALID==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Inadequate (< 12.5 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==1 & BMI4CAT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==1 & BMI4CAT == 1, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+      "Adequate (12.5-18 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==2 & BMI4CAT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==2 & BMI4CAT == 1, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      "Excessive (>18 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==3 & BMI4CAT == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==3 & BMI4CAT == 1, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+ #AMONG NORMAL WEIGHT
+      "Normal weight denominator^a^, n" = paste0(
+       format(sum(BMI4CAT == 2 & GWG_VALID==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Inadequate (<11.5 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==1 & BMI4CAT == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==1 & BMI4CAT == 2, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 2, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+      "Adequate (11.5-16 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==2 & BMI4CAT == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==2 & BMI4CAT == 2, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 2, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      "Excessive (>16 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==3 & BMI4CAT == 2, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==3 & BMI4CAT == 2, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 2, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  #AMONG OVER WEIGHT
+
+    "Overweight denominator^a^, n" = paste0(
+       format(sum(BMI4CAT == 3 & GWG_VALID==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Inadequate (<7 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==1 & BMI4CAT == 3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==1 & BMI4CAT == 3, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+      "Adequate (7-11.5 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==2 & BMI4CAT == 3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==2 & BMI4CAT == 3, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      "Excessive (>11.5 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==3 & BMI4CAT ==3, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==3 & BMI4CAT == 3, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 3, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+   #AMONG OBESE
+      "Obese denominator^a^, n" = paste0(
+       format(sum(BMI4CAT == 4 & GWG_VALID==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+      "Inadequate (<5 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==1 & BMI4CAT == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==1 & BMI4CAT == 4, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 4, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+      "Adequate (5-9 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==2 & BMI4CAT == 4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==2 & BMI4CAT == 4, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 4, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+      "Excessive (>9 kg), n (%)" = paste0(
+      format(sum(GWG_ADEQUACY==3 & BMI4CAT ==4, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(GWG_ADEQUACY==3 & BMI4CAT == 4, na.rm = TRUE)/sum(GWG_VALID== 1 & BMI4CAT == 4, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+   ) %>%
+   t() %>% as.data.frame() %>%
+   `colnames<-`(c(.[1,])) %>%
+   slice(-1)  %>%
+   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+   mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+  gwg_tabc[is.na(gwg_tabc)] <- paste0("0")
+
+ gwgc_output <- tb_theme1(gwg_tabc) %>%
+   tab_header(
+     title = md("**Table 4c**")) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Among underweight (BMI<18.5)</span>"),
+     rows = 1:4
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Among normal weight (BMI 18.5-24.9)</span>"),
+     rows = 5:8
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Among overweight (BMI 25-29.9)</span>"),
+     rows = 9:12
+   ) %>%
+   tab_row_group(
+     label = html("<span style='font-size: 18px'>Among obese (BMI 30+)</span>"),
+     rows = 13:16
+   ) %>%
+ row_group_order(groups = c(
+                  "<span style='font-size: 18px'>Among underweight (BMI<18.5)</span>",
+                  "<span style='font-size: 18px'>Among normal weight (BMI 18.5-24.9)</span>",
+                  "<span style='font-size: 18px'>Among overweight (BMI 25-29.9)</span>",
+                  "<span style='font-size: 18px'>Among obese (BMI 30+)</span>"
+                  )) %>%
+
+
+  # bold denominator row
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Underweight denominator^a^, n",
+                 "Normal weight denominator^a^, n",
+                 "Overweight denominator^a^, n",
+                 "Obese denominator^a^, n"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Underweight denominator^a^, n",
+                 "Normal weight denominator^a^, n",
+                 "Overweight denominator^a^, n",
+                 "Obese denominator^a^, n"))) %>%
+   tab_footnote(
+     footnote = html("<span style='font-size: 18px'><sup>a</sup>Denominator are women who in that BMI category at early pregnancy who have a pregnancy end recorded and a valid total GWG value with singleton pregnancy [M01_FETUS_CT_PERES_US].</span>")
+  )
+
+```
+
+```{r, out.width = '100%'}
+gtsave(gwgc_output, file = "gwgc_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "gwgc_output.png"))
+```
+
+### Figure 7. Total gestational weight gain by site
+```{r gwg-fig}
+
+gwg <-  gwg %>% mutate(
+    BMI4CAT_STR=case_when(
+      BMI4CAT == 1 ~ "Underweight",
+      BMI4CAT == 2 ~ "Normal",
+      BMI4CAT == 3 ~ "Overweight",
+      BMI4CAT == 4 ~ "Obese"
+    )
+    )
+ gwg$BMI4CAT_STR <- factor(gwg$BMI4CAT_STR, levels = c("Underweight", "Normal", "Overweight","Obese"))
+
+gwg_total <- ggplot(subset(gwg, GWG_VALID %in% c(1) & BMI4CAT %in% c(1,2,3,4)), 
+               aes(x=SITE, y=GWG_TOTAL, fill= BMI4CAT_STR) ) +
+  geom_boxplot(outlier.shape = NA) +
+  scale_fill_manual(values=c("#0190DB","#008364" ,"#FFC72C", "#A75523" )) +
+  theme_classic() +
+  labs(title = "Total weight gain by BMI category") +
+  ylab("Total gestational weight gain") +
+  guides(fill=guide_legend(title="BMI category")) + 
+  theme(legend.position = "bottom") 
+
+ggsave(paste0("gwg_total", ".png"), path = path_to_save,
+        width = 8, height = 4)
+ 
+knitr::include_graphics(paste0(path_to_save, "gwg_total.png"))
+
+```
