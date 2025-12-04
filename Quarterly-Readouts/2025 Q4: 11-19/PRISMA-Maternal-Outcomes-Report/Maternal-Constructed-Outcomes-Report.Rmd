@@ -208,45 +208,82 @@ preterm_indication1<-left_join(preterm_indication,end)
 rupture1<-left_join(rupture,end)
 
 
-# Enrollment Outcomes:
+# Infection Outcomes:
 
-summary_tab1 <- infection1 %>%
+summary_tab1 <- infection1  %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
 
   ## HIV
-    "HIV prevalence at enrollment (positive RDT or diagnosed)" = paste0(
-      format(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "HIV ever during pregnancy" = paste0(
+      format(sum(HIV_POSITIVE_EVER_PREG == 1 & ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HIV_POSITIVE_EVER_PREG == 1 & ENROLL ==1, na.rm = TRUE)/sum(ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     # Syphilis
-    "Syphilis prevalence at enrollment (positive RDT or diagnosed)" = paste0(
-      format(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Syphilis ever during pregnancy" = paste0(
+      format(sum(SYPH_POSITIVE_EVER_PREG == 1 & ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE)/sum(ENROLL ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(SYPH_POSITIVE_EVER_PREG == 1 & ENROLL ==1, na.rm = TRUE)/sum(ENROLL ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     ## Malaria
-    "Malaria prevalence at enrollment (positive RDT or diagnosed)" = paste0(
-      format(sum(MAL_POSITIVE_ENROLL == 1 & MAL_RDT_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Malaria ever during pregnancy" = paste0(
+      format(sum(MAL_POSITIVE_EVER_PREG == 1 & MAL_RDT_PERF_EVER_PREG==1 & ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(MAL_POSITIVE_ENROLL == 1 & MAL_RDT_PERF_ENROLL == 1, na.rm = TRUE)/sum(ENROLL ==1 & MAL_RDT_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(MAL_POSITIVE_EVER_PREG == 1 & MAL_RDT_PERF_EVER_PREG==1 & ENROLL ==1, na.rm = TRUE)/sum(ENROLL ==1 & MAL_RDT_PERF_EVER_PREG == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+        
+    "TB Dx+ or GeneXpert+ ever during pregnancy" = paste0(
+      format(sum(TB_POSITIVE_EVER_PREG == 1 & ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(TB_POSITIVE_EVER_PREG == 1 & ENROLL == 1, na.rm = TRUE)/sum(ENROLL ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     # Hepatitis B
-    "Hep B RDT positive at enrollment" = paste0(
-      format(sum(HBV_POSITIVE_ENROLL == 1 & HBV_RDT_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Hep B ever during pregnancy" = paste0(
+      format(sum(HBV_POSITIVE_EVER_PREG == 1 & HBV_RDT_PERF_EVER_PREG==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HBV_POSITIVE_ENROLL == 1 & HBV_RDT_PERF_ENROLL == 1, na.rm = TRUE)/sum(HBV_RDT_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HBV_POSITIVE_EVER_PREG == 1 & HBV_RDT_PERF_EVER_PREG==1, na.rm = TRUE)/sum(HBV_RDT_PERF_EVER_PREG == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")") ,
 
-      "Hep C RDT positive at enrollment" = paste0(
-      format(sum(HCV_POSITIVE_ENROLL == 1 & HCV_RDT_PERF_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+    "Hep C ever during pregnancy" = paste0(
+      format(sum(HCV_POSITIVE_EVER_PREG == 1 & HCV_RDT_PERF_EVER_PREG==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HCV_POSITIVE_ENROLL == 1 & HCV_RDT_PERF_ENROLL == 1, na.rm = TRUE)/sum(HCV_RDT_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HCV_POSITIVE_EVER_PREG == 1 & HCV_RDT_PERF_EVER_PREG==1, na.rm = TRUE)/sum(HCV_RDT_PERF_EVER_PREG == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Hep E ever during pregnancy" = paste0(
+      format(sum(HEV_POSITIVE_EVER_PREG ==1 & (HEV_IGM_PERF_EVER_PREG==1 | HEV_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HEV_POSITIVE_EVER_PREG ==1 & (HEV_IGM_PERF_EVER_PREG==1 | HEV_IGG_PERF_EVER_PREG==1), na.rm = TRUE)/sum(HEV_IGM_PERF_EVER_PREG==1 | HEV_IGG_PERF_EVER_PREG==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Zika ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(ZIK_POSITIVE_EVER_PREG ==1 & (ZIK_IGM_PERF_EVER_PREG==1 | ZIK_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ZIK_POSITIVE_EVER_PREG ==1 & (ZIK_IGM_PERF_EVER_PREG==1 | ZIK_IGG_PERF_EVER_PREG==1), na.rm = TRUE)/sum(ZIK_IGM_PERF_EVER_PREG ==1| ZIK_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Dengue ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(DEN_POSITIVE_EVER_PREG ==1 & (DEN_IGM_PERF_EVER_PREG==1 | DEN_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DEN_POSITIVE_EVER_PREG ==1 & (DEN_IGM_PERF_EVER_PREG==1 | DEN_IGG_PERF_EVER_PREG==1), na.rm = TRUE)/sum(DEN_IGM_PERF_EVER_PREG ==1| DEN_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Chikungunya ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(CHK_POSITIVE_EVER_PREG==1 & (CHK_IGM_PERF_EVER_PREG==1 | CHK_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(CHK_POSITIVE_EVER_PREG==1 & (CHK_IGM_PERF_EVER_PREG==1 | CHK_IGG_PERF_EVER_PREG==1), na.rm = TRUE)/sum(CHK_IGM_PERF_EVER_PREG ==1| CHK_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Leptospirosis ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE)/sum(LEPT_IGM_PERF_EVER_PREG ==1 | LEPT_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
 
    ) %>%
@@ -255,29 +292,46 @@ summary_tab1 <- infection1 %>%
   slice(-1) %>%
         add_column(
       .before = 1,
-    "Total" = MAT_INFECTION %>%
+    "Total" = infection1 %>%
         plyr::summarise(
+    "HIV ever during pregnancy" = paste0(
+      format(sum(HIV_POSITIVE_EVER_PREG == 1 & ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "HIV prevalence at enrollment (positive RDT or diagnosed)" = paste0(
-      format(sum(HIV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    "Syphilis ever during pregnancy" = paste0(
+      format(sum(SYPH_POSITIVE_EVER_PREG == 1 & ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Syphilis prevalence at enrollment (positive RDT or diagnosed)" = paste0(
-      format(sum(SYPH_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    "Malaria ever during pregnancy" = paste0(
+      format(sum(MAL_POSITIVE_EVER_PREG == 1 & MAL_RDT_PERF_EVER_PREG==1 & ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Malaria prevalence at enrollment (positive RDT or diagnosed)" = paste0(
-      format(sum(MAL_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    "TB Dx+ or GeneXpert+ ever during pregnancy" = paste0(
+      format(sum(TB_POSITIVE_EVER_PREG == 1 & ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Hep B RDT positive at enrollment" = paste0(
-      format(sum(HBV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    "Hep B ever during pregnancy" = paste0(
+      format(sum(HBV_POSITIVE_EVER_PREG == 1 & HBV_RDT_PERF_EVER_PREG==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+    "Hep C ever during pregnancy" = paste0(
+      format(sum(HCV_POSITIVE_EVER_PREG == 1 & HCV_RDT_PERF_EVER_PREG==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+        
+    "Hep E ever during pregnancy" = paste0(
+      format(sum(HEV_POSITIVE_EVER_PREG ==1 & (HEV_IGM_PERF_EVER_PREG==1 | HEV_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2)),
+        
+    "Zika ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(ZIK_POSITIVE_EVER_PREG ==1 & (ZIK_IGM_PERF_EVER_PREG==1 | ZIK_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Hep C RDT positive at enrollment" = paste0(
-      format(sum(HCV_POSITIVE_ENROLL == 1, na.rm = TRUE), nsmall = 0, digits = 2))
-
+    "Dengue ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(DEN_POSITIVE_EVER_PREG ==1 & (DEN_IGM_PERF_EVER_PREG==1 | DEN_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2)),
+        
+    "Chikungunya ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(CHK_POSITIVE_EVER_PREG==1 & (CHK_IGM_PERF_EVER_PREG==1 | CHK_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2)),
+        
+    "Leptospirosis ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2))
   ) %>%
         t() %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
         )
+
 
 
   # Mid-pregnancy outcomes:
@@ -747,17 +801,16 @@ summary_tab_output <- tb_theme1(summary_tab) %>%
   tab_header(
     title = md("**Table I**")) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Enrollment outcomes</span>"),
-        rows = 1:5
+    label = html("<span style='font-size: 18px'>Infection ever during pregnancy</span>"),
+        rows = 1:11
     ) %>%
  
- row_group_order(groups = c( "<span style='font-size: 18px'>Enrollment outcomes</span>")) %>%
+ row_group_order(groups = c( "<span style='font-size: 18px'>Infection ever during pregnancy</span>")) %>%
 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note </sup> See outcome-specific section for denominators.</span>")
  )
 
- 
 
 
 summary_tab_output2 <- tb_theme1(summary_tab_2) %>%
@@ -3466,6 +3519,7 @@ knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
 ### Table 6. Hemorrhage
 ```{r}
 
+
 Hemorrhage_tab <- hemorrhage %>%
   rowwise() %>%
   group_by(SITE) %>%
@@ -3481,20 +3535,20 @@ Hemorrhage_tab <- hemorrhage %>%
       format(round(sum(HEM_APH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Postpartum hemorrhage" = paste0(
+    "Postpartum hemorrhage^b^" = paste0(
       format(sum(HEM_PPH == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH == 1, na.rm = TRUE)/sum(HEM_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     ## hemorrhage subcategories:
-    "Est blood loss >= 500mL^b^" = paste0(
+    "Est blood loss >= 500mL^c^" = paste0(
       format(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(RSN_EST_BLOOD_LOSS_IPC >= 500 | RSN_EST_BLOOD_LOSS_HOSP_ANC >= 500, na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Procedure/blood transfusion^b^" = paste0(
+    "Procedure/blood transfusion^c^" = paste0(
       format(sum(HEM_PPH ==1 & (RSN_PPH_PROC_IPC_BALLOON==1 | RSN_PPH_PROC_IPC_SURG==1 | RSN_PPH_PROC_IPC_BRACE==1|
                    RSN_PPH_PROC_IPC_VESSEL==1 | RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3509,13 +3563,13 @@ Hemorrhage_tab <- hemorrhage %>%
       ")"),
     
     ## severe subcategories:
-    "Est blood loss >= 1000mL^b^" = paste0(
+    "Est blood loss >= 1000mL^c^" = paste0(
       format(sum(HEM_PPH == 1 & (RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEM_PPH ==1 & (RSN_EST_BLOOD_LOSS_IPC >= 1000 | RSN_EST_BLOOD_LOSS_PNC >= 1000 | RSN_EST_BLOOD_LOSS_HOSP_PNC >= 1000), na.rm = TRUE)/sum(HEM_PPH==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
      
-    "Procedure/blood transfusion^b^ " = paste0(
+    "Procedure/blood transfusion^c^ " = paste0(
       format(sum(HEM_PPH_SEV==1 & (RSN_PPH_PROC_IPC_BALLOON==1 |RSN_PPH_PROC_IPC_SURG==1 |RSN_PPH_PROC_IPC_BRACE==1|
                                      RSN_PPH_PROC_IPC_VESSEL==1|RSN_PPH_PROC_IPC_HYSTER==1| RSN_BLOOD_TRANS_IPC==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -3675,9 +3729,6 @@ Hemorrhage_tab <- hemorrhage %>%
   slice(-1)  %>%
   mutate_all(funs(str_replace(., "NaN", "0"))) %>%
   mutate_all(funs(str_replace(., "NA", "0")))
-
-
-
 ```
 
 ```{r}
@@ -3706,11 +3757,11 @@ hemorrhage_output1 <- tb_theme1(Hemorrhage_tab1) %>%
       cell_text(indent = px(30), size = 24)
     ),
     locations = cells_stub(rows = c(
-      "Est blood loss >= 500mL^b^",
-      "Procedure/blood transfusion^b^",
+      "Est blood loss >= 500mL^c^",
+      "Procedure/blood transfusion^c^",
       
-      "Est blood loss >= 1000mL^b^",
-      "Procedure/blood transfusion^b^ "
+      "Est blood loss >= 1000mL^c^",
+      "Procedure/blood transfusion^c^ "
     ))
   ) %>% 
   # bold denominator rows
@@ -3732,23 +3783,26 @@ hemorrhage_output1 <- tb_theme1(Hemorrhage_tab1) %>%
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with a reported birth outcome.</span>")
   ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is participants with reported postpartum hemorrhage.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Estimate blood loss >=500Ml or procedure/blood transfusion will not add up to equal the total number of PPH cases. Participants who report PPH via checkbox at L&D or following delivery are also included, but are not pulled out in a separate row in the table).</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is participants with reported postpartum hemorrhage.</span>")
   ) 
 
 hemorrhage_output2 <- tb_theme1(Hemorrhage_tab2) %>%
   tab_header(
     title = md("**Table 6 continued**")) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>c</sup></span>"),
+    label = html("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>d</sup></span>"),
     rows = 1:7
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>c</sup></span>"),
+    label = html("<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>d</sup></span>"),
     rows = 8:16
   ) %>%
   
-  row_group_order(groups = c("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>c</sup></span>",
-                             "<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>c</sup></span>")) %>%
+  row_group_order(groups = c("<span style='font-size: 18px'>Procedures for postpartum hemorrhage among women with PPH <sup>d</sup></span>",
+                             "<span style='font-size: 18px'>Medications given to prevent/treat postpartum hemorrhage <sup>d</sup></span>")) %>%
   # bold denominator rows
   tab_style(
     style = list(
@@ -3766,7 +3820,7 @@ hemorrhage_output2 <- tb_theme1(Hemorrhage_tab2) %>%
       "Denominator   "))) %>%
   
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all participants with postpartum hemorrhage.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all participants with postpartum hemorrhage.</span>")
   )
 
 ```
@@ -4733,10 +4787,10 @@ zcd_tab <- infection1 %>%
       format(round(sum(LEPT_IGG_POSITIVE_EVER_PREG == 1 & LEPT_IGM_POSITIVE_ENROLL==0 & LEPT_IGG_POSITIVE_ENROLL == 0 & LEPT_IGG_PERF_EVER_PREG==1, na.rm = TRUE)/sum(LEPT_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Leptospirosis ever during pregnancy (IgM+ or incident IgG+) ^b^" = paste0(
-      format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 | (LEPT_IGG_POSITIVE_EVER_PREG == 1 & LEPT_IGM_POSITIVE_ENROLL==0 & LEPT_IGG_POSITIVE_ENROLL == 0 & LEPT_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
+    "Leptospirosis ever during pregnancy (IgM+ or incident IgG+)" = paste0(
+      format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 | (LEPT_IGG_POSITIVE_EVER_PREG == 1 & LEPT_IGM_POSITIVE_ENROLL==0 & LEPT_IGG_POSITIVE_ENROLL == 0 & LEPT_IGG_PERF_EVER_PREG==1), na.rm = TRUE)/sum(LEPT_IGM_PERF_EVER_PREG ==1| LEPT_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE)/sum(LEPT_IGM_PERF_EVER_PREG ==1| LEPT_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")")
     
     # "Leptospirosis incident IgG and IgM" = paste0(
