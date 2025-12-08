@@ -370,16 +370,6 @@ mnh01_boe <- mnh01_filtered %>% filter(M01_TYPE_VISIT == 1) %>% ## only want enr
          ANC32_PASS_LATE = ifelse(ANC32_LATE_WINDOW<UploadDate, 1, 0),
          ANC36_PASS_LATE = ifelse(ANC36_LATE_WINDOW<UploadDate, 1, 0))  
 
-missing_ids <- MAT_ENROLL_FULL %>% filter(SITE == "Pakistan") %>% filter(is.na(M01_US_OHOSTDAT))
-test <- mnh01_old %>% filter(SCRNID %in% missing_ids$SCRNID) %>% 
-  select(SITE, SCRNID, MOMID, PREGID, M01_US_OHOSTDAT, M01_TYPE_VISIT, M01_US_GA_WKS_AGE_FTS1)
-
-test2 <- mnh01_cur %>% filter(PREGID %in% missing_ids$PREGID) %>% 
-  select(SCRNID, MOMID, PREGID,US_OHOSTDAT, TYPE_VISIT, US_GA_WKS_AGE_FTS1 )
-
-mnh01_old  <- read.csv(paste0("D:/Users/stacie.loisate/Documents/import/", "2025-11-14", "/mnh01_merged.csv")) %>% 
-  filter(SITE == "Pakistan")
-
 MAT_ENROLL_FULL <- mnh02_sub %>% 
   left_join(mnh01_boe, by = c("SITE", "SCRNID", "MOMID", "PREGID")) %>% 
   mutate(DROPPED = case_when(is.na(EDD_BOE) & ENROLL==1 ~ 1, ## drop participants who are enrolled but missing mnh01 
