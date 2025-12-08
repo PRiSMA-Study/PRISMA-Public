@@ -1725,6 +1725,9 @@ disp "$today"
 		*check that if DIAB_OVERT_ANY ==1, NO result for DIAB_GEST_ANY
 
 	* Save a clean copy of GDM to the outcome folder: 
+	
+	* drop variables that will not be publicly shared: 
+	drop DIAB_TREAT_INS DIAB_TREAT_MET DIAB_TREAT_GLY DIAB_TREAT
 
 	save "$OUT/MAT_GDM", replace 
 	
