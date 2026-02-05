@@ -202,7 +202,6 @@ g_legend <- function(p) {
 ### Table I. Summary of maternal outcomes
 ```{r}
 
-infection1 <- left_join(MAT_INFECTION,enroll)
 anemia1<-left_join(anemia,end)
 preterm_indication1<-left_join(preterm_indication,end)
 rupture1<-left_join(rupture,end)
@@ -210,7 +209,7 @@ rupture1<-left_join(rupture,end)
 
 # Infection Outcomes:
 
-summary_tab1 <- infection1  %>%
+summary_tab1 <- mat_infection  %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -292,7 +291,7 @@ summary_tab1 <- infection1  %>%
   slice(-1) %>%
         add_column(
       .before = 1,
-    "Total" = infection1 %>%
+    "Total" = mat_infection %>%
         plyr::summarise(
     "HIV ever during pregnancy" = paste0(
       format(sum(HIV_POSITIVE_EVER_PREG == 1 & ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
@@ -4093,7 +4092,7 @@ ggplot() +
 ```{r}
 
 ## reorder to be output vars and then missing vars
-sti_enroll_tab <- infection1 %>%
+sti_enroll_tab <- mat_infection %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -4341,7 +4340,7 @@ knitr::include_graphics(paste0(path_to_save, "sti_enroll_output2.png"))
 
 ```{r}
 
-mal_table <- infection1 %>% 
+mal_table <- mat_infection %>% 
   # mutate(ENROLL=1) %>% 
   rowwise() %>% 
   group_by(SITE) %>% 
@@ -4442,7 +4441,7 @@ knitr::include_graphics(paste0(path_to_save, "malaria_tab_output.png"))
 
 ```{r}
 
-hepatitis_tab <- infection1 %>%
+hepatitis_tab <- mat_infection %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -4667,7 +4666,7 @@ knitr::include_graphics(paste0(path_to_save, "hepatitis_tab_output2.png"))
 
 ```{r}
 
-tb_tab <- infection1 %>%
+tb_tab <- mat_infection %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -4780,7 +4779,7 @@ knitr::include_graphics(paste0(path_to_save, "tb_tab_output.png"))
 
 ```{r}
 
-zcd_tab <- infection1 %>%
+zcd_tab <- mat_infection %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -5143,9 +5142,8 @@ knitr::include_graphics(paste0(path_to_save, "zcd_tab_output2.png"))
 ### Table 7f. All infections combined at enrollment
 
 ```{r}
-infection2 <- left_join(infection1,end)
 ## reorder to be output vars and then missing vars
-all_infection_tab <- infection2 %>%
+all_infection_tab <- mat_infection %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
