@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: Stacie Loisate
-#* Last updated: November 2025, Erin Oakley, Savannah O'Malley & Stacie Loisate
+#* Last updated: February 2026, Erin Oakley, Savannah O'Malley & Stacie Loisate
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -47,17 +47,17 @@ library(readxl)
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-# path_to_data <- "Z:/Outcome Data/2025-01-10/" 
+# path_to_data <- "Z:/Outcome Data/2026-01-30/" 
 # path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
-datadate <- "2025-10-31"
+datadate <- "2026-01-30"
 today <- Sys.Date()
 format(today, "%Y-%B-%d")
 
 #Savannah's paths
-path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
-path_to_save <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/", datadate, "/")
+ path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
+ path_to_save <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/", datadate, "/")
 
 # Check if the path_to_save directory exists
 if (!dir.exists(path_to_save)) {
@@ -78,15 +78,15 @@ if (!dir.exists(path_to_save)) {
 #  filter(REMIND_ENROLLMENT_STATUS == 1)
 
 
-mortality <- read_dta(paste0("Z:/Savannah_working_files/maternal-mortality/2025-10-31/MAT_MORTALITY-.dta")) %>% 
+mortality <- read_dta(paste0(path_to_data, "MAT_MORTALITY.dta")) %>% 
   rename_all(toupper) 
   #filter(PREGID %in% remind.moms$PREGID)
 hemorrhage <- read.csv(paste0(path_to_data, "MAT_HEMORRHAGE.csv")) %>% rename_all(toupper)
   #filter(PREGID %in% remind.moms$PREGID)
 depression <- read_dta(paste0(path_to_data, "MAT_DEPR.dta")) %>% rename_all(toupper) %>% filter(SITE != "")
-  #filter(PREGID %in% remind.moms$PREGID)
+#  #filter(PREGID %in% remind.moms$PREGID)
 anemia <- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
-#%>% filter(PREGID %in% remind.moms$PREGID)
+ #%>% filter(PREGID %in% remind.moms$PREGID)
 preterm_indication <- read_dta(paste0(path_to_data, "MAT_PRETERM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
   #filter(PREGID %in% remind.moms$PREGID)
 labor <- read_dta(paste0(path_to_data, "MAT_LABOR.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
@@ -2124,12 +2124,93 @@ anemia_pph26_tab <- anemia %>%
   mutate_all(funs(str_replace(., "NA", "0")))
 
 
+
+  ## pnc52
+
+anemia_pph52_tab <- anemia %>%
+  rowwise() %>%
+  group_by(SITE) %>%
+  summarise(
+
+     #Denominator:
+
+    "Expected denominator (PNC52 window completed, >64 weeks postpartum)" = paste0(
+      format(sum(ANEMIA_PNC52_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    #Data Completeness:
+
+    "No valid test results in PNC52 window" = paste0(
+      format(sum(ANEMIA_PNC52_MISS == 1 & ANEMIA_PNC52_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC52_MISS == 1 & ANEMIA_PNC52_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC52_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "No lab/POC forms (MNH06 or MNH08) in PNC52 window" = paste0(
+      format(sum(ANEMIA_PNC52_MISS ==2 & ANEMIA_PNC52_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC52_MISS ==2 & ANEMIA_PNC52_DENOM==1, na.rm = TRUE)/sum(ANEMIA_PNC52_DENOM==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    #Denominator (for non-missing)
+
+    "Denominator (non-missing)" = paste0(
+      format(sum(ANEMIA_PNC52_MISS ==0 & ANEMIA_PNC52_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    #Values:
+
+    "No anemia (>=12 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC52 == 0 & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC52 == 0 & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Mild anemia (>=11 & <12 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC52 == 1 & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC52 == 1 & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Moderate anemia (>=8 & <11 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC52 == 2 & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC52 == 2 & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Severe anemia (<8 g/dL)" = paste0(
+      format(sum(ANEMIA_PNC52 == 3 & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(ANEMIA_PNC52 == 3 & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    #Test type for lowest HB test:
+
+    "CBC Test" = paste0(
+      format(sum(HB_LOW_PNC52_TEST=="CBC" & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_PNC52_TEST=="CBC" & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "POC Test" = paste0(
+      format(sum(HB_LOW_PNC52_TEST=="POC" & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_LOW_PNC52_TEST=="POC" & ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm = TRUE)/sum(ANEMIA_PNC52_DENOM==1 & ANEMIA_PNC52_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+  ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)  %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
+
+
 ```
 
 ```{r}
 # replace NA with 0s (this likely means there is not yet data)
 anemia_pph6_tab[is.na(anemia_pph6_tab)] <- paste0("0 (0)")
 anemia_pph26_tab[is.na(anemia_pph26_tab)] <- paste0("0 (0)")
+anemia_pph52_tab[is.na(anemia_pph52_tab)] <- paste0("0 (0)")
 
 
 
@@ -2262,6 +2343,72 @@ tab_style(
 tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on CBC measures of hemoglobin or POC measures of hemoglobin that are not within 7 days of a CBC test. For each participant, this table presents the worst anemia status observed during the postpartum window of interest if multiple tests are provided.</span>"))
 
+
+# PNC52 (making a separate table for more space, given longer lines)
+
+anemia_pph52_output <- tb_theme1(anemia_pph52_tab) %>%
+  tab_header(
+    title = md("**Table 2c continued**")) %>%
+  tab_spanner(
+    label = html("<span style='font-size: 18px'>52-64 weeks postpartum</span>"),
+    columns = 1:7
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness at PNC52<sup>a</sup></span>"),
+        rows = 1:10
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Anemia prevalence at PNC52 (lowest Hb measure)</span>"),
+    rows = 4:10
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>"),
+    rows = 9:10
+  ) %>%
+
+
+    # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>%
+
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator (PNC52 window completed, >64 weeks postpartum)",
+                 "Expected denominator (PNC52 window completed, >64 weeks postpartum)"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator (PNC52 window completed, >64 weeks postpartum)",
+                 "Expected denominator (PNC52 window completed, >64 weeks postpartum)"))) %>%
+
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at PNC52<sup>a</sup></span>",
+                            "<span style='font-size: 18px'>Anemia prevalence at PNC52 (lowest Hb measure)</span>",
+                     "<span style='font-size: 18px'>Test type (for lowest Hb measure)</span>")) %>%
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> This outcome is based on tests collected during the PNC-52 visit window (52-64 weeks postpartum); the data completeness denominator includes any participant with a valid lab test during this window, as well as participants without lab data who have progressed in the study through the PNC-52 window. A small number of participants completed the PNC-52 week visit late (after 64 weeks); these participants are included. Note that participants who had an early pregnancy loss (<20 weeks GA) are excluded from this PNC-52 measure per study follow-up protocol. </span>")) %>%
+
+tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>Note</sup> This table presents anemia diagnosis based on measured hemoglobin levels. For each observation, we rely on CBC measures of hemoglobin or POC measures of hemoglobin that are not within 7 days of a CBC test. For each participant, this table presents the worst anemia status observed during the postpartum window of interest if multiple tests are provided.</span>"))
+
 ```
 
 ```{r, out.width = '100%'}
@@ -2278,6 +2425,16 @@ knitr::include_graphics(paste0(path_to_save, "anemia_pph6_output.png"))
 
 gtsave(anemia_pph26_output, file = "anemia_pph26_output.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "anemia_pph26_output.png"))
+
+```
+
+\newpage
+
+
+```{r, out.width = '100%'}
+
+gtsave(anemia_pph52_output, file = "anemia_pph52_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "anemia_pph52_output.png"))
 
 ```
 
@@ -7182,11 +7339,11 @@ knitr::include_graphics(paste0(path_to_save, "thy_tab_hypo_output.png"))
 
 -   ***Gestational hypertension*** includes any participant with one or more of the following occurring at or after 20 weeks gestation, excluding those with preexisting chronic hypertension: 2 or more high blood pressure measures recorded on separate visits; 1 or more high blood pressure readings AND the participant starts a medication to treat hypertension; a clinical diagnosis of gestational hypertension at an ANC visit, a hospitalization, or labor and delivery.
 
--   ***Preeclampsia without severe features*** includes any participant with gestational hypertension (as described above) AND one or more new onset proteinuria measures at or after 20 weeks gestation. Note that this outcome excludes participants with positive proteinuria results at baseline (<20 weeks gestation), unless proteinuria results increase for the participant over time. This outcome also includes clinical diagnosis of preeclampsia at an ANC visit, a hospitalization, or labor and delivery.
+-   ***Preeclampsia without severe features*** includes any participant with gestational hypertension (as described above) AND one or more new onset proteinuria measures at or after 20 weeks gestation that does not resolve prior to delivery. Note that this outcome excludes participants with positive proteinuria results at baseline (<20 weeks gestation), unless proteinuria results increase for the participant over time. This outcome also includes clinical diagnosis of preeclampsia at an ANC visit, a hospitalization, or labor and delivery.
 
--   ***Preeclampsia superimposed on chronic hypertension*** includes participants with preexisting, chronic hypertension (as described above) AND one or more new onset proteinuria measures at or after 20 weeks gestation. Note that this outcome excludes participants with positive proteinuria results at baseline (<20 weeks gestation), unless proteinuria results increase for the participant over time. This outcome also includes clinical diagnosis of preeclampsia at an ANC visit, a hospitalization, or labor and delivery for those with preexisting chronic hypertension at baseline.
+-   ***Preeclampsia superimposed on chronic hypertension*** includes participants with preexisting, chronic hypertension (as described above) AND one or more new onset proteinuria measures at or after 20 weeks gestation that does not resolve prior to delivery. Note that this outcome excludes participants with positive proteinuria results at baseline (<20 weeks gestation), unless proteinuria results increase for the participant over time. This outcome also includes clinical diagnosis of preeclampsia at an ANC visit, a hospitalization, or labor and delivery for those with preexisting chronic hypertension at baseline.
 
--   ***Preeclampsia with severe features*** includes participants with any of the following scenarios: clinical diagnosis of eclampsia/seizures at an ANC visit, a hospitalization, or at labor and delivery; clinical diagnosis of HELLP syndrome at a hospitalization or at labor and delivery; clinical diagnosis of postpartum eclampsia at a PNC visit or at hospitalization; 1 or more severe high blood pressure measures or a clinical diagnosis of severe high blood pressure at or after 20 weeks gestation; a participant with gestational hypertension (as described above) AND experiences organ dysfunction at a hospitalization or at labor and delivery or postpartum; a participant with preeclampsia (including preeclampsia superimposed on chronic hypertension) AND one or more of the following severe symptoms: organ dysfunction, pulmonary edema, visual symptoms, epigastric pain, and/or severe headaches.
+-   ***Preeclampsia with severe features*** includes participants with any of the following scenarios: clinical diagnosis of eclampsia/seizures at an ANC visit, a hospitalization, or at labor and delivery; clinical diagnosis of HELLP syndrome at a hospitalization or at labor and delivery; clinical diagnosis of postpartum eclampsia at a PNC visit or at hospitalization; 1 or more severe high blood pressure measures or a clinical diagnosis of severe high blood pressure at or after 20 weeks gestation; a participant with gestational hypertension (as described above) AND experiences organ dysfunction at a hospitalization or at labor and delivery or postpartum; a participant with preeclampsia (including preeclampsia superimposed on chronic hypertension) AND one or more of the following severe symptoms (within 7 days before preeclampsia onset OR following preeclampsia onset): organ dysfunction, pulmonary edema, visual symptoms, epigastric pain, and/or severe headaches.
 
 
 **To be included as "non-missing" for this outcome, a participant must have:**
