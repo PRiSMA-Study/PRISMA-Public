@@ -95,7 +95,7 @@ rupture <- read_dta(paste0(path_to_data, "MAT_UTERINERUP.dta"))  %>% rename_all(
   #filter(PREGID %in% remind.moms$PREGID)
 gdm <- read_dta(paste0(path_to_data, "MAT_GDM.dta"))  %>% rename_all(toupper) %>% filter(SITE != "") 
   #filter(PREGID %in% remind.moms$PREGID)
-MAT_INFECTION <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
+mat_infection <- read.csv(paste0(path_to_data, "MAT_INFECTION", ".csv"))
   #filter(PREGID %in% remind.moms$PREGID)
 near_miss <- read_dta(paste0(path_to_data, "MAT_NEAR_MISS.dta")) %>% rename_all(toupper)%>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
