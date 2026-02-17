@@ -963,6 +963,9 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output3.png"))
 
     "Missing date of death, n^b^" = paste0(
        format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+ 
+ "Death occurred 365+ days postpartum, n" = paste0(
+       format(sum(MAT_DEATH_42 == 3, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     
   "Denominator, n^c^" = paste0(
@@ -1061,6 +1064,9 @@ slice(-1) %>%
 
     "Missing date of death, n^b^" = paste0(
        format(sum(MAT_DEATH_MISSDATE == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+    
+      "Death occurred 365+ days postpartum, n" = paste0(
+       format(sum(MAT_DEATH_42 == 3, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     
   "Denominator, n^c^" = paste0(
@@ -1156,15 +1162,15 @@ slice(-1) %>%
      title = md("**Table 1**")) %>%
    tab_row_group(
      label = html("<span style='font-size: 18px'>Deaths occurring at any point during PRISMA</span>"),
-     rows = 1:2
+     rows = 1:3
    ) %>%
     tab_row_group(
      label = html("<span style='font-size: 18px'>Deaths occurring during pregnancy up to 42 days postpartum</span>"),
-     rows = 3:8
+     rows = 4:9
    ) %>%
       tab_row_group(
      label = html("<span style='font-size: 18px'>Deaths occurring 43-365 days postpartum</span>"),
-     rows = 9:14
+     rows = 10:15
    ) %>%
  row_group_order(groups = c("<span style='font-size: 18px'>Deaths occurring at any point during PRISMA</span>",
                    "<span style='font-size: 18px'>Deaths occurring during pregnancy up to 42 days postpartum</span>",
@@ -1187,7 +1193,7 @@ tab_style(
       locations = cells_stub(rows = c(
                  "Any death,n (per 100,000)^a^"))) %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time and for any reason, including accidental/incidental causes. Per 100,000 pregnancy endpoints.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>a</sup> Any death includes deaths occurring at any time before closeout and for any reason, including accidental/incidental causes. Per 100,000 pregnancy endpoints.</span>")
   ) %>%
   tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>b</sup>Date of death missing. Date of death has been estimated as the midpoint between when the woman was last seen alive and when her death was reported. This estimated death date is used to categorize the death as either pregnancy-related death (during pregnancy up to 42 days postpartum) or late pregnancy related death (43-365 days postpartum).</span>")
@@ -1205,7 +1211,7 @@ tab_style(
      footnote = html("<span style='font-size: 18px'><sup>f</sup>Cause of death missing: InterVA not yet completed</span>")
   )  %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>g</sup>Denominator: those who have passed 364 days postpartum without withdrawing or loss to follow up, OR who have finished the follow-up period OR who have died.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>g</sup>Denominator: those who have passed 364 days postpartum without closing out. Note: excludes deaths occurring during pregnancy and < 364 days postpartum.</span>")
   )  %>%
 
   tab_footnote(
@@ -1939,7 +1945,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri3_output.png"))
 
 ```{r, out.width = '100%', fig.align='center'}
 
-knitr::include_graphics(paste0(path_to_data, "anemia_fig.png"))
+knitr::include_graphics(paste0(path_to_data, "anemia_fig.jpg"))
 
 ```
 
@@ -6169,7 +6175,7 @@ near_miss_tabb <- near_miss %>%
        format(round(sum(TB == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-     "Severe anemia " = paste0(
+     "Severe anemia (<7 g/dL for ANC & IPC; < 8 g/dL for PNC)" = paste0(
        format(sum(ANEMIA_SEV_ANC==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
        " (",
        format(round(sum(ANEMIA_SEV_ANC==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -6318,7 +6324,7 @@ near_miss_tabb <- near_miss %>%
        format(round(sum(TB == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-     "Severe anemia " = paste0(
+     "Severe anemia (<7 g/dL for ANC & IPC; < 8 g/dL for PNC)" = paste0(
        format(sum(ANEMIA_SEV_ANC==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
        " (",
        format(round(sum(ANEMIA_SEV_ANC==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -6724,6 +6730,24 @@ uter_rup_tab <- rupture %>%
       " (",
       format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==1, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
+    
+     "Recorded at L&D^b^" = paste0(
+      format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP_IPC==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP_IPC==1, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Dx at hospitalization^b^" = paste0(
+      format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP_HOSP==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP_HOSP==1, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+     "Dx recalled at PNC^b^" = paste0(
+      format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP_PNC==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP_PNC==1, na.rm = TRUE)/sum(PREG_END==1 & MAT_UTER_RUP_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
 
      "No uterine rupture" = paste0(
       format(sum(PREG_END==1 & MAT_UTER_RUP_MISS==0 & MAT_UTER_RUP==0, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -6753,7 +6777,7 @@ uter_rup_tab_output <- tb_theme1(uter_rup_tab) %>%
     ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Uterine rupture prevalence</span>"),
-    rows = 6:8
+    rows = 6:11
   ) %>%
     # bold denominator rows 1
   tab_style(
@@ -6786,11 +6810,24 @@ tab_style(
       locations = cells_stub(rows = c(
                  "Expected denominator (total completed pregnancies)",
                  "Expected denominator (total completed pregnancies)"))) %>%
+   tab_style(
+      style = list(
+        cell_text(indent = px(15), style = "italic")
+        ),
+      locations = cells_stub(rows = c(
+                 "Recorded at L&D^b^",
+                 "Dx at hospitalization^b^",
+                 "Dx recalled at PNC^b^"))
+      ) %>%
+  
  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
                             "<span style='font-size: 18px'>Uterine rupture prevalence</span>"))  %>%
 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))  %>%
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> A woman may fall into more than one category (e.g., at L&D and PNC); numbers may add up to >100% of events. </span>"))
 
 ```
 
@@ -7160,7 +7197,7 @@ knitr::include_graphics(paste0(path_to_save, "thy_tab_hyper_output.png"))
 ```
 \newpage
 
-### Table 12b. Thyroid Dysfunction at ANC-32
+### Table 12b. Hypothyroidism
 ```{r}
 
 thy_tab_hypo <- thy %>%
@@ -8245,12 +8282,20 @@ Additionally, we report the following events:
 -   Emergent cesarean delivery
 -   Episiotomy
 
-Denominator: passed 42 days postpartum, MINUS:
+
+-   Expected denominator: all women who have passed 42 days postpartum. If pregnancy end date is not known, estimated due date is used to calculate the window.
+
+-   Near-miss denominator: passed 42 days postpartum, MINUS:
   -   "healthy" and closed out during the window
   -   "healthy" and did not have a MNH09/MNH12/MNH19 form
   -   "healthy" and not seen 42+ days postpartum
 
-See section 9 for more details on the denominator.  
+
+*Note: "healthy" indicates a woman who is alive, did not experience a potentially life-threatening condition, and did not experience near-miss criteria. Under this definition, a women who e.g., closed out before 42 days postpartum but also experienced a PLTC would still be included in the denominator*
+
+
+See section 9 for more details on the denominator. 
+
 
 ### Table 17. Unplanned surgery
 ```{r}
