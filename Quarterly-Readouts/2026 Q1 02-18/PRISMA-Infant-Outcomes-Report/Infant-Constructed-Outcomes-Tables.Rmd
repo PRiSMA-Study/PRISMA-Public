@@ -40,7 +40,6 @@ path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-
 path_to_save_figures <- "D:/Users/stacie.loisate/Documents"
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
-# UploadDate = "2025-04-18"
 mat_enroll <- read_xlsx(paste0("Z:/Outcome Data/", UploadDate, "/MAT_ENROLL.xlsx"))
 infant_outcomes <- read_xlsx(paste0("Z:/Outcome Data/", UploadDate, "/INF_OUTCOMES.xlsx"))
 remapp_ids <- mat_enroll %>% filter(REMAPP_ENROLL ==1)
@@ -51,15 +50,6 @@ psbi_outcome <- read.csv(paste0(path_to_data, "INF_PSBI_LONG", ".csv"))
 infant_outcomes <- read.csv(paste0(path_to_data, "INF_OUTCOMES", ".csv"))
 infant_ebf_wide <- read.csv(paste0(path_to_data, "INF_EBF_WIDE", ".csv"))
 infant_ebf_long <- read.csv(paste0(path_to_data, "INF_EBF_LONG", ".csv"))
-
-# infant_trajectory <- read.csv(paste0(path_to_tnt, "INF_GROWTH_WIDE", ".csv"))
-# all_plus_outcome <- read.csv(paste0(path_to_tnt, "INF_GROWTH_LONG", ".csv"))
-# psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
-# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
-
-# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
-# infant_outcomes <- read.csv(paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/", "INF_OUTCOMES-UPDATED", ".csv"))
-# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES-UPDATED", ".csv"))
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -5952,3 +5942,4 @@ knitr::include_graphics("tb_ebf_rsn_pnc26.png")
 tb_ebf_food_pnc26 <- tb_ebf_food_pnc26 %>% gtsave("tb_ebf_food_pnc26.png", expand = 10)
 knitr::include_graphics("tb_ebf_food_pnc26.png")
 ```
+
