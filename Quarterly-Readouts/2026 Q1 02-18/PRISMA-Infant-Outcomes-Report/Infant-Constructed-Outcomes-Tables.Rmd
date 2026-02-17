@@ -3583,16 +3583,10 @@ inf_traj_birth_tab <- infant_trajectory %>%
     "Denominator ^a^" =  paste0(
       format(sum(TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Missing birth date (MNH09)" = paste0(
+   "Birthdate–Age Inconsistencies ^b^" = paste0(
       format(sum(is.na(AGE_IN_DAYS) & TYPE_VISIT == 6), nsmall = 0, digits = 2),
       " (",
       format(round(sum(is.na(AGE_IN_DAYS) & TYPE_VISIT == 6)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
-    "Missing visit date at birth (MNH11)" = paste0(
-      format(sum(is.na(VISIT_DATE) & TYPE_VISIT == 6), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(is.na(VISIT_DATE) & TYPE_VISIT == 6)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing information on infant sex" = paste0(
@@ -3625,14 +3619,14 @@ inf_traj_birth_tab <- infant_trajectory %>%
       format(round(sum(MSRE_COMPLT == 0 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),    
     
-    "Invalid Z score ^b^ ^c^" = paste0(
+    "Invalid Z score ^c^ ^d^" = paste0(
       format(sum(ONE_MSRE_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(ONE_MSRE_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),    
     
     ## infant trajectories at birth outcome (WHO Standards)
-    "Denominator ^d^" =  paste0(
+    "Denominator ^e^" =  paste0(
       format(sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Underweight (WAZ < -2)" = paste0(
@@ -3747,8 +3741,8 @@ inf_traj_birth_tab <- inf_traj_birth_tab %>%
 # replace NA with 0s (this likely means there is not yet data)
 inf_traj_birth_tab[is.na(inf_traj_birth_tab)] <- paste0("0 (0)")
 
-inf_traj_birth_tab1 <- inf_traj_birth_tab[1:9,]
-inf_traj_birth_tab2 <- inf_traj_birth_tab[10:26,]
+inf_traj_birth_tab1 <- inf_traj_birth_tab[1:8,]
+inf_traj_birth_tab2 <- inf_traj_birth_tab[9:25,]
 
 # table 1
 inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>% 
@@ -3757,7 +3751,7 @@ inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>%
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>"),
-    rows = 1:9
+    rows = 1:8
   ) %>%
 
   row_group_order(
@@ -3784,11 +3778,14 @@ inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total livebirths with MNH09 & MNH11.</span>")
   ) %>%
+    tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Birthdate–Age Inconsistencies: includes records where the timing of birth anthropometric measurement implies (i) a negative calculated age, (ii) age outside the allowable birth visit window (>5 days), or (iii) missing or implausible visit dates (e.g., before 2021 or in the future). These are generally a result of conflicts between site-provided MNH11 visit date and the MNH09 recorded birthdate.</span>")
+  ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants who had at least one invalid z-score measure.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Participants who had at least one invalid z-score measure.</span>")
   ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Invalid Z-score - At least one of the z-scores has been flagged by the World Health Organization (WHO) as biologically implausible (BIV).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Invalid Z-score - At least one of the z-scores has been flagged by the World Health Organization (WHO) as biologically implausible (BIV).</span>")
   )
 
 
@@ -3817,7 +3814,7 @@ inf_traj_birth_output2 <- tb_theme1(inf_traj_birth_tab2) %>%
       cell_text(weight = "bold")
     ),
     locations = cells_body(rows = c(
-      "Denominator ^d^"
+      "Denominator ^e^"
     ))
   ) %>% 
   tab_style(
@@ -3825,7 +3822,7 @@ inf_traj_birth_output2 <- tb_theme1(inf_traj_birth_tab2) %>%
       cell_text(weight = "bold")
     ),
     locations = cells_stub(rows = c(
-      "Denominator ^d^"
+      "Denominator ^e^"
     ))
   ) %>% 
   tab_footnote(
@@ -5942,4 +5939,5 @@ knitr::include_graphics("tb_ebf_rsn_pnc26.png")
 tb_ebf_food_pnc26 <- tb_ebf_food_pnc26 %>% gtsave("tb_ebf_food_pnc26.png", expand = 10)
 knitr::include_graphics("tb_ebf_food_pnc26.png")
 ```
+
 
