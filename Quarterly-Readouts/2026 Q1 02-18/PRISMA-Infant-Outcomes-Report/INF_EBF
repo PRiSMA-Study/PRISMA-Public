@@ -1,0 +1,643 @@
+#*****************************************************************************
+#* PRISMA Supplemental EBF Outcome 
+#* Drafted: 23 October 2025, Precious Williams `williams_pj@gwu.edu`
+#* Last updated: 23 October 2025
+
+# 
+#*****************************************************************************
+# *****************************************************************************
+# 1. Clear Environment ----
+# *****************************************************************************
+rm(list = ls())  # Remove all objects from the environment
+
+# *****************************************************************************
+# 2. Load Required Libraries ----
+# *****************************************************************************
+library(lubridate)
+library(dplyr)
+library(base)
+library(tidyr)
+library(ggplot2)
+library(readr)
+library(writexl)
+library(readxl)
+library (haven)
+library(purrr)
+
+# *****************************************************************************
+# 3. Define Variables and Paths ----
+# *****************************************************************************
+
+# Update this date for each run
+UploadDate <- "2026-01-30"
+Prevdate <- "2025-11-28"
+# Define main directory and file paths
+path_to_data <- paste0("~/Analysis/Merged_data/", UploadDate)
+# Create the directory if it doesn't exist
+if (!file.exists(path_to_data)) {
+  dir.create(path_to_data, recursive = TRUE)
+}
+
+path_to_stacked <- paste0("Z:/Stacked Data/", UploadDate)
+path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate)
+
+# Define the path
+path_to_save <- paste0("~/Analysis/PP_OUTCOMES/", UploadDate)
+# Expand the path (in case of ~)
+path_to_save <- path.expand(path_to_save)
+# Create the directory if it doesn't exist
+if (!file.exists(path_to_save)) {
+  dir.create(path_to_save, recursive = TRUE)
+}
+
+# Conditional loads (prefer .rda, else read raw + save .rda)
+#INF_OUTCOMES
+if (file.exists(file.path(path_to_data, "INF_OUTCOMES.rda"))) {
+  load(file.path(path_to_data, "INF_OUTCOMES.rda"))   # loads: mat_endpoints
+} else {
+  inf_outcomes <- read.csv(file.path(path_to_tnt, "INF_OUTCOMES.csv"))
+  save(inf_outcomes, file = file.path(path_to_data, "INF_OUTCOMES.rda"))
+}
+
+# MAT_ENROLL
+if (file.exists(file.path(path_to_data, "MAT_ENROLL.rda"))) {
+  load(file.path(path_to_data, "MAT_ENROLL.rda"))      # loads: mat_enroll
+} else {
+  mat_enroll <- read.csv(file.path(path_to_tnt, "MAT_ENROLL.csv"))
+  save(mat_enroll, file = file.path(path_to_data, "MAT_ENROLL.rda"))
+}
+
+# mnh13 merged
+if (file.exists(file.path(path_to_data, "mnh13.rda"))) {
+  load(file.path(path_to_data, "mnh13.rda"))           # loads: mnh13
+} else {
+  mnh13 <- read.csv(file.path(path_to_stacked, "mnh13_merged.csv"))
+  df_names <- ls(pattern = "^mnh", envir = .GlobalEnv)
+  # Define a function to rename variables in a data frame
+  rename_variables <- function(df) {
+    # Exclude specific "ID" variables from renaming
+    exclude_variables <- c("MOMID", "PREGID", "SCRNID", "INFANTID", "SITE")
+    id_variables <- intersect(exclude_variables, names(df))
+    var_names <- names(df)[!names(df) %in% id_variables]
+    
+    # Rename the variables
+    new_var_names <- gsub("^M.._", "", var_names)  # Remove the first three characters and underscore
+    names(df)[!names(df) %in% id_variables] <- new_var_names
+    
+    return(df)
+  }
+  
+  # Loop through each data frame, excluding specific "ID" variables
+  for (df_name in df_names) {
+    df <- get(df_name)  # Retrieve the data frame by name
+    if (is.data.frame(df)) {  # Check if the object is a data frame
+      assign(df_name, rename_variables(df), envir = .GlobalEnv)
+    }
+  }
+  
+  save(mnh13, file = file.path(path_to_data, "mnh13.rda"))
+}
+
+# *****************************************************************************
+# 4. Data processing enrolment and gwg----
+# *****************************************************************************
+#enrolled mothers
+enrolled_end <- mat_enroll %>% 
+  filter (ENROLL == 1) %>% 
+  select ( SITE,	MOMID,	PREGID) %>% 
+  right_join(inf_outcomes, by = c("SITE", "MOMID", "PREGID")) %>%
+  filter (BIRTH_OUTCOME_REPORTED == 1 & LIVEBIRTH == 1) %>%
+  select (SITE,	MOMID, PREGID, INFANTID, DOB)
+
+# *****************************************************************************
+# 5. Data processing and dataset ebf ----
+# *****************************************************************************
+#Keep variables needed for the dataset
+inf_mnh13 <- mnh13 %>%
+  select(SITE, MOMID, PREGID, INFANTID, TYPE_VISIT, 
+         BRSTFEED_EXCL_FAORRES, starts_with("INFANT_FOODS_FAORRES"),
+         VISIT_OBSSTDAT, starts_with("NOT_BRSTFEED_EXCL_FAORRES"), 
+         INFANT_FOODS_SPFY_FAORRES, NOT_BRSTFEED_EXCL_SPFY_FAORRES ) %>%
+  left_join(enrolled_end %>% select(SITE, MOMID, PREGID, INFANTID, DOB),
+             by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
+  
+  # Convert ANT_PEDAT and DOB to Date format
+  mutate(VISIT_OBSSTDAT = as.Date(VISIT_OBSSTDAT),
+         DOB = as.Date(DOB),
+         # Calculate AGE_INF as the difference in days between ANT_PEDAT and DOB
+         AGE_VISIT = as.numeric(VISIT_OBSSTDAT - DOB)) %>%
+  
+  filter (AGE_VISIT >= 0 &  AGE_VISIT <= 454 & !is.na(DOB) & !is.na(VISIT_OBSSTDAT)) %>%
+  
+  mutate(      
+    # Update TYPE_VISIT_UPDATE based on the calculated AGE_INF
+    TYPE_VISIT_UPDATE = case_when(
+      # Postnatal visit types
+                      AGE_VISIT < 3 ~ 6,
+      AGE_VISIT >= 3 & AGE_VISIT <= 5 ~ 7,
+      AGE_VISIT >= 7 & AGE_VISIT <= 14 ~ 8,
+      AGE_VISIT >= 28 & AGE_VISIT <= 35 ~ 9,
+      AGE_VISIT >= 42 & AGE_VISIT <= 104 ~ 10,
+      AGE_VISIT >= 182 & AGE_VISIT <= 279 ~ 11,
+      AGE_VISIT >= 279 & AGE_VISIT <= 454 ~ 12,
+      
+      # .5 visits between age-based windows
+      AGE_VISIT > 5 & AGE_VISIT < 7 ~ 7.5,
+      AGE_VISIT > 14 & AGE_VISIT < 28 ~ 8.5,
+      AGE_VISIT > 35 & AGE_VISIT < 42 ~ 9.5,
+      AGE_VISIT > 104 & AGE_VISIT < 182 ~ 10.5,
+      
+      TRUE ~ 14), # Default case
+    TV_EQ = ifelse(TYPE_VISIT == TYPE_VISIT_UPDATE, 1, 0)) %>%
+  
+  # Arrange rows by MOMID, PREGID, and TYPE_VISIT for consistent ordering
+  arrange(SITE, MOMID, PREGID, INFANTID, TYPE_VISIT_UPDATE) 
+
+#Clean the data;
+#So if _88 is equal to 1 but the SPFY is n/a then set to 0
+# inf_mnh13$INFANT_FOODS_FAORRES_88  <- ifelse(inf_mnh13$INFANT_FOODS_FAORRES_88 == 1 & 
+#                                              inf_mnh13$INFANT_FOODS_SPFY_FAORRES == "n/a",
+#                                              0,
+#                                              inf_mnh13$INFANT_FOODS_FAORRES_88)
+# 
+# inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_88  <- ifelse(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_88 == 1 & 
+#                                                   inf_mnh13$NOT_BRSTFEED_EXCL_SPFY_FAORRES == "n/a",
+#                                                   0,
+#                                                   inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_88)
+
+clean_options <- function(x) {
+  x_clean <- case_when(x == 1 ~ 1, x == 0 ~ 0, TRUE ~ 77)
+}
+
+# Create solid options for NOT_EBF_* indicators (1 if original == 1, if 0 then 0; else 77) 
+inf_mnh13$NOT_EBF_BREASTMILK   <- clean_options(inf_mnh13$INFANT_FOODS_FAORRES_1)
+inf_mnh13$NOT_EBF_FORMULA      <- clean_options(inf_mnh13$INFANT_FOODS_FAORRES_2)
+inf_mnh13$NOT_EBF_ANIMAL_MILK  <- clean_options(inf_mnh13$INFANT_FOODS_FAORRES_3)
+inf_mnh13$NOT_EBF_WATER        <- clean_options(inf_mnh13$INFANT_FOODS_FAORRES_4)
+inf_mnh13$NOT_EBF_GRUEL        <- clean_options(inf_mnh13$INFANT_FOODS_FAORRES_5)
+inf_mnh13$NOT_EBF_HONEY        <- clean_options(inf_mnh13$INFANT_FOODS_FAORRES_6)
+inf_mnh13$NOT_EBF_OTHER_FOOD   <- clean_options(inf_mnh13$INFANT_FOODS_FAORRES_88)
+inf_mnh13$NOT_EBF_OTHER_FOOD_SPFY  <- ifelse(inf_mnh13$INFANT_FOODS_FAORRES_88 == 1, 
+                                             inf_mnh13$INFANT_FOODS_SPFY_FAORRES,"not_applicable")
+
+# Create binary NOT_EBF_REASON* indicators (1 if original == 1, if 0 then 0; else 77) 
+inf_mnh13$NOT_EBF_REASONF_MOM_ILL  <-clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_1)
+inf_mnh13$NOT_EBF_REASON_MAT_DEATH  <- clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_2)
+inf_mnh13$NOT_EBF_REASON_INF_ILL    <- clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_3)
+inf_mnh13$NOT_EBF_REASON_MALFORM    <- clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_4)
+inf_mnh13$NOT_EBF_REASON_PMTCT      <- clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_5)
+inf_mnh13$NOT_EBF_REASON_LATCH      <- clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_6)
+inf_mnh13$NOT_EBF_REASON_INTERFERE  <- clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_7)
+inf_mnh13$NOT_EBF_REASON_SELF       <- clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_8)
+inf_mnh13$NOT_EBF_REASON_SIX_MONTH  <- clean_options(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_9)
+
+inf_mnh13$NOT_EBF_OTHER_RSN_SPFY  <- ifelse(inf_mnh13$NOT_BRSTFEED_EXCL_FAORRES_88 == 1, 
+                                            inf_mnh13$NOT_BRSTFEED_EXCL_SPFY_FAORRES,
+                                            "not_applicable")
+# Combined variable: NOT_EBF_FOODS 
+# List which food codes (1,2,3,4,5,6,88) are present (==1).
+# Returns "0" if none are 1, otherwise a comma-separated list like "1,2,88".
+food_cols <- c("INFANT_FOODS_FAORRES_1",
+               "INFANT_FOODS_FAORRES_2",
+               "INFANT_FOODS_FAORRES_3",
+               "INFANT_FOODS_FAORRES_4",
+               "INFANT_FOODS_FAORRES_5",
+               "INFANT_FOODS_FAORRES_6",
+               "INFANT_FOODS_FAORRES_88")
+
+food_codes <- c("1", "2", "3", "4", "5", "6", "88")
+
+inf_mnh13$NOT_EBF_FOODS <- apply(
+  inf_mnh13[, food_cols],
+  1,
+  function(x) {
+    
+    # Convert everything except 1,0 to 77
+    x_clean <- case_when(x == 1 ~ 1, x == 0 ~ 0, TRUE ~ 77)
+    
+    # Rule 1: Any 1 → return list
+    if (any(x_clean == 1, na.rm = TRUE)) {
+      codes <- food_codes[x_clean == 1]
+      return(paste(codes, collapse = ","))
+    }
+    
+    # Rule 2: All 77 → return "77"
+    if (all(x_clean == 77)) {
+      return("77")
+    }
+    
+    # Rule 3: No 1; all values are 0 or 77 → return "0"
+    if (all(x_clean %in% c(0,77))) {
+      return("0")
+    }
+    
+    # Fallback (should not occur)
+    return("0")
+  }
+)
+
+
+# Combined variable: NOT_EBF_RESASON 
+# List which food codes (1,2,3,4,5,6,7,8,9,88) are present (==1).
+# Returns "0" if none are 1, otherwise a comma-separated list like "1,2,88".
+rsn_cols <- c("NOT_BRSTFEED_EXCL_FAORRES_1",
+              "NOT_BRSTFEED_EXCL_FAORRES_2",
+              "NOT_BRSTFEED_EXCL_FAORRES_3",
+              "NOT_BRSTFEED_EXCL_FAORRES_4",
+              "NOT_BRSTFEED_EXCL_FAORRES_5",
+              "NOT_BRSTFEED_EXCL_FAORRES_6",
+              "NOT_BRSTFEED_EXCL_FAORRES_7",
+              "NOT_BRSTFEED_EXCL_FAORRES_8",
+              "NOT_BRSTFEED_EXCL_FAORRES_9",
+              "NOT_BRSTFEED_EXCL_FAORRES_88")
+
+rsn_codes <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "88")
+
+inf_mnh13$NOT_EBF_REASON <- apply(
+  inf_mnh13[, rsn_cols],
+  1,
+  function(x) {
+    
+    x_clean <- case_when(x == 1 ~ 1, x == 0 ~ 0, TRUE ~ 77)
+    
+    # Rule 1: Any 1 → list
+    if (any(x_clean == 1, na.rm = TRUE)) {
+      codes <- rsn_codes[x_clean == 1]
+      return(paste(codes, collapse = ","))
+    }
+    
+    # Rule 2: All 77 → "77"
+    if (all(x_clean == 77)) {
+      return("77")
+    }
+    
+    # Rule 3: No 1, only 0/77 → "0"
+    if (all(x_clean %in% c(0,77))) {
+      return("0")
+    }
+    
+    return("0")
+  }
+)
+
+# Join results back into the original data (removing duplicates first)
+#Here the data that doesn't fall in-between PRISMA variables would be dropped with the filter
+#But we already considered it in creating the EBF variables
+
+#And we are also creating a query dataset 
+ebf_df_query <- inf_mnh13 %>% 
+  filter (AGE_VISIT >= 0) %>% 
+  distinct(SITE, MOMID, PREGID, INFANTID, AGE_VISIT, .keep_all = TRUE) %>%
+  mutate (EBF_AT_AGE = BRSTFEED_EXCL_FAORRES) %>%
+  # select(SITE, MOMID, PREGID, INFANTID, VISIT_DATE = VISIT_OBSSTDAT, DOB,
+  #        AGE_VISIT, TYPE_VISIT = TYPE_VISIT_UPDATE, starts_with("NOT_EBF"),
+  #        EBF_AT_AGE = BRSTFEED_EXCL_FAORRES, BRSTFEED_EXCL_FAORRES) %>%
+  #In order to keep the dataset as clean as possible, we set queries to zero
+  mutate (
+    QUERY_NOTEBF = case_when (
+    EBF_AT_AGE == 0 &  NOT_EBF_REASON == "0" & NOT_EBF_FOODS == "0" ~ 1, #we dont know which is true, so set everything to zero
+    EBF_AT_AGE == 0 &  NOT_EBF_REASON != "0" & NOT_EBF_FOODS == "0" ~ 2, #missing ebf foods
+    EBF_AT_AGE == 0 &  NOT_EBF_REASON == "0" & NOT_EBF_FOODS != "0" ~ 3, #missing ebf reason
+    EBF_AT_AGE == 1 &  grepl("\\b[1-8]\\b", NOT_EBF_REASON) & grepl("\\b[1-8]\\b", NOT_EBF_FOODS) ~ 4, #EBF here is wrong (there is a reason and food)
+    EBF_AT_AGE == 1 &  grepl("\\b[1-8]\\b", NOT_EBF_REASON) & NOT_EBF_FOODS == 0 ~ 5, #reason is wrong here, set to missing
+    EBF_AT_AGE == 1 &  NOT_EBF_REASON == 0 & grepl("\\b[1-8]\\b", NOT_EBF_FOODS) ~ 6, #food is wrong here, set to missing
+    TRUE ~ 0))
+
+# Create query dataframe ----
+QUERY_DF <- ebf_df_query %>%
+  filter(QUERY_NOTEBF != 0) %>%
+  mutate(
+    QUERY = case_when(
+      QUERY_NOTEBF == 1 ~ "Not exclusively breastfed, but both foods given and the reasons are missing",
+      QUERY_NOTEBF == 2 ~ "Not exclusively breastfed, but foods given are missing",
+      QUERY_NOTEBF == 3 ~ "Not exclusively breastfed, but reason(s) is missing",
+      QUERY_NOTEBF %in% c(4, 5, 6) ~ "Exclusive breastfeeding marked, but other foods or non-EBF reasons were entered",
+      TRUE ~ "n/a"
+    )
+  ) %>%
+  select(
+    SITE, MOMID, PREGID, INFANTID, VISIT_OBSSTDAT, TYPE_VISIT, QUERY,
+    BRSTFEED_EXCL_FAORRES, starts_with("INFANT_FOODS_FAORRES"),
+    starts_with("NOT_BRSTFEED_EXCL_FAORRES"),
+    INFANT_FOODS_SPFY_FAORRES, NOT_BRSTFEED_EXCL_SPFY_FAORRES
+  )
+
+# Write one spreadsheet per SITE
+split(QUERY_DF, QUERY_DF$SITE) %>%
+  lapply(function(df) {
+    write_xlsx(
+      df,
+      paste0(path_to_save, "/Infant_Feeding_Queries_", UploadDate,"_" ,unique(df$SITE), ".xlsx")
+    )
+  })
+
+#Query summary by Site 
+library(dplyr)
+library(tidyr)
+library(gt)
+
+# 1. Summarise queries by SITE and QUERY type
+query_summary <- QUERY_DF %>%
+  count(SITE, QUERY, name = "N") %>%
+  group_by(SITE) %>%
+  mutate(
+    Total_Queries = sum(N),
+    Percent = 100 * N / Total_Queries
+  ) %>%
+  ungroup()
+
+# 2. Put QUERY types in columns (wide format), counts only
+query_summary_wide <- query_summary %>%
+  select(SITE, QUERY, N) %>%
+  pivot_wider(
+    names_from  = QUERY,
+    values_from = N,
+    values_fill = 0
+  ) %>%
+  arrange(SITE)
+
+# 3. Make a “fancy” table with gt
+query_summary_wide %>%
+  gt(rowname_col = "SITE") %>%
+  tab_header(
+    title    = "Infant Feeding Queries by Site",
+    subtitle = paste("As of", UploadDate)
+  ) %>%
+  fmt_number(
+    columns = where(is.numeric),
+    decimals = 0
+  ) %>%
+  tab_options(
+    table.border.top.width     = 2,
+    table.border.top.color     = "black",
+    table.border.bottom.width  = 2,
+    table.border.bottom.color  = "black",
+    data_row.padding           = px(12),
+    table.font.size            = px(12)
+  ) %>%
+  opt_row_striping()
+
+print (query_summary_wide)
+#Get the main df to continue with the outcomes creation
+mat_ebf_df <- ebf_df_query %>% 
+  filter (AGE_VISIT >= 0) %>% 
+  distinct(SITE, MOMID, PREGID, INFANTID, AGE_VISIT, .keep_all = TRUE) %>%
+  mutate (EBF_AT_AGE = BRSTFEED_EXCL_FAORRES) %>%
+  select(SITE, MOMID, PREGID, INFANTID, VISIT_DATE = VISIT_OBSSTDAT, DOB,
+         AGE_VISIT, TYPE_VISIT = TYPE_VISIT_UPDATE, starts_with("NOT_EBF"),
+         EBF_AT_AGE = BRSTFEED_EXCL_FAORRES, BRSTFEED_EXCL_FAORRES, QUERY_NOTEBF) 
+  
+mat_ebf_df$EBF_AT_AGE <- as.numeric(as.character(mat_ebf_df$EBF_AT_AGE))
+mat_ebf_df$EBF_AT_AGE[!(mat_ebf_df$EBF_AT_AGE %in% c(1,0))] <- 55
+
+
+
+mat_ebf <- mat_ebf_df %>%
+  mutate(
+    # Fix NOT_EBF_FOODS based on QUERY_NOTEBF
+    NOT_EBF_FOODS = case_when(
+      QUERY_NOTEBF %in% c(1,2,6) ~ "55", 
+      TRUE ~ NOT_EBF_FOODS
+    ),
+    
+    # Fix NOT_EBF_REASON based on QUERY_NOTEBF
+    NOT_EBF_REASON = case_when(
+      QUERY_NOTEBF %in% c(1,3,5) ~ "55",  
+      TRUE ~ NOT_EBF_REASON
+    ),
+    # Fix EBF_AT_AGE based on QUERY_NOTEBF
+    EBF_AT_AGE = case_when(
+      QUERY_NOTEBF == 1 ~ 55, 
+      QUERY_NOTEBF == 4 ~ 0,  
+      TRUE ~ EBF_AT_AGE
+    )
+  ) %>% 
+  mutate (BRSTFEED_EXCL_FAORRES = EBF_AT_AGE)
+
+mat_ebf$BRSTFEED_EXCL_FAORRES[!(mat_ebf$BRSTFEED_EXCL_FAORRES %in% c(1,0))] <- NA
+
+# Function to calculate EBF status for a given TYPE_VISIT range ----
+# Function to calculate EBF status and which TYPE_VISIT breaks EBF
+calculate_ebf <- function(data, visit_range, new_colname, new_visits_colname) {
+  data %>%
+    filter(TYPE_VISIT %in% visit_range) %>%
+    group_by(MOMID, PREGID, INFANTID, SITE) %>%
+    summarise(
+      non_missing = sum(!is.na(BRSTFEED_EXCL_FAORRES)),
+      any_zero    = any(BRSTFEED_EXCL_FAORRES == 0, na.rm = TRUE),
+      all_ones    = all(BRSTFEED_EXCL_FAORRES == 1, na.rm = TRUE),
+      # list of TYPE_VISITs where EBF is 0 in this range
+      visits_zero = paste(
+        sort(unique(TYPE_VISIT[BRSTFEED_EXCL_FAORRES == 0])),
+        collapse = ","
+      ),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      !!new_colname := case_when(
+        non_missing == 0 ~ 55,   # no info in this window
+        any_zero ~ 0,            # at least one non-EBF
+        all_ones ~ 1,            # all visits EBF
+        TRUE ~ 1                 # fallback (shouldn't really hit if coded cleanly)
+      ),
+      # only keep the list of visits if EBF == 0; otherwise NA
+      !!new_visits_colname := ifelse(
+        !!rlang::sym(new_colname) == 0 & visits_zero != "",
+        visits_zero,
+        NA_character_
+      )
+    ) %>%
+    select(SITE, MOMID, PREGID, INFANTID, !!rlang::sym(new_colname), !!rlang::sym(new_visits_colname))
+}
+
+ebf_6_7  <- calculate_ebf(mat_ebf, 6:7,  "EBF_PNC0",  "EBF_PNC0_NON_EBF_VISITS")
+ebf_6_8  <- calculate_ebf(mat_ebf, 6:8,  "EBF_PNC1",  "EBF_PNC1_NON_EBF_VISITS")
+ebf_6_9  <- calculate_ebf(mat_ebf, 6:9,  "EBF_PNC4",  "EBF_PNC4_NON_EBF_VISITS")
+ebf_6_10 <- calculate_ebf(mat_ebf, 6:10, "EBF_PNC6",  "EBF_PNC6_NON_EBF_VISITS")
+ebf_6_11 <- calculate_ebf(mat_ebf, 6:11, "EBF_PNC26", "EBF_PNC26_NON_EBF_VISITS")
+ebf_6_12 <- calculate_ebf(mat_ebf, 6:12, "EBF_PNC52", "EBF_PNC52_NON_EBF_VISITS")
+
+#Create a long dataset, which has all the reasons by all the type_visit
+##EBF Long dataset ----
+inf_ebf_long <- mat_ebf %>%
+  select (-BRSTFEED_EXCL_FAORRES)
+  # left_join(ebf_6_7, by = c("SITE","MOMID", "PREGID", "INFANTID")) %>%
+  # left_join(ebf_6_8, by = c("SITE","MOMID", "PREGID", "INFANTID")) %>%
+  # left_join(ebf_6_9, by = c("SITE","MOMID", "PREGID", "INFANTID")) %>%
+  # left_join(ebf_6_10, by = c("SITE","MOMID", "PREGID", "INFANTID")) %>%
+  # left_join(ebf_6_11, by = c("SITE","MOMID", "PREGID", "INFANTID")) %>%
+  # left_join(ebf_6_12, by = c("SITE","MOMID", "PREGID", "INFANTID")) 
+
+test <- inf_ebf_long %>% 
+  select (SITE, MOMID, PREGID, INFANTID, EBF_AT_AGE, NOT_EBF_FOODS, NOT_EBF_REASON)  %>% 
+  filter (EBF_AT_AGE == 0)
+
+##EBF Wide dataset----  
+#Basically, we want to combine all the answers in a cummulative way 
+##This would ensure that we have: 
+###1-all non-ebf reasons and non-ebf foods up unitl the timepoint we are looking at
+###2-each infant would have one line
+
+# function to summarise NOT-EBF info up to a visit range 
+summarise_not_ebf <- function(data, visit_range, suffix) {
+  
+  clean_codes <- function(vec) {
+    # vec = character vector like c("1,2", "55", "77", "0")
+    
+    # extract individual codes
+    codes <- unique(unlist(str_split(vec, ",")))
+    codes <- codes[codes != ""]
+    
+    # Case 1: all values missing (55, 77)
+    if (all(codes %in% c("55", "77"))) {
+      return("55")
+    }
+    
+    # Remove 55 and 77 if ANY real codes exist
+    real_codes <- codes[codes %in% c("1","2","3","4","5","6","7","8","9","88")]
+    
+    if (length(real_codes) > 0) {
+      return(paste(sort(real_codes), collapse = ","))
+    }
+    
+    # Case 2: all zero or empty
+    if (all(codes %in% c("0"))) {
+      return("0")
+    }
+    
+    # Fallback (should not be needed)
+    return("0")
+  }
+  
+  data %>% 
+    filter(TYPE_VISIT %in% visit_range) %>%
+    group_by(SITE, MOMID, PREGID, INFANTID) %>%
+    summarise(
+      # ---- FOODS ----
+      NOT_EBF_FOODS_tmp = {
+        v <- NOT_EBF_FOODS[!is.na(NOT_EBF_FOODS)]
+        clean_codes(v)
+      },
+      
+      # ---- REASONS ----
+      NOT_EBF_REASON_tmp = {
+        v <- NOT_EBF_REASON[!is.na(NOT_EBF_REASON)]
+        clean_codes(v)
+      },
+      
+      # ---- other-food specify ----
+      NOT_EBF_OTHER_FOOD_SPFY_tmp = {
+        txt <- NOT_EBF_OTHER_FOOD_SPFY[
+          !is.na(NOT_EBF_OTHER_FOOD_SPFY) &
+            NOT_EBF_OTHER_FOOD_SPFY != "not_applicable" &
+            NOT_EBF_OTHER_FOOD_SPFY != ""
+        ]
+        txt <- unique(txt)
+        if (length(txt) == 0) NA_character_ else paste(txt, collapse = "; ")
+      },
+      
+      # ---- other-reason specify ----
+      NOT_EBF_OTHER_RSN_SPFY_tmp = {
+        txt <- NOT_EBF_OTHER_RSN_SPFY[
+          !is.na(NOT_EBF_OTHER_RSN_SPFY) &
+            NOT_EBF_OTHER_RSN_SPFY != "not_applicable" &
+            NOT_EBF_OTHER_RSN_SPFY != ""
+        ]
+        txt <- unique(txt)
+        if (length(txt) == 0) NA_character_ else paste(txt, collapse = "; ")
+      },
+      
+      .groups = "drop"
+    ) %>%
+    rename(
+      !!paste0("NOT_EBF_FOODS_", suffix) := NOT_EBF_FOODS_tmp,
+      !!paste0("NOT_EBF_REASON_", suffix) := NOT_EBF_REASON_tmp,
+      !!paste0("NOT_EBF_OTHER_FOOD_SPFY_", suffix) := NOT_EBF_OTHER_FOOD_SPFY_tmp,
+      !!paste0("NOT_EBF_OTHER_RSN_SPFY_", suffix) := NOT_EBF_OTHER_RSN_SPFY_tmp
+    )
+}
+
+  
+  # make the wide NOT-EBF summaries for the all visit windows
+  # PNC0: TYPE_VISIT 6–7
+  not_ebf_6_7 <- summarise_not_ebf(mat_ebf, 6:7, "PNC0")
+  
+  # PNC1: TYPE_VISIT 6–8
+  not_ebf_6_8 <- summarise_not_ebf(mat_ebf, 6:8, "PNC1")
+  
+  # PNC4: TYPE_VISIT 6–9
+  not_ebf_6_9 <- summarise_not_ebf(mat_ebf, 6:9, "PNC4")
+  
+  # PNC0: TYPE_VISIT 6–10
+  not_ebf_6_10 <- summarise_not_ebf(mat_ebf, 6:10, "PNC6")
+  
+  # PNC1: TYPE_VISIT 6–11
+  not_ebf_6_11 <- summarise_not_ebf(mat_ebf, 6:11, "PNC26")
+  
+  # PNC4: TYPE_VISIT 6–12
+  not_ebf_6_12 <- summarise_not_ebf(mat_ebf, 6:12, "PNC52")
+  
+  #In order not to lose the dates, when these was taken
+  #Create function to get the dates by PNC visits
+  get_pnc_visit_date <- function(data, visit_range, new_colname) {
+    data %>%
+      filter(TYPE_VISIT %in% visit_range) %>%
+      group_by(SITE, MOMID, PREGID, INFANTID) %>%
+      summarise(
+        !!new_colname := if (all(is.na(VISIT_DATE))) {
+          NA
+        } else {
+          max(VISIT_DATE, na.rm = TRUE)  # most recent visit date in that window
+        },
+        .groups = "drop"
+      )
+  }
+  
+  pnc0_dates  <- get_pnc_visit_date(mat_ebf, 6:7,  "VISIT_DATE_PNC0")
+  pnc1_dates  <- get_pnc_visit_date(mat_ebf, 6:8,  "VISIT_DATE_PNC1")
+  pnc4_dates  <- get_pnc_visit_date(mat_ebf, 6:9,  "VISIT_DATE_PNC4")
+  pnc6_dates  <- get_pnc_visit_date(mat_ebf, 6:10, "VISIT_DATE_PNC6")
+  pnc26_dates <- get_pnc_visit_date(mat_ebf, 6:11, "VISIT_DATE_PNC26")
+  pnc52_dates <- get_pnc_visit_date(mat_ebf, 6:12, "VISIT_DATE_PNC52")
+  
+#join EBF (wide) + NOT-EBF (wide) onto the per-visit data 
+  inf_ebf_wide <- mat_ebf_df %>%
+    distinct(SITE, MOMID, PREGID, INFANTID, .keep_all = TRUE) %>%
+    select(SITE, MOMID, PREGID, INFANTID, DOB) %>%
+    left_join(pnc0_dates,  by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(pnc1_dates,  by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(pnc4_dates,  by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(pnc6_dates,  by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(pnc26_dates, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(pnc52_dates, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(ebf_6_7,  by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(ebf_6_8,  by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(ebf_6_9,  by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(ebf_6_10, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(ebf_6_11, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(ebf_6_12, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+     # add wide NOT-EBF summaries
+    left_join(not_ebf_6_7, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(not_ebf_6_8, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(not_ebf_6_9, by = c("SITE","MOMID","PREGID","INFANTID"))%>%
+    left_join(not_ebf_6_10, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(not_ebf_6_11, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
+    left_join(not_ebf_6_12, by = c("SITE","MOMID","PREGID","INFANTID")) 
+ 
+   #Replace empty variables with 55 
+  ## because we potentially don't have visits for those infants
+  inf_ebf_wide$EBF_PNC0[!(inf_ebf_wide$EBF_PNC0 %in% c(1,0))] <- 55
+  inf_ebf_wide$EBF_PNC1[!(inf_ebf_wide$EBF_PNC1 %in% c(1,0))] <- 55
+  inf_ebf_wide$EBF_PNC4[!(inf_ebf_wide$EBF_PNC4 %in% c(1,0))] <- 55
+  inf_ebf_wide$EBF_PNC6[!(inf_ebf_wide$EBF_PNC6 %in% c(1,0))] <- 55
+  inf_ebf_wide$EBF_PNC26[!(inf_ebf_wide$EBF_PNC26 %in% c(1,0))] <- 55
+  inf_ebf_wide$EBF_PNC52[!(inf_ebf_wide$EBF_PNC52 %in% c(1,0))] <- 55
+  
+# *****************************************************************************
+# 6. Save the Dataset ----
+# *****************************************************************************
+write.csv(inf_ebf_long, paste0(path_to_save, "/INF_EBF_LONG_", UploadDate,".csv"), row.names=FALSE)
+write.csv(inf_ebf_long, paste0(path_to_tnt, "/INF_EBF_LONG" ,".csv"), na="", row.names=FALSE)
+
+write.csv(inf_ebf_wide, paste0(path_to_save, "/INF_EBF_WIDE_", UploadDate,".csv"), row.names=FALSE)
+write.csv(inf_ebf_wide, paste0(path_to_tnt, "/INF_EBF_WIDE" ,".csv"), na="", row.names=FALSE)
