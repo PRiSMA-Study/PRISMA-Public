@@ -286,7 +286,7 @@ df_lab <- df_maternal %>%
                                        ((CLOSEOUT_DT > PNC0_LATE_WINDOW) | is.na(CLOSEOUT_DT)) &
                                        ((MAT_DEATH_DATE > PNC0_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0),
          VC_PNC1_DENOM_LATE = ifelse(PNC1_PASS_LATE==1 &
-                                       ((CLOSEOUT_DT > PNC1_LATE_WINDOW) | is.na(CLOSEOUT_DT)) |
+                                       ((CLOSEOUT_DT > PNC1_LATE_WINDOW) | is.na(CLOSEOUT_DT)) &
                                        ((MAT_DEATH_DATE > PNC1_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0),
          VC_PNC4_DENOM_LATE = ifelse(PNC4_PASS_LATE==1 &
                                        ((CLOSEOUT_DT > PNC4_LATE_WINDOW) | is.na(CLOSEOUT_DT)) &
