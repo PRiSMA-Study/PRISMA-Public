@@ -3,7 +3,7 @@
 #*Includes: 
 #*1. Lab missingess table
 #*2. Data visualization of lab results
-#*Author: Xiaoyan Hu
+#*Author: Xiaoyan Hu & Stacie Loisate
 #*Email:xyh@gwu.edu
 #*****************************************************************************
 library(tidyverse)
@@ -12,12 +12,10 @@ library(readxl)
 library(haven)
 
 #Site data upload date
-UploadDate = "2025-06-27"
-
+UploadDate = "2026-03-06"
 #*****************************************************************************
 #* 1.Data preparation for lab missingness
 #*****************************************************************************
-
 # set path to data
 path_to_data <- paste0("~/import/", UploadDate)
 
@@ -29,12 +27,12 @@ path_to_save <- paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie
 mnh06 <- read.csv(paste0(path_to_data,"/mnh06_merged.csv")) 
 
 #load mnh08 data
-mnh08 <- read.csv(paste0(path_to_data,"/mnh08_merged.csv")) 
+mnh08 <- read.csv(paste0(path_to_data,"/mnh08_merged.csv"))
 
 #load mnh04 data for some lab value denominator
-mnh04 <- read.csv(paste0(path_to_data,"/mnh04_merged.csv")) 
+mnh04 <- read.csv(paste0(path_to_data,"/mnh04_merged.csv"))
 
-#load mnh04 data for some lab value denominator
+#load mnh07 data for some lab value denominator
 mnh07 <- read.csv(paste0(path_to_data,"/mnh07_merged.csv")) 
 
 #load mnh09 data for DOB
@@ -49,28 +47,35 @@ MAT_ENDPOINTS <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENDPOINTS.d
 #load MAT_GDM 
 MAT_GDM <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_GDM.dta"))
 
-# test <- mnh08 %>% filter(SITE == "Kenya") %>% select(M08_TYPE_VISIT,M08_ZCD_LBTSTDAT, M08_LEPT_IGG_LBTSTDAT, M08_HEV_LBTSTDAT, M08_LEPT_IGM_LBTSTDAT)
+sas_expansion_ids <- read_xlsx(paste0("Z:/PRISMA_Data_Uploads/India-SAS_Expansion_IDs-2025-11-21.xlsx"))
+
 ## import raw mnh08 from kenya (adjust zcd/lepto/hev testing dates)
-# mnh08_ke <- read.csv("Z:/SynapseCSVs/Kenya/2025-05-02/mnh08.csv")
-mnh08_ke <- read.csv("~/import/2025-06-27_ke/mnh08.csv")
+mnh08_ke <- read.csv(paste0("~/import/", UploadDate, "_ke/mnh08.csv"))
 
 mnh08_ke <- mnh08_ke %>% 
   mutate(SITE = "Kenya") %>% 
-  select(SITE, MOMID, PREGID, TYPE_VISIT,
+  select(SITE, MOMID, PREGID, TYPE_VISIT, LBSTDAT,
          ZCD_LBTSTDAT, LEPT_IGG_LBTSTDAT, HEV_LBTSTDAT, LEPT_IGM_LBTSTDAT) %>% 
-  rename(M08_TYPE_VISIT = TYPE_VISIT,
+  rename(M08_LBSTDAT = LBSTDAT,
+         M08_TYPE_VISIT = TYPE_VISIT,
          M08_ZCD_LBTSTDAT = ZCD_LBTSTDAT, 
          M08_LEPT_IGG_LBTSTDAT = LEPT_IGG_LBTSTDAT, 
          M08_HEV_LBTSTDAT = HEV_LBTSTDAT, 
          M08_LEPT_IGM_LBTSTDAT = LEPT_IGM_LBTSTDAT
          ) %>% 
-  mutate(M08_ZCD_LBTSTDAT = ymd(parse_date_time(M08_ZCD_LBTSTDAT, "%d/%m/%Y %H:%M")),
-         M08_LEPT_IGG_LBTSTDAT = ymd(parse_date_time(M08_LEPT_IGG_LBTSTDAT, "%d/%m/%Y %H:%M")),
-         M08_HEV_LBTSTDAT = ymd(parse_date_time(M08_HEV_LBTSTDAT, "%d/%m/%Y %H:%M")),
-         M08_LEPT_IGM_LBTSTDAT = ymd(parse_date_time(M08_LEPT_IGM_LBTSTDAT, "%d/%m/%Y %H:%M"))
-         )
+  mutate(M08_ZCD_LBTSTDAT = ymd(parse_date_time(M08_ZCD_LBTSTDAT, "%d/%b/%y")),
+         M08_LEPT_IGG_LBTSTDAT = ymd(parse_date_time(M08_LEPT_IGG_LBTSTDAT, "%d/%b/%y")),
+         M08_HEV_LBTSTDAT = ymd(parse_date_time(M08_HEV_LBTSTDAT, "%d/%b/%y")),
+         M08_LEPT_IGM_LBTSTDAT = ymd(parse_date_time(M08_LEPT_IGM_LBTSTDAT, "%d/%b/%y"))
+  ) %>% 
+  group_by(SITE, MOMID, PREGID, M08_TYPE_VISIT) %>%
+  # if a duplicate exists, take the first instance (sorting by date)
+  arrange(-desc(M08_LBSTDAT)) %>% 
+  slice(1) %>% 
+  select(-M08_LBSTDAT, -M08_TYPE_VISIT)
 
 mnh08_no_ke <- mnh08 %>% filter(SITE != "Kenya")
+
 mnh08_ke_full <- mnh08 %>% filter(SITE == "Kenya") %>% 
   select(-M08_ZCD_LBTSTDAT, -M08_LEPT_IGG_LBTSTDAT, -M08_HEV_LBTSTDAT, -M08_LEPT_IGM_LBTSTDAT) %>% 
   left_join(mnh08_ke, by = c("SITE", "MOMID", "PREGID", "M08_TYPE_VISIT")) %>% 
@@ -78,7 +83,11 @@ mnh08_ke_full <- mnh08 %>% filter(SITE == "Kenya") %>%
          M08_LEPT_IGG_LBTSTDAT = as.character(M08_LEPT_IGG_LBTSTDAT), 
          M08_HEV_LBTSTDAT = as.character(M08_HEV_LBTSTDAT), 
          M08_LEPT_IGM_LBTSTDAT = as.character(M08_LEPT_IGM_LBTSTDAT)
-  )
+  ) %>% 
+  group_by(SITE, MOMID, PREGID, M08_TYPE_VISIT) %>%
+  # if a duplicate exists, take the first instance (sorting by date)
+  arrange(-desc(M08_LBSTDAT)) %>% 
+  slice(1)
 
 mnh08 <- bind_rows(mnh08_ke_full, mnh08_no_ke)
 
@@ -122,7 +131,7 @@ mnh08_wide <- mnh08_uni %>%
   ) %>% 
   select(-starts_with("n_"))
 
-#extract unique mnh04 and wide data for variables needed
+#extract unique mnh04 and wide data for variables needed 
 mnh04_uni <- mnh04 %>% 
   group_by(SITE, MOMID, PREGID, M04_TYPE_VISIT) %>% 
   mutate(n = n()) %>% 
@@ -137,22 +146,29 @@ mnh04_wide <- mnh04_uni %>%
   ) %>% 
   select(-starts_with("n_"))
 
-#merge to create maternal data
+#merge to create maternal data 
 df_maternal <- MAT_ENROLL %>% 
   select(SITE, MOMID, PREGID, BOE_GA_DAYS_ENROLL, PREG_START_DATE, 
-         EDD_BOE, BOE_GA_WKS_ENROLL, ENROLL_SCRN_DATE,REMAPP_AIM3_ENROLL,REMAPP_AIM3_TRI,
+         EDD_BOE, BOE_GA_WKS_ENROLL, ENROLL_SCRN_DATE,REMAPP_ENROLL,REMAPP_AIM3_ENROLL,REMAPP_AIM3_TRI,
          matches("^(ANC\\d+|ENROLL)_PASS_LATE$"), 
          matches("^(ANC\\d+|ENROLL)_LATE_WINDOW")) %>% 
+  ## add remapp launch date for each site since these are remapp criteria 
+  ## add remapp launch date for each site since these are remapp criteria 
+  mutate(REMAPP_ENROLL_ZAM_FIX = case_when(SITE == "Zambia" &
+                                             ENROLL_SCRN_DATE >= "2022-12-15" & ENROLL_SCRN_DATE <= "2025-03-20" ~ 1, 
+                                           TRUE ~ REMAPP_ENROLL)) %>% 
+  mutate(REMAPP_ENROLL = case_when(SITE != "Zambia" ~ REMAPP_ENROLL, 
+                                   SITE == "Zambia" ~ REMAPP_ENROLL_ZAM_FIX, TRUE ~ REMAPP_ENROLL)) %>% 
   left_join(MAT_ENDPOINTS %>% select(SITE, MOMID, PREGID, CLOSEOUT_DT, PREG_LOSS, 
-                                     MAT_DEATH, PREG_END_GA,
+                                     MAT_DEATH, PREG_END_GA,MAT_DEATH_DATE,
                                      matches("PNC\\d+_PASS_LATE"), 
                                      matches("PNC\\d+_LATE_WINDOW"))) %>%
   left_join(MAT_GDM %>% select(SITE, MOMID, PREGID, DIAB_OVERT, DIAB_OVERT_DX)) %>% #HbA1c at enrollment >=6.5, preexisting overt diabetes
   left_join(mnh06_wide, by = c("MOMID", "PREGID", "SITE")) %>% 
   left_join(mnh08_wide, by = c("MOMID", "PREGID", "SITE")) %>% 
   left_join(mnh04_wide, by = c("MOMID", "PREGID", "SITE")) %>% 
-  left_join(mnh07_wide, by = c("MOMID", "PREGID", "SITE")) 
-  
+  left_join(mnh07_wide, by = c("MOMID", "PREGID", "SITE")) %>% 
+  left_join(sas_expansion_ids %>% mutate(SAS_EXPANSION = 1), by = c("PREGID"))
 
 #******clean data
 #read in the lab variables we are gonna report
@@ -182,9 +198,17 @@ prep_lab_num <- df_maternal %>%
     ~ ifelse(. == 77, NA, .)
   ))
 
+
+mnh08_g6pd_ke <- read.csv(paste0("~/import/", UploadDate, "_ke/mnh08.csv")) %>% 
+  select(MOMID, PREGID,TYPE_VISIT, RBC_G6PD_LBORRES_Interpret) %>% 
+  filter(RBC_G6PD_LBORRES_Interpret %in% c(1,2,3))
+
 #prepare data by replace default value with NA for categorical var (not lab variables)
-prep_lab_cat <- df_maternal %>% 
+prep_lab_cat <- df_maternal %>%
+  left_join(mnh08_g6pd_ke %>% select(-TYPE_VISIT), by = c("MOMID", "PREGID")) %>% 
   select(SITE, MOMID, PREGID,REMAPP_AIM3_ENROLL,REMAPP_AIM3_TRI, 
+         REMAPP_ENROLL, MAT_DEATH_DATE,
+         starts_with("M08_RBC_G6PD_LBORRES_Interpret"),
          contains("M08_LB_REMAPP3"),
          starts_with("M04_FETAL_LOSS_DSDECOD_"),
          starts_with("M04_HIV_EVER_MHOCCUR_"),
@@ -235,10 +259,9 @@ pre_lab_other <- df_maternal %>%
   #replace with NA 
   mutate_all(~ if_else(. %in% c("1907-07-07"), NA, .)) 
 
-
 #******prepare df_lab --> data for missingness
 df_lab <- df_maternal %>% 
-  select(SITE, MOMID, PREGID) %>% 
+  select(SITE, MOMID, PREGID, SAS_EXPANSION) %>% 
   left_join(prep_lab_num, by = c("SITE", "MOMID", "PREGID")) %>% 
   left_join(prep_lab_cat, by = c("SITE", "MOMID", "PREGID")) %>% 
   left_join(prep_lab_date, by = c("SITE", "MOMID", "PREGID")) %>% 
@@ -260,18 +283,24 @@ df_lab <- df_maternal %>%
                                         ((CLOSEOUT_DT > ANC36_LATE_WINDOW) | is.na(CLOSEOUT_DT)), 1, 0)
   ) %>% 
   mutate(VC_PNC0_DENOM_LATE = ifelse(PNC0_PASS_LATE==1 &
-                                       ((CLOSEOUT_DT > PNC0_LATE_WINDOW) | is.na(CLOSEOUT_DT)), 1, 0),
+                                       ((CLOSEOUT_DT > PNC0_LATE_WINDOW) | is.na(CLOSEOUT_DT)) &
+                                       ((MAT_DEATH_DATE > PNC0_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0),
          VC_PNC1_DENOM_LATE = ifelse(PNC1_PASS_LATE==1 &
-                                       ((CLOSEOUT_DT > PNC1_LATE_WINDOW) | is.na(CLOSEOUT_DT)), 1, 0),
+                                       ((CLOSEOUT_DT > PNC1_LATE_WINDOW) | is.na(CLOSEOUT_DT)) |
+                                       ((MAT_DEATH_DATE > PNC1_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0),
          VC_PNC4_DENOM_LATE = ifelse(PNC4_PASS_LATE==1 &
-                                       ((CLOSEOUT_DT > PNC4_LATE_WINDOW) | is.na(CLOSEOUT_DT)), 1, 0),
+                                       ((CLOSEOUT_DT > PNC4_LATE_WINDOW) | is.na(CLOSEOUT_DT)) &
+                                      ((MAT_DEATH_DATE > PNC4_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0),
+
          VC_PNC6_DENOM_LATE = ifelse(PNC6_PASS_LATE==1 & 
-                                       ((CLOSEOUT_DT > PNC6_LATE_WINDOW) | is.na(CLOSEOUT_DT)), 1, 0),
+                                       ((CLOSEOUT_DT > PNC6_LATE_WINDOW) | is.na(CLOSEOUT_DT)) &
+                                     ((MAT_DEATH_DATE > PNC6_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0),
          VC_PNC26_DENOM_LATE = ifelse(PNC26_PASS_LATE==1 & PREG_END_GA>139 & 
-                                        ((CLOSEOUT_DT > PNC26_LATE_WINDOW) | is.na(CLOSEOUT_DT)), 1, 0),
-         
+                                        ((CLOSEOUT_DT > PNC26_LATE_WINDOW) | is.na(CLOSEOUT_DT)) &
+                                      ((MAT_DEATH_DATE > PNC26_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0),
          VC_PNC52_DENOM_LATE = ifelse(PNC52_PASS_LATE==1 & PREG_END_GA>139 & 
-                                        ((CLOSEOUT_DT > PNC52_LATE_WINDOW) | is.na(CLOSEOUT_DT)), 1, 0)
+                                        ((CLOSEOUT_DT > PNC52_LATE_WINDOW) | is.na(CLOSEOUT_DT)) & 
+                                      ((MAT_DEATH_DATE > PNC52_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0)
   ) %>% 
   #define denominator for form missingness
   mutate(
@@ -318,16 +347,32 @@ df_lab <- df_maternal %>%
     denom_lab_08_12 = ifelse(M08_TYPE_VISIT_12 == 12 & M08_MAT_VISIT_MNH08_12 == 1, 1, 0),
   ) %>%
   #define denominator for ReMAPP exclusive labs (RBC at enrollment)
+  # ANC20, ANC28, ANC36, PNC6
   mutate(
-    denom_remapp = case_when(
-      denom_lab_08_1 == 1 & 
-        ((SITE == "Ghana" & ENROLL_SCRN_DATE >= "2022-12-28" & ENROLL_SCRN_DATE <= "2024-10-29") | ## end date confirmed added 
-           (SITE == "Kenya" & ENROLL_SCRN_DATE >= "2023-04-03") | ## confirmed 
-           (SITE == "Zambia" & ENROLL_SCRN_DATE >= "2022-12-15") |
-           (SITE == "Pakistan" & ENROLL_SCRN_DATE >= "2022-09-22" & ENROLL_SCRN_DATE <= "2024-04-22") | ## oreviously was 05-Apr-2024; end date confirmed added 
-           (SITE == "India-CMC" & ENROLL_SCRN_DATE >= "2023-06-20") |
-           (SITE == "India-SAS" & ENROLL_SCRN_DATE >= "2023-12-12")) ~ 1,
-      TRUE ~ 0
+    denom_remapp_cbc_2 = case_when( ## updated to filter by LBSTDAT instead of ENROLL_SCRN_DATE
+      SITE %in% c("Ghana", "Kenya", "Zambia", "India-CMC", "India-SAS") & denom_lab_08_1 == 1 & REMAPP_ENROLL ==1 ~ 1,
+      SITE == "Pakistan" & (M08_LBSTDAT_2 >= "2022-09-22" & M08_LBSTDAT_2 <= "2024-04-22") &
+        denom_lab_08_1 == 1 & REMAPP_ENROLL ==1 ~ 1, TRUE ~ 0
+    ),
+    denom_remapp_cbc_3 = case_when( ## updated to filter by LBSTDAT instead of ENROLL_SCRN_DATE
+      SITE %in% c("Ghana", "Kenya", "Zambia", "India-CMC", "India-SAS") & denom_lab_08_1 == 1 & REMAPP_ENROLL ==1 ~ 1,
+      SITE == "Pakistan" & (M08_LBSTDAT_3 >= "2022-09-22" & M08_LBSTDAT_3 <= "2024-04-22") &
+        denom_lab_08_3 == 1 & REMAPP_ENROLL ==1 ~ 1, TRUE ~ 0
+    ),
+    denom_remapp_cbc_5 = case_when( ## updated to filter by LBSTDAT instead of ENROLL_SCRN_DATE
+      SITE %in% c("Ghana", "Kenya", "Zambia", "India-CMC", "India-SAS") & denom_lab_08_1 == 1 & REMAPP_ENROLL ==1 ~ 1,
+      SITE == "Pakistan" & (M08_LBSTDAT_5 >= "2022-09-22" & M08_LBSTDAT_5 <= "2024-04-22") &
+        denom_lab_08_5 == 1 & REMAPP_ENROLL ==1 ~ 1, TRUE ~ 0
+    ),
+    denom_remapp_cbc_10 = case_when( ## updated to filter by LBSTDAT instead of ENROLL_SCRN_DATE
+      SITE %in% c("Ghana", "Kenya", "Zambia", "India-CMC", "India-SAS") & denom_lab_08_1 == 1 & REMAPP_ENROLL ==1 ~ 1,
+      SITE == "Pakistan" & (M08_LBSTDAT_10 >= "2022-09-22" & M08_LBSTDAT_10 <= "2024-04-22") &
+        denom_lab_08_10 == 1 & REMAPP_ENROLL ==1 ~ 1, TRUE ~ 0
+    )
+  ) %>% 
+  mutate(
+    denom_remapp = case_when( ## updated to filter by LBSTDAT instead of ENROLL_SCRN_DATE
+      denom_lab_08_1 == 1 & REMAPP_ENROLL ==1 ~ 1, TRUE ~ 0
     )) %>% 
   #define denominator for syphilis (test date)
   mutate(
@@ -344,7 +389,7 @@ df_lab <- df_maternal %>%
     denom_syphilis_anc32 = case_when(
       (SITE == "Ghana" & M08_SYPH_TITER_LBTSTDAT_4 >= "2024-04-09") | 
         (SITE == "India-CMC" & M08_SYPH_TITER_LBTSTDAT_4 >= "2023-07-18") |  
-        (SITE == "India-SAS" & M08_SYPH_TITER_LBTSTDAT_4 >= "2024-07-29") |
+        (SITE == "India-SAS" & M08_SYPH_TITER_LBTSTDAT_4 >= "2024-07-29" ) | 
         (SITE == "Kenya" & M08_SYPH_TITER_LBTSTDAT_4 >= "2024-03-06") |  
         (SITE == "Pakistan" & M08_SYPH_TITER_LBTSTDAT_4 >= "2024-07-19") | 
         (SITE == "Zambia" & M08_SYPH_TITER_LBTSTDAT_3 >= "2023-11-09") ~ 1,  #Zambia test on ANC28 
@@ -357,10 +402,9 @@ df_lab <- df_maternal %>%
         ((SITE == "Ghana" & M06_DIAG_VSDAT_4 >= "2024-04-09") | 
            (SITE == "Kenya" &  M06_DIAG_VSDAT_4  >= "2024-03-06") |
            (SITE == "Zambia" &  M06_DIAG_VSDAT_4  >= "2023-11-09") |
-           # (SITE == "Pakistan" &  M06_DIAG_VSDAT_4  >= "2024-04-24") |
-           (SITE == "Pakistan" &  ENROLL_SCRN_DATE  >= "2024-04-24") | ##  added from Zahra's feedback that they are performing syphilis POC at ANC32 for participants who were enrolled after April 24th
+           (SITE == "Pakistan" &  ENROLL_SCRN_DATE  >= "2024-04-24") | ## added from Zahra's feedback that they are performing syphilis POC at ANC32 for participants who were enrolled after April 24th
            (SITE == "India-CMC") |
-           (SITE == "India-SAS" &  M06_DIAG_VSDAT_4  >= "2023-12-12")) ~ 1,
+           (SITE == "India-SAS" &  M06_DIAG_VSDAT_4  >= "2023-12-12" & SAS_EXPANSION==1)) ~ 1, ## only expansion ids are expected to have this test at this visit
       TRUE ~ 0)) %>% 
   #define denominator for glucose test
   mutate(
@@ -380,7 +424,7 @@ df_lab <- df_maternal %>%
     denom_zcd_lept_hev_1 = case_when(
       SITE == "Ghana" &  if_any(c(M08_ZCD_LBTSTDAT_1, M08_LEPT_IGG_LBTSTDAT_1, M08_HEV_LBTSTDAT_1, M08_LEPT_IGM_LBTSTDAT_1), ~.x >= "2024-04-09") ~ 1,
       SITE == "India-CMC" &  if_any(c(M08_ZCD_LBTSTDAT_1, M08_LEPT_IGG_LBTSTDAT_1, M08_HEV_LBTSTDAT_1, M08_LEPT_IGM_LBTSTDAT_1), ~.x >= "2024-03-06") ~ 1,
-      SITE == "India-SAS"&  if_any(c(M08_ZCD_LBTSTDAT_1, M08_LEPT_IGG_LBTSTDAT_1, M08_HEV_LBTSTDAT_1, M08_LEPT_IGM_LBTSTDAT_1), ~.x >= "2024-03-11" & .x <= "2025-02-01") ~ 1,
+      SITE == "India-SAS" & SAS_EXPANSION==1 & if_any(c(M08_ZCD_LBTSTDAT_1, M08_LEPT_IGG_LBTSTDAT_1, M08_HEV_LBTSTDAT_1, M08_LEPT_IGM_LBTSTDAT_1), ~.x >= "2024-03-11" & .x <= "2025-02-01") ~ 1,
       SITE == "Kenya"& if_any(c(M08_ZCD_LBTSTDAT_1, M08_LEPT_IGG_LBTSTDAT_1, M08_HEV_LBTSTDAT_1, M08_LEPT_IGM_LBTSTDAT_1), ~.x >= "2024-03-06") ~ 1,
       SITE == "Pakistan" &if_any(c(M08_ZCD_LBTSTDAT_1, M08_LEPT_IGG_LBTSTDAT_1, M08_HEV_LBTSTDAT_1, M08_LEPT_IGM_LBTSTDAT_1), ~.x >= "2024-04-08") ~ 1,
       SITE == "Zambia" & if_any(c(M08_ZCD_LBTSTDAT_1, M08_LEPT_IGG_LBTSTDAT_1, M08_HEV_LBTSTDAT_1, M08_LEPT_IGM_LBTSTDAT_1), ~.x >= "2023-11-09") ~ 1,
@@ -390,7 +434,7 @@ df_lab <- df_maternal %>%
     denom_zcd_lept_hev_4 = case_when(
       SITE == "Ghana" &  if_any(c(M08_ZCD_LBTSTDAT_4, M08_LEPT_IGG_LBTSTDAT_4, M08_HEV_LBTSTDAT_4, M08_LEPT_IGM_LBTSTDAT_4), ~.x >= "2024-04-09") ~ 1,
       SITE == "India-CMC" &  if_any(c(M08_ZCD_LBTSTDAT_4, M08_LEPT_IGG_LBTSTDAT_4, M08_HEV_LBTSTDAT_4, M08_LEPT_IGM_LBTSTDAT_4), ~.x >= "2024-03-06") ~ 1,
-      SITE == "India-SAS"&  if_any(c(M08_ZCD_LBTSTDAT_4, M08_LEPT_IGG_LBTSTDAT_4, M08_HEV_LBTSTDAT_4, M08_LEPT_IGM_LBTSTDAT_4), ~.x >= "2024-03-11" & .x <= "2025-02-01") ~ 1,
+      SITE == "India-SAS" & SAS_EXPANSION==1 &  if_any(c(M08_ZCD_LBTSTDAT_4, M08_LEPT_IGG_LBTSTDAT_4, M08_HEV_LBTSTDAT_4, M08_LEPT_IGM_LBTSTDAT_4), ~.x >= "2024-03-11" & .x <= "2025-02-01") ~ 1,
       SITE == "Kenya"& if_any(c(M08_ZCD_LBTSTDAT_4, M08_LEPT_IGG_LBTSTDAT_4, M08_HEV_LBTSTDAT_4, M08_LEPT_IGM_LBTSTDAT_4), ~.x >= "2024-03-06") ~ 1,
       SITE == "Pakistan" &if_any(c(M08_ZCD_LBTSTDAT_4, M08_LEPT_IGG_LBTSTDAT_4, M08_HEV_LBTSTDAT_4, M08_LEPT_IGM_LBTSTDAT_4), ~.x >= "2024-04-08") ~ 1,
       SITE == "Zambia" & if_any(c(M08_ZCD_LBTSTDAT_4, M08_LEPT_IGG_LBTSTDAT_4, M08_HEV_LBTSTDAT_4, M08_LEPT_IGM_LBTSTDAT_4), ~.x >= "2023-11-09") ~ 1,
@@ -400,7 +444,7 @@ df_lab <- df_maternal %>%
     denom_zcd_lept_hev_10 = case_when(
       SITE == "Ghana" &  if_any(c(M08_ZCD_LBTSTDAT_10, M08_LEPT_IGG_LBTSTDAT_10, M08_HEV_LBTSTDAT_10, M08_LEPT_IGM_LBTSTDAT_10), ~.x >= "2024-04-09") ~ 1,
       SITE == "India-CMC" &  if_any(c(M08_ZCD_LBTSTDAT_10, M08_LEPT_IGG_LBTSTDAT_10, M08_HEV_LBTSTDAT_10, M08_LEPT_IGM_LBTSTDAT_10), ~.x >= "2024-03-06") ~ 1,
-      SITE == "India-SAS"&  if_any(c(M08_ZCD_LBTSTDAT_10, M08_LEPT_IGG_LBTSTDAT_10, M08_HEV_LBTSTDAT_10, M08_LEPT_IGM_LBTSTDAT_10), ~.x >= "2024-03-11" & .x <= "2025-02-01") ~ 1,
+      SITE == "India-SAS" & SAS_EXPANSION==1 &  if_any(c(M08_ZCD_LBTSTDAT_10, M08_LEPT_IGG_LBTSTDAT_10, M08_HEV_LBTSTDAT_10, M08_LEPT_IGM_LBTSTDAT_10), ~.x >= "2024-03-11" & .x <= "2025-02-01") ~ 1,
       SITE == "Kenya"& if_any(c(M08_ZCD_LBTSTDAT_10, M08_LEPT_IGG_LBTSTDAT_10, M08_HEV_LBTSTDAT_10, M08_LEPT_IGM_LBTSTDAT_10), ~.x >= "2024-03-06") ~ 1,
       SITE == "Pakistan" &if_any(c(M08_ZCD_LBTSTDAT_10, M08_LEPT_IGG_LBTSTDAT_10, M08_HEV_LBTSTDAT_10, M08_LEPT_IGM_LBTSTDAT_10), ~.x >= "2024-04-08") ~ 1,
       SITE == "Zambia" & if_any(c(M08_ZCD_LBTSTDAT_10, M08_LEPT_IGG_LBTSTDAT_10, M08_HEV_LBTSTDAT_10, M08_LEPT_IGM_LBTSTDAT_10), ~.x >= "2023-11-09") ~ 1,
@@ -412,10 +456,10 @@ df_lab <- df_maternal %>%
     denom_rbc_disorder = case_when(
       denom_lab_08_1 == 1 & 
         ((SITE == "Ghana" & ENROLL_SCRN_DATE >= "2022-12-28" & ENROLL_SCRN_DATE <= "2024-10-29") | ## end date confirmed added 
-           (SITE == "Kenya" & ENROLL_SCRN_DATE >= "2023-04-3") | ## should this be 3 April 
+           (SITE == "Kenya" & ENROLL_SCRN_DATE >= "2023-04-03") | ## should this be 3 April 
            (SITE == "Zambia" & ENROLL_SCRN_DATE >= "2022-12-15") |
-           (SITE == "Pakistan" & M08_LBSTDAT_1 >= "2022-09-22" & M08_LBSTDAT_1 < "2024-01-17") | 
-           (SITE == "India-CMC" & ENROLL_SCRN_DATE >= "2023-06-20") |
+           (SITE == "Pakistan" & M08_LBSTDAT_1 >= "2022-09-22" & M08_LBSTDAT_1 <= "2024-01-17") | 
+           (SITE == "India-CMC" & ENROLL_SCRN_DATE >= "2023-06-20" & ENROLL_SCRN_DATE <= "2025-08-22") |
            (SITE == "India-SAS" & ENROLL_SCRN_DATE >= "2023-12-12")) ~ 1,
       TRUE ~ 0
     )) %>% 
@@ -448,6 +492,15 @@ df_lab <- df_maternal %>%
            (SITE == "India-SAS")) ~ 1,
       TRUE ~ 0
     )) %>% 
+  #define denominator for kidney & liver function tests at enrollment 
+  mutate(
+    denom_kft_lft_fxn_enroll = case_when(
+      denom_lab_08_1 == 1 & 
+           (SITE %in% c("Ghana", "Kenya", "Pakistan", "Zambia") | 
+           (SITE == "India-CMC" &  M08_LBSTDAT_1 <= "2025-01-31") |
+           (SITE == "India-SAS" &  M08_LBSTDAT_1 <= "2024-08-31")) ~ 1, ## added dates to enrollment lft 
+      TRUE ~ 0
+    )) %>% 
   #define denominator for kidney & liver function tests at ANC32 
   mutate(
     denom_kft_lft_fxn_anc32 = case_when(
@@ -457,9 +510,10 @@ df_lab <- df_maternal %>%
            (SITE == "Zambia" &  M08_LBSTDAT_4 <= "2024-10-11") |
            (SITE == "Pakistan" &  M08_LBSTDAT_4 <= "2024-10-03") |
            (SITE == "India-CMC" &  M08_LBSTDAT_4 <= "2024-10-16") |
-           (SITE == "India-SAS" &  M08_LBSTDAT_4 <= "2024-09-02")) ~ 1,
+           (SITE == "India-SAS" &  M08_LBSTDAT_4 <= "2024-08-31")) ~ 1, ## updated from 2024-09-02 to 2024-08-31
       TRUE ~ 0
     )) %>% 
+  
   #define denominator for transition from serum folate to RBC folate 
   mutate(
     denom_folate_rbc_1 = case_when(
@@ -534,7 +588,7 @@ df_lab <- df_maternal %>%
            (SITE == "Zambia" &  M08_LBSTDAT_1 <= "2024-10-11") |
            (SITE == "Pakistan" &  M08_LBSTDAT_1 <= "2024-10-03") |
            (SITE == "India-CMC" &  M08_LBSTDAT_1 <= "2024-10-15") |
-           (SITE == "India-SAS" &  M08_LBSTDAT_1 <= "2024-09-02")) ~ 1,
+           (SITE == "India-SAS" &  M08_LBSTDAT_1 <= "2024-08-31")) ~ 1, # updated from 2024-09-02 to 2024-08-31
       TRUE ~ 0
     ),
     denom_holo_4 = case_when(
@@ -554,28 +608,27 @@ df_lab <- df_maternal %>%
       denom_lab_08_1 == 1 & 
         ((SITE == "Ghana" & denom_lab_08_1 ==1 & (M08_LBSTDAT_1 >= "2024-04-09" & M08_LBSTDAT_1 <= "2025-04-01")) | 
            (SITE == "Kenya"  & denom_lab_08_1 ==1 & (M08_LBSTDAT_1 >= "2024-03-07" & M08_LBSTDAT_1 <= "2025-02-27")) | 
-           (SITE == "Zambia" &  M08_LBSTDAT_1 >= "2023-11-09" & denom_lab_08_1 ==1) | ## no end date
+           (SITE == "Zambia" &  M08_LBSTDAT_1 >= "2023-11-09" & denom_lab_08_1 ==1 & M08_LBSTDAT_1 <= "2025-03-13") |
            (SITE == "Pakistan" & denom_lab_08_1 ==1 & (M08_LBSTDAT_1 >= "2024-04-25" & M08_LBSTDAT_1 <= "2025-04-24")) |
-           (SITE == "India-CMC" &  M08_LBSTDAT_1 >= "2024-07-03" & denom_lab_08_1 ==1) | ## no end date
-           (SITE == "India-SAS" & denom_lab_08_1 ==1 & (M08_LBSTDAT_1 >= "2024-03-11" & M08_LBSTDAT_1 <= "2025-03-06"))) ~ 1,
+           (SITE == "India-CMC" &  M08_LBSTDAT_1 >= "2024-07-03" & denom_lab_08_1 ==1 & M08_LBSTDAT_1 <= "2025-09-17") | 
+           (SITE == "India-SAS" & denom_lab_08_1 ==1 & SAS_EXPANSION==1 & (M08_LBSTDAT_1 >= "2024-03-11" & M08_LBSTDAT_1 <= "2025-03-06"))) ~ 1,  ## only expansion ids are expected to have this test at this visit
       TRUE ~ 0
     ),
-    denom_ctng_4 = case_when( # M07_MAT_SPEC_COLLECT_DAT_4
-      denom_lab_08_1 == 1 & 
-        ((SITE == "Ghana" & denom_lab_08_4 ==1 & (M08_LBSTDAT_4 >= "2024-04-09" & M08_LBSTDAT_4 <= "2025-04-01")) | 
-           (SITE == "Kenya"  & denom_lab_08_4 ==1 & (M08_LBSTDAT_4 >= "2024-03-07" & M08_LBSTDAT_4 <= "2025-02-27")) | 
-           (SITE == "Zambia" &  M08_LBSTDAT_4 >= "2023-11-09" & denom_lab_08_4 ==1) | ## no end date
-           (SITE == "Pakistan" & denom_lab_08_4 ==1 & (M08_LBSTDAT_4 >= "2024-04-25" & M08_LBSTDAT_4 <= "2025-04-24")) |
-           (SITE == "India-CMC" &  M08_LBSTDAT_4 >= "2024-07-03" & denom_lab_08_4 ==1) | ## no end date
-           (SITE == "India-SAS" & denom_lab_08_4 ==1 & (M08_LBSTDAT_4 >= "2024-03-11" & M08_LBSTDAT_4 <= "2025-03-06"))) ~ 1,
+    denom_ctng_4 = case_when( # M07_MAT_SPEC_COLLECT_DAT_4; M08_LBSTDAT_1
+      denom_lab_08_4 == 1 & 
+        ((SITE == "Ghana" & denom_lab_08_4 ==1 & (M08_LBSTDAT_1 >= "2024-04-09" & M08_LBSTDAT_1 <= "2025-04-01")) | 
+           (SITE == "Kenya"  & denom_lab_08_4 ==1 & (M08_LBSTDAT_1 >= "2024-03-07" & M08_LBSTDAT_1 <= "2025-02-27")) | 
+           (SITE == "Zambia" & denom_lab_08_4 ==1 &  (M08_LBSTDAT_1 >= "2023-11-09" & M08_LBSTDAT_1 <= "2025-02-27")) | 
+           (SITE == "Pakistan" & denom_lab_08_4 ==1 & (M08_LBSTDAT_1 >= "2024-04-25" & M08_LBSTDAT_1 <= "2025-04-24")) |
+           (SITE == "India-CMC"& denom_lab_08_4 ==1 &  (M08_LBSTDAT_1 >= "2024-07-03"  & M08_LBSTDAT_1 <= "2025-09-17")) | 
+           (SITE == "India-SAS" & denom_lab_08_4 ==1 & SAS_EXPANSION==1 & (M08_LBSTDAT_1 >= "2024-03-11" & M08_LBSTDAT_1 <= "2025-03-06"))) ~ 1,  ## only expansion ids are expected to have this test at this visit
       TRUE ~ 0
     )) %>% 
   # #define denominator for kenya carbon dioxide AND carbon dioxide for SAS at enrollment and ANC32
   mutate(co2_denom_lab_08_1 = case_when(!SITE %in% c("Kenya", "India-SAS") & denom_lab_08_1 == 1 ~ 1,
                                         (SITE ==  "Kenya" & denom_lab_08_1 == 1 & M08_LBSTDAT_1 >="2023-04-01") |
                                         (SITE ==  "India-SAS" & denom_lab_08_1 == 1 & M08_LBSTDAT_1 >="2024-07-13")
-                                          ~ 1, TRUE ~ 0
-                                        ),
+                                          ~ 1, TRUE ~ 0),
          
          co2_denom_lab_08_2 = case_when(SITE !=  "Kenya" & denom_lab_08_2 == 1 ~ 1,
                                         SITE ==  "Kenya" & denom_lab_08_2 == 1 & M08_LBSTDAT_2 >="2023-04-01" ~ 1, TRUE ~ 0
@@ -730,371 +783,17 @@ df_lab <- df_maternal %>%
                                             TRUE ~ 0)
   )
 
+
 df_lab <- df_lab %>% 
   mutate(W4SS_SCREEN_RESULT_ANC36_COMBINED = case_when(W4SS_SCREEN_RESULT_ANC32 ==1 | W4SS_SCREEN_RESULT_ANC36 ==1 ~ 1, TRUE ~ 0),
          W4SS_SCREEN_PERF_ANC36_COMBINED = case_when(W4SS_SCREEN_PERF_ANC32 == 1 | W4SS_SCREEN_PERF_ANC36 ==1 ~ 1, TRUE ~ 0),
          TB_CULTURE_PERF_ANC36_COMBINED = case_when(TB_CULTURE_PERF_ANC32 == 1 | TB_CULTURE_PERF_ANC36 ==1 ~ 1, TRUE ~ 0)
          )
 
-#********************************************************************************
-#*Prepare data for plots 
-#********************************************************************************
-#change data to long format for mnh06
-df_lab_06 <- df_lab %>% 
-  select(-matches("PASS_LATE"), -starts_with("M08_")) %>%
-  pivot_longer(
-    -c("MOMID","PREGID","SITE",  PREG_START_DATE),
-    names_to = c(".value", "visit_type"), 
-    names_pattern = "^M\\d{2}_(.+)_(\\d+)"
-  ) %>% 
-  mutate(
-    ga_wks = case_when(
-      TYPE_VISIT >= 6 ~ NA_real_,
-      TYPE_VISIT < 6 ~ as.numeric(ymd(DIAG_VSDAT) - ymd(PREG_START_DATE))/7
-    ),
-    trimester = case_when(
-      #at/after delivery data should be NA for trimester
-      ga_wks > 3 & ga_wks < 14 ~ 1,
-      ga_wks >= 14 & ga_wks < 28 ~ 2,
-      ga_wks >= 28 & ga_wks < 43 ~ 3, 
-      TRUE ~ NA_real_
-    ), 
-    time = case_when(
-      TYPE_VISIT < 6 ~ ga_wks,
-      TYPE_VISIT == 6 ~ 60, 
-      TYPE_VISIT == 7 ~ 61, 
-      TYPE_VISIT == 8 ~ 62, 
-      TYPE_VISIT == 9 ~ 63, 
-      TYPE_VISIT == 10 ~ 64, 
-      TYPE_VISIT == 11 ~ 65, 
-      TYPE_VISIT == 12 ~ 66, 
-    ),
-  ) %>% 
-  filter(time > 0) #remove date errors which should be flagged in query report
-
-#change data to long format for mnh08
-df_lab_08 <- df_lab %>% 
-  select(-matches("PASS_LATE"), -starts_with("M06_")) %>%
-  pivot_longer(
-    -c("MOMID","PREGID","SITE",  PREG_START_DATE),
-    names_to = c(".value", "visit_type"), 
-    names_pattern = "^M\\d{2}_(.+)_(\\d+)"
-  ) %>% 
-  mutate(
-    ga_wks = case_when(
-      TYPE_VISIT >= 6 ~ NA_real_,
-      TYPE_VISIT < 6 ~ as.numeric(ymd(LBSTDAT) - ymd(PREG_START_DATE))/7
-    ),
-    trimester = case_when(
-      #at/after delivery data should be NA for trimester
-      ga_wks > 3 & ga_wks < 14 ~ 1,
-      ga_wks >= 14 & ga_wks < 27 ~ 2,
-      ga_wks >= 27 & ga_wks < 43 ~ 3, 
-      TRUE ~ NA_real_
-    ), 
-    time = case_when(
-      TYPE_VISIT < 6 ~ ga_wks,
-      TYPE_VISIT == 6 ~ 60, 
-      TYPE_VISIT == 7 ~ 61, 
-      TYPE_VISIT == 8 ~ 62, 
-      TYPE_VISIT == 9 ~ 63, 
-      TYPE_VISIT == 10 ~ 64, 
-      TYPE_VISIT == 11 ~ 65, 
-      TYPE_VISIT == 12 ~ 66, 
-    ),
-    #unit conversion
-    albumin = case_when(
-      SITE == "Kenya" ~ ALBUMIN_LBORRES/10,
-      SITE != "Kenya" ~ ALBUMIN_LBORRES
-    ),
-    #Hematocrit (HCT): %
-    hct_level = case_when(
-      trimester == 1 & CBC_HCT_LBORRES < 31 ~ 1, #low
-      trimester == 1 & CBC_HCT_LBORRES >= 31 & CBC_HCT_LBORRES <= 41 ~ 2, #normal
-      trimester == 1 & CBC_HCT_LBORRES > 41 ~ 3, #high
-      trimester == 2 & CBC_HCT_LBORRES < 30 ~ 1, #low
-      trimester == 2 & CBC_HCT_LBORRES >= 30 & CBC_HCT_LBORRES <= 39 ~ 2, #normal
-      trimester == 2 & CBC_HCT_LBORRES > 39 ~ 3, #high
-      trimester == 3 & CBC_HCT_LBORRES < 28 ~ 1, #low
-      trimester == 3 & CBC_HCT_LBORRES >= 28 & CBC_HCT_LBORRES <= 40 ~ 2, #normal
-      trimester == 3 & CBC_HCT_LBORRES > 40 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #White Blood Cell (WBC): x10³/mm³
-    wbc_level = case_when(
-      trimester == 1 & CBC_WBC_LBORRES < 5.7 ~ 1, #low
-      trimester == 1 & CBC_WBC_LBORRES >= 5.7 & CBC_WBC_LBORRES <= 13.6 ~ 2, #normal
-      trimester == 1 & CBC_WBC_LBORRES > 13.6 ~ 3, #high
-      trimester == 2 & CBC_WBC_LBORRES < 5.6 ~ 1, #low
-      trimester == 2 & CBC_WBC_LBORRES >= 5.6 & CBC_WBC_LBORRES <= 14.8 ~ 2, #normal
-      trimester == 2 & CBC_WBC_LBORRES > 14.8 ~ 3, #high
-      trimester == 3 & CBC_WBC_LBORRES < 5.6 ~ 1, #low
-      trimester == 3 & CBC_WBC_LBORRES >= 5.6 & CBC_WBC_LBORRES <= 16.9 ~ 2, #normal
-      trimester == 3 & CBC_WBC_LBORRES > 16.9 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Neutrophils (full cell count) x10³/mm³
-    neutrophils_level = case_when(
-      trimester == 1 & CBC_NEU_FCC_LBORRES < 3.6 ~ 1, #low
-      trimester == 1 & CBC_NEU_FCC_LBORRES >= 3.6 & CBC_NEU_FCC_LBORRES <= 10.1 ~ 2, #normal
-      trimester == 1 & CBC_NEU_FCC_LBORRES > 10.1 ~ 3, #high
-      trimester == 2 & CBC_NEU_FCC_LBORRES < 3.8 ~ 1, #low
-      trimester == 2 & CBC_NEU_FCC_LBORRES >= 3.8 & CBC_NEU_FCC_LBORRES <= 12.3 ~ 2, #normal
-      trimester == 2 & CBC_NEU_FCC_LBORRES > 12.3 ~ 3, #high
-      trimester == 3 & CBC_NEU_FCC_LBORRES < 3.9 ~ 1, #low
-      trimester == 3 & CBC_NEU_FCC_LBORRES >= 3.9 & CBC_NEU_FCC_LBORRES <= 13.1 ~ 2, #normal
-      trimester == 3 & CBC_NEU_FCC_LBORRES > 13.1 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Lymphocyte (full cell count) x10³/mm³
-    lymphocyte_level = case_when(
-      trimester == 1 & CBC_LYMPH_FCC_LBORRES < 1.1 ~ 1, #low
-      trimester == 1 & CBC_LYMPH_FCC_LBORRES >= 1.1 & CBC_LYMPH_FCC_LBORRES <= 3.6 ~ 2, #normal
-      trimester == 1 & CBC_LYMPH_FCC_LBORRES > 3.6 ~ 3, #high
-      trimester == 2 & CBC_LYMPH_FCC_LBORRES < 0.9 ~ 1, #low
-      trimester == 2 & CBC_LYMPH_FCC_LBORRES >= 0.9 & CBC_LYMPH_FCC_LBORRES <= 3.9 ~ 2, #normal
-      trimester == 2 & CBC_LYMPH_FCC_LBORRES > 3.9 ~ 3, #high
-      trimester == 3 & CBC_LYMPH_FCC_LBORRES < 1 ~ 1, #low
-      trimester == 3 & CBC_LYMPH_FCC_LBORRES >= 1 & CBC_LYMPH_FCC_LBORRES <= 3.6 ~ 2, #normal
-      trimester == 3 & CBC_LYMPH_FCC_LBORRES > 3.6 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Mean cell volume (MCV): unit: µm³
-    mcv_level = case_when(
-      trimester == 1 & CBC_MCV_LBORRES < 85 ~ 1, #low
-      trimester == 1 & CBC_MCV_LBORRES >= 85 & CBC_MCV_LBORRES <= 97.9 ~ 2, #normal
-      trimester == 1 & CBC_MCV_LBORRES > 97.8 ~ 3, #high
-      trimester == 2 & CBC_MCV_LBORRES < 85.8 ~ 1, #low
-      trimester == 2 & CBC_MCV_LBORRES >= 85.8 & CBC_MCV_LBORRES <= 99.4 ~ 2, #normal
-      trimester == 2 & CBC_MCV_LBORRES > 99.4 ~ 3, #high
-      trimester == 3 & CBC_MCV_LBORRES < 82.4 ~ 1, #low
-      trimester == 3 & CBC_MCV_LBORRES >= 82.4 & CBC_MCV_LBORRES <= 100.4 ~ 2, #normal
-      trimester == 3 & CBC_MCV_LBORRES > 100.4 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Mean cell hemoglobin (MCH) pg/cell
-    mch_level = case_when(
-      trimester == 1 & CBC_MCH_LBORRES < 30 ~ 1, #low
-      trimester == 1 & CBC_MCH_LBORRES >= 30 & CBC_MCH_LBORRES <= 32 ~ 2, #normal
-      trimester == 1 & CBC_MCH_LBORRES > 32 ~ 3, #high
-      trimester == 2 & CBC_MCH_LBORRES < 30 ~ 1, #low
-      trimester == 2 & CBC_MCH_LBORRES >= 30 & CBC_MCH_LBORRES <= 33 ~ 2, #normal
-      trimester == 2 & CBC_MCH_LBORRES > 33 ~ 3, #high
-      trimester == 3 & CBC_MCH_LBORRES < 29 ~ 1, #low
-      trimester == 3 & CBC_MCH_LBORRES >= 29 & CBC_MCH_LBORRES <= 32 ~ 2, #normal
-      trimester == 3 & CBC_MCH_LBORRES > 32 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Mean corpuscular hemoglobin concentration (MCHC) g/dL
-    mchc_level = case_when(
-      trimester == 1 & CBC_MCHC_GDL_LBORRES < 32.5 ~ 1, #low
-      trimester == 1 & CBC_MCHC_GDL_LBORRES >= 32.5 & CBC_MCHC_GDL_LBORRES <= 35.3 ~ 2, #normal
-      trimester == 1 & CBC_MCHC_GDL_LBORRES > 35.3 ~ 3, #high
-      trimester == 2 & CBC_MCHC_GDL_LBORRES < 32.4 ~ 1, #low
-      trimester == 2 & CBC_MCHC_GDL_LBORRES >= 32.4 & CBC_MCHC_GDL_LBORRES <= 35.2 ~ 2, #normal
-      trimester == 2 & CBC_MCHC_GDL_LBORRES > 35.2 ~ 3, #high
-      trimester == 3 & CBC_MCHC_GDL_LBORRES < 31.9 ~ 1, #low
-      trimester == 3 & CBC_MCHC_GDL_LBORRES >= 31.9 & CBC_MCHC_GDL_LBORRES <= 35.5 ~ 2, #normal
-      trimester == 3 & CBC_MCHC_GDL_LBORRES > 35.5 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Platelets count unit: x10³/mm³
-    platelets_level = case_when(
-      trimester == 1 & CBC_PLATE_LBORRES < 174 ~ 1, #low
-      trimester == 1 & CBC_PLATE_LBORRES >= 174 & CBC_PLATE_LBORRES <= 391 ~ 2, #normal
-      trimester == 1 & CBC_PLATE_LBORRES > 391 ~ 3, #high
-      trimester == 2 & CBC_PLATE_LBORRES < 155 ~ 1, #low
-      trimester == 2 & CBC_PLATE_LBORRES >= 155 & CBC_PLATE_LBORRES <= 409 ~ 2, #normal
-      trimester == 2 & CBC_PLATE_LBORRES > 409 ~ 3, #high
-      trimester == 3 & CBC_PLATE_LBORRES < 146 ~ 1, #low
-      trimester == 3 & CBC_PLATE_LBORRES >= 146 & CBC_PLATE_LBORRES <= 429 ~ 2, #normal
-      trimester == 3 & CBC_PLATE_LBORRES > 429 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Monocyte (full cell count) x10³/mm³
-    monocyte_level = case_when(
-      trimester == 1 & CBC_MONO_FCC_LBORRES < 0.1 ~ 1, #low
-      trimester == 1 & CBC_MONO_FCC_LBORRES >= 0.1 & CBC_MONO_FCC_LBORRES <= 1.1 ~ 2, #normal
-      trimester == 1 & CBC_MONO_FCC_LBORRES > 1.1 ~ 3, #high
-      trimester == 2 & CBC_MONO_FCC_LBORRES < 0.1 ~ 1, #low
-      trimester == 2 & CBC_MONO_FCC_LBORRES >= 0.1 & CBC_MONO_FCC_LBORRES <= 1.1 ~ 2, #normal
-      trimester == 2 & CBC_MONO_FCC_LBORRES > 1.1 ~ 3, #high
-      trimester == 3 & CBC_MONO_FCC_LBORRES < 0.1 ~ 1, #low
-      trimester == 3 & CBC_MONO_FCC_LBORRES >= 0.1 & CBC_MONO_FCC_LBORRES <= 1.4 ~ 2, #normal
-      trimester == 3 & CBC_MONO_FCC_LBORRES > 1.4 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Eosinophils (full cell count) x10³/mm³
-    eosinophils_level = case_when(
-      trimester == 1 & CBC_EOS_FCC_LBORRES < 0 ~ 1, #low
-      trimester == 1 & CBC_EOS_FCC_LBORRES >= 0 & CBC_EOS_FCC_LBORRES <= 0.6 ~ 2, #normal
-      trimester == 1 & CBC_EOS_FCC_LBORRES > 0.6 ~ 3, #high
-      trimester == 2 & CBC_EOS_FCC_LBORRES < 0 ~ 1, #low
-      trimester == 2 & CBC_EOS_FCC_LBORRES >= 0 & CBC_EOS_FCC_LBORRES <= 0.6 ~ 2, #normal
-      trimester == 2 & CBC_EOS_FCC_LBORRES > 0.6 ~ 3, #high
-      trimester == 3 & CBC_EOS_FCC_LBORRES < 0 ~ 1, #low
-      trimester == 3 & CBC_EOS_FCC_LBORRES >= 0 & CBC_EOS_FCC_LBORRES <= 0.6 ~ 2, #normal
-      trimester == 3 & CBC_EOS_FCC_LBORRES > 0.6 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Red cell width (RDW) %
-    rdw_level = case_when(
-      trimester == 1 & CBC_RDW_PCT_LBORRES < 11.7 ~ 1, #low
-      trimester == 1 & CBC_RDW_PCT_LBORRES >= 11.7 & CBC_RDW_PCT_LBORRES <= 14.9 ~ 2, #normal
-      trimester == 1 & CBC_RDW_PCT_LBORRES > 14.9 ~ 3, #high
-      trimester == 2 & CBC_RDW_PCT_LBORRES < 12.3 ~ 1, #low
-      trimester == 2 & CBC_RDW_PCT_LBORRES >= 12.3 & CBC_RDW_PCT_LBORRES <= 14.7 ~ 2, #normal
-      trimester == 2 & CBC_RDW_PCT_LBORRES > 14.7 ~ 3, #high
-      trimester == 3 & CBC_RDW_PCT_LBORRES < 11.4 ~ 1, #low
-      trimester == 3 & CBC_RDW_PCT_LBORRES >= 11.4 & CBC_RDW_PCT_LBORRES <= 16.6 ~ 2, #normal
-      trimester == 3 & CBC_RDW_PCT_LBORRES > 16.6 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Ferritin µg/dL
-    ferritin_level = case_when(
-      trimester == 1 & FERRITIN_LBORRES < 0.6 ~ 1, #low
-      trimester == 1 & FERRITIN_LBORRES >= 0.6 & FERRITIN_LBORRES <= 12.5 ~ 2, #normal
-      trimester == 1 & FERRITIN_LBORRES > 12.5 ~ 3, #high
-      trimester == 2 & FERRITIN_LBORRES < 0.6 ~ 1, #low
-      trimester == 2 & FERRITIN_LBORRES >= 0.6 & FERRITIN_LBORRES <= 7.4 ~ 2, #normal
-      trimester == 2 & FERRITIN_LBORRES > 7.4 ~ 3, #high
-      trimester == 3 & FERRITIN_LBORRES < 0.3 ~ 1, #low
-      trimester == 3 & FERRITIN_LBORRES >= 0.3 & FERRITIN_LBORRES <= 5.8 ~ 2, #normal
-      trimester == 3 & FERRITIN_LBORRES > 5.8 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Serum B12 total cobalamin pg/mL
-    b12tc_level = case_when(
-      trimester == 1 & VITB12_COB_LBORRES < 118 ~ 1, #low
-      trimester == 1 & VITB12_COB_LBORRES >= 118 & VITB12_COB_LBORRES <= 438 ~ 2, #normal
-      trimester == 1 & VITB12_COB_LBORRES > 438 ~ 3, #high
-      trimester == 2 & VITB12_COB_LBORRES < 130 ~ 1, #low
-      trimester == 2 & VITB12_COB_LBORRES >= 130 & VITB12_COB_LBORRES <= 656 ~ 2, #normal
-      trimester == 2 & VITB12_COB_LBORRES > 656 ~ 3, #high
-      trimester == 3 & VITB12_COB_LBORRES < 99 ~ 1, #low
-      trimester == 3 & VITB12_COB_LBORRES >= 99 & VITB12_COB_LBORRES <= 526 ~ 2, #normal
-      trimester == 3 & VITB12_COB_LBORRES > 526 ~ 3, #high
-      TRUE ~ NA_real_
-    ),
-    #Free T4 ng/dL
-    freet4_level = case_when(
-      trimester == 1 & THYROID_FREET4_LBORRES < 0.55 ~ 1, #low
-      trimester == 1 & THYROID_FREET4_LBORRES >= 0.55 & THYROID_FREET4_LBORRES <= 1.37 ~ 2, #normal
-      trimester == 1 & THYROID_FREET4_LBORRES > 1.37 ~ 3, #high
-      trimester == 2 & THYROID_FREET4_LBORRES < 0.55 ~ 1, #low
-      trimester == 2 & THYROID_FREET4_LBORRES >= 0.55 & THYROID_FREET4_LBORRES <= 1.09 ~ 2, #normal
-      trimester == 2 & THYROID_FREET4_LBORRES > 1.09 ~ 3, #high
-      trimester == 3 & THYROID_FREET4_LBORRES < 0.55 ~ 1, #low
-      trimester == 3 & THYROID_FREET4_LBORRES >= 0.55 & THYROID_FREET4_LBORRES <= 1.09 ~ 2, #normal
-      trimester == 3 & THYROID_FREET4_LBORRES > 1.09 ~ 3, #high
-      TRUE ~ NA_real_
-    )
-  ) %>% 
-  filter(time > 0) #remove date errors which should be flagged in query report
-
-#******Prepare df_lab_06_l --> data for visualization for labs in MNH06
-df_lab_06_l <- df_lab_06 %>% 
-  mutate(across(ends_with("_level"),
-                function(x) 
-                  factor(x, 
-                         levels = c(1,2,3),
-                         labels = c("Low", "Normal", "High")
-                  ))) %>%
-  #convert categorical lab results to factor
-  mutate(across(c("MALARIA_POC_LBORRES", "HIV_POC_LBORRES", "SYPH_POC_LBORRES", 
-                  "HBV_POC_LBORRES", "HCV_POC_LBORRES", "COVID_POC_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(0,1),
-                         labels = c("Negative", "Positive")
-                  ))) %>%
-  filter(time < 70) #remove outlier 
-
-#******Prepare df_lab_08_l --> data for visualization for labs in MNH06
-df_lab_08_l <- df_lab_08 %>%
-  #convert level variables to factor
-  mutate(across(ends_with("_level"),
-                function(x) 
-                  factor(x, 
-                         levels = c(1,2,3),
-                         labels = c("Low", "Normal", "High")
-                  ))) %>%
-  #convert categorical lab results to factor
-  mutate(across(c("RH_FACTOR_LBORRES", "SYPH_TITER_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(0,1),
-                         labels = c("Negative", "Positive")
-                  ))) %>%
-  #convert categorical lab results to factor
-  mutate(across(c("RBC_SICKLE_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(0,1),
-                         labels = c("Normal, disease absent", "Sickle cell disease present")
-                  ))) %>%
-  #convert categorical lab results to factor
-  mutate(across(c("RBC_THALA_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(0,1),
-                         labels = c("Normal, disease absent", "Hemoglobinopathy or Thalassemia")
-                  ))) %>%
-  #convert other categorical lab results to factor
-  mutate(across(c("BLD_GRP_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(4,3,2,1),
-                         labels = c("O","AB","B","A")
-                  ))) %>%
-  #convert other categorical lab results to factor
-  mutate(across(c("UA_PROT_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(0,1,2,3,4,5),
-                         labels = c("None(negative)", "Trace", "1+(0.3 g/L)", "2+(1 g/L)", "3+(3 g/L)", "4+(>10 g/L)")
-                  ))) %>%
-  #convert other categorical lab results to factor
-  mutate(across(c("UA_LEUK_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(0,1,2,3,4),
-                         labels = c("None(negative)", "Trace", "1+", "2+", "3+")
-                  ))) %>%
-  #convert other categorical lab results to factor
-  mutate(across(c("UA_NITRITE_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(0,1),
-                         labels = c("None(negative)", "Present(postive)")
-                  ))) %>%
-  #convert other categorical lab results to factor
-  mutate(across(c("TB_CNFRM_LBORRES", "TB_BACKUP_LBORRES", "CTNG_CT_LBORRES", "CTNG_NG_LBORRES",
-                  "ZCD_ZIKIGM_LBORRES", "ZCD_ZIKIGG_LBORRES", "ZCD_DENIGM_LBORRES", "ZCD_DENIGG_LBORRES",
-                  "ZCD_CHKIGM_LBORRES", "ZCD_CHKIGG_LBORRES", 
-                  "LEPT_IGM_LBORRES", "LEPT_IGG_LBORRES", "HEV_IGM_LBORRES", "HEV_IGG_LBORRES"),
-                function(x) 
-                  factor(x, 
-                         levels = c(0,2,1),
-                         labels = c("Negative", "Inconclusive", "Positive")
-                  ))) %>%
-  filter(time < 70) #remove outlier 
-
+df_lab <- df_lab %>% mutate(ENROLL=1)
 #save data
-df_lab <- df_lab %>% mutate(ENROLL =1)
 save(df_maternal, file= paste(path_to_save,"/df_maternal", ".RData",sep = ""))
 save(df_lab, file= paste(path_to_save,"/df_lab", ".RData",sep = ""))
-save(df_lab_06_l, file= paste(path_to_save,"/df_lab_06_l", ".RData",sep = ""))
-save(df_lab_08_l, file= paste(path_to_save,"/df_lab_08_l", ".RData",sep = ""))
 save(MAT_ENROLL, file= paste(path_to_save,"/MAT_ENROLL", ".RData",sep = ""))
 save(mnh06, file= paste(path_to_save,"/mnh06", ".RData",sep = ""))
 save(mnh08, file= paste(path_to_save,"/mnh08", ".RData",sep = ""))
-
-# save(df_maternal, file = "derived_data/df_maternal.rda")
-# save(df_lab, file = "derived_data/df_lab.rda")
-# save(df_lab_06_l, file = "derived_data/df_lab_06_l.rda")
-# save(df_lab_08_l, file = "derived_data/df_lab_08_l.rda")
-# save(MAT_ENROLL, file = "derived_data/MAT_ENROLL.rda")
-# save(mnh06, file = "derived_data/mnh06.rda")
-# save(mnh08, file = "derived_data/mnh08.rda")
-
