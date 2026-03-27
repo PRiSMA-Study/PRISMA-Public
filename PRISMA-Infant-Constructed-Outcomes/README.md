@@ -12,7 +12,7 @@ the outcomes coded here can be found in the PRISMA protocol.
 
 #### :pushpin: Originally drafted by:
 
-- R code: Stacie (<stacie.loisate@gwu.edu>)
+- R code: Precious Williams (<williams_pj@email.gwu.edu>) & Stacie Loisate (<stacie.loisate@gwu.edu>)
 
 ## Codes included:
 
