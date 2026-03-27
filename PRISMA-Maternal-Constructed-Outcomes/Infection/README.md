@@ -7,7 +7,8 @@ This folder two coding files that generate PRISMA maternal infection outcomes an
 updated as more outcomes are coded and generated. More information on
 the outcomes coded here can be found in the PRISMA protocol.
 
-#### :pushpin: Updated on 23 August 2024
+#### :pushpin: Updated on 23 November 2025
+- Dates of events added
 
 #### :pushpin: Originally drafted by:
 

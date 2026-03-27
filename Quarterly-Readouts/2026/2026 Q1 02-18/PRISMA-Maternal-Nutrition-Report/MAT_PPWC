@@ -1,0 +1,497 @@
+
+#*****************************************************************************
+#* PRISMA Supplemental Postpartum Weight Change Outcome 
+#* Drafted: 23 October 2025, Precious Williams `williams_pj@gwu.edu`
+#* Last updated: 23 October 2025
+
+# 
+#*****************************************************************************
+# *****************************************************************************
+# 1. Clear Environment ----
+# *****************************************************************************
+rm(list = ls())  # Remove all objects from the environment
+
+# *****************************************************************************
+# 2. Load Required Libraries ----
+# *****************************************************************************
+library(lubridate)
+library(dplyr)
+library(base)
+library(tidyr)
+library(ggplot2)
+library(readr)
+library(writexl)
+library(readxl)
+library (haven)
+library(purrr)
+
+
+# *****************************************************************************
+# 3. Define Variables and Paths ----
+# *****************************************************************************
+
+# Update this date for each run
+UploadDate <- "2026-01-30"
+
+# Define main directory and file paths
+path_to_data <- paste0("~/Analysis/Merged_data/", UploadDate)
+# Create the directory if it doesn't exist
+if (!file.exists(path_to_data)) {
+  dir.create(path_to_data, recursive = TRUE)
+}
+
+path_to_stacked <- paste0("Z:/Stacked Data/", UploadDate)
+path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate)
+
+# Define the path
+path_to_save <- paste0("~/Analysis/PP_OUTCOMES/", UploadDate)
+# Expand the path (in case of ~)
+path_to_save <- path.expand(path_to_save)
+# Create the directory if it doesn't exist
+if (!file.exists(path_to_save)) {
+  dir.create(path_to_save, recursive = TRUE)
+}
+
+# ----------------------------
+# Conditional loads (prefer .rda, else read raw + save .rda)
+# ----------------------------
+
+# MAT_ENDPOINTS
+if (file.exists(file.path(path_to_data, "MAT_ENDPOINTS.rda"))) {
+  load(file.path(path_to_data, "MAT_ENDPOINTS.rda"))   # loads: mat_endpoints
+} else {
+  mat_endpoints <- haven::read_dta(file.path(path_to_tnt, "MAT_ENDPOINTS.dta"))
+  save(mat_endpoints, file = file.path(path_to_data, "MAT_ENDPOINTS.rda"))
+}
+
+# MAT_ENROLL
+if (file.exists(file.path(path_to_data, "MAT_ENROLL.rda"))) {
+  load(file.path(path_to_data, "MAT_ENROLL.rda"))      # loads: mat_enroll
+} else {
+  mat_enroll <- read.csv(file.path(path_to_tnt, "MAT_ENROLL.csv"))
+  save(mat_enroll, file = file.path(path_to_data, "MAT_ENROLL.rda"))
+}
+
+# MAT_FLOWCHART
+if (file.exists(file.path(path_to_data, "MAT_FLOWCHART.rda"))) {
+  load(file.path(path_to_data, "MAT_FLOWCHART.rda"))      # loads: mat_enroll
+} else {
+  mat_flowchart <- read.csv(file.path(path_to_tnt, "MAT_FLOWCHART.csv")) %>% 
+                   filter (PREG_END_ENROLLED == 1)
+  save(mat_flowchart, file = file.path(path_to_data, "MAT_FLOWCHART.rda"))
+}
+
+
+# GWG_OUTCOME_LONG (note: source file is date-stamped; rda is stable name)
+if (file.exists(file.path(path_to_data, "GWG_OUTCOME_LONG.rda"))) {
+  load(file.path(path_to_data, "GWG_OUTCOME_LONG.rda"))  # loads: gwg_outcome
+} else {
+  gwg_outcome <- read.csv(file.path(path_to_tnt, paste0("GWG_OUTCOME_LONG_ALL_", UploadDate, ".csv")))
+  save(gwg_outcome, file = file.path(path_to_data, "GWG_OUTCOME_LONG.rda"))
+}
+
+# mnh05 merged
+if (file.exists(file.path(path_to_data, "mnh05.rda"))) {
+  load(file.path(path_to_data, "mnh05.rda"))           # loads: mnh05
+} else {
+  mnh05 <- read.csv(file.path(path_to_stacked, "mnh05_merged.csv"))
+  # Inline renaming across ALL data frames (no function)
+  # - Remove leading "M.._" from non-ID cols
+  # - Keep ID variables as-is
+  df_names <- ls(pattern = "^mnh", envir = .GlobalEnv)
+  # Define a function to rename variables in a data frame
+  rename_variables <- function(df) {
+    # Exclude specific "ID" variables from renaming
+    exclude_variables <- c("MOMID", "PREGID", "SCRNID", "INFANTID", "SITE")
+    id_variables <- intersect(exclude_variables, names(df))
+    var_names <- names(df)[!names(df) %in% id_variables]
+    
+    # Rename the variables
+    new_var_names <- gsub("^M05_", "", var_names)  # Remove the first three characters and underscore
+    names(df)[!names(df) %in% id_variables] <- new_var_names
+    
+    return(df)
+  }
+  
+  # Loop through each data frame, excluding specific "ID" variables
+  for (df_name in df_names) {
+    df <- get(df_name)  # Retrieve the data frame by name
+    if (is.data.frame(df)) {  # Check if the object is a data frame
+      assign(df_name, rename_variables(df), envir = .GlobalEnv)
+    }
+  }
+  
+  save(mnh05, file = file.path(path_to_data, "mnh05.rda"))
+  
+}
+
+# mnh23 merged
+if (file.exists(file.path(path_to_data, "mnh23.rda"))) {
+  load(file.path(path_to_data, "mnh23.rda"))           # loads: mnh23
+} else {
+  mnh23 <- read.csv(file.path(path_to_stacked, "mnh23_merged.csv"))
+  # Inline renaming across ALL data frames (no function)
+  # - Remove leading "M.._" from non-ID cols
+  # - Keep ID variables as-is
+  df_names <- ls(pattern = "^mnh", envir = .GlobalEnv)
+  # Define a function to rename variables in a data frame
+  rename_variables <- function(df) {
+    # Exclude specific "ID" variables from renaming
+    exclude_variables <- c("MOMID", "PREGID", "SCRNID", "INFANTID", "SITE")
+    id_variables <- intersect(exclude_variables, names(df))
+    var_names <- names(df)[!names(df) %in% id_variables]
+    
+    # Rename the variables
+    new_var_names <- gsub("^M23_", "", var_names)  # Remove the first three characters and underscore
+    names(df)[!names(df) %in% id_variables] <- new_var_names
+    
+    return(df)
+  }
+  
+  # Loop through each data frame, excluding specific "ID" variables
+  for (df_name in df_names) {
+    df <- get(df_name)  # Retrieve the data frame by name
+    if (is.data.frame(df)) {  # Check if the object is a data frame
+      assign(df_name, rename_variables(df), envir = .GlobalEnv)
+    }
+  }
+  
+  save(mnh23, file = file.path(path_to_data, "mnh23.rda"))
+  
+}
+
+clean_date <- function(x,
+                       invalid_dates = as_date(c("1907-07-07", "2007-07-07",
+                                                 "1905-05-05", "1909-07-07")),
+                       min_date = NULL,
+                       max_date = NULL) {
+  
+  # If max_date = NULL, default to today()
+  if (is.null(max_date)) {
+    max_date <- today()
+  }
+  
+  # Parse many possible date formats
+  parsed <- parse_date_time(
+    trimws(as.character(x)),
+    orders = c(
+      "d/m/Y", "d-m-Y", "Y-m-d",   # day-first or ISO
+      "d-b-y", "d-m-y",           # abbreviated formats
+      "m/d/y", "m-d-y"            # US formats
+    ),
+    exact = FALSE
+  ) %>% 
+    as_date()
+  
+  # Build a logical mask of invalid cases
+  invalid_mask <- is.na(parsed) | parsed %in% invalid_dates
+  
+  # Apply optional min_date
+  if (!is.null(min_date)) {
+    invalid_mask <- invalid_mask | parsed < min_date
+  }
+  
+  # Apply optional max_date
+  if (!is.null(max_date)) {
+    invalid_mask <- invalid_mask | parsed > max_date
+  }
+  
+  # Set invalid values to NA
+  parsed[invalid_mask] <- NA
+  
+  return(parsed)
+}
+
+# *****************************************************************************
+# 4. Data processing enrolment, closeout information and gwg----
+# *****************************************************************************
+#mnh23
+mnh23_df <- mnh23 %>% 
+  mutate(
+    STOP_DATE_M23 = clean_date(
+      CLOSE_DSSTDAT,
+      min_date = ymd("2018-01-01"),
+      max_date = ymd(UploadDate)
+    )
+  ) %>%
+  filter(!is.na(STOP_DATE_M23)) %>%
+  arrange(SITE, MOMID, PREGID, STOP_DATE_M23) %>%
+  group_by(SITE, MOMID, PREGID) %>%
+  slice_head(n = 1) %>%         # keep earliest STOP_DATE_M23
+  ungroup() %>%
+  select(SITE, MOMID, PREGID, STOP_DATE_M23)
+
+#all baseline gestational weight gain
+baseline_gwg <- gwg_outcome %>% 
+  filter (TYPE_VISIT_UPDATED == 1) %>% 
+  select ( SITE,	MOMID,	PREGID,	MAT_WEIGHT_ENROLL_DT = M05_ANT_PEDAT,	
+           MAT_HEIGHT_ENROLL = HEIGHT_ENROLL, MAT_WEIGHT_ENROLL = WEIGHT_ENROLL,
+           BMI_ENROLL = BMI,	BMI4CAT_ENROLL = BMI4CAT,	
+           WEIGHT_IMPUTED_IND = WEIGHT_IMPUTED_FLAG)
+
+
+# Left-bound (first eligible day) for each PNC visit
+pnc_late_days <- c(
+  PNC0  = 5,
+  PNC1  = 14,
+  PNC4  = 35,
+  PNC6  = 104,
+  PNC26 = 279,
+  PNC52 = 454
+)
+#enrolled mothers
+enrolled_end <- mat_flowchart %>% 
+  filter(ENROLL_NO_ISSUES == 1, PREG_END_ENROLLED == 1) %>% 
+  select(SITE, MOMID, PREGID, PREG_END_ENROLLED) %>% 
+  left_join(mat_endpoints, by = c("SITE", "MOMID", "PREGID")) %>%
+  left_join(mnh23_df,     by = c("SITE", "MOMID", "PREGID")) %>%
+  mutate(
+    UploadDate    = ymd(UploadDate),
+    DOB           = clean_date(PREG_END_DATE, min_date = ymd("2018-01-01"), max_date = UploadDate),
+    DOB           = ymd(DOB),
+    STOP_DATE_M23 = ymd(STOP_DATE_M23)
+  ) %>%
+  { 
+    dat <- .
+    bind_cols(
+      dat,
+      imap_dfc(pnc_late_days, function(days_late, visit) {
+        late_window <- dat$DOB + days(days_late)
+        
+        tibble(
+          !!paste0(visit, "_LATE_WINDOW") := late_window,
+          !!paste0(visit, "_PNC_EXPECTED") := as.integer(
+            !is.na(dat$DOB) &
+              !is.na(dat$UploadDate) &
+              dat$UploadDate > late_window &
+              (is.na(dat$STOP_DATE_M23) | dat$STOP_DATE_M23 > late_window)
+          )
+        )
+      })
+    )
+  } %>% 
+  select (SITE,	MOMID, PREGID, PREG_END, PREG_END_ENROLLED, PREG_END_GA, PREG_END_DATE, 
+          PNC0_PNC_EXPECTED, PNC1_PNC_EXPECTED, PNC4_PNC_EXPECTED, STOP_DATE_M23,
+          PNC6_PNC_EXPECTED, PNC26_PNC_EXPECTED, PNC52_PNC_EXPECTED, MAT_DEATH, MAT_DEATH_DATE)
+
+# *****************************************************************************
+# 5. Data processing mnh05 weight ----
+# *****************************************************************************
+# Filter data to include only the desired cases
+mnh05_filter <- mnh05 %>%
+  filter(
+    MAT_VISIT_MNH05 %in% c(1, 2),
+    MAT_VITAL_MNH05 == 1,
+    TYPE_VISIT %in% c(6:12,14),
+    WEIGHT_PEPERF == 1)  %>%
+  mutate(
+    WEIGHT_PERES = as.numeric(WEIGHT_PERES),
+    WEIGHT_PERES = ifelse (WEIGHT_PERES < 0, NA, WEIGHT_PERES)
+    )%>% 
+  
+  select(MOMID, PREGID, SITE, TYPE_VISIT, ANT_PEDAT, WEIGHT_PERES, WEIGHT_PEPERF)
+
+weight_df <- mnh05_filter %>% 
+  right_join(enrolled_end, by = c("SITE", "MOMID", "PREGID")) %>% 
+  left_join(baseline_gwg, by = c("SITE", "MOMID", "PREGID"))
+
+# Replace -7 and -5 with NA
+weight_df[weight_df %in% c(-7, -5, -5.0, -7.0,  ".")] <- NA
+
+# Sort the data
+long_weights <- weight_df %>%
+  # Convert ANT_PEDAT and DOB to Date format
+  mutate(WEIGHT_DATE = as.Date(ANT_PEDAT),
+         DOB = as.Date(PREG_END_DATE),
+         MAT_DEATH_DATE = as.Date(MAT_DEATH_DATE),
+         # Calculate AGE_INF as the difference in days between ANT_PEDAT and DOB
+         AGE_VISIT = as.numeric(WEIGHT_DATE - DOB),
+         
+         # Update TYPE_VISIT_UPDATE based on the calculated AGE_INF
+         TYPE_VISIT_UPDATE = case_when(
+           is.na (DOB) ~ TYPE_VISIT,
+           # Postnatal visit types
+           TYPE_VISIT == 6 | AGE_VISIT < 3 ~ 6,
+           AGE_VISIT >= 3 & AGE_VISIT <= 5 ~ 7,
+           AGE_VISIT >= 7 & AGE_VISIT <= 14 ~ 8,
+           AGE_VISIT >= 28 & AGE_VISIT <= 35 ~ 9,
+           AGE_VISIT >= 42 & AGE_VISIT <= 104 ~ 10,
+           AGE_VISIT >= 182 & AGE_VISIT <= 279 ~ 11,
+           AGE_VISIT >= 279 & AGE_VISIT <= 454 ~ 12,
+           
+           # .5 visits between age-based windows
+           AGE_VISIT > 5 & AGE_VISIT < 7 ~ 7.5,
+           AGE_VISIT > 14 & AGE_VISIT < 28 ~ 8.5,
+           AGE_VISIT > 35 & AGE_VISIT < 42 ~ 9.5,
+           AGE_VISIT > 104 & AGE_VISIT < 182 ~ 10.5,
+           
+           TRUE ~ NA), # Default case
+         
+        TV_EQ = ifelse(TYPE_VISIT == TYPE_VISIT_UPDATE, 1, 0),
+        
+        PPWC = case_when(
+          !is.na(MAT_WEIGHT_ENROLL) & !is.na(WEIGHT_PERES) ~ WEIGHT_PERES - MAT_WEIGHT_ENROLL,
+          TRUE ~ NA), 
+        PERCENT_PPWC = case_when(
+          !is.na (PPWC) ~ round(PPWC / MAT_WEIGHT_ENROLL * 100, 2),
+          TRUE ~ NA_real_
+        ),
+        PNWR = case_when(
+          !is.na (PPWC) & PPWC > 0 ~ 0, #if positive weight change
+          !is.na (PPWC) & PPWC == 0 ~ 1, #if no weight change
+          !is.na (PPWC) & PPWC < 0 ~ 2, #if negative weight change
+          TRUE ~ NA_real_
+        ),
+        PPWC_IND_QUERY = case_when(
+          !is.na(AGE_VISIT) & AGE_VISIT < 0 ~ 1L,                                 # date error
+          MAT_DEATH_DATE <= WEIGHT_DATE & MAT_DEATH == 1 ~ 2L,                    # maternal death
+          (!is.na(PERCENT_PPWC) & (PERCENT_PPWC < -30 | PERCENT_PPWC > 50)) |     # % outliers
+            (!is.na(PPWC) & (PPWC < -25 | PPWC > 25)) ~ 3L,                       # kg outliers
+          is.na(PPWC) | is.na(PERCENT_PPWC) ~ 4L,                                 # missing
+          TRUE ~ 0L)) %>%
+  # Arrange rows by MOMID, PREGID, and TYPE_VISIT for consistent ordering
+  arrange(SITE, MOMID, PREGID, TYPE_VISIT) 
+
+
+# Filter and arrange the data
+# Keep only integer postnatal visit types (6–12) and deduplicate within visit
+long_weights_int <- long_weights %>%
+  filter(TYPE_VISIT_UPDATE %in% c(6:12)) %>%
+  # Prioritize non-missing weights and latest WEIGHT_DATE
+  mutate(non_missing_wt = !is.na(WEIGHT_PERES)) %>%
+  arrange(SITE, MOMID, PREGID, TYPE_VISIT_UPDATE, desc(non_missing_wt), desc(WEIGHT_DATE)) %>%
+  group_by(SITE, MOMID, PREGID, TYPE_VISIT_UPDATE) %>%
+  arrange(WEIGHT_DATE, .by_group = TRUE) %>%
+  slice_tail(n = 1) %>%         # keep latest WEIGHT_DATE within the visit
+  ungroup()
+
+# Dataset PPWC ----
+# Pivot to wide: WEIGHT, WEIGHT_DATE, PPWC, and PERCENT_PPWC
+weights_wide <- long_weights_int %>%
+  # keep only what you need; any_of() avoids errors if some cols aren't present
+  select(any_of(c(
+    "SITE", "MOMID", "PREGID",
+    "TYPE_VISIT_UPDATE",
+    "WEIGHT_PERES", "WEIGHT_DATE",
+    "PPWC", "PERCENT_PPWC", "PNWR", "PPWC_IND_QUERY"
+  ))) %>%
+  # rename BEFORE widening so names are consistent
+  rename(MAT_WEIGHT = WEIGHT_PERES) %>%
+  pivot_wider(
+    id_cols    = c(SITE, MOMID, PREGID),
+    names_from = TYPE_VISIT_UPDATE,
+    values_from = c(MAT_WEIGHT, WEIGHT_DATE, PPWC, PERCENT_PPWC, PNWR, PPWC_IND_QUERY),
+    names_glue = "{.value}_V{TYPE_VISIT_UPDATE}"
+  ) %>%
+  right_join(
+    enrolled_end %>%
+      select(any_of(c(
+        "SITE", "MOMID", "PREGID",
+        "PNC0_PNC_EXPECTED", "PNC1_PNC_EXPECTED", "PNC4_PNC_EXPECTED",
+        "PNC52_PNC_EXPECTED", "PNC26_PNC_EXPECTED", "PNC6_PNC_EXPECTED",
+        "MAT_DEATH", "MAT_DEATH_DATE", "STOP_DATE_M23"
+      ))),
+    by = c("SITE", "MOMID", "PREGID")
+  ) %>%
+  left_join(
+    baseline_gwg %>%
+      select(any_of(c(
+        "SITE", "MOMID", "PREGID", "BMI4CAT_ENROLL", "BMI_ENROLL",
+        "MAT_WEIGHT_ENROLL", "WEIGHT_IMPUTED_IND", "MAT_WEIGHT_ENROLL_DT"
+      ))),
+    by = c("SITE", "MOMID", "PREGID")
+  ) %>%
+  mutate(
+    PPWC_IND_QUERY_V6 = case_when(is.na (PPWC_IND_QUERY_V6) & is.na(PPWC_V6) & MAT_DEATH == 1 ~ 2,
+                                  is.na (PPWC_IND_QUERY_V6) & is.na(PPWC_V6) & MAT_DEATH != 1 ~ 4,
+                                  TRUE ~ PPWC_IND_QUERY_V6),
+    PPWC_IND_QUERY_V7 = case_when(is.na (PPWC_IND_QUERY_V7) & is.na(PPWC_V7) & PNC0_PNC_EXPECTED == 1 ~ 4,
+                                  is.na(PPWC_V7) & PNC0_PNC_EXPECTED != 1 ~ 77,
+                                  TRUE ~ PPWC_IND_QUERY_V7),
+    PPWC_IND_QUERY_V8 = case_when(is.na (PPWC_IND_QUERY_V8) & is.na(PPWC_V8) & PNC1_PNC_EXPECTED == 1 ~ 4,
+                                  is.na(PPWC_V8) & PNC1_PNC_EXPECTED != 1 ~ 77,
+                                 TRUE ~ PPWC_IND_QUERY_V8),
+    PPWC_IND_QUERY_V9 = case_when(is.na (PPWC_IND_QUERY_V9) & is.na(PPWC_V9) & PNC4_PNC_EXPECTED == 1 ~ 4,
+                                  is.na(PPWC_V9) & PNC4_PNC_EXPECTED != 1 ~ 77,
+                                 TRUE ~ PPWC_IND_QUERY_V9),
+    PPWC_IND_QUERY_V10 = case_when(is.na (PPWC_IND_QUERY_V10) & is.na(PPWC_V10) & PNC6_PNC_EXPECTED == 1 ~ 4,
+                                   is.na(PPWC_V10) & PNC6_PNC_EXPECTED != 1 ~ 77,
+                                   TRUE ~ PPWC_IND_QUERY_V10),
+    PPWC_IND_QUERY_V11 = case_when(is.na (PPWC_IND_QUERY_V11) & is.na(PPWC_V11) & PNC26_PNC_EXPECTED == 1 ~ 4,
+                                   is.na(PPWC_V11) & PNC26_PNC_EXPECTED != 1 ~ 77,
+                                   TRUE ~ PPWC_IND_QUERY_V11),
+    PPWC_IND_QUERY_V12 = case_when(is.na (PPWC_IND_QUERY_V12) & is.na(PPWC_V12) & PNC52_PNC_EXPECTED == 1 ~ 4,
+                                   is.na(PPWC_V12) & PNC52_PNC_EXPECTED != 1 ~ 77,
+                                   TRUE ~ PPWC_IND_QUERY_V12),
+    
+    PPWC_IPC_DENOM = if_else(MAT_DEATH != 1L, 1L, 0L),
+    PPWC_PNC0_DENOM  = if_else(PPWC_IND_QUERY_V7  == 0L | PNC0_PNC_EXPECTED  == 1L, 1L, 0),
+    PPWC_PNC1_DENOM  = if_else(PPWC_IND_QUERY_V8  == 0L | PNC1_PNC_EXPECTED  == 1L, 1L, 0),
+    PPWC_PNC4_DENOM  = if_else(PPWC_IND_QUERY_V9  == 0L | PNC4_PNC_EXPECTED  == 1L, 1L, 0),
+    PPWC_PNC6_DENOM  = if_else(PPWC_IND_QUERY_V10 == 0L | PNC6_PNC_EXPECTED  == 1L, 1L, 0),
+    PPWC_PNC26_DENOM = if_else(PPWC_IND_QUERY_V11 == 0L | PNC26_PNC_EXPECTED == 1L, 1L, 0),
+    PPWC_PNC52_DENOM = if_else(PPWC_IND_QUERY_V12 == 0L | PNC52_PNC_EXPECTED == 1L, 1L, 0)
+  ) %>% 
+  select(SITE, MOMID, PREGID, MAT_WEIGHT_ENROLL, WEIGHT_IMPUTED_IND, 
+         MAT_WEIGHT_ENROLL_DT, BMI4CAT_ENROLL, BMI_ENROLL, everything())
+
+
+# *****************************************************************************
+# 6. Combined Postpartum Dataset
+# *****************************************************************************
+#First we rename all the weight variables from V to PNC0 to PNC52
+#rename weight- and PPWC-related columns by visit mapping
+rename_visits <- c(
+  V7 = "PNC0",
+  V8 = "PNC1",
+  V9 = "PNC4",
+  V10 = "PNC6",
+  V11 = "PNC26",
+  V12 = "PNC52"
+)
+
+weights_renamed <- weights_wide %>%
+  rename_with(
+    ~ {
+      nm <- .
+      for (old in names(rename_visits)) {
+        nm <- gsub(paste0("_", old, "$"), paste0("_", rename_visits[[old]]), nm)
+      }
+      nm
+    },
+    matches("_(V6|V7|V8|V9|V10|V11|V12)$")
+  )
+
+#Reorder columns in the correct visit order ---
+visit_order <- c("IPC", "PNC0", "PNC1", "PNC4", "PNC6", "PNC26", "PNC52")
+
+# Separate ID variables and measurement variables
+id_vars <- c("SITE", "MOMID", "PREGID", "MAT_WEIGHT_ENROLL", "WEIGHT_IMPUTED_IND", 
+             "MAT_WEIGHT_ENROLL", "BMI4CAT_ENROLL", "BMI_ENROLL", "PPWC_IPC_DENOM",
+             "PPWC_PNC0_DENOM", "PPWC_PNC1_DENOM", "PPWC_PNC4_DENOM",
+             "PPWC_PNC6_DENOM", "PPWC_PNC26_DENOM", "PPWC_PNC52_DENOM")
+
+weights_ordered <- weights_renamed %>%
+  select(
+    all_of(id_vars),
+    # Reorder the rest of the columns according to visit order
+    tidyselect::matches(
+      paste0("(", paste0(visit_order, collapse = "|"), ")$")
+    )
+  ) %>%
+  # Arrange columns internally by visit order
+  select(
+    all_of(id_vars),
+    # build ordered pattern so that all measures per visit appear together
+    any_of(unlist(lapply(
+      visit_order,
+      function(v) grep(paste0("_", v, "$"), names(weights_renamed), value = TRUE)
+    )))
+  ) 
+
+mat_ppwc <- weights_ordered %>% 
+  select (SITE, MOMID, PREGID, MAT_WEIGHT_ENROLL, WEIGHT_IMPUTED_IND, 
+          BMI4CAT_ENROLL, BMI_ENROLL, contains("PNC", ignore.case = FALSE)) 
+
+write.csv(mat_ppwc, paste0(path_to_tnt, "/MAT_PPWC" ,".csv"), na="", row.names=FALSE)
+write.csv(mat_ppwc, paste0(path_to_save, "/MAT_PPWC" ,".csv"), na="", row.names=FALSE)

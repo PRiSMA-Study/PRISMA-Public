@@ -1,0 +1,1551 @@
+---
+title: "Biliruler Substudy Q2 Report"
+author: "Alyssa Shapiro"
+date: "2025-05-27"
+output:
+  pdf_document: default
+  html_document: default
+---
+---
+title: "<span style='font-size: 18px'> <span style='text-align: center'> Biliruler
+  Q2 Report, V4 Issued: 2025 May 27"
+output:
+  pdf_document:
+    toc: false
+    toc_depth: 4
+    latex_engine: xelatex
+    keep_tex: true
+  html_document:
+    toc: false
+    toc_depth: '4'
+    df_print: paged
+include-in-header: \usepackage{ booktabs,longtable}
+---
+
+Dataset: April 18, 2025
+
+```{r load data,include=FALSE}
+#*****************************************************************************
+#* PRISMA Bili-ruler Substudy Q2 Report, v5
+#* Drafted: 11 April 2025, Alyssa Shapiro 
+#* Last updated: 13 June 2025
+
+# This code generates a wide and long version of the dataset used to analyze 
+#jaundice-related outcomes (Visual Inspection, Bili-ruler, TCB, and TSB).
+#This code is being used to setup the dataset for MULTIPLE analyses: 
+# -- Se/Sp of Visual Inspection
+# -- Biliruler PRISMA substudy
+# -- Biliruler Q2 2025 Output
+
+#Inputs: 
+#From the file Jaundice Dataset Setup.R: 
+#Intended dataset: April 18, 2025
+#1. infants_combined_wide: Combination of Infant Outcomes, MNH11, MNH13 (up to PNC-6), MNH14 (Up to PNC-6), 
+   #AND BILI-RULER data, One row per unique infant
+
+   #IMPORTANT! You will see a difference in row numbers if certain infants have MNH36 but not MNH11. 
+   #This means that the number of infants represented in this dataset is slightly more than the number of 
+   #infants in Stacie's infant_outcomes. 
+
+#2. infants_combined_long: ^ same but long, one row per instance of jaundice evaluation
+
+#Outputs: 
+#PDF file containing key analyses for Bili-ruler substudy Q2 2025
+
+#*****************************************************************************
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%") 
+knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+source("Jaundice Dataset Setup.R")
+```
+
+\tableofcontents
+
+\newpage
+
+
+\newpage
+
+# Summary of the Bili-ruler Substudy Objective and Protocol:
+
+Objective: To assess the ability of Bili-ruler used in community settings in identification of neonates at risk of severe hyperbilirubinemia, as compared to visual assessment and transcutaneous bilirubin (TCB).
+
+Protocol: \
+- Enroll newborns already participating in PRISMA study\
+- Measure bilirubin using three methods: Bili-ruler, Visual Inspection, and TCB\
+- Measure skin tone using Monk skin tone scale\
+- Collect the four measurements above at three time points / visits: IPC (0-72 hours), PNC-0 (3-5 days old), and PNC-1 (7-14 days old)\
+- When two staff members are available, two users will each collect a Bili-ruler reading and Monk Skin Tone (MST) reading; the average of the two readings will be used in analysis. \
+- Bili-ruler readings and Monk skin tone readings are integer values from 1-6 and 1-10, respectively; when averages are used, half-values will be possible. \
+- Collect referral information (how did parents respond to a referral to a hospital for jaundice?) at three time points: PNC-0 (3-5 days old), PNC-1 (7-14 days old), and PNC-4 or PNC-6 (the next visit after, at 28-35 days old or 6-7 weeks old)
+\
+\
+\
+
+# Key Findings:
+
+1. Overall, we are seeing a good range of Bili-ruler values, though we would like to see larger samples sizes at higher Bili-ruler values. 
+
+2. Bili-ruler scores can be best used to detect a TCB of 17 (TCB>17 has the highest AUC value). \
+A Bili-ruler score of 3 can detect TCB >= 17 with Se of 0.853, Sp of 0.662\
+A Bili-ruler score of 2.5 can detect TCB >= 15 with Se of 0.857, Sp of 0.544\
+\
+By comparison, Dr. Lee's study recommended using a Bili-ruler score of 3.5 to detect TCB >= 15 with Se of 94.7, Sp of 81.3.  \
+\
+
+3. As of May 2025, we have completed about 48% of data collection goals. We anticipate that we will complete data collection by November 2025. 
+
+\newpage
+
+# 1. Demographics/Distributions of Data Collected
+
+### Table 1: Summary table of datapoints included in Bili-ruler analysis 
+
+```{r Data setup}
+
+library(knitr)
+library(tidyverse)
+library(reshape2)
+library(lubridate)
+library(kableExtra)
+library(naniar)
+library(RColorBrewer)
+library(gt) ## for table gen
+library(webshot2)  ## for table gen
+library(readxl)
+library(networkD3)
+library(formattable)
+library(flowchart)
+library(TSB.NICE)
+library(TSB.AAP)
+
+#org theme1
+tb_theme1 <- function(matrix){
+  tb <- matrix %>%
+    gt(
+      #rowname_col = rowname_col
+      rownames_to_stub = TRUE
+    ) %>%
+    opt_align_table_header(align = "left") %>%
+    tab_spanner(
+      label = "Sites"
+      # columns = c(-Total)
+    ) %>%
+    opt_stylize(style = 6, color = 'gray') %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#317773"),
+        cell_text(weight = "bold"),
+        cell_text(v_align = "middle"),
+        cell_text(color = "white", size = px(18))
+      ),
+      locations = list(
+        cells_title()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#E2D1F9"),
+        cell_text(color = "black", size = px(18)),
+        cell_text(v_align = "middle")
+      ),
+      locations = list(
+        cells_stubhead(),
+        cells_column_spanners(),
+        cells_column_labels()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#F0F0F0"),
+        cell_text(v_align = "middle", size = px(18))
+      ),
+      locations = list(
+        cells_stub()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_column_labels(columns = everything())
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_body(columns = everything())
+      )
+    ) %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_options(table.width = pct(100)) %>%
+    cols_width(1 ~ px(300))
+}
+
+
+#theme 2: specify a column as rownames
+tb_theme2 <- function(matrix,rowname_col=NULL){
+  tb <- matrix %>%
+    gt(
+      rowname_col = rowname_col
+      #rownames_to_stub = TRUE
+    ) %>%
+    opt_align_table_header(align = "left") %>%
+    tab_spanner(
+      label = "Sites"
+      # columns = c(-Total)
+    ) %>%
+    opt_stylize(style = 6, color = 'gray') %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#317773"),
+        cell_text(weight = "bold"),
+        cell_text(v_align = "middle"),
+        cell_text(color = "white", size = px(18))
+      ),
+      locations = list(
+        cells_title()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#E2D1F9"),
+        cell_text(color = "black", size = px(18)),
+        cell_text(v_align = "middle")
+      ),
+      locations = list(
+        cells_stubhead(),
+        cells_column_spanners(),
+        cells_column_labels()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#F0F0F0"),
+        cell_text(v_align = "middle", size = px(18))
+      ),
+      locations = list(
+        cells_stub()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_column_labels(columns = everything())
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_body(columns = everything())
+      )
+    ) %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_options(table.width = pct(100)) %>%
+    cols_width(1 ~ px(300))
+}
+
+
+# Function to extract and format legend horizontally
+g_legend <- function(p) {
+  tmp <- ggplot_gtable(ggplot_build(p))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend_gtable <- tmp$grobs[[leg]]
+  
+  # Arrange legend components horizontally
+  legend_gtable$widths <- unit(rep(1, ncol(legend_gtable)), "null")
+  legend_gtable$grobs <- legend_gtable$grobs[order(legend_gtable$layout$l)]
+  
+  return(legend_gtable)
+}
+
+
+```
+
+
+```{r Table 1: Summary table}
+
+table1_a <- c(" ","24-11-13","24-12-03","25-01-13","24-10-24","24-11-04") %>%
+  t() %>% 
+  as.data.frame() %>%
+  `colnames<-`(c("Total","India-CMC","India-SAS","Kenya","Pakistan","Zambia")) %>% 
+  `rownames<-`(c("Bili-ruler Study Start Date")) %>%
+  as.data.frame()  
+
+table1_b <- infants_combined_wide %>% 
+  filter(SITE != "Ghana") %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "**Infants with ANY Bili-ruler visit complete (Target: 900 per site)^a^**" = paste0((sum(
+      (!is.na(M36_TYPE_VISIT_6) | !is.na(M36_TYPE_VISIT_7) | !is.na(M36_TYPE_VISIT_8) | !is.na(M36_TYPE_VISIT_9) | !is.na(M36_TYPE_VISIT_10) | !is.na(M36_TYPE_VISIT_77)))),
+      " (",
+      format(round(sum(
+      (!is.na(M36_TYPE_VISIT_6) | !is.na(M36_TYPE_VISIT_7) | !is.na(M36_TYPE_VISIT_8) | !is.na(M36_TYPE_VISIT_9) | !is.na(M36_TYPE_VISIT_10) | !is.na(M36_TYPE_VISIT_77))) / 900 * 100), nsmall=0, digits=2),
+      ")" ),
+    
+    "**Infants with ALL Bili-ruler visits complete (Target: 900 per site)^a^**" = paste0((sum(
+      (!is.na(M36_TYPE_VISIT_6) & !is.na(M36_TYPE_VISIT_7) & !is.na(M36_TYPE_VISIT_8) & (!is.na(M36_TYPE_VISIT_9) | !is.na(M36_TYPE_VISIT_10))))),
+      " (",
+      format(round(sum(
+        (!is.na(M36_TYPE_VISIT_6) & !is.na(M36_TYPE_VISIT_7) & !is.na(M36_TYPE_VISIT_8) & (!is.na(M36_TYPE_VISIT_9) | !is.na(M36_TYPE_VISIT_10))))/
+          900 * 100), nsmall=0, digits=2),
+      ")" )
+  
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+  add_column(
+    .before = 1,
+    "Total" = infants_combined_wide %>%
+      plyr::summarise(
+    
+    "**Infants with ANY Bili-ruler visit complete (Target: 900 per site)^a^**" = paste0((sum(
+      (!is.na(M36_TYPE_VISIT_6) | !is.na(M36_TYPE_VISIT_7) | !is.na(M36_TYPE_VISIT_8) | !is.na(M36_TYPE_VISIT_9) | !is.na(M36_TYPE_VISIT_10) | !is.na(M36_TYPE_VISIT_77)))), 
+      " (",
+      format(round(sum(
+      (!is.na(M36_TYPE_VISIT_6) | !is.na(M36_TYPE_VISIT_7) | !is.na(M36_TYPE_VISIT_8) | !is.na(M36_TYPE_VISIT_9) | !is.na(M36_TYPE_VISIT_10) | !is.na(M36_TYPE_VISIT_77))) / 4500 * 100), nsmall=0, digits=2),
+      ")" ),
+    
+    "**Infants with ALL Bili-ruler visits complete (Target: 900 per site)^a^**" = paste0((sum(
+      (!is.na(M36_TYPE_VISIT_6) & !is.na(M36_TYPE_VISIT_7) & !is.na(M36_TYPE_VISIT_8) & (!is.na(M36_TYPE_VISIT_9) | !is.na(M36_TYPE_VISIT_10))))),
+      " (",
+      format(round(sum(
+        (!is.na(M36_TYPE_VISIT_6) & !is.na(M36_TYPE_VISIT_7) & !is.na(M36_TYPE_VISIT_8) & (!is.na(M36_TYPE_VISIT_9) | !is.na(M36_TYPE_VISIT_10))))/
+          4500 * 100), nsmall=0, digits=2),
+      ")" )
+    
+      ) %>% 
+          t() %>% 
+          as.data.frame() %>% 
+        `colnames<-`(c(.[1,])) %>%
+        unlist() 
+  )
+      
+table1_b <- table1_b %>% 
+  mutate_all(~ str_replace(., "NaN", "0")) %>% 
+  mutate_all(~ str_replace(., "NaN", "0"))
+
+table1_c <- infants_combined_long %>% 
+  rowwise() %>% 
+  filter(SITE != "Ghana") %>%
+  group_by(SITE) %>% 
+  summarise(
+    
+     "Total instances/visits with a valid Bili-ruler result^b^" = paste0(sum(
+      (((BILI_1 %in% c(1,2,3,4,5,6)) &
+         (BILI_2 %in% c(1,2,3,4,5,6))) | 
+        ((BILI_1 %in% c(1,2,3,4,5,6) & !(BILI_2 %in% c(1,2,3,4,5,6))))) & 
+        #No phototherapy received that day
+        CUR_PHOTO_TX != 1)),
+    
+    "Instances with Valid Bili-ruler & TCB result^b^" = paste0(sum(
+    #TCB
+    (TCB <= 20 & 
+            TCB >= 0 &
+            !is.na(TCB)) & 
+      #no Phototherapy received that day
+      CUR_PHOTO_TX != 1 &
+      #biliruler
+      (!is.na(BILI_FINAL)))),
+    
+    "Instances with Valid Bili-ruler, TCB, Gestational Age, and Postnatal Age^b^" = paste0(sum(
+    #valid postnatal age
+    (!is.na(POSTNATALAGE) & POSTNATALAGE>=0) & 
+      #valid IMCI
+      (JAUNDATVISIT %in% c(0,1,2)) &
+      #no Phototherapy received that day
+      CUR_PHOTO_TX != 1 & 
+      #valid TCB
+      (TCB <= 20 & TCB >= 0 & !is.na(TCB)) & 
+      #valid GA
+      !is.na(GESTAGEBIRTH_ANY) & 
+      #valid bili-ruler
+      #2 staff, 2 successful measurements, no PT received today
+        ((NUM_PRISMA_STAFF == 1 & 
+           MST_BILI_COMPL == 1 & 
+           BILI_1 %in% c(1,2,3,4,5,6) & 
+           BILI_2 %in% c(1,2,3,4,5,6)) |
+          #1 staff, 1 measurement, no PT received today
+          (NUM_PRISMA_STAFF == 0 & 
+             MST_BILI_COMPL == 1 & 
+             ((BILI_1 %in% c(1,2,3,4,5,6) & 
+             !(BILI_2 %in% c(1,2,3,4,5,6))) | 
+             (BILI_2 %in% c(1,2,3,4,5,6) & 
+             !(BILI_1 %in% c(1,2,3,4,5,6))) ))) ))
+    
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+  add_column(
+    .before = 1,
+    "Total" = infants_combined_long %>%
+      plyr::summarise(
+    
+ 
+     "Total instances/visits with a valid Bili-ruler result^b^" = paste0(sum(
+      (((BILI_1 %in% c(1,2,3,4,5,6)) &
+         (BILI_2 %in% c(1,2,3,4,5,6))) | 
+        ((BILI_1 %in% c(1,2,3,4,5,6) & !(BILI_2 %in% c(1,2,3,4,5,6))))) & 
+        #No phototherapy treatment received that day
+        CUR_PHOTO_TX != 1)),
+
+    "Instances with Valid Bili-ruler & TCB result^b^" = paste0(sum(
+    #TCB
+    (TCB <= 20 & 
+            TCB >= 0 &
+            !is.na(TCB)) & 
+      #no PT
+      CUR_PHOTO_TX != 1 &
+      #biliruler
+      (!is.na(BILI_FINAL)))),
+    
+    "Instances with Valid Bili-ruler, TCB, Gestational Age, and Postnatal Age^b^" = paste0(sum(
+    #valid postnatal age
+    (!is.na(POSTNATALAGE) & POSTNATALAGE>=0) & 
+      #valid IMCI
+      (JAUNDATVISIT %in% c(0,1,2)) &
+      #no Phototherapy received that day
+      CUR_PHOTO_TX != 1 & 
+      #valid TCB
+      (TCB <= 20 & TCB >= 0 & !is.na(TCB)) & 
+      #valid GA
+      !is.na(GESTAGEBIRTH_ANY) & 
+      #valid bili-ruler
+      #2 staff, 2 successful measurements, no PT received today
+        ((NUM_PRISMA_STAFF == 1 & 
+           MST_BILI_COMPL == 1 & 
+           BILI_1 %in% c(1,2,3,4,5,6) & 
+           BILI_2 %in% c(1,2,3,4,5,6)) |
+          #1 staff, 1 measurement, no PT received today
+          (NUM_PRISMA_STAFF == 0 & 
+             MST_BILI_COMPL == 1 & 
+             ((BILI_1 %in% c(1,2,3,4,5,6) & 
+             !(BILI_2 %in% c(1,2,3,4,5,6))) | 
+             (BILI_2 %in% c(1,2,3,4,5,6) & 
+             !(BILI_1 %in% c(1,2,3,4,5,6))) ))) ))
+  
+            ) %>% 
+          t() %>% 
+          as.data.frame() %>% 
+        `colnames<-`(c(.[1,])) %>%
+        unlist() 
+  )
+      
+table1_c <- table1_c %>% 
+  mutate_all(~ str_replace(., "NaN", "0")) %>% 
+  mutate_all(~ str_replace(., "NaN", "0"))
+
+
+table1 <- bind_rows(table1_a,table1_b,table1_c)
+
+table1 <- tb_theme1(table1) %>% 
+  tab_header(
+    title = md("**Table 1: Overview**")
+  ) 
+table1 <- table1 %>% gtsave(paste0("Table1_Overview_",Sys.Date(),"_Dataset",UploadDate,".png"), expand = 10)
+knitr::include_graphics(paste0("Table1_Overview_",Sys.Date(),"_Dataset",UploadDate,".png"))
+
+```
+a. Percentages are calculated using the denominator of 900 (target enrollment at each site)\
+b. If an infant received phototherapy treatment on the same day as Bili-ruler and TCB measurements were taken, then the data from that visit was excluded. \
+
+Key Finding: \
+As of May 2025, we have completed about 48% of data collection goals. We anticipate that we will complete data collection by November 2025. 
+
+
+```{R different datasets for different analyses}
+
+#Two valid Bili-ruler readings (regardless of GA, TCB, etc; this is used for inter-rater reliability)
+validtwobilionly <- infants_combined_long %>%
+  filter(
+    (BILI_1 %in% c(1,2,3,4,5,6)) &
+      (BILI_2 %in% c(1,2,3,4,5,6))) 
+validtwobilionly_nopt <- validtwobilionly %>%
+  filter(CUR_PHOTO_TX!=1)
+
+#Any one valid bili-ruler reading (regardless of if any other data is missing)
+validbiliany <- infants_combined_long %>%
+  filter(
+    ((BILI_1 %in% c(1,2,3,4,5,6)) &
+      (BILI_2 %in% c(1,2,3,4,5,6))) | 
+  ((BILI_1 %in% c(1,2,3,4,5,6) & !(BILI_2 %in% c(1,2,3,4,5,6))))) 
+validbiliany_nopt <- validbiliany %>%
+   filter(CUR_PHOTO_TX!=1)
+
+
+
+
+#Inter-rater reliability
+match <- validtwobilionly %>%
+  summarise("All" = sum(!is.na(BILI_1)),
+            "Exact match" = sum(abs(BILI_1-BILI_2)==0),
+            "Within 1" = sum(abs(BILI_1-BILI_2)<= 1))
+    
+#validbiliandtcb: Data is included if there is a valid bili-ruler and valid TCB (for TCB>15 analysis, GA and postnatal age are not needed. Used for Bili-ruler vs TCB > 15 (or TCB > X))
+validbiliandtcb <- infants_combined_long %>%
+  filter(
+    #tcb
+    (TCB <= 20 & 
+            TCB >= 0 &
+            !is.na(TCB)) & 
+      #biliruler
+      (!is.na(BILI_FINAL)))
+validbiliandtcb_nopt <- validbiliandtcb %>%
+   filter(CUR_PHOTO_TX!=1)
+
+#Valid criteria for AAP/NICE calculations (GA, Postnatal Age)
+validAAPNICE <- infants_combined_long %>%
+  filter(
+    #postnatal age
+    (!is.na(POSTNATALAGE) & POSTNATALAGE>=0) & 
+      #valid IMCI
+      (JAUNDATVISIT %in% c(0,1,2)) &
+      #no PT
+      CUR_PHOTO_TX != 1 & 
+      #valid TCB
+      (TCB <= 20 & TCB >= 0 & !is.na(TCB)) & 
+      #valid GA
+      (!is.na(GESTAGEBIRTH_ANY) & GESTAGEBIRTH_ANY < 43) & 
+      #valid bili-ruler
+      #2 staff, 2 successful measurements, no PT received today
+        ((NUM_PRISMA_STAFF == 1 & 
+           MST_BILI_COMPL == 1 & 
+           BILI_1 %in% c(1,2,3,4,5,6) & 
+           BILI_2 %in% c(1,2,3,4,5,6)) |
+          #1 staff, 1 measurement, no PT received today
+          (NUM_PRISMA_STAFF == 0 & 
+             MST_BILI_COMPL == 1 & 
+             ((BILI_1 %in% c(1,2,3,4,5,6) & 
+             !(BILI_2 %in% c(1,2,3,4,5,6))) | 
+             (BILI_2 %in% c(1,2,3,4,5,6) & 
+             !(BILI_1 %in% c(1,2,3,4,5,6))) ))) )
+
+  
+```
+
+\newpage
+
+
+### Table 2: Mean TCB Value Associated with each Bili-ruler Score, By Site
+
+
+```{r Table 2: Correlation, out.width="40%"}
+
+table2 <- validbiliandtcb_nopt %>%
+  group_by(SITE,BILI_FINAL) %>%
+  summarise(n = n(),
+            MeanTCB = round(mean(TCB,na.rm=TRUE),1),
+            
+            .groups = 'drop') %>%
+  pivot_wider(
+    names_from = SITE,
+    values_from = c(n,MeanTCB),
+    names_sep = "_") %>%
+  as.data.frame()# %>%
+  #gt()
+
+table2_scatterplot <- table2
+
+
+table2 <- table2 %>% 
+  mutate_all(~ str_replace(., "NA", "0")) %>% 
+  mutate_all(~ str_replace(., "NA", "0"))
+
+table2 <- gt(table2) %>%
+  cols_label(
+    `n_India-CMC` = "n",
+    `MeanTCB_India-CMC` = "MeanTCB",
+    `n_India-SAS` = "n",
+    `MeanTCB_India-SAS` = "MeanTCB",
+    `n_Kenya` = "n",
+    `MeanTCB_Kenya` = "MeanTCB",
+    `n_Pakistan` = "n",
+    `MeanTCB_Pakistan` = "MeanTCB",
+    `n_Zambia` = "n",
+    `MeanTCB_Zambia` = "MeanTCB"
+  ) %>%
+  tab_spanner(label = "India-CMC",columns = c(`n_India-CMC`,`MeanTCB_India-CMC`)) %>%
+  tab_spanner(label = "India-SAS",columns = c(`n_India-SAS`,`MeanTCB_India-SAS`)) %>%
+  tab_spanner(label = "Kenya",columns = c(`n_Kenya`,`MeanTCB_Kenya`)) %>%
+  tab_spanner(label = "Pakistan",columns = c(`n_Pakistan`,`MeanTCB_Pakistan`)) %>%
+  tab_spanner(label = "Zambia",columns = c(`n_Zambia`,`MeanTCB_Zambia`)) %>%
+  tab_header(title=md("**Table 2: Mean TCB Value Associated with each Bili-ruler Score, By Site**"))
+      
+
+table2 <- table2 %>%
+  cols_align(
+    align = "left",
+    columns = vars(BILI_FINAL,
+                   `MeanTCB_India-CMC`,
+                   `MeanTCB_India-SAS`,
+                   `MeanTCB_Kenya`,
+                   `MeanTCB_Pakistan`,
+                   `MeanTCB_Zambia`,
+                   `n_India-CMC`, 
+                   `n_India-SAS`, 
+                   `n_Kenya`, 
+                   `n_Pakistan`, 
+                   `n_Zambia` 
+                   ))# %>%
+  #cols_align(
+  #  align = "right",
+  #  columns = vars(
+      
+ #   ))
+
+table2 <- table2 %>% gtsave(paste0("Table2_TCBscorevsBilirulerscore_",Sys.Date(),"_Dataset",UploadDate,".png"),expand=10)
+knitr::include_graphics(paste0("Table2_TCBscorevsBilirulerscore_",Sys.Date(),"_Dataset",UploadDate,".png"))
+```
+
+### Figure 1: Mean TCB Value Associated with Each Bili-ruler Score, By Site
+
+```{r scatterplot for table 2, out.width="40%"}
+table2_long <- table2_scatterplot %>%
+  pivot_longer(
+    cols = starts_with("MeanTCB_"),
+    names_to = "Site",
+    names_prefix = "MeanTCB_",
+    values_to = "MeanTCB"
+  )
+
+#p1 <- table2_long %>%
+#  ggplot(aes(x=BILI_FINAL,y=MeanTCB, color=Site))+
+#  geom_line() +
+#  geom_point()+
+#  scale_color_manual(values = c(
+#    "India-CMC" = "#B79f00",
+#    "India-SAS" = "#D39200",
+#    "Kenya" = "#00BA38",
+#    "Pakistan" = "#619CFF",
+#    "Zambia" = "#F564E3"
+#  )) + 
+  #xlim(0,600)+
+  #ylim(0,24)+
+#  xlab("Bili-ruler Score (1-6)")+
+#  scale_x_continuous(breaks=seq(1,6,0.5))+
+#  ylab("Mean TCB (mg/dL)")+
+#  ggtitle("Mean TCB scores for each Bili-ruler score, By Site")+
+#  labs(color="Site")
+#p1
+
+#scatterplot only, by site
+p2 <- validbiliandtcb_nopt %>%
+  #ggplot(aes(x=BILI_FINAL,y=TCB, color=SITE,alpha=0.3))+
+  ggplot(aes(x=jitter(BILI_FINAL),y=TCB, color=SITE))+
+  #geom_line() +
+  geom_point(size=0.5)+
+  # loess method: local regression fitting
+  geom_smooth(method = "loess")+
+  scale_color_manual(values = c(
+    "India-CMC" = "#B79f00",
+    "India-SAS" = "#D39200",
+    "Kenya" = "#00BA38",
+    "Pakistan" = "#619CFF",
+    "Zambia" = "#F564E3"
+  )) + 
+  facet_wrap(~SITE) +
+  #xlim(0,600)+
+  #ylim(0,24)+
+  xlab("Bili-ruler Score (1-6)")+
+  scale_x_continuous(breaks=seq(1,6,0.5))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("TCB (mg/dL)")+
+  ggtitle("Figure 1a: Plots per Site")+
+  #ggtitle("Scatterplot: Mean TCB scores for each Bili-ruler score, By Site")+
+  labs(color="Site")
+p2
+
+```
+
+```{r smooth lines only, out.width="40%"}
+
+#Smooth lines only
+p3 <- validbiliandtcb_nopt %>%
+  ggplot(aes(x=jitter(BILI_FINAL),y=TCB, color=SITE))+
+  #geom_line() +
+  #geom_point((alpha=0.2))+
+  # loess method: local regression fitting
+  geom_smooth(method = "loess")+
+
+  scale_color_manual(values = c(
+    "India-CMC" = "#B79f00",
+    "India-SAS" = "#D39200",
+    "Kenya" = "#00BA38",
+    "Pakistan" = "#619CFF",
+    "Zambia" = "#F564E3"
+  )) + 
+  #facet_wrap(~SITE) +
+  #xlim(0,600)+
+  #ylim(0,24)+
+  xlab("Bili-ruler Score (1-6)")+
+  scale_x_continuous(breaks=seq(1,6,0.5))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylab("Mean TCB (mg/dL)")+
+  #ggtitle("Scatterplot + Smooth line: Mean TCB scores for each Bili-ruler score")+
+  ggtitle("Figure 1b: Mean TCB for each Bili-ruler score")+
+  labs(color="Site")
+p3
+          
+
+```
+
+Key Finding: \
+We see a similar correlation between Bili-ruler and TCB values at all five study sites, though we have small sample sizes at higher bilirubin values. 
+
+\newpage
+
+
+### Figure 2: Distributions of Data
+
+#### Figure 2a. Transcutaneous Bilirubin (TCB) Distribution
+
+```{r TCB distribution, out.width="50%"}
+
+#make the color scale based on IMCI
+colorsjaundice=c("0"="grey","1"="orange","2"="red")
+
+#Comparisons by site
+colorssites <- c("India-CMC"="#B79f00","India-SAS"="#D39200","Kenya"="#00BA38","Pakistan"="#619CFF","Zambia"="#F564E3","Overall"="black")
+#"Ghana"="#F8766D",
+
+#mst color scale
+msthex = c("1"="#f6ede4","1.5"="#f6ede4","2"="#f3e7db","2.5"="#f3e7db","3"="#f7ead0","3.5"="#f7ead0","4"="#eadaba","4.5"="#eadaba","5"="#d7bd96","5.5"="#d7bd96","6"="#a07e56","6.5"="#a07e56","7"="#825c43","7.5"="#825c43","8"="#604134","8.5"="#604134","9"="#3a312a","9.5"="#3a312a","10"="#292420")
+
+bilihex = c("1" = "#ebd4c4","1.5"="#ebd4c4","2"="#ead2b0","2.5" = "#ead2b0","3" = "#e8d1a7","3.5"= "#e8d1a7","4" = "#e6d19c","4.5" = "#e6d19c","5" = "#e4ce92","5.5" = "#e4ce92","6" = "#e4d08b")
+
+
+#Distribution of TCB values
+p1 <- validbiliandtcb_nopt %>%
+  ggplot(aes(x=TCB)) + 
+  geom_histogram(binwidth=1)+ 
+  ggtitle(paste0("Distribution of TCB Values, n = ", nrow(validbiliandtcb_nopt))) + 
+  xlab("TCB (mg/dL)") +
+  ylab("Count") 
+p1
+
+```
+
+#### Figure 2b. Gestational Age (GA) Distribution
+
+```{r GA, out.width="50%"}
+
+#Distribution of gestational ages
+p2 <- validAAPNICE %>%
+  ggplot(aes(x=GESTAGEBIRTH_ANY)) + 
+  geom_histogram(binwidth=1)+ 
+  ggtitle(paste0("Distribution of Gestational Ages, n= ", nrow(validAAPNICE))) +
+  geom_vline(mapping=aes(xintercept=37), linetype ="dashed", color = "red")+
+  geom_vline(mapping=aes(xintercept=34), linetype ="dashed", color = "red")+
+  annotate("text", label = "Early Preterm (<34 wks)", x = 32, y = 1000,size=3) +
+  annotate("text", label = "Late Preterm (34-37 wks)", x = 35.5, y = 1000,size=3) +
+  annotate("text", label = "Term (>=37 wks)", x = 41, y = 1000,size=3) +
+  xlab("Gestational Age (weeks)") +
+  ylab("Count") 
+p2
+
+```
+
+
+#### Figure 2c. Postnatal Age Distribution (Only includes data from IPC, PNC-0, & PNC-1 visits with a valid postnatal age)
+
+```{r Postnatal Age, out.width="50%"}
+#Distribution of postnatal ages
+p3 <- validAAPNICE %>%
+  mutate(POSTNATALAGE = POSTNATALAGE/24) %>%
+  ggplot(aes(x=POSTNATALAGE)) + 
+  geom_histogram(binwidth=0.25) + 
+  ggtitle(paste0("Postnatal Age Distribution, n=",nrow(validAAPNICE))) + 
+  geom_vline(mapping=aes(xintercept=3), linetype ="dashed", color = "red")+
+  geom_vline(mapping=aes(xintercept=5), linetype ="dashed", color = "red")+
+  geom_vline(mapping=aes(xintercept=7), linetype ="dashed", color = "red")+
+  geom_vline(mapping=aes(xintercept=14), linetype ="dashed", color = "red")+
+  annotate("text", label = "IPC", x = 1, y = 275,size=3) +
+  annotate("text", label = "PNC-0", x = 4, y = 275,size=3) +
+  annotate("text", label = "PNC-1", x = 11, y = 275,size=3) +
+  xlab("Postnatal Age (Days)") +
+  ylab("Count") +
+  xlim(0,25)
+p3
+
+```
+*Note: 12 datapoints had a postnatal age > 25 days and are not shown here.
+
+31 datapoints have a postnatal age that falls outside of the PNC-1 window (>14 days)
+
+\newpage
+
+Bili-ruler: 
+
+![ ](D:/Users/alyssa.shapiro/Box/Misc R code/Biliruler.png){width=50%}
+
+
+
+#### Figure 2d. Bili-ruler Distribution, All PRISMA Sites^a^
+
+```{r Bili-ruler Distribution, out.width="40%"}
+
+#Bili-ruler all sites
+p4 <- validbiliany_nopt %>%
+  filter(SITE!="India-SAS") %>%
+  ggplot(aes(x=BILI_FINAL,fill=as.factor(BILI_FINAL))) + 
+  geom_bar()+
+  theme_minimal()+
+  ggtitle("Bili-ruler values (Avg of 2 measurements, if 2 were made)")+
+  xlab("Bili-ruler value")+
+  ylab("Count")+
+  geom_text(stat="count",aes(label = paste0("n=",..count..)),
+            vjust = -0.5, size = 4) +
+  scale_x_continuous(breaks=seq(0,6,1))+
+  scale_fill_manual(values=bilihex)+
+  theme(legend.position="none")
+p4
+```
+
+
+#### Figure 2e. Bili-ruler Distribution, By Site
+
+```{r biliruler by site}
+#Bili-ruler, by site
+p5 <- validbiliany_nopt %>%
+  filter(SITE!="India-SAS") %>%
+  ggplot(aes(x=BILI_FINAL,fill=as.factor(BILI_FINAL))) + 
+  geom_bar()+
+  theme_minimal()+
+  #ggtitle("OVERALL")+
+  ggtitle("Bili-ruler values, By Site")+
+  xlab("Bili-ruler value")+
+  ylab("Count")+
+  geom_text(stat="count",aes(label = paste0("n=",..count..)),
+            vjust = -0.5, size = 1.5) +
+  scale_x_continuous(breaks=seq(0,6,1))+
+  scale_fill_manual(values=bilihex)+
+  theme(legend.position="none")+
+  facet_wrap(~SITE)
+p5
+
+```
+
+a. The India-SAS site was excluded due to ongoing data troubleshooting.
+
+Key Finding: \
+Overall, we are seeing a good range of Bili-ruler values, though we would like to see larger samples sizes at higher Bili-ruler values. 
+
+\newpage
+
+
+Monk skin tone: 
+
+![ ](D:/Users/alyssa.shapiro/Box/Misc R code/Monk skin tone.png){width=50%}
+
+#### Figure 2f. Monk Skin Tone (MST) Distribution, All PRISMA sites^a^
+
+```{r MST distribution, out.width="40%"}
+
+#MST all sites
+p6 <- validbiliany_nopt %>%
+  filter(SITE!= "India-SAS") %>%
+  ggplot(aes(x=MST_FINAL,fill=as.factor(MST_FINAL))) + 
+  geom_bar()+
+  theme_minimal()+
+  ggtitle("Monk Skin Tone (MST) Values (Avg of 2 measurements, if 2 were made)")+
+  xlab("MST Value")+
+  ylab("Count")+
+  geom_text(stat="count",aes(label = paste0("n=",..count..)),
+            vjust = -0.5, size = 4) +
+  scale_x_continuous(breaks=seq(0,10,1))+
+  scale_fill_manual(values=msthex)+
+  theme(legend.position="none")
+p6
+
+```
+
+#### Figure 2g. Monk Skin Tone (MST) Distribution, By Site
+
+```{r MST by site}
+#MST, by site
+p7 <- validbiliany_nopt %>%
+  filter(SITE!="India-SAS") %>%
+  ggplot(aes(x=MST_FINAL,fill=as.factor(MST_FINAL))) + 
+  ggtitle("Monk Skin Tone (MST) values (Avg of 2 measurements, if 2 were made)")+
+  geom_bar()+
+  theme_minimal()+
+  xlab("MST value")+
+  ylab("Count")+
+  geom_text(stat="count",aes(label = paste0("n=",..count..)),
+            vjust = -0.5, size = 1.5) +
+  scale_x_continuous(breaks=seq(0,10,1))+
+  scale_fill_manual(values=msthex)+
+  theme(legend.position="none")+
+  facet_wrap(~SITE)
+p7
+
+```
+
+a. The India-SAS site was excluded due to ongoing data troubleshooting.
+
+Key Finding: It may be more difficult than we anticipated to collect large sample sizes of darker skin tones. 
+
+\newpage
+
+# 2. Insights about Bili-ruler Inter-rater Reliability (Table 3) and how Bili-ruler referral information is acted upon by families (Table 4)
+
+### Table 3: Bili-ruler Inter-rater Reliability 
+
+```{r Table 3 biliruler match}
+
+table3 <- validbiliany %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+
+    "Instances where 2 staff took a valid Bili-ruler measurement" = paste0(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6))))),
+  
+    "Exact match between 2 PRISMA staff using Bili-ruler" = paste0(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2)==0))),
+    " (",
+    format(round(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2)==0))) / 
+      sum((CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)))) * 100), nsmall = 0, digits = 2),
+                ")"),
+  
+  "2 Bili-ruler readings are within 1 of each other" = paste0(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2)<=1))),
+    " (",
+    format(round(sum(
+      (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2)<=1))) / 
+      sum((CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)))) * 100), nsmall = 0, digits = 2),
+                ")"),
+  
+  "2 readings differ by 2 or more" = paste0(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2) >= 2))),
+    " (",
+    format(round(sum(
+      (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2) >= 2))) / 
+      sum((CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)))) * 100), nsmall = 0, digits = 2),
+                ")")
+    
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+  add_column(
+    .before = 1,
+    "Total" = validbiliany %>%
+      plyr::summarise(
+
+  "Instances where 2 staff took a valid Bili-ruler measurement" = paste0(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6))))),
+  "Exact match between 2 PRISMA staff using Bili-ruler" = paste0(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2)==0))),
+  " (",
+  format(round(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2)==0))) / 
+      sum((CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)))) * 100), nsmall = 0, digits = 2),
+                ")"),
+  
+  "2 Bili-ruler readings are within 1 of each other" = paste0(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2)<=1))),
+    " (",
+    format(round(sum(
+      (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2)<=1))) / 
+      sum((CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)))) * 100), nsmall = 0, digits = 2),
+                ")"),
+  
+  "2 readings differ by 2 or more" = paste0(sum(
+    (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2) >= 2))),
+    " (",
+    format(round(sum(
+      (CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)) & (abs(BILI_1-BILI_2) >= 2))) / 
+      sum((CUR_PHOTO_TX != 1) & 
+      ((BILI_1 %in% c(1,2,3,4,5,6)) & (BILI_2 %in% c(1,2,3,4,5,6)))) * 100), nsmall = 0, digits = 2),
+                ")")
+  
+            ) %>% 
+          t() %>% 
+          as.data.frame() %>% 
+        `colnames<-`(c(.[1,])) %>%
+        unlist() 
+  )
+
+
+table3 <- table3 %>% 
+  mutate_all(~ str_replace(., "NaN", "0")) %>% 
+  mutate_all(~ str_replace(., "NaN", "0"))
+
+table3 <- tb_theme1(table3) %>% 
+  tab_header(
+    title = md("**Table 3: Bili-ruler Inter-rater Reliability**")
+  ) 
+table3 <- table3 %>% gtsave(paste0("Table3_InterRaterReliability_",Sys.Date(),"_Dataset",UploadDate,".png"), expand = 10)
+knitr::include_graphics(paste0("Table3_InterRaterReliability_",Sys.Date(),"_Dataset",UploadDate,".png"))
+
+      
+```
+
+*Percentages are calculated with the denominator of "Instances where 2 staff took a valid Bili-ruler measurement (row 1)."
+
+Key Finding: \
+Two users using Bili-ruler on the same babies are getting very similar answers; this indicates that Bili-ruler is easy to use.
+
+\newpage
+
+### Table 4. Referral Information
+
+
+```{r referral information}
+
+
+table4 <- infants_combined_long %>% 
+  filter(SITE!="Ghana") %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Referral was NOT made at the previous visit^a^" = paste0(
+      sum(JAUND_REF_MADE_PREV==0,na.rm=TRUE), " (",
+    format(round(
+      (sum(JAUND_REF_MADE_PREV==0,na.rm=TRUE)) / 
+        (sum(JAUND_REF_MADE_PREV %in% c(0,1),na.rm=TRUE))
+        * 100), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Referral WAS made at the previous visit^a^" = paste0(
+      sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE), " (",
+    format(round(
+      (sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)) / 
+        (sum(JAUND_REF_MADE_PREV %in% c(0,1),na.rm=TRUE))
+        * 100), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Assessment or treatment was sought for jaundice^b^" = paste0(
+      sum(SEEK_TX_JAUND==1,na.rm=TRUE), " (", 
+      format(round(sum(SEEK_TX_JAUND==1,na.rm=TRUE) / 
+                     sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Serum bili was measured^b^" = paste0(
+      sum(TSB_LBPERF==1,na.rm=TRUE), " (",
+        format(round(sum(TSB_LBPERF==1,na.rm=TRUE)/
+                       sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Jaundice was diagnosed^b^" = paste0(
+      sum(JAUND_CEOCCUR==1,na.rm=TRUE), " (",  
+        format(round(sum(JAUND_CEOCCUR==1,na.rm=TRUE)/
+                       sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Infant received phototherapy^b^" = paste0(
+      sum(JAUND_TX_1==1,na.rm=TRUE), " (",  
+        format(round(sum(JAUND_TX_1==1,na.rm=TRUE)/
+                       sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Infant received an exchange transfusion^b^" = paste0(
+      sum(JAUND_TX_2==1,na.rm=TRUE), " (",  
+        format(round(sum(JAUND_TX_2==1,na.rm=TRUE)/
+                       sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Mother received verbal advice^b^" = paste0(
+              sum((JAUND_TX_3==1 | JAUND_TX_3==3),na.rm=TRUE), " (",
+              format(round(sum((JAUND_TX_3==1 | JAUND_TX_3==3),na.rm=TRUE)/
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")"),
+            
+    
+    "Other treatment was given^b^" = paste0(
+      sum(JAUND_TX_4==1,na.rm=TRUE), " (",
+      format(round(sum(JAUND_TX_4==1,na.rm=TRUE)/
+                     sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+      ")"),
+    
+    "No treatment was given^b^" = paste0(
+      sum(JAUND_REF_MADE_PREV==1 & JAUND_TX_77==1,na.rm=TRUE), " (",
+      format(round(sum(JAUND_REF_MADE_PREV==1 & JAUND_TX_77==1,na.rm=TRUE)/
+                     sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+      ")")
+    
+    )  %>%
+      t() %>% 
+  as.data.frame() %>% 
+      `colnames<-`(c(.[1,])) %>% 
+      slice(-1) %>% 
+      add_column(
+        .before = 1,
+        "Total" = infants_combined_long %>% 
+          plyr::summarise(
+            
+            "Referral was NOT made at the previous visit^a^" = paste0(
+              sum(JAUND_REF_MADE_PREV==0,na.rm=TRUE), " (",
+              format(round(
+                (sum(JAUND_REF_MADE_PREV==0,na.rm=TRUE)) / 
+                  (sum(JAUND_REF_MADE_PREV %in% c(0,1),na.rm=TRUE))
+                * 100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "Referral WAS made at the previous visit^a^" = paste0(
+              sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE), " (",
+              format(round(
+                (sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)) / 
+                  (sum(JAUND_REF_MADE_PREV %in% c(0,1),na.rm=TRUE))
+                * 100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "Assessment or treatment was sought for jaundice^b^" = paste0(
+              sum(SEEK_TX_JAUND==1,na.rm=TRUE), " (", 
+              format(round(sum(SEEK_TX_JAUND==1,na.rm=TRUE) / 
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "Serum bili was measured^b^" = paste0(
+              sum(TSB_LBPERF==1,na.rm=TRUE), " (",
+              format(round(sum(TSB_LBPERF==1,na.rm=TRUE)/
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "Jaundice was diagnosed^b^" = paste0(
+              sum(JAUND_CEOCCUR==1,na.rm=TRUE), " (",  
+              format(round(sum(JAUND_CEOCCUR==1,na.rm=TRUE)/
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "Infant received phototherapy^b^" = paste0(
+              sum(JAUND_TX_1==1,na.rm=TRUE), " (",  
+              format(round(sum(JAUND_TX_1==1,na.rm=TRUE)/
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "Infant received an exchange transfusion^b^" = paste0(
+              sum(JAUND_TX_2==1,na.rm=TRUE), " (",  
+              format(round(sum(JAUND_TX_2==1,na.rm=TRUE)/
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "Mother received verbal advice^b^" = paste0(
+              sum((JAUND_TX_3==1 | JAUND_TX_3==3),na.rm=TRUE), " (",
+              format(round(sum((JAUND_TX_3==1 | JAUND_TX_3==3),na.rm=TRUE)/
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "Other treatment was given^b^" = paste0(
+              sum(JAUND_TX_4==1,na.rm=TRUE), " (",
+              format(round(sum(JAUND_TX_4==1,na.rm=TRUE)/
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")"),
+            
+            "No treatment was given^b^" = paste0(
+              sum(JAUND_REF_MADE_PREV==1 & JAUND_TX_77==1,na.rm=TRUE), " (",
+              format(round(sum(JAUND_REF_MADE_PREV==1 & JAUND_TX_77==1,na.rm=TRUE)/
+                             sum(JAUND_REF_MADE_PREV==1,na.rm=TRUE)*100), nsmall = 0, digits = 2),
+              ")")
+               
+            ) %>% 
+          t() %>% 
+          as.data.frame() %>% 
+        `colnames<-`(c(.[1,])) %>%
+        unlist() 
+      )
+
+
+table4 <- tb_theme1(table4) %>% 
+  tab_header(
+    title = md("**Table 4: Referral Information**")
+  ) 
+
+table4 <- table4 %>% gtsave(paste0("Table4_ReferralInfo_",Sys.Date(),"_Dataset",UploadDate,".png"),expand=10)
+knitr::include_graphics(paste0("Table4_ReferralInfo_",Sys.Date(),"_Dataset",UploadDate,".png"))
+
+```
+a. Percentages are calculated with the denominator of 'Valid referral decision' (sum of rows 1 and 2). 
+
+b. Percentages are calculated with the denominator of "Referral WAS made at the previous visit (row 2)."
+
+Key Finding: \
+At some sites, especially Pakistan, very few referrals are leading to treatment.
+
+\newpage
+
+# 3. Correlations between Bili-ruler and TCB
+
+### Figure 3: Boxplots, PRISMA vs Dr. Lee's Pilot Study (Only published study evaluating Bili-ruler to-date)\
+
+#### Figure 3a. Boxplots, all PRISMA data
+```{r boxplots, out.width="60%"}
+
+#Site comparisons
+mnh36_pak <- infants_combined_long %>% filter(SITE=="Pakistan")
+mnh36_indiasas <- infants_combined_long %>% filter(SITE=="India-SAS")
+mnh36_indiacmc <- infants_combined_long %>% filter(SITE=="India-CMC")
+mnh36_kenya <- infants_combined_long %>% filter(SITE=="Kenya")
+mnh36_zambia <- infants_combined_long %>% filter(SITE=="Zambia")
+  
+df_counts <- validbiliandtcb_nopt %>%
+  group_by(BILI_FINAL) %>%
+  summarise(n=n())
+
+# Boxplot 
+p8 <- validbiliandtcb_nopt %>%
+  ggplot(aes(x=as.factor(BILI_FINAL),y=TCB)) +
+  geom_boxplot(fill="#619CFF",alpha=0.6) +
+  geom_text(data=df_counts, aes(x = as.factor(BILI_FINAL), y = max(validbiliandtcb_nopt$TCB), label = paste0("n=", n)), 
+          vjust = -0.3, size = 4) +
+  ggtitle(paste0("Boxplots Bili-ruler vs TCB, n= ", nrow(validbiliandtcb_nopt))) +
+  xlab("Bili-ruler reading (1-6)")+
+  ylab("TCB (0-20 mg/dL)")+
+  ylim(0,25)
+p8
+
+
+
+
+```
+
+#### Figure 3b. Dr. Lee's Pilot Study 2019 (n=790, 390 from Bangladesh and 400 from Boston): 
+
+<div style="text-align: center;">
+
+```{r, echo=FALSE, out.width='60%'}
+knitr::include_graphics("D:/Users/alyssa.shapiro/Box/Misc R code/LeeBilirulervsTCB.png")
+
+```
+</div> 
+
+
+Key Finding: \
+PRISMA Correlation between Bili-ruler and TCB appears similar, but slightly different, from correlation in Dr. Lee's pilot study, especially at low Bili-ruler values. 
+
+\newpage
+
+#### Figure 3c. Violin plots of all PRISMA data
+
+```{r violin plot, out.width="60%"}
+
+p9 <- validbiliandtcb_nopt %>%
+  ggplot(aes(x=as.factor(BILI_FINAL),y=TCB)) +
+  geom_violin(fill="#619CFF",alpha=0.6) +
+  geom_text(data=df_counts, aes(x = as.factor(BILI_FINAL), y = max(validbiliandtcb_nopt$TCB), label = paste0("n=", n)), 
+          vjust = -0.3, size = 4) +
+  ggtitle("Violin plots of Bili-ruler vs TCB PRISMA dataset") +
+  xlab("Bili-ruler reading (1-6)")+
+  ylab("TCB (0-20 mg/dL)")+
+  ylim(0,25)
+p9
+
+```
+Key Finding: \
+The spread of TCB values found within one Bili-ruler reading is quite large, for all Bili-ruler values. 
+
+#### Figure 3d. Boxplots, by PRISMA site
+
+```{r boxplots by site}
+
+validbiliandtcb_nopt_p10 <- validbiliandtcb_nopt
+validbiliandtcb_nopt_p10$SITE <- factor(validbiliandtcb_nopt_p10$SITE,
+  levels = c("India-CMC","India-SAS","Pakistan","Kenya","Zambia")
+)
+
+
+# Create label vector using actual SITE levels
+site_labels <- setNames(
+  paste0(levels(validbiliandtcb_nopt_p10$SITE), 
+         " (n=", 
+         sapply(levels(validbiliandtcb_nopt_p10$SITE), function(s) sum(validbiliandtcb_nopt_p10$SITE == s, na.rm=TRUE)), 
+         ")"),
+  levels(validbiliandtcb_nopt_p10$SITE)
+)
+
+df_counts <- validbiliandtcb_nopt_p10 %>%
+  group_by(BILI_FINAL, SITE) %>%
+  summarise(n = n(), .groups = "drop")
+
+p10 <- validbiliandtcb_nopt_p10 %>%
+  ggplot(aes(x=as.factor(BILI_FINAL),y=TCB,fill=SITE)) +
+  scale_fill_manual(values = colorssites, labels = levels(validbiliandtcb_nopt_p10$SITE)) +
+  geom_boxplot(alpha=0.6) +
+  geom_text(data = df_counts,
+            aes(x = as.factor(BILI_FINAL),
+                y = 25,  
+                label = paste0("n=", n)),
+                size=1.5,
+            inherit.aes = FALSE) +
+  ggtitle("Boxplots Bili-ruler vs TCB PRISMA dataset") +
+  xlab("Bili-ruler reading (1-6)")+
+  ylab("TCB (0-20 mg/dL)")+
+  facet_wrap(~SITE, labeller = labeller(SITE = site_labels)) +
+  ylim(0,25)
+p10
+
+```
+Key Finding: \
+The correlation between Bili-ruler and TCB appears to vary at the different sites, especially African vs. Asian sites, though more data is needed at higher Bili-ruler values. 
+
+\newpage
+
+
+
+### Table 5a. Spearman's Correlations of TCB values (y/dependent var) vs Bili-ruler values (x/independent var), by site
+```{r correlations by site}
+
+cor_by_site <- validbiliandtcb_nopt %>%
+  group_by(SITE) %>%
+  summarise(
+    result = list(cor.test(BILI_FINAL, TCB, method = "spearman")),
+    n=n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    spearman_rho = round(sapply(result, function(x) x$estimate), digits = 3),
+    p_value = round(sapply(result, function(x) x$p.value), digits=3)
+  ) %>%
+  select(-result)
+
+result = cor.test(validbiliandtcb_nopt$BILI_FINAL,validbiliandtcb_nopt$TCB,method="spearman")
+
+overall_row <- tibble(
+  SITE = "**Overall**",
+  spearman_rho = round(result$estimate,digits=3),
+  p_value = round(result$p.value,digits=3),
+  n=nrow(validbiliandtcb_nopt)
+)
+
+table5 <- bind_rows(cor_by_site,overall_row)
+
+table5 <- tb_theme2(table5,rowname_col="SITE") %>% 
+  tab_header(
+    title = md("**Table 5a: Spearman's Correlation, by Site**")
+  ) 
+
+table5 <- table5 %>% gtsave(paste0("Table5a_CorrelationbySite_",Sys.Date(),"_Dataset",UploadDate,".png"),expand=10)
+knitr::include_graphics(paste0("Table5a_CorrelationbySite_",Sys.Date(),"_Dataset",UploadDate,".png"))
+
+
+```
+
+### Table 5b. Spearman's Correlations of TCB values (y/dependent var) vs Bili-ruler values (x/independent var), by MST value
+
+```{r correlations by mst}
+options(knitr.kable.NA= "")
+
+cor_by_mst <- validbiliandtcb_nopt %>%
+  filter(!is.na(MST_FINAL)) %>%
+  group_by(MST_FINAL = as.character(MST_FINAL)) %>%
+  summarise(
+    result = list(cor.test(BILI_FINAL, TCB, method = "spearman")),
+    n=n(),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    spearman_rho = round(sapply(result, function(x) x$estimate), digits = 3),
+    p_value = round(sapply(result, function(x) x$p.value), digits=3)
+  ) %>%
+  select(MST_FINAL, spearman_rho, p_value,n)
+
+result = cor.test(validbiliandtcb_nopt$BILI_FINAL,validbiliandtcb_nopt$TCB,method="spearman")
+
+overall_row <- tibble(
+  MST_FINAL = "**Overall**",
+  spearman_rho = round(result$estimate,digits=3),
+  p_value = round(result$p.value,digits=3),
+  n=nrow(validbiliandtcb_nopt)
+)
+
+table5b <- bind_rows(cor_by_mst,overall_row)
+
+table5b <- tb_theme2(table5b,rowname_col="MST_FINAL") %>% 
+  tab_header(
+    title = md("**Table 5b: Correlation by MST**")
+  ) 
+
+table5b <- table5b %>% gtsave(paste0("Table5b_CorrelationbyMST_",Sys.Date(),"_Dataset",UploadDate,".png"),expand=10)
+knitr::include_graphics(paste0("Table5b_CorrelationbyMST_",Sys.Date(),"_Dataset",UploadDate,".png"))
+
+
+```
+
+\newpage
+
+### Table 6. Se/Sp of Bili-ruler vs TCB
+
+```{r sesp}
+
+sespfunction <- function(biliruler,tcb){
+  tp <- sum(validbiliandtcb_nopt$BILI_FINAL >= biliruler & validbiliandtcb_nopt$TCB >= tcb)
+  fn <- sum(validbiliandtcb_nopt$BILI_FINAL < biliruler & validbiliandtcb_nopt$TCB >= tcb)
+  fp <- sum(validbiliandtcb_nopt$BILI_FINAL >= biliruler & validbiliandtcb_nopt$TCB < tcb)
+  tn <- sum(validbiliandtcb_nopt$BILI_FINAL < biliruler & validbiliandtcb_nopt$TCB < tcb)
+  se = tp / (tp+fn)
+  sp = tn / (tn+fp)
+  
+  return(list(sensitivity = se, specificity = sp))
+  
+}
+
+
+biliruler_vals <- seq(1, 6, by = 0.5)
+tcb_vals <- seq(11, 19, by = 2)
+
+# Create a grid of all combinations
+threshold_grid <- expand_grid(biliruler = biliruler_vals, tcb = tcb_vals)
+
+# Apply the function across all rows
+results <- threshold_grid %>%
+  mutate(
+    se_sp = pmap(list(biliruler, tcb), sespfunction)
+  ) %>%
+  unnest_wider(se_sp) %>%
+  mutate(sensitivity = round(sensitivity,digits=3),
+         specificity = round(specificity,digits=3))
+
+tcb_11 <- results %>%
+  filter(tcb==11) %>%
+  mutate
+tcb_13 <- results %>% 
+  filter(tcb==13)
+tcb_15 <- results %>%
+  filter(tcb==15)
+tcb_17 <- results %>%
+filter(tcb==17)
+
+tablesesp <- bind_cols(tcb_11,tcb_13,tcb_15,tcb_17)
+
+tablesesp <- gt(tablesesp) %>%
+  cols_label(
+    biliruler...1 = "Bili-ruler",
+    tcb...2 = "TCB",
+    sensitivity...3 = "Sensitivity",
+    specificity...4 = "Specificity",
+    biliruler...5 = "Bili-ruler",
+    tcb...6 = "TCB",
+    sensitivity...7 = "Sensitivity",
+    specificity...8 = "Specificity",
+    biliruler...9 = "Bili-ruler",
+    tcb...10 = "TCB",
+    sensitivity...11 = "Sensitivity",
+    specificity...12 = "Specificity",
+    biliruler...13 = "Bili-ruler",
+    tcb...14 = "TCB",
+    sensitivity...15 = "Sensitivity",
+    specificity...16 = "Specificity"
+  ) %>%
+  tab_spanner(label = "TCB >= 11",columns = c(biliruler...1,tcb...2,sensitivity...3,specificity...4)) %>%
+  tab_spanner(label = "TCB >= 13",columns = c(biliruler...5,tcb...6,sensitivity...7,specificity...8)) %>%
+  tab_spanner(label = "TCB >= 15",columns = c(biliruler...9,tcb...10,sensitivity...11,specificity...12)) %>%
+  tab_spanner(label = "TCB >= 17",columns = c(biliruler...13,tcb...14,sensitivity...15,specificity...16)) %>%
+  tab_header(title=md("**Table 6: Sensitivity/Specificity of Bili-ruler to detect TCB Scores**"))
+
+
+tablesesp <- tablesesp %>% gtsave(paste0("Table6_SeSpBiliruler_",Sys.Date(),"_Dataset",UploadDate,".png"),expand=10)
+knitr::include_graphics(paste0("Table6_SeSpBiliruler_",Sys.Date(),"_Dataset",UploadDate,".png"))
+
+```
+
+### Figure 4. ROC Curves + AUC Values of Bili-ruler vs TCB
+
+```{r grid figure}
+#tcb11
+df <- results %>%
+  filter(tcb==11)
+x <- 1-df$specificity
+y <- df$sensitivity
+data <- data.frame(x=x,y=y)
+aucvalue <- AUC(x=data$x,y=data$y,method="trapezoid")
+
+tcb11 <- results %>%
+  filter(tcb==11) %>%
+  ggplot(aes(x = (1 - specificity), y = sensitivity)) +
+  geom_point()+
+  ggtitle(paste0("TCB > 11, AUC = ",round(aucvalue,digits=2)))+
+  geom_line(color="grey")
+
+  
+#tcb13
+df <- results %>%
+  filter(tcb==13)
+x <- 1-df$specificity
+y <- df$sensitivity
+data <- data.frame(x=x,y=y)
+aucvalue <- AUC(x=data$x,y=data$y,method="trapezoid")
+
+tcb13 <- results %>%
+  filter(tcb==13) %>%
+  ggplot(aes(x = (1 - specificity), y = sensitivity)) +
+  geom_point()+
+  ggtitle(paste0("TCB > 13, AUC = ",round(aucvalue,digits=2)))+
+  geom_line(color="grey")
+#tcb13
+
+#tcb15
+df <- results %>%
+  filter(tcb==15)
+x <- 1-df$specificity
+y <- df$sensitivity
+data <- data.frame(x=x,y=y)
+aucvalue <- AUC(x=data$x,y=data$y,method="trapezoid")
+
+tcb15 <- results %>%
+  filter(tcb==15) %>%
+  ggplot(aes(x = (1 - specificity), y = sensitivity)) +
+  geom_point()+
+  ggtitle(paste0("TCB > 15, AUC = ",round(aucvalue,digits=2)))+
+  geom_line(color="grey")
+#tcb15
+
+#tcb17
+df <- results %>%
+  filter(tcb==17)
+x <- 1-df$specificity
+y <- df$sensitivity
+data <- data.frame(x=x,y=y)
+aucvalue <- AUC(x=data$x,y=data$y,method="trapezoid")
+
+tcb17 <- results %>%
+  filter(tcb==17) %>%
+  ggplot(aes(x = (1 - specificity), y = sensitivity)) +
+  geom_point()+
+  ggtitle(paste0("TCB > 17, AUC = ",round(aucvalue,digits=2)))+
+  geom_line(color="grey")
+#tcb11
+
+grid.arrange(tcb11, tcb13, tcb15, tcb17, ncol = 2, nrow = 2)
+
+```
+
+Key Findings:\
+Bili-ruler scores can be best used to detect a TCB of 17 (TCB>17 has the highest AUC value). \
+A Bili-ruler score of 3 can detect TCB >= 17 with Se of 0.853, Sp of 0.662\
+A Bili-ruler score of 2.5 can detect TCB >= 15 with Se of 0.857, Sp of 0.544\
+\
+By comparison, Dr. Lee's study recommended using a Bili-ruler score of 3.5 to detect TCB >= 15 with Se of 94.7, Sp of 81.3  

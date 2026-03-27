@@ -6,8 +6,9 @@
 ******Table of Contents************
 /*
 1. Set directories and import data
-2. Code analytical variables for long and collapsed data sets
-3. Code analytical variables for Maternal Outcomes report data set
+2. Basic data cleaning
+3. Code analytical variables for long and collapsed data sets
+4. Code analytical variables for Maternal Outcomes report data set
 */
 
 /*
@@ -21,11 +22,11 @@
 *Output: MAT_DEPR.dta
 
 ***********************************
-***Part 1: Directories and data import
+**#Part 1: Directories and data import
 ***********************************
 * Update each session:
-global datadate "2025-04-04"
-//update with data date
+global datadate "2026-01-30"
+//update with data date in format YYYY-MM-DD
 
 global runqueries = 1
 //set this depending on whether you want to run queries or no
@@ -38,11 +39,15 @@ global outcomes "Z:\Outcome Data/$datadate"
 global wrk "Z:\Savannah_working_files\depression/$datadate"
 // make sure this is a secure location as we will save data files here
 cap mkdir "$wrk"
+//This will make the folder if it does not yet exist
 cd "$wrk"
-global queries "Z:\Savannah_working_files\depression/$datadate\queries"
-cap mkdir "$queries"
-//save query reports here
 
+*Save queries:
+global queries "Z:\Savannah_working_files\depression/$datadate\queries"
+	cap mkdir "$queries" //create the folder if it doesn't exist
+	//save query reports here
+
+	*Get today's date:
 local date: di %td_CCYY_NN_DD daily("`c(current_date)'", "DMY")
 global today = subinstr(strltrim("`date'"), " ", "-", .)
 *******************************************************************
@@ -51,9 +56,10 @@ global today = subinstr(strltrim("`date'"), " ", "-", .)
 clear
 import delimited "$da/mnh25_merged.csv", bindquote(strict) case(upper) 
 rename M25_* *
+	*remove the M25_ prefix
 
 **************************************************
-***Part 2: Analytical variables for long data set
+**#Part 2: Basic Data cleaning
 **************************************************
 label define TYPE_VISIT ///
 	1"Enrollment" 	///
@@ -68,8 +74,8 @@ label define TYPE_VISIT ///
 	10"PNC-6" 		///
 	11"PNC-26" 		///
 	12"PNC-52" 		///
-	13"Non-scheduled visit for routine care" 		///
-	14"Non-scheduled PNC visit for routine care"	
+	13"Unscheduled ANC visit for routine care" 		///
+	14"Unscheduled PNC visit for routine care"	, replace
 label val TYPE_VISIT TYPE_VISIT
 
 
@@ -90,11 +96,14 @@ label define MAT_VISIT 					///
 label val MAT_VISIT_MNH25 MAT_VISIT
 label var MAT_VISIT_MNH25 "Was the visit completed?"
 
+	**#Query: duplicates by date
 gen DATE = date(OBSSTDAT, "YMD")
 format DATE %td
 
 duplicates tag MOMID PREGID OBSSTDAT if MAT_VISIT_MNH25 <=2, gen(date_dup)
-
+	*there should not be duplicates on the same date
+	
+	*The below will export queries by site if duplicates on same date
 if $runqueries == 1 {
 	
 		levelsof(SITE) if date_dup > 0 & date_dup <., local(sitelev) clean
@@ -111,13 +120,15 @@ drop date_dup visnum
 
 *Check if all merge with the enrolled file 
 
-merge m:1 MOMID PREGID using "$outcomes/MAT_ENROLL.dta", gen(checkenroll) keepusing(ENROLL PREG_START_DATE)
+merge m:1 MOMID PREGID using "$outcomes/MAT_ENROLL.dta", gen(checkenroll) keepusing(SITE ENROLL PREG_START_DATE EST_CONCEP_DATE_US)
+assert SITE != ""
 
 str2date   FORMCOMPLDAT_MNH25 
 	**str2date is a user-defined function to convert strings to dates
+	*see str2date.ado on Savannah's Github, or convert to date on your own
 str2date   PREG_START_DATE
 
-
+	**#Query: not enrolled
 if $runqueries == 1 {
 	
 		levelsof(SITE) if ENROLL == ., local(sitelev) clean
@@ -131,26 +142,29 @@ if $runqueries == 1 {
 drop if ENROLL == . 
 drop checkenroll 
 
-merge m:1 MOMID PREGID using "$outcomes/MAT_ENDPOINTS.dta", nogen keepusing(PREG_END PREG_END_DATE)
+merge m:1 MOMID PREGID using "$outcomes/MAT_ENDPOINTS.dta", nogen keepusing(SITE PREG_END PREG_END_DATE)
+assert SITE != ""
 
 gen depr_ga = DATE - PREG_START_DATE
 replace depr_ga = . if ///
 	DATE < 0 | PREG_START_DATE < 0 | inlist(TYPE_VISIT,10,14)
 replace depr_ga = . if MAT_VISIT_MNH25 >=3	
 	
-gen depr_infage = DATE - PREG_END_DATE
-replace depr_infage = . if ///
+gen depr_pp = DATE - PREG_END_DATE
+replace depr_pp = . if ///
 		DATE < 0 | PREG_END_DATE < 0 | inlist(TYPE_VISIT,1,2,3,4,5,13)
-replace depr_infage = . if MAT_VISIT_MNH25 >=3
+replace depr_pp = . if MAT_VISIT_MNH25 >=3
 
+	*GAs < 28 or > 310 should be queried
 gen outofrange = 1 if  depr_ga < 28 | (depr_ga > 310 & depr_ga <.)
-replace outofrange = 1 if depr_infage < 42 | ///
-	(depr_infage > 104 & depr_infage <. )
+replace outofrange = 1 if depr_pp < 42 | ///
+	(depr_pp > 104 & depr_pp <. )
 assert outofrange == . if MAT_VISIT_MNH25 >= 3
 count if outofrange== 1
 	
+	**#Query: Unexpected visit types
 	if $runqueries == 1 {
-	
+		*query for unexpected visit types
 		levelsof(SITE) if inlist(TYPE_VISIT,6,7,8,9,11,12), local(sitelev) clean
 		foreach site of local sitelev {
 			export excel SITE MOMID PREGID TYPE_VISIT OBSSTDAT   using "$queries/`site'-depression-queries-$datadate.xlsx"  if SITE=="`site'" & inlist(TYPE_VISIT,6,7,8,9,11,12), sheet("Unexpected visit type",modify)  firstrow(variables) 
@@ -160,9 +174,9 @@ count if outofrange== 1
 }
 	
 	drop if inlist(TYPE_VISIT,6,7,8,9,11,12)
-	
+	**#Query: GA out of range
 	if $runqueries == 1 {
-	
+		*query for GA out of range
 		levelsof(SITE) if outofrange == 1, local(sitelev) clean
 		foreach site of local sitelev {
 			export excel SITE MOMID PREGID TYPE_VISIT OBSSTDAT PREG_START_DATE  using "$queries/`site'-depression-queries-$datadate.xlsx"  if SITE=="`site'" & outofrange == 1, sheet("Out of range",modify)  firstrow(variables) 
@@ -171,15 +185,15 @@ count if outofrange== 1
 		
 }
 
-drop if outofrange == 1
-drop outofrange
+*drop if outofrange == 1
+*drop outofrange
 
 gen 	 ga_check = 1 if TYPE_VISIT==1 & !inrange(depr_ga,28,181)
 replace  ga_check = 1 if TYPE_VISIT==2 & !inrange(depr_ga,28,181)
 replace  ga_check = 1 if TYPE_VISIT==3 & !inrange(depr_ga,182,216)
 replace  ga_check = 1 if TYPE_VISIT==4 & !inrange(depr_ga,217,310)
 replace  ga_check = 1 if TYPE_VISIT==5 & !inrange(depr_ga,238,310)
-replace  ga_check = 1 if TYPE_VISIT ==10 & !inrange(depr_infage,42,104)
+replace  ga_check = 1 if TYPE_VISIT==10 & !inrange(depr_pp,42,104)
 replace  ga_check = . if MAT_VISIT_MNH25 >= 3
 tab 	 ga_check SITE
 
@@ -187,7 +201,7 @@ tab 	 ga_check SITE
 	gen ga_check_note = "GW has no DOB on file" if ///
 	PREG_END_DATE == . & inlist(TYPE_VISIT,10,14)
 	replace ga_check_note = "Before PREG_END_DATE" if ///
-	depr_infage <0 & inrange(TYPE_VISIT, 10,14) & ga_check == 1 
+	depr_pp <0 & inrange(TYPE_VISIT, 10,14) & ga_check == 1 
 	
 	**anc windows:
 	replace ga_check_note = ///
@@ -208,19 +222,20 @@ tab 	 ga_check SITE
 	
 	**postpartum windows:
 	replace ga_check_note = "Too early < 42 days pp" if ///
-	inrange(depr_infage,0,41) & TYPE_VISIT == 10 & ga_check == 1  & ga_check_note == ""
+	inrange(depr_pp,0,41) & TYPE_VISIT == 10 & ga_check == 1  & ga_check_note == ""
 	replace ga_check_note = "Too late > 104 days pp" if ///
-	inrange(depr_infage,105,400) & TYPE_VISIT == 10 & ga_check == 1  & ga_check_note == ""
+	inrange(depr_pp,105,400) & TYPE_VISIT == 10 & ga_check == 1  & ga_check_note == ""
 	
 	replace ga_check_note = ///
 	"GW records indicate this visit falls during PNC" if ///
-	inrange(depr_infage,0,1000) & ga_check == 1 & !inlist(TYPE_VISIT,10,14) & ga_check_note == ""
+	inrange(depr_pp,0,1000) & ga_check == 1 & !inlist(TYPE_VISIT,10,14) & ga_check_note == ""
 	
 	replace ga_check_note = "No visit date" if ///
 	(DATE == . | DATE < 0 ) & ga_check == 1 & ga_check_note == ""
 
+	**#Query: export IDs with wrong visit window/dates:
 	if $runqueries == 1 {	
-	**Optional Query: export IDs with wrong visit window/dates:
+	
 		
 	preserve
 	sort TYPE_VISIT MOMID
@@ -235,12 +250,15 @@ tab 	 ga_check SITE
 	restore
 	}
 	
-	drop if ga_check == 1
+	*drop if ga_check == 1
 	
-	drop ga_check
-	drop ga_check_note
+	*drop ga_check
+	*drop ga_check_note
 	
-**# Code depression score
+
+***********************************	
+**# Part 3: Code depression score
+***********************************	
 foreach var in EPDS0101 EPDS0102 EPDS0103 EPDS0104 EPDS0105 EPDS0106 EPDS0107 EPDS0108 EPDS0109 EPDS0110 {
 	gen `var'_R = `var'
 	**this is a loop for each variable before the bracket { 
@@ -256,6 +274,7 @@ foreach var in m25_epds0103_recode m25_epds0106_recode m25_epds0107_recode ///
 	destring `var' , replace
 }
 */
+	**#Codes for India, Pakistan, and Zambia
 **CHANGE SCORES FOR INDIA CMC AND SAS, PAKISTAN AND ZAMBIA - BASED ON CRF
 foreach var in EPDS0101_R EPDS0102_R EPDS0104_R {
 	recode `var' (1=0) (2=1) (3=2) (4=3) (77=.) (55=.) if SITE!="Ghana" & SITE!="Kenya"
@@ -273,7 +292,7 @@ foreach var in EPDS0103_R EPDS0105_R EPDS0106_R EPDS0107_R EPDS0108_R EPDS0109_R
 
 
 ******************************************************
-**# Kenya-specific code
+	**# Kenya-specific code
 **all questions in the scale are coded the same 
 
 **SITES: DO NOT RUN IF SITE ! = "Kenya"
@@ -286,7 +305,7 @@ foreach var in EPDS0101_R EPDS0102_R EPDS0103_R EPDS0104_R EPDS0105_R EPDS0106_R
 ******************************************************
 
 ******************************************************
-**# Ghana-specific code
+	**# Ghana-specific code
 *Ghana's  questions are asked differently, see CRF and data dictionary
 **SITES: DO NOT RUN IF SITE ! = "Ghana"
 **Questions 1-2 which are written in a positive way:
@@ -328,9 +347,9 @@ foreach var in EPDS0103 EPDS0104 EPDS0105 EPDS0106 EPDS0107 EPDS0108 EPDS0109 EP
 **END GHANA-SPECIFIC CODE**
 ***************************************
 
-**#Generate summary variable and label responses
+	**#Generate summary variable and label responses
 *Label the responses
-**note that the responses are not the same across SITEs, but 3--> higher frequency/worse intensity of depression symptoms
+**note that the responses are not the same across sites, but 3--> higher frequency/worse intensity of depression symptoms
 label define depression_responses ///
 0"0, Less/infrequent symptom" 3"3, Worse/frequent symptom"
 label val EPDS0101_R EPDS0102_R EPDS0103_R EPDS0104_R EPDS0105_R EPDS0106_R EPDS0107_R EPDS0108_R EPDS0109_R EPDS0110_R depression_responses
@@ -340,15 +359,18 @@ label val EPDS0101_R EPDS0102_R EPDS0103_R EPDS0104_R EPDS0105_R EPDS0106_R EPDS
  
 **GEN SUMMARY VARIABLE
 egen dep=rowtotal( EPDS0101_R EPDS0102_R EPDS0103_R EPDS0104_R EPDS0105_R EPDS0106_R EPDS0107_R EPDS0108_R EPDS0109_R EPDS0110_R) , missing 
-gen dep_sum = (dep/Q_ANSWERED) *10
+gen epds_score = round(((dep/Q_ANSWERED)*10),0.1)
 
+gen selfharm_risk = 1 if inrange( EPDS0110_R,2,3)
+replace selfharm_risk = 0 if inrange( EPDS0110_R,0,1)
+label var selfharm_risk "Participant screened for self-harm risk according to Q10"
 
-
-gen QUERY_MISS_DEPSCORE=1 if dep_sum==. 
+	**#query: missing depression score
+gen QUERY_MISS_DEPSCORE=1 if epds_score==. 
 label var QUERY_MISS_DEPSCORE "Missing depression score"
 
-**QC check if sum score matches the autocalculated score
-gen dep_check = dep_sum - EPDS01_SCORRES if EPDS01_SCORRES < 55
+	**#QC check if sum score matches the auto-calculated score
+gen dep_check = epds_score - EPDS01_SCORRES if EPDS01_SCORRES < 55
 gen EPDS01_SCORRES_MISS = 1 if ///
 	inlist(EPDS01_SCORRES,55,66,77,88,99) & inrange(Q_ANSWERED,1,10)
 
@@ -356,6 +378,7 @@ gen EPDS01_SCORRES_MISS = 1 if ///
 gen QUERY_SCORE_DIFFER = 1 if dep_check!=0 & dep_check!=.
 label var QUERY_SCORE_DIFFER "Manual differs auto score depression"
 
+	**#query: depression score differs from auto-calculated
 if $runqueries == 1 {
 	
 		levelsof(SITE) if QUERY_SCORE_DIFFER == 1, local(sitelev) clean
@@ -364,7 +387,7 @@ if $runqueries == 1 {
 			disp as result "`site' complete"
 		}
 		
-	**Missing score but questions are answered:	
+	**#Query: Missing score but questions are answered:	
 		levelsof(SITE) if EPDS01_SCORRES_MISS == 1, local(sitelev) clean
 		foreach site of local sitelev {
 		
@@ -389,161 +412,193 @@ replace cmc_admin=1 if OBSSTDAT>="2023-12-08" & SITE=="India-CMC"
 label define cmc_admin 0"self-administered" 1"staff-administered"
 label val cmc_admin cmc_admin
 label var cmc_admin "CMC self- or staff- administered; changed Dec 8 2023"
+	*Note that the distribution of values by assessment differs substantially
 
-**# Create variables for the report
-**ANC-20
-gen DEPR_STND_ANC20 = -5 if ///
-TYPE_VISIT<=2  
-//all expected obs
-//temporarily code as -5 because we will collapse (max) and we want to preserve 0/1 if it's available 
-//we can fix -5, -2, -1 --> 55 after collapsing depending on our needs
-replace DEPR_STND_ANC20 = -2 if ///
-TYPE_VISIT<=2  &  MAT_VISIT_MNH25>=3
-//reason for missing: visit not completed
-replace DEPR_STND_ANC20 = -1 if ///
-TYPE_VISIT<=2  &  MAT_VISIT_MNH25<=2 & dep_sum==.
-//reason for missing: visit completed, but the summary score is not available
-replace DEPR_STND_ANC20 = 0 if ///
-TYPE_VISIT<=2  & dep_sum !=.
-replace DEPR_STND_ANC20 = 1 if ///
-TYPE_VISIT<=2  & dep_sum !=. & dep_sum>=11 
-label var DEPR_STND_ANC20 "Standard cutoff"
-
-gen DEPR_SITE_ANC20 = -5 if ///
-TYPE_VISIT<=2
-replace DEPR_SITE_ANC20 = -2 if ///
-TYPE_VISIT<=2  &  MAT_VISIT_MNH25>=3
-//reason for missing: visit not completed
-replace DEPR_SITE_ANC20 = -1 if ///
-TYPE_VISIT<=2  &  MAT_VISIT_MNH25<=2 & dep_sum==.
-replace DEPR_SITE_ANC20 = 0 if ///
-TYPE_VISIT<=2  & dep_sum !=.
-replace DEPR_SITE_ANC20  = 1 if /// 
-SITE=="Ghana" & dep_sum>=11  	& dep_sum!=.  & TYPE_VISIT<=2 | ///
-SITE=="India-CMC" & dep_sum>=8  & dep_sum!=. & TYPE_VISIT<=2 | ///
-SITE=="India-SAS" & dep_sum>=10 & dep_sum!=. & TYPE_VISIT<=2 | ///
-SITE=="Kenya" & dep_sum>=13     & dep_sum!=. & TYPE_VISIT<=2 | ///
-SITE=="Pakistan" & dep_sum>=14  & dep_sum!=. & TYPE_VISIT<=2 | ///
-SITE=="Zambia" & dep_sum>=10    & dep_sum!=. & TYPE_VISIT<=2
-label var DEPR_SITE_ANC20 "SITE-specific cutoff"
-
-gen DEPR_SCORE_ANC20=dep_sum if TYPE_VISIT<=2
-
-**ANC-32 (also includes ANC-36)
-	gen DEPR_STND_ANC32 = -5 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  
-	//all expected obs
-	//temporarily code as -5 because we will collapse (max) and we want to preserve 0/1 if it's available 
-	replace DEPR_STND_ANC32 = -2 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25>=3
-	replace DEPR_STND_ANC32 = -1 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25<=2 & dep_sum==.
-	replace DEPR_STND_ANC32 = 0 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5 & dep_sum !=.
-	replace DEPR_STND_ANC32 = 1 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & dep_sum !=. & dep_sum>=11 
-	label var DEPR_STND_ANC32 "Standard cutoff"
-
-	gen DEPR_SITE_ANC32 = -5 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5
-	 replace DEPR_SITE_ANC32 = -2 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25>=3
-	replace DEPR_SITE_ANC32 = -1 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & MAT_VISIT_MNH25<=2 & dep_sum==.
-	replace DEPR_SITE_ANC32 = 0 if ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  & dep_sum !=.
-	replace DEPR_SITE_ANC32  = 1 if /// 
-	SITE=="Ghana" & dep_sum>=11 	& dep_sum!=. & ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="India-CMC" & dep_sum>=8 	& dep_sum!=. & ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="India-SAS" & dep_sum>=10 & dep_sum!=. & ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="Kenya" & dep_sum>=13 	& dep_sum!=. & ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="Pakistan" & dep_sum>=14 	& dep_sum!=. & ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  | ///
-	SITE=="Zambia" & dep_sum>=10 	& dep_sum!=. & ///
-	TYPE_VISIT>=4 & TYPE_VISIT<=5  
-	label var DEPR_SITE_ANC32 "SITE-specific cutoff"
-	gen DEPR_SCORE_ANC32 =dep_sum if TYPE_VISIT>=4 & TYPE_VISIT<=5  
-
-**PNC-6
-	gen DEPR_STND_PNC6 = -5 if ///
-	TYPE_VISIT==10 
-	//all expected obs
-	//temporarily code as -5 because we will collapse (max) and we want to preserve 0/1 if it's available 
-	replace DEPR_STND_PNC6 = -2 if ///
-	TYPE_VISIT==10 & MAT_VISIT_MNH25>=3
-	replace DEPR_STND_PNC6 = -1 if ///
-	TYPE_VISIT==10 & MAT_VISIT_MNH25<=2 & dep_sum==.
-	replace DEPR_STND_PNC6 = 0 if ///
-	TYPE_VISIT==10 & dep_sum !=.
-	replace DEPR_STND_PNC6 = 1 if ///
-	TYPE_VISIT==10  & dep_sum !=. & dep_sum>=11 
-	label var DEPR_STND_PNC6 "Standard cutoff"
-
-	gen DEPR_SITE_PNC6 = -5 if ///
-	TYPE_VISIT==10
-	replace DEPR_SITE_PNC6 = -2 if ///
-	TYPE_VISIT==10 & MAT_VISIT_MNH25>=3
-	replace DEPR_SITE_PNC6 = -1 if ///
-	TYPE_VISIT==10 & MAT_VISIT_MNH25<=2 & dep_sum==.
-	replace DEPR_SITE_PNC6 = 0 if ///
-	TYPE_VISIT==10  & dep_sum !=.
-	replace DEPR_SITE_PNC6  = 1 if /// 
-	SITE=="Ghana" & dep_sum>=11 & dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="India-CMC" & dep_sum>=8 	& dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="India-SAS" & dep_sum>=10 & dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="Kenya" & dep_sum>=13 	& dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="Pakistan" & dep_sum>=14 	& dep_sum!=. & TYPE_VISIT==10  | ///
-	SITE=="Zambia" & dep_sum>=10 	& dep_sum!=. & TYPE_VISIT==10 
-	label var DEPR_SITE_PNC6 "SITE-specific cutoff"
-	gen DEPR_SCORE_PNC6 = dep_sum if TYPE_VISIT==10 
+gen 		DEPR_STND = -5 
+replace 	DEPR_STND = -2 if MAT_VISIT_MNH25>=3
+			*visit not completed
+replace 	DEPR_STND = -1 if MAT_VISIT_MNH25<=2 & epds_score==.
+			*visit completed, but no EPDS score
+replace 	DEPR_STND = 0 if epds_score != . 
+replace 	DEPR_STND = 1 if inrange(epds_score, 11,30)
+label var 	DEPR_STND "Standard score"
+	
+gen 		DEPR_SITE = -5 
+replace 	DEPR_SITE = -2 if MAT_VISIT_MNH25>=3
+			*visit not completed
+replace 	DEPR_SITE = -1 if MAT_VISIT_MNH25<=2 & epds_score==.
+			*visit completed, but no EPDS score
+replace 	DEPR_SITE = 0 if epds_score != . 
+replace 	DEPR_SITE = 1 if ///
+			SITE=="Ghana" 		& inrange(epds_score,11,.) | ///
+			SITE=="India-CMC" 	& inrange(epds_score,8,.)  | ///
+			SITE=="India-SAS" 	& inrange(epds_score,10,.) | ///
+			SITE=="Kenya" 		& inrange(epds_score,13,.) | ///
+			SITE=="Pakistan" 	& inrange(epds_score,14,.) | ///
+			SITE=="Zambia" 		& inrange(epds_score,10,.)  	
 
 	notes : Data date: $datadate TS
 	label data "Depression form, all $datadate data, long"
-save "$wrk/mnh25.dta", replace
-drop if dep_sum==.
-bysort MOMID PREGID DATE (TYPE_VISIT) : gen VISNUM=_n
-keep if VISNUM==1
-drop VISNUM
-label data "Depression form, nonmissing $datadate data, long"
-save "$wrk/mnh25_nomissing.dta", replace
+	
+	keep SITE MOMID PREGID DATE TYPE_VISIT depr_ga depr_pp epds_score selfharm_risk DEPR_STND DEPR_SITE 
+	save "$wrk/MNH25.dta", replace
+	drop if epds_score==.
+	bysort MOMID PREGID DATE (TYPE_VISIT) : gen VISNUM=_n
+	keep if VISNUM==1
+	drop VISNUM
+	rename *, upper
+	label data "Depression form, nonmissing $datadate data, long"
+	save "$wrk/MAT_DEPR_LONG.dta", replace
 
 **COLLAPSE to get one row per participant
- use "$wrk/mnh25.dta",clear
+ use "$wrk/MAT_DEPR_LONG.dta",clear
+ 
+ **Worst depression score date
+	gsort PREGID -EPDS_SCORE +DATE
+		*sorts EPDS score in descending order (by PREGID)
+		*if two entries with same score, sort ascending by date
+	by PREGID : gen worst = _n if  inrange(EPDS_SCORE,0,.)
+	gen DEPR_SCORE_WORST_DT = DATE if worst == 1 & inrange(EPDS_SCORE, 0,.)
+	gen DEPR_SCORE_WORST = EPDS_SCORE if worst == 1 & inrange(EPDS_SCORE, 0,.)
+	sort SITE PREGID DATE
+	*browse SITE PREGID TYPE_VISIT DEPR_SCORE_WORST epds_score worst
+	drop worst 
+	
+	*worst depression score date in ANC
+	gen ANC = 1 if inrange(DEPR_GA,28,310) & inrange(EPDS_SCORE,0,.)
+	gsort PREGID ANC -EPDS_SCORE +DATE
+	by PREGID : gen worst_anc = _n if ANC == 1
+	gen DEPR_SCORE_WORST_ANC_DT = DATE if worst_anc == 1
+	format DEPR_SCORE_WORST_ANC_DT %td
+	gen DEPR_SCORE_WORST_ANC = EPDS_SCORE if worst_anc == 1
+	sort SITE PREGID DATE
+	*browse SITE PREGID TYPE_VISIT DEPR_SCORE_WORST DEPR_SCORE_WORST_ANC epds_score worst_anc
+	drop worst_anc
+	
+	*first time woman screened for depression? (standard cutoff)
+	*gen DEPR_STND = 1 if inrange(epds_score, 11,.)
+	gsort PREGID +DATE 
+	bysort PREGID (DEPR_STND DATE) : gen first_depr = _n if DEPR_STND == 1
+	gen DEPR_STND_FIRST_DT = DATE if first_depr == 1
+	drop first_depr
+	
+	*first time woman screened for depression? (site cutoff)
+	
+	gsort PREGID -DEPR_SITE +DATE
+	by PREGID : gen first_depr = _n if DEPR_SITE == 1
+	gen  DEPR_SITE_FIRST_DT  = DATE if first_depr == 1
+	drop first_depr 
+	
+	gen 	TRIMESTER = 1 if inrange( DEPR_GA ,28,97)
+	replace TRIMESTER = 2 if inrange( DEPR_GA,98,195)
+	replace TRIMESTER = 3 if inrange( DEPR_GA,196,308)
+	replace TRIMESTER = . if inlist( TYPE_VISIT,6,7,8,9,10,11,12,14)
+	
+	sort SITE PREGID DATE
+	
+	
+	keep SITE MOMID PREGID DATE TYPE_VISIT DEPR_GA DEPR_PP EPDS_SCORE DEPR_STND DEPR_SITE DEPR_SCORE_WORST_DT DEPR_SCORE_WORST DEPR_SCORE_WORST_ANC_DT DEPR_SCORE_WORST_ANC DEPR_STND_FIRST_DT DEPR_SITE_FIRST_DT
+	
+	save "$wrk/MAT_DEPR_LONG.dta", replace
+	
+	**# Create variables for the report
+**Enroll/ANC-20
+gen 		DEPR_STND_ANC20 = DEPR_STND if ///
+			TYPE_VISIT <= 2 & inrange(DEPR_GA,28,181)
+label var 	DEPR_STND_ANC20 "Standard cutoff"
+
+gen 		DEPR_SITE_ANC20 = DEPR_SITE if ///
+			TYPE_VISIT <= 2 & inrange(DEPR_GA,28,181)
+label var 	DEPR_SITE_ANC20 "SITE-specific cutoff"
+
+gen 		DEPR_SCORE_ANC20 = EPDS_SCORE if ///
+			TYPE_VISIT <= 2 & inrange(DEPR_GA,28,181)
+
+*1st and 2nd trimester
+
+gen 	TRIMESTER = 1 if inrange( DEPR_GA ,28,97)
+replace TRIMESTER = 2 if inrange( DEPR_GA,98,195)
+replace TRIMESTER = 3 if inrange( DEPR_GA,196,308)
+replace TRIMESTER = . if inlist( TYPE_VISIT,6,7,8,9,10,11,12,14)
+
+gen 		DEPR_STND_TRI_12 = DEPR_STND if inlist(TRIMESTER,1,2)
+gen 		DEPR_SITE_TRI_12 = DEPR_SITE if inlist(TRIMESTER,1,2)
+gen 		DEPR_SCORE_TRI_12 = EPDS_SCORE if inlist(TRIMESTER,1,2)
+
+**ANC-32/ANC-36
+gen 		DEPR_STND_ANC32 = DEPR_STND if ///
+			inlist(TYPE_VISIT, 4,5) & inrange(DEPR_GA,217,308)
+label var 	DEPR_STND_ANC32 "Standard cutoff"
+
+gen 		DEPR_SITE_ANC32 = DEPR_SITE if ///
+			inlist(TYPE_VISIT, 4,5) & inrange(DEPR_GA,217,308)
+label var 	DEPR_SITE_ANC32 "SITE-specific cutoff"
+
+gen 		DEPR_SCORE_ANC32 = EPDS_SCORE if ///
+			inlist(TYPE_VISIT, 4,5) & inrange(DEPR_GA,217,308)
+
+*3rd trimester
+
+gen 		DEPR_STND_TRI_3 = DEPR_STND if TRIMESTER == 3
+gen 		DEPR_SITE_TRI_3 = DEPR_SITE if TRIMESTER == 3
+gen 		DEPR_SCORE_TRI_3 = EPDS_SCORE if TRIMESTER == 3
+
+**PNC-6
+gen 		DEPR_STND_PNC6 = DEPR_STND if ///
+				inlist(TYPE_VISIT,10,14) & inrange(DEPR_PP,42,104)
+label var 	DEPR_STND_PNC6 "Standard cutoff"
+
+gen 		DEPR_SITE_PNC6 = DEPR_SITE if ///
+				inlist(TYPE_VISIT,10,14) & inrange(DEPR_PP,42,104)
+label var 	DEPR_SITE_PNC6 "SITE-specific cutoff"
+
+gen 		DEPR_SCORE_PNC6 = EPDS_SCORE if ///
+				inlist(TYPE_VISIT,10,14) & inrange(DEPR_PP,42,104)
+	
 **We want to keep only the highest score
-collapse (max) DEPR_STND_ANC20 DEPR_SITE_ANC20 DEPR_SCORE_ANC20 DEPR_STND_ANC32 DEPR_SITE_ANC32 DEPR_SCORE_ANC32 DEPR_STND_PNC6 DEPR_SITE_PNC6 DEPR_SCORE_PNC6, by(SITE MOMID PREGID)
+collapse (max) DEPR_STND_ANC20 DEPR_SITE_ANC20 DEPR_SCORE_ANC20 ///
+			DEPR_STND_TRI_12 DEPR_SITE_TRI_12 DEPR_SCORE_TRI_12 ///
+			DEPR_STND_ANC32 DEPR_SITE_ANC32 DEPR_SCORE_ANC32 ///
+			DEPR_STND_TRI_3 DEPR_SITE_TRI_3 DEPR_SCORE_TRI_3 ///
+			DEPR_STND_PNC6 DEPR_SITE_PNC6 DEPR_SCORE_PNC6 ///
+		(firstnm) DEPR_SCORE_WORST DEPR_SCORE_WORST_DT ///
+			DEPR_SCORE_WORST_ANC_DT DEPR_SCORE_WORST_ANC ///
+			DEPR_STND_FIRST_DT DEPR_SITE_FIRST_DT , ///
+		by(SITE MOMID PREGID)
  
   
-notes replace _dta in 1 :worst depression score for $datadate data TS
+notes replace _dta in 1 : worst depression score for $datadate data TS
 
 save "$wrk/mnh25_collapsed.dta", replace
 
 
 **************************************************
-**# Part 3: Analytical variables for maternal outcomes data set
+**# Part 4: Analytical variables for maternal outcomes data set
 **************************************************
 	
 	use "$outcomes/MAT_ENROLL.dta", clear
-	keep SITE MOMID PREGID ENROLL
+	keep SITE MOMID PREGID ENROLL PREG_START_DATE
 	merge 1:1 MOMID PREGID using "$wrk/mnh25_collapsed.dta", nogen
 	keep if ENROLL == 1
+	str2date PREG_START_DATE
 
-/*
-	merge 1:1 MOMID PREGID using "$outcomes/MAT_ENDPOINTS.dta", ///
-	gen(merge_PREGEND)
-	keep if ENROLL == 1
-*/
-
-	merge 1:1 MOMID PREGID using "Z:\Savannah_working_files\Expected_obs-$datadate.dta", nogen
+	merge 1:1 SITE MOMID PREGID using "$outcomes/MAT_ENDPOINTS", nogen keepusing(CLOSEOUT STOP_DATE CLOSEOUT_DT PREG_END_GA)
+	
+	merge 1:1 MOMID PREGID using "Z:\Savannah_working_files\Expected-obs\Expected_obs-$datadate.dta", nogen
 
 	assert SITE != ""
 		//check not missing SITE for any observations
-**********ANC-20***********
+
+		
+	**#ANC-20
 	**denominator for data completeness table
-	gen DEPR_MISS_ANC20_DENOM = 1 if ANC20_EXP ==1 | inrange(DEPR_STND_ANC20,0,1)
+	gen DEPR_ANC20_EXP = ANC20_EXP
+		*ANC20_EXP is based on the woman's visit window & her closeout date
+	*Note one issue: Ghana started testing depression late
+	*If a woman's ANC20 late visit window passed before the depression start date, set that woman as 'not expected'
+	
+	replace DEPR_ANC20_EXP = 0 if ANC20_LATE_WINDOW < date("2023-06-15", "YMD") & SITE == "Ghana"
+	gen DEPR_MISS_ANC20_DENOM = 1 if DEPR_ANC20_EXP ==1 | inrange(DEPR_STND_ANC20,0,1)
 		**those expected and/or have data
 	gen DEPR_ANC20_DENOM = 1 if ///
 	(DEPR_STND_ANC20 ==0 | DEPR_STND_ANC20==1) 
@@ -559,18 +614,44 @@ save "$wrk/mnh25_collapsed.dta", replace
 	
 	**MISSING
 	gen DEPR_MISS_ANC20 =DEPR_STND_ANC20 if DEPR_STND_ANC20<0
-	replace DEPR_MISS_ANC20 = -2 if ANC20_EXP ==1 & DEPR_STND_ANC20==.
+	replace DEPR_MISS_ANC20 = -2 if DEPR_ANC20_EXP ==1 & DEPR_STND_ANC20==.
+		*-2 is visit not completed; we will code this if she's expected but there's no score for her
 	replace DEPR_MISS_ANC20 = . if DEPR_MISS_ANC20_DENOM !=1
 		*if no data and not expected, we don't care about missingness reason
 	label define MISS -2"Visit not completed" -1"No summary score"
 	label val DEPR_MISS_ANC20 MISS
 
-
-
-**********ANC-32***********
+	**#Denominator for T1 & T2
+	gen pass_tri12 = PREG_START_DATE + 195 //end of 2nd tri
+	format pass_tri12 %td
+	gen DEPR_MISS_TRI_12_DENOM = 1 if ///
+		pass_tri12 <= date("$datadate", "YMD")
+		*if woman has passed 2nd trimester by date of upload	
+	replace DEPR_MISS_TRI_12_DENOM = 0 if ///
+		pass_tri12 > date("$datadate", "YMD")	
+	replace DEPR_MISS_TRI_12_DENOM = 0 if ///
+		(pass_tri12 > STOP_DATE) & CLOSEOUT == 1
+			*if stop date is before end of 2nd tri, not expected
+	replace DEPR_MISS_TRI_12_DENOM = 0 if ///
+		(pass_tri12 > PREG_END_DATE) 
+			*if delivered before end of 2nd tri, not expected
+	replace DEPR_MISS_TRI_12_DENOM = 0 if ///
+		pass_tri12 < date("2023-06-15", "YMD") & SITE == "Ghana"
+	replace DEPR_MISS_TRI_12_DENOM	=1 if inlist(DEPR_STND_TRI_12,0,1)
+	
+	*denominator of non-missing for T1 & T2:
+	gen DEPR_TRI_12_DENOM = 1 if inlist(DEPR_STND_TRI_12,0,1)
+	*account for missing:
+	gen DEPR_TRI_12_MISS = 1 if ///
+		DEPR_MISS_TRI_12_DENOM == 1 & !inlist(DEPR_STND_TRI_12,0,1)
+		*if expected but no data -- > missing
+	
+	**#ANC-32
 
 	* "full" denominator for missingness table in the report
-	gen DEPR_MISS_ANC32_DENOM =1 if ANC32_EXP == 1 | inrange(DEPR_STND_ANC32,0,1)
+	gen DEPR_ANC32_EXP = ANC32_EXP
+	replace DEPR_ANC32_EXP = 0 if ANC36_LATE_WINDOW < date("2023-06-15", "YMD") & SITE == "Ghana"
+	gen DEPR_MISS_ANC32_DENOM =1 if DEPR_ANC32_EXP == 1 | inrange(DEPR_STND_ANC32,0,1)
 		**have data and/or are expected
 		
 	*denominator of those with valid data
@@ -589,15 +670,35 @@ save "$wrk/mnh25_collapsed.dta", replace
 	"Numerator of those screening for depression at ANC32, SITE cutoff"
 	**MISSING
 	gen DEPR_MISS_ANC32 = DEPR_STND_ANC32 if DEPR_STND_ANC32<0
-	replace DEPR_MISS_ANC32 = -2 if  ANC32_EXP == 1 & DEPR_STND_ANC32==.
+	replace DEPR_MISS_ANC32 = -2 if  DEPR_ANC32_EXP == 1 & DEPR_STND_ANC32==.
 	replace  DEPR_MISS_ANC32=. if DEPR_MISS_ANC32_DENOM !=1
 		*if no data and not expected, we don't care about missingness reason
 	label val DEPR_MISS_ANC32 MISS
 	
+	**#Denominator for T3
+	
+	gen 	DEPR_MISS_TRI_3_DENOM = 1 if ///
+		PREG_END == 1 
+		*if woman has passed 2nd trimester by date of upload	
+	replace DEPR_MISS_TRI_3_DENOM = 0 if ///
+		PREG_END == 0 | PREG_END == . 
+	replace DEPR_MISS_TRI_3_DENOM = 0 if ///
+		PREG_END_DATE < date("2023-06-15", "YMD") & SITE == "Ghana"
+	replace DEPR_MISS_TRI_3_DENOM	=1 if inlist(DEPR_STND_TRI_3,0,1)
 
-**********PNC-6***********
+	*denominator of non-missing for T3:
+	gen DEPR_TRI_3_DENOM = 1 if inlist(DEPR_STND_TRI_3,0,1)
+	*account for missing:
+	gen DEPR_TRI_3_MISS = 1 if ///
+		DEPR_MISS_TRI_3_DENOM == 1 & !inlist(DEPR_STND_TRI_3,0,1)
+		*if expected but no data -- > missing
+	
+
+	**#PNC-6
 	**DENOMINATOR
 	*full denominator for the report
+	gen DEPR_PNC6_EXP = PNC6_EXP
+	replace DEPR_PNC6_EXP = 0 if SITE == "Ghana" & PNC6_LATE_WINDOW < date("2023-06-15", "YMD")
 	gen DEPR_MISS_PNC6_DENOM = 1 if PNC6_EXP == 1 | inrange(DEPR_STND_PNC6,0,1)
 		// those who have data or are expected
 	
@@ -620,25 +721,29 @@ save "$wrk/mnh25_collapsed.dta", replace
 	label val DEPR_MISS_PNC6 MISS
 
 
-**********ANC, EVER***********
+	**#ANC-ever
 	gen DEPR_ANC_EVER_DENOM =1 if ///
 	DEPR_ANC20_DENOM ==1 | ///
-	DEPR_ANC32_DENOM ==1
+	DEPR_ANC32_DENOM ==1 | ///
+	DEPR_TRI_12_DENOM==1 | ///
+	DEPR_TRI_3_DENOM ==1
 	label var DEPR_ANC_EVER_DENOM ///
-	"Denominator of those with a valid depression score at ANC20 or 32"
+	"Denominator of those with a valid depression score in pregnancy"
 	gen DEPR_STND_ANC_EVER_NUM = 1 if ///
-	 DEPR_STND_ANC20_NUM ==1 |  DEPR_STND_ANC32_NUM ==1
+	 DEPR_STND_ANC20_NUM ==1 |  DEPR_STND_ANC32_NUM ==1 | ///
+	 DEPR_STND_TRI_12 == 1 | DEPR_STND_TRI_3 == 1 
 	 label var DEPR_STND_ANC_EVER_NUM ///
-	 "Numerator of those screening for depression (stnd score) at ANC20 or 32"
+	 "Numerator of those screening for depression (stnd score) in pregnancy"
 	gen DEPR_SITE_ANC_EVER_NUM = 1 if ///
-	 DEPR_SITE_ANC20_NUM ==1 | DEPR_SITE_ANC32_NUM==1
+	 DEPR_SITE_ANC20_NUM ==1 | DEPR_SITE_ANC32_NUM==1 | ///
+	 DEPR_SITE_TRI_12 == 1 | DEPR_SITE_TRI_3 == 1
 	 label var DEPR_SITE_ANC_EVER_NUM ///
-	 "Numerator of those screening for depression(site score) at ANC20 or 32"
+	 "Numerator of those screening for depression(site score) in pregnancy"
 
 
-**********EVER***********
+	**#Depression- ever
 	gen DEPR_EVER_DENOM = 1 if ///
-	DEPR_ANC20_DENOM ==1 | DEPR_ANC32_DENOM==1 | DEPR_PNC6_DENOM==1
+	DEPR_ANC_EVER_DENOM == 1 | DEPR_PNC6_DENOM==1
 	label var DEPR_EVER_DENOM ///
 	"Denominator of any who have a valid depression score, any time point"
 	gen DEPR_STND_EVER_NUM = 1 if ///
@@ -662,12 +767,35 @@ foreach var in DEPR_STND_ANC20 DEPR_SITE_ANC20 DEPR_STND_ANC32 DEPR_SITE_ANC32 D
 
 save "$wrk/mnh25_MaternalOutcomes.dta", replace
 
-keep SITE MOMID PREGID DEPR_STND_ANC20 DEPR_SITE_ANC20 DEPR_SCORE_ANC20 DEPR_STND_ANC32 DEPR_SITE_ANC32 DEPR_STND_PNC6 DEPR_SITE_PNC6  DEPR_ANC20_DENOM DEPR_STND_ANC20_NUM DEPR_SITE_ANC20_NUM DEPR_MISS_ANC20 DEPR_SCORE_ANC32 DEPR_MISS_ANC20_DENOM  DEPR_ANC32_DENOM DEPR_STND_ANC32_NUM DEPR_SITE_ANC32_NUM DEPR_MISS_ANC32 DEPR_SCORE_PNC6 DEPR_MISS_ANC32_DENOM  DEPR_PNC6_DENOM DEPR_STND_PNC6_NUM DEPR_SITE_PNC6_NUM DEPR_MISS_PNC6 DEPR_MISS_PNC6_DENOM DEPR_ANC_EVER_DENOM DEPR_STND_ANC_EVER_NUM DEPR_SITE_ANC_EVER_NUM DEPR_EVER_DENOM DEPR_STND_EVER_NUM DEPR_SITE_EVER_NUM
+**Finally, save a smaller dataset for the outcomes folder
+
+keep SITE MOMID PREGID DEPR_STND_ANC20 DEPR_SITE_ANC20 DEPR_SCORE_ANC20 DEPR_STND_ANC32 DEPR_SITE_ANC32 DEPR_STND_PNC6 DEPR_SITE_PNC6  DEPR_ANC20_DENOM DEPR_STND_ANC20_NUM DEPR_SITE_ANC20_NUM DEPR_MISS_ANC20 DEPR_MISS_TRI_12_DENOM DEPR_TRI_12_* DEPR_MISS_TRI_3_DENOM DEPR_TRI_3_* DEPR_STND_TRI_12 DEPR_SITE_TRI_12  DEPR_STND_TRI_3 DEPR_SITE_TRI_3 DEPR_SCORE_TRI_*  DEPR_SCORE_ANC32 DEPR_MISS_ANC20_DENOM  DEPR_ANC32_DENOM DEPR_STND_ANC32_NUM DEPR_SITE_ANC32_NUM DEPR_MISS_ANC32 DEPR_SCORE_PNC6 DEPR_MISS_ANC32_DENOM  DEPR_PNC6_DENOM DEPR_STND_PNC6_NUM DEPR_SITE_PNC6_NUM DEPR_MISS_PNC6 DEPR_MISS_PNC6_DENOM DEPR_ANC_EVER_DENOM DEPR_STND_ANC_EVER_NUM DEPR_SITE_ANC_EVER_NUM DEPR_EVER_DENOM DEPR_STND_EVER_NUM DEPR_SITE_EVER_NUM DEPR_SCORE_WORST DEPR_SCORE_WORST_DT DEPR_SCORE_WORST_ANC DEPR_SCORE_WORST_ANC_DT DEPR_STND_FIRST_DT DEPR_SITE_FIRST_DT
 
 label data "Depression score, $datadate, `c(username)', $today"
 notes replace _dta in 1 : Outcome dataset for $datadate data TS
+assert SITE != ""
 
-save "$wrk/MAT_DEPR-$datadate.dta", replace
+sort SITE MOMID PREGID
+order SITE MOMID PREGID  DEPR_SCORE_ANC20 DEPR_SCORE_ANC32 DEPR_SCORE_PNC6 DEPR_STND_ANC20 DEPR_STND_ANC32 DEPR_STND_PNC6 DEPR_SITE_ANC20 DEPR_SITE_ANC32 DEPR_SITE_PNC6 DEPR_MISS_ANC20_DENOM DEPR_MISS_ANC20 DEPR_ANC20_DENOM DEPR_STND_ANC20_NUM DEPR_SITE_ANC20_NUM DEPR_MISS_ANC32_DENOM DEPR_MISS_ANC32 DEPR_ANC32_DENOM DEPR_STND_ANC32_NUM DEPR_SITE_ANC32_NUM DEPR_MISS_PNC6_DENOM DEPR_MISS_PNC6 DEPR_PNC6_DENOM DEPR_STND_PNC6_NUM DEPR_SITE_PNC6_NUM DEPR_ANC_EVER_DENOM DEPR_STND_ANC_EVER_NUM DEPR_SITE_ANC_EVER_NUM DEPR_EVER_DENOM DEPR_STND_EVER_NUM DEPR_SITE_EVER_NUM
+
+foreach time in "ANC20" "ANC32" "PNC6" {
+	
+	foreach cutoff in "STND" "SITE" {
+		
+	label var DEPR_SCORE_`time' ///
+		"Worst (highest) depression score at `time'"
+	label var DEPR_`cutoff'_`time' ///
+		"Depression (`cutoff' cutoff) at `time'"
+	}
+	
+	label var DEPR_MISS_`time'_DENOM ///
+		"Denom of expected or has data at `time'"
+	label var DEPR_MISS_`time' "Reasons for missing at `time'"
+	label var DEPR_`time'_DENOM "Has data at `time'"
+}
+
+
+save "$wrk/MAT_DEPR.dta", replace
 *Review and save to outcome folder:
-*save "$outcomes/MAT_DEPR.dta" , replace
+save "$outcomes/MAT_DEPR.dta" , replace
 	
