@@ -1,6 +1,6 @@
 #*****************************************************************************
 #* PRISMA Maternal Hemorrhage
-#* Last updated: 25 November 2025
+#* Last updated: 26 March 2026
 
 #The first section, CONSTRUCTED VARIABLES GENERATION, below, the code generates datasets for 
 #each form with additional variables that will be used for multiple outcomes. For example, mnh01_constructed 
