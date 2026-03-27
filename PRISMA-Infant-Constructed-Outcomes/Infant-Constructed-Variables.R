@@ -41,6 +41,7 @@ library(growthstandards) ## INTERGROWTH PACKAGE
 library(TCB) ## TCB package (can be downloaded here: https://github.com/PRiSMA-Study/TCB-R-package)
 library(openxlsx)
 library(TSB.NICE)
+library(writexl)
 
 # UPDATE EACH RUN # 
 # set upload date 
@@ -53,7 +54,7 @@ path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 # set path to save 
 path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/data/"
 path_to_save_figures <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/output/"
-
+path_to_save_queries <- "D:/Users/stacie.loisate/Documents/Output/Outcomes-Queries/Infant outcomes/"
 ## import forms 
 mnh01 <- read.csv(paste0(path_to_data,"/", "mnh01_merged.csv"))
 
@@ -445,11 +446,13 @@ mnh24_constructed <- mnh24 %>%
   # merge in DOB information 
   left_join(mnh09_long, by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>% 
   # concatenate death date time 
-  mutate(M24_DTHDAT = replace(M24_DTHDAT, M24_DTHDAT==ymd("1907-07-07"), NA), # replace default value date with NA 
-         M24_DTHTIM = replace(M24_DTHTIM, is.na(M24_DTHTIM), "12:30:00"), # replace default value time with NA 
-         # M24_DTHTIM = replace(M24_DTHTIM, M24_DTHTIM=="07:07", NA), # replace default value time with NA 
-         DEATH_DATETIME = paste(M24_DTHDAT, M24_DTHTIM), # concatenate date and time of birth 
-         DEATH_DATETIME = as.POSIXct(DEATH_DATETIME, format= "%Y-%m-%d %H:%M")) %>% # assign time field type for time of birth
+  mutate(M24_DTHDAT = case_when(M24_DTHDAT %in% c("1907-07-07", "1905-05-05", "1909-09-09") ~ NA, # replace default value date with NA 
+                                TRUE ~ M24_DTHDAT),
+         M24_DTHTIM = case_when(M24_DTHTIM %in% c("77:77", "55:55", "99:99") ~ NA,                # replace default value time with NA 
+                                TRUE ~ M24_DTHTIM),
+         # M24_DTHTIM = replace(M24_DTHTIM, is.na(M24_DTHTIM), "12:30:00"),                       # TO DISCUSS: if time is NA, should we replace with midpoint (12:30:00)
+         DEATH_DATETIME = paste(M24_DTHDAT, M24_DTHTIM),                                          # concatenate date and time of birth 
+         DEATH_DATETIME = as.POSIXct(DEATH_DATETIME, format= "%Y-%m-%d %H:%M")) %>%               # assign time field type for time of birth; TO DISCUSS: if time is missing, then this variable will be empty 
   mutate(DTHDAT = M24_DTHDAT) %>%
   # generate indicator if an infant died
   mutate(DTH_INDICATOR = case_when(M24_CLOSE_DSDECOD == 3 | !is.na(DTHDAT) ~ 1,TRUE~ 0)) %>% 
@@ -457,13 +460,39 @@ mnh24_constructed <- mnh24 %>%
   mutate(AGEDEATH_DATETIME = floor(difftime(DEATH_DATETIME,DELIVERY_DATETIME,units = "hours")),
          AGEDEATH_DAYS = as.numeric(AGEDEATH_DATETIME) %/% 24,
          AGEDEATH_HRS = as.numeric(AGEDEATH_DATETIME) %% 24) %>% 
-  select(names(mnh24),DOB,M24_DTHTIM,DEATH_DATETIME,DELIVERY_DATETIME, DTH_INDICATOR, DTHDAT,AGEDEATH_DAYS, AGEDEATH_HRS) %>%
+  # TO DISCUSS: if time of death is unknown but death occurs > 1 week after delivery, calculate agedeath_days using just the dates; this is not currently incorporated but could be if appropriate
+  # mutate(AGEDEATH_DAYS = case_when(ymd(DTHDAT)-DOB >= 7 & is.na(M24_DTHTIM) ~ as.numeric(ymd(DTHDAT)-DOB), 
+  #                                       ymd(DTHDAT)-DOB <7 & is.na(M24_DTHTIM) ~ AGEDEATH_DAYS, 
+  #                                  TRUE ~ AGEDEATH_DAYS)) %>% 
+  select(names(mnh24),DOB,M24_DTHTIM,DELIVERY_DATETIME, DEATH_DATETIME, DTH_INDICATOR, DTHDAT,AGEDEATH_DAYS, TEST_AGEDEATH_DAYS, AGEDEATH_HRS) %>%
   ## generate indicator variables for where things could go wrong
   mutate(MISSING_MNH09 = ifelse(is.na(DOB), 1, 0), # MISSING MNH09
          DOB_BEFORE_BIRTH = ifelse(is.na(DOB), 55,
                                    ifelse(DOB > DTHDAT, 1, 0)), # DEATH DATE BEOFRE DOB
          MISSING_TIME_DEATH = ifelse(DTH_INDICATOR==1 & is.na(M24_DTHTIM) | M24_DTHTIM == "77:77", 1, 0),
          CLOSEOUTID_MISSING_MNH02 = ifelse(PREGID %in% enrolled_ids_vec, 0, 1)) # NOT ENROLLED
+
+  
+  ## QUERY: export site-specfic cases where delivery datetime is after death datetime
+  sites <- c("India-SAS", "Ghana","India-CMC", "Kenya", "Pakistan",  "Zambia")
+  
+  mortality_queries <- list()
+  for (i in seq_along(sites)) {
+    site_name <- sites[i]  # Get site name
+
+    mortality_queries[[as.character(site_name)]] <- mnh24_constructed %>%
+      filter(DEATH_DATETIME<DELIVERY_DATETIME) %>%
+      filter(SITE == site_name)
+    
+    cat("n =", dim(mortality_queries[[as.character(site_name)]])[1], "delivery date after death date in",site_name, "\n" )
+    
+    if (dim(mortality_queries[[as.character(site_name)]])[1] > 0){
+      
+      write_xlsx(mortality_queries[[as.character(site_name)]], path = paste0(path_to_save_queries,UploadDate, "-infant_mortality_queries_", site_name, ".xlsx"))
+      cat("Successfully exported infant mortality query for", site_name, "\n")
+      
+    }
+  }
 
 ## remove duplicate for zambia: 
 mnh24_constructed <- mnh24_constructed %>% group_by(SITE, INFANTID) %>% 
@@ -516,6 +545,9 @@ inf_baseline <- mat_enroll %>%
   mutate(BIRTH_OUTCOME_REPORTED = case_when(!is.na(DOB) | !is.na(M04_FETAL_LOSS_DSSTDAT) ~ 1, 
                                             TRUE ~ 0)) %>% 
   filter(BIRTH_OUTCOME_REPORTED==1) %>% 
+  ## if only fetal loss date reported in mnh04 (and no date in mnh09, replace DOB with fetal loss date)\
+  mutate(DOB = case_when(is.na(DOB) & !is.na(M04_FETAL_LOSS_DSSTDAT) ~ ymd(M04_FETAL_LOSS_DSSTDAT), 
+                         TRUE ~ ymd(DOB))) %>% 
   ## add new var with a single ga at birth --use mnh09, if missing, use mnh04; if both available, take the earliest reported date
   mutate(GESTAGEBIRTH_ANY = case_when(is.na(GESTAGEBIRTH_BOE) ~ as.numeric(GESTAGE_FETAL_LOSS_WKS), 
                                       !is.na(GESTAGE_FETAL_LOSS_WKS) & !is.na(GESTAGEBIRTH_BOE) & GESTAGEBIRTH_BOE <= GESTAGE_FETAL_LOSS_WKS ~ as.numeric(GESTAGEBIRTH_BOE), 
@@ -2490,12 +2522,24 @@ infant_outcomes<- infant_outcomes %>%
          INF_SGA_POSTTERM, INF_AGA_POSTTERM, INF_BREATH_MASK_VENT, INF_BREATH_PRESSURE, INF_BREATH_SUCTION,
          INF_BREATH_INTUBATION, INF_BREATH_COMPRESS, INF_BREATH_FAIL, SEX)
 
-## convert the following to character to avoid export issues with excels
+# test <- infant_outcomes %>% filter(LIVEBIRTH ==1 & FETAL_LOSS == 1)
+
+table(infant_outcomes$LIVEBIRTH, infant_outcomes$SITE)
+table(infant_outcomes$NEO_SEPSIS, infant_outcomes$SITE)
+table(infant_outcomes$NEO_SEPSIS_CULTURE, infant_outcomes$SITE)
+table(infant_outcomes$NEO_SEPSIS_PSBI, infant_outcomes$SITE)
+table(infant_outcomes$INF_ABOR_SPN, infant_outcomes$SITE)
+
 infant_outcomes$DOB <- as.character(infant_outcomes$DOB)
 infant_outcomes$DEATHDATE_MNH24 <- as.character(infant_outcomes$DEATHDATE_MNH24)
 infant_outcomes$FETAL_LOSS_DATE <- as.character(infant_outcomes$FETAL_LOSS_DATE)
 infant_outcomes$PREG_START_DATE <- as.character(infant_outcomes$PREG_START_DATE)
 infant_outcomes$ENROLL_US_DATE <- as.character(infant_outcomes$ENROLL_US_DATE)
+
+table(infant_outcomes$GESTAGEBIRTH_ANY_DAYS, infant_outcomes$FETAL_LOSS)
+
+test <- infant_outcomes %>% select(SITE, PREGID, INFANTID, GESTAGEBIRTH_ANY_DAYS, GESTAGEBIRTH_ANY, FETAL_LOSS) %>% 
+  mutate(discrep = case_when(GESTAGEBIRTH_ANY_DAYS==GESTAGEBIRTH_ANY ~ 1, TRUE ~ 0))
 
 path_to_save = "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/"
 write.csv(infant_outcomes, paste0(path_to_save, "INF_OUTCOMES" ,".csv"), row.names=FALSE)
