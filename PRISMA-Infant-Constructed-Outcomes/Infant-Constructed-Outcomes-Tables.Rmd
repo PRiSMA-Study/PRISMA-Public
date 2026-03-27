@@ -366,7 +366,7 @@ neo_mort_sum <- infant_outcomes %>%
 ) %>%
    mutate_all(funs(str_replace(., "NaN", "0")))
 
-## remove infant mortality for now -- add back in when we have data
+## remove infant mortality for now -- summary row include neonatal deaths (all dths in the first year of life); Table 5 is deaths after 28 days up to the first year of life 
 inf_mort_sum <- infant_outcomes %>%
   rowwise() %>%
   group_by(SITE) %>%
