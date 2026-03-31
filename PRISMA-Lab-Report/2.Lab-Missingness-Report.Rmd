@@ -1171,9 +1171,6 @@ df_lab_cbc <- df_lab %>%
       tab_footnote(
         footnote = c("*Denominator: Participants with complete MNH08 in person")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("Note: Plateletcrit and platelet distribution width are not performed at Pakistan. Total number excluded Pakistan.")
-      # ) %>%
       tab_footnote(
         footnote = c("Note: Plateletcrit, platelet distribution width are not performed at India-SAS and Pakistan.")
       ) %>%
@@ -1475,6 +1472,15 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_3.png"))
           format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")"))) & denom_folate_rbc_1 ==1)/sum(denom_folate_rbc_1 ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         
+        ## NEW FOLATE ROW FOR FOLATE by RBC or Serum 
+        "Missing Folate - RBC & Serum: n (%)*" = paste0(
+          sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")"))) & 
+                (denom_folate_rbc_1 ==1 | denom_folate_rbc_1 ==1)),
+          " (",
+          format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")")))
+                           & (denom_folate_rbc_1 ==1 | denom_folate_rbc_1 ==1))/sum((denom_folate_rbc_1 ==1 | denom_folate_rbc_1 ==1), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+          ")"),
+
         #Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
         "Missing Ferritin: n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")")))),
@@ -1556,6 +1562,15 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_3.png"))
               format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")"))) & denom_folate_rbc_1 ==1)/sum(denom_folate_rbc_1 ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
         
+            ## NEW FOLATE ROW FOR FOLATE by RBC or Serum 
+            "Missing Folate - RBC & Serum: n (%)*" = paste0(
+              sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")"))) & 
+                    (denom_folate_rbc_1 ==1 | denom_folate_rbc_1 ==1)),
+              " (",
+              format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")")))
+                               & (denom_folate_rbc_1 ==1 | denom_folate_rbc_1 ==1))/sum((denom_folate_rbc_1 ==1 | denom_folate_rbc_1 ==1), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+          
             #Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
             "Missing Ferritin: n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")")))),
@@ -1629,15 +1644,6 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_3.png"))
       tab_footnote(
         footnote = c("Note: RBC folate started testing: 2024-02-23 (Ghana); 2024-03-05 (CMC); 2024-03-01 (SAS); 2024-04-11 (Kenya); 2024-04-08 (Pakistan); 2024-04-12 (Zambia)")
       ) %>% 
-      # tab_footnote(
-      #   footnote = c("Note: Vitamin B12 total cobalamin and holoTC results delay for Kenya and Zambia due to shipment to KHRC and not start with new kit for Pakistan as of 2024-11-18")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Note: Folate results delay for Kenya and Pakistan due to shipment to KHRC")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Pakistan note: Quansys is ongoing and plan to complete by end Jan 2025.")
-      # ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_4.png"), expand = 10)
 
  knitr::include_graphics(paste0("results/missing_m08_", visit, "_4.png"))
@@ -1650,12 +1656,7 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_3.png"))
       group_by(SITE) %>%
       summarise(
         "Expected Lab Results from MNH08: N" = n(),
-        # "Missing TSH: n (%)*" = paste0(
-        #   sum(eval(parse(text = paste0("is.na(M08_THYROID_TSH_LBORRES_", num, ")")))),
-        #   " (",
-        #   format(round(sum(eval(parse(text = paste0("is.na(M08_THYROID_TSH_LBORRES_", num, ")"))))/n()*100, 2), nsmall = 0, digits = 2),
-        #   ")"),
-        
+
         "Missing TSH: n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_THYROID_TSH_LBORRES_", num, ")", "& (denom_t3t4_enroll == 1)")))),
           " (",
@@ -1706,10 +1707,6 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_3.png"))
           t() %>% unlist()
       ) %>%
        mutate_all(funs(str_replace(., "(NaN)", "-")))
-    
-    ## the following code will override CMC with NA -- remove now that we have official dates
-    # matrix3_5[, c("India-CMC")] = "n/a"
-    # matrix3_5 <- matrix3_5 %>% relocate(`India-CMC`, .after = Ghana)
     
     tb3_5 <- tb_theme2(matrix3_5) %>%
       # table title
@@ -1833,12 +1830,6 @@ df_rbc_cmc <- df_lab %>%
       vals <- c_across(starts_with("M08_RBC_SICKLE_LBORRES_"))
       if (any(vals %in% c(0, 1))) 1 else NA_real_
     },
-    # M08_RBC_SICKLE_LBORRES_1 = {
-    #   vals <- c_across(starts_with("M08_RBC_SICKLE_LBORRES_"))
-    #   match_val <- vals[which(vals %in% c(0, 1))[1]]
-    #   if (!is.na(match_val)) match_val else NA_real_
-    # },
-
     # Auto-check any THALA_X variables
     across(
       .cols = matches("^M08_RBC_THALA_[0-9]+_"),
@@ -1849,46 +1840,6 @@ df_rbc_cmc <- df_lab %>%
   ungroup() %>%
   select(SITE, MOMID, PREGID, denom_rbc_disorder, ends_with("_1"))
 
-# 
-#   df_rbc_cmc <- df_lab %>% 
-#     filter(SITE == "India-CMC") %>% 
-#     select(SITE, MOMID, PREGID, denom_rbc_disorder, starts_with("M08_RBC_SICKLE_LBORRES_"), starts_with("M08_RBC_THALA")) %>% 
-#   mutate(M08_RBC_THALA_LBORRES_1 = if (any(c_across(starts_with("M08_RBC_THALA_LBORRES_")) %in% c(0, 1))) 1 else NA) %>%
-# mutate(
-#       # M08_RBC_SICKLE_LBORRES_1 = ifelse(apply(select(., starts_with("M08_RBC_SICKLE_LBORRES_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       #RBC_THALA_LBORRES_1 here is using the first record during all visits. 1 means value 1 because we need it as a skip logic. Note: as long as we have a record of thala, we don't coun't missing no matter the selected value of RBC_THALA_LBORRES
-#       M08_RBC_THALA_LBORRES_1 = apply(select(., starts_with("M08_RBC_THALA_LBORRES_")), 1, 
-#                                       function(x) {
-#                                         # Iterate over the values of the row to find the first valid value (0 or 1)
-#                                         first_valid <- x[which(x %in% c(0, 1))[1]]
-#                                         if (!is.na(first_valid)) {
-#                                           return(first_valid)  # Return the first valid value (0 or 1)
-#                                         } else {
-#                                           return(NA_real_)  # If no valid value is found, return NA
-#                                         }
-#                                       }),
-#       M08_RBC_THALA_1_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_1_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_2_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_2_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_3_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_3_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_4_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_4_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_5_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_5_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_6_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_6_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_7_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_7_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_8_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_8_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_9_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_9_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_10_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_10_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_11_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_11_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_12_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_12_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_13_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_13_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_14_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_14_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_15_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_15_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_16_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_16_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_17_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_17_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_18_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_18_")), 1, function(x) any(x %in% c(0, 1))), 1, NA), 
-#       M08_RBC_THALA_19_1 = ifelse(apply(select(., starts_with("M08_RBC_THALA_19_")), 1, function(x) any(x %in% c(0, 1))), 1, NA)
-#     ) %>% 
-#     select(SITE, MOMID, PREGID, denom_rbc_disorder, ends_with("_1"))
-  
   #remove CMC data
   df_rbc_nocmc <- df_lab %>%
     filter(SITE != "India-CMC") 
@@ -1897,48 +1848,6 @@ df_rbc_cmc <- df_lab %>%
   df_rbc <- df_rbc_nocmc %>% 
     bind_rows(df_rbc_cmc)
   
-# ## pull Ghana ids for missing hemoglobinopathy/sickle cell and missing specified results 
-# mnh02 <- read.csv(paste0("D:/Users/stacie.loisate/Documents/import/", "2025-11-28_gha", "/mnh02.csv")) %>%
-#   rename_with(toupper)
-# 
-# df_thala <- df_rbc %>%
-#   filter(SITE == "Ghana" & denom_rbc_disorder == 1) %>%
-#   select(SITE, MOMID, PREGID, M08_RBC_SICKLE_LBORRES_1, M08_RBC_THALA_LBORRES_1) %>%
-#   mutate(MISSING_SICKLE_CELL = case_when(is.na(M08_RBC_SICKLE_LBORRES_1) ~ 1, TRUE ~ 0),
-#          MISSING_HEMOGLOBINOPATHIES = case_when(is.na(M08_RBC_THALA_LBORRES_1) ~ 1, TRUE ~ 0),
-#          ) %>%
-#   filter(MISSING_SICKLE_CELL==1 | MISSING_HEMOGLOBINOPATHIES==1) %>%
-#   # uncomment the next 2 rows only if pulling for ghana
-#   left_join(mnh02 %>% select(PREGID, GHAID), by = c("PREGID")) %>%
-#   relocate(GHAID, .after = PREGID) %>%
-#   select(-SITE)
-# 
-# ## pull kenya ids for missing missing specified results
-# df_specified_results <- df_rbc %>%
-#   filter(SITE == "Ghana" & denom_rbc_disorder == 1 & M08_RBC_THALA_LBORRES_1==1) %>%
-#   # select(SITE, MOMID, PREGID, starts_with("M08_RBC_THALA_"), -contains("LBSTDAT"),-contains("LBTSTDAT_"), -contains("LBORRES")) %>% 
-#   select(SITE, MOMID, PREGID, paste0("M08_RBC_THALA_", 1:19, "_1")) %>%
-#   # mutate(MISSING_SPECIFIED = if_else(any(is.na(c_across(starts_with("M08_RBC_THALA_")))),1L, 0L)) %>%
-#   
-#   rowwise() %>%
-#  mutate(MISSING_SPECIFIED = if_else(any(is.na(c_across(starts_with("M08_RBC_THALA_")))),
-#                                      1L,0L)) %>% 
-#   ungroup() %>% 
-#   # mutate(MISSING_SPECIFIED = if_else(any(is.na(c_across(starts_with("M08_RBC_THALA_3_")))),1L, 0L)) %>%
-#   filter(MISSING_SPECIFIED == 1) %>%
-#     rename_with(~ str_remove(.x, "_1$"),starts_with("M08_RBC_THALA_")) %>%
-#     # uncomment the next 2 rows only if pulling for ghana
-#   left_join(mnh02 %>% select(PREGID, GHAID), by = c("PREGID")) %>%
-#   relocate(GHAID, .after = PREGID) %>%
-#   select(-SITE)
-# 
-# library(writexl)
-# export_list <- list()
-# export_list[['Missing hemoglobinopathy']] <- df_thala
-# export_list[['Missing specified result']] <- df_specified_results
-# 
-# write_xlsx(export_list, path = paste0("D:/Users/stacie.loisate/Documents/Output/Outcomes-Queries/healthy cohort/", UploadDate, "-Ghana-Missing-Hemoglobinopathies-IDs.xlsx"))
-# 
 matrix3_7 <- df_rbc %>%
       #Include data for ReMAPP aim 1 and 2 only
       filter(denom_rbc_disorder == 1) %>%
@@ -2347,12 +2256,6 @@ matrix3_9 <- df_lab %>%
           format(round(sum(W4SS_SCREEN_RESULT_ENROLL ==0 & TB_CULTURE_PERF_ENROLL ==1, na.rm = TRUE)/sum(W4SS_SCREEN_RESULT_ENROLL ==0, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
 
-        # "Missing GeneXpert Test Result: n(%)**" = paste0(
-        #   sum(W4SS_SCREEN_RESULT_ENROLL ==0 & TB_CULTURE_PERF_ENROLL ==0, na.rm = TRUE),
-        #   " (",
-        #   format(round(sum(W4SS_SCREEN_RESULT_ENROLL ==0 & TB_CULTURE_PERF_ENROLL ==0, na.rm = TRUE)/sum(W4SS_SCREEN_RESULT_ENROLL ==0, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
-        #   ")"),
-        
         ## REMAPP AIM 3 PARTICIPANTS
         "ReMAPP Aim 3 Participants: N" = sum(REMAPP_AIM3_ENROLL ==1, na.rm= TRUE),
         
@@ -2415,12 +2318,6 @@ matrix3_9 <- df_lab %>%
           " (",
           format(round(sum(W4SS_SCREEN_RESULT_ENROLL ==0 & TB_CULTURE_PERF_ENROLL ==1, na.rm = TRUE)/sum(W4SS_SCREEN_RESULT_ENROLL ==0, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
-
-        # "Missing GeneXpert Test Result: n(%)**" = paste0(
-        #   sum(W4SS_SCREEN_RESULT_ENROLL ==0 & TB_CULTURE_PERF_ENROLL ==0, na.rm = TRUE),
-        #   " (",
-        #   format(round(sum(W4SS_SCREEN_RESULT_ENROLL ==0 & TB_CULTURE_PERF_ENROLL ==0, na.rm = TRUE)/sum(W4SS_SCREEN_RESULT_ENROLL ==0, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
-        #   ")"),
         
         ## REMAPP AIM 3 PARTICIPANTS
         "ReMAPP Aim 3 Participants: N" = sum(REMAPP_AIM3_ENROLL ==1, na.rm= TRUE),
@@ -2566,9 +2463,6 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_9.png"))
       ) %>%
       tab_footnote(
         footnote = c("Note: CT/NG testing stopped Ghana: 2025-04-01;CMC: 2025-09-17; SAS: 2025-03-06;Kenya: 2025-02-27; Pakistan: 2025-04-24; Zambia: 2025-03-13")) %>%
-      # tab_footnote(
-      #   footnote = c("Note: We do not expect CT/NG test results at this time for most sites, as the testing plans are to batch test in 2025.")
-      # ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_10.png"), expand = 10)
     
     
@@ -2877,15 +2771,6 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_10.png"))
       tab_footnote(
         footnote = c("*Denominator: Participants with laboratory results on/after test start date at enrollment and with complete MNH08 in person.")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("***Denominator: Participants with testing date (LEPT_IGG_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("****Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
       tab_footnote(
         footnote = c("Note: We only expect 1000 participants per site. There will be no miss if the goal is reached")
       ) %>%
@@ -2948,8 +2833,6 @@ matrix3_12 <- df_g6pd_77na %>%
           
       "Missing Glucose-6-Phosphate Dehydrogenase (G6PD): n (%)*2" = paste0(sum(g6pd_missing==1 & denom_remapp == 1, na.rm=TRUE), " (",
                    format(round(sum(g6pd_missing==1 & denom_remapp == 1, na.rm=TRUE)/sum(denom_remapp == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2), ")")         #   "Missing Glucose-6-Phosphate Dehydrogenase (G6PD): n (%)*" = paste0(sum(if_all(var_columns, is.na)), " (",
-        #           format(round(sum(if_all(var_columns,is.na))/sum(denom_remapp==1,na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-        # ")")
         ) %>%
         t() %>% unlist()
     ) %>%
@@ -3086,12 +2969,6 @@ visit = "ANC20"
       tab_footnote(
         footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("Pakistan note: CBC test stopped from April 2024.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Kenya note: CBC collected for ReMAPP only.")
-      # ) %>%
       tab_source_note(
         source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
@@ -3217,13 +3094,6 @@ df_lab_cbc <- df_lab %>%
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))), na.rm = TRUE)/n()*100, 2), nsmall = 0, digits = 2),
           ")"),
-        # format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_PCT_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-        # ")"),
-        # "Missing Eosinophils (full cell count): n (%)*" = paste0(
-        #   sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE),
-        #   " (",
-        #   format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) & SITE != "Pakistan", na.rm = TRUE)/sum(SITE != "Pakistan", na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-        #   ")"),
         "Missing Eosinophils (full cell count): n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))) , na.rm = TRUE),
           " (",
@@ -3393,9 +3263,6 @@ df_lab_cbc <- df_lab %>%
       tab_footnote(
         footnote = c("Pakistan note: Plateletcrit and platelet distribution width are not performed. Remaining CBC testing stopped from 2024-04-22")
       ) %>%
-      #    tab_footnote(
-      #   footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
-      # ) %>%
       tab_footnote(
         footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
       ) %>%
@@ -3588,12 +3455,6 @@ visit = "ANC28"
       tab_footnote(
         footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("Pakistan note: CBC test stopped from April 2024.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Kenya note: CBC collected for ReMAPP only.")
-      # ) %>%
       tab_source_note(
         source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
@@ -4059,8 +3920,6 @@ matrix3_2 <- df_lab_cbc %>%
         "Missing Eosinophils (full cell count): n (%)*" = paste0(
             sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE), #  & SITE != "Pakistan"
               " (",
-          # sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE),
-          # " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_CBC_EOS_FCC_LBORRES_", num, ")"))), na.rm = TRUE)/sum(denom==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         
@@ -4110,9 +3969,6 @@ matrix3_2 <- df_lab_cbc %>%
       tab_footnote(
         footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
       ) %>%
-      #   tab_footnote(
-      #   footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
-      # ) %>%
       tab_footnote(
         footnote = c("Kenya note: CBC collected for ReMAPP only. Only expect CBC when SCRN_OBSSTDAT >= 2023-04-03.")
       ) %>%
@@ -4352,12 +4208,6 @@ visit = "ANC32"
       " (", format(round(sum(((is.na(M06_SYPH_POC_LBORRES_4) & SITE != "Zambia" & denom_syph_poc_anc32 == 1) |
           (is.na(M06_SYPH_POC_LBORRES_3) & SITE == "Zambia" & denom_syph_poc_anc32== 1)) & M06_SYPH_POC_LBORRES_1 == 0, na.rm = TRUE)/ sum(M06_SYPH_POC_LBORRES_1 == 0 & ((denom_syph_poc_anc32 == 1 & SITE != "Zambia") | (denom_syph_poc_anc32 == 1 & SITE == "Zambia")), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), ")"),
 
-      #  "Missing POC Syphilis: n (%)*" = paste0(
-      #     sum(((is.na(M06_SYPH_POC_LBORRES_4) & SITE != "Zambia" & denom_lab_06_4 == 1) | 
-      #        (is.na(M06_SYPH_POC_LBORRES_3) & SITE == "Zambia" & denom_lab_06_3== 1)) &  M06_SYPH_POC_LBORRES_1 == 0, na.rm = TRUE),
-      # " (", format(round(sum(((is.na(M06_SYPH_POC_LBORRES_4) & SITE != "Zambia" & denom_lab_06_4 == 1) | 
-      #     (is.na(M06_SYPH_POC_LBORRES_3) & SITE == "Zambia" & denom_lab_06_3== 1)) & M06_SYPH_POC_LBORRES_1 == 0, na.rm = TRUE)/ sum(M06_SYPH_POC_LBORRES_1 == 0 & ((denom_lab_06_4 == 1 & SITE != "Zambia") | (denom_lab_06_3 == 1 & SITE == "Zambia")), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), ")"),
-        
         #complete syphilis titers if RDT is positive
         "Expected Syphilis Titers Lab Test from MNH08: N" = sum((M06_SYPH_POC_LBORRES_1 == 1 | 
                                                                    (M06_SYPH_POC_LBORRES_4 == 1 & SITE != "Zambia" & denom_lab_08_4 == 1) |
@@ -4416,19 +4266,6 @@ visit = "ANC32"
       " (", format(round(sum(((is.na(M06_SYPH_POC_LBORRES_4) & SITE != "Zambia" & denom_syph_poc_anc32 == 1) |
           (is.na(M06_SYPH_POC_LBORRES_3) & SITE == "Zambia" & denom_syph_poc_anc32== 1)) & M06_SYPH_POC_LBORRES_1 == 0, na.rm = TRUE)/ sum(M06_SYPH_POC_LBORRES_1 == 0 & ((denom_syph_poc_anc32 == 1 & SITE != "Zambia") | (denom_syph_poc_anc32 == 1 & SITE == "Zambia")), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), ")"),
 
-      
-            # "Missing POC Syphilis: n (%)*" = paste0(
-            #   sum(((is.na(M06_SYPH_POC_LBORRES_4) & SITE != "Zambia" & denom_lab_06_4 == 1) | 
-            #          (is.na(M06_SYPH_POC_LBORRES_3) & SITE == "Zambia" & denom_lab_06_3== 1)) & 
-            #         M06_SYPH_POC_LBORRES_1 == 0, na.rm = TRUE),
-            #   " (",
-            #   format(round(sum(((is.na(M06_SYPH_POC_LBORRES_4) & SITE != "Zambia" & denom_lab_06_4 == 1) | 
-            #                       (is.na(M06_SYPH_POC_LBORRES_3) & SITE == "Zambia" & denom_lab_06_3== 1)) & 
-            #                      M06_SYPH_POC_LBORRES_1 == 0, na.rm = TRUE)/
-            #                  sum(M06_SYPH_POC_LBORRES_1 == 0 & 
-            #                        ((denom_lab_06_4 == 1 & SITE != "Zambia") | 
-            #                           (denom_lab_06_3 == 1 & SITE == "Zambia")), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-            #   ")"),
             #complete syphilis titers if RDT is positive
             "Expected Syphilis Titers Lab Test from MNH08: N" = sum((M06_SYPH_POC_LBORRES_1 == 1 | 
                                                                        (M06_SYPH_POC_LBORRES_4 == 1 & SITE != "Zambia" & denom_lab_08_4 == 1) |
@@ -4747,9 +4584,6 @@ visit = "ANC32"
       tab_footnote(
         footnote = c("Note: Magnesium is optional at India-CMC, India-SAS and Kenya. Pakistan stopped performing on 2023-11-17. Total number only included Ghana and Zambia")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("Note: CMC stopped Liver and kidney function tests on 2024-10-14 for ANC32 visit. Total number excluded CMC")
-      # ) %>%
       tab_footnote(
         footnote = c("Note: Kidney and Liver function testing stopped on 2024-10-01 (Ghana); 2024-10-16 (CMC); 2024-08-31 (SAS); 2025-01-15 (Kenya); 2024-10-03 (Pakistan); 2024-10-11 (Zambia).")
       ) %>%
@@ -4798,7 +4632,17 @@ visit = "ANC32"
           " (",
           format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")"))) & denom_folate_rbc_4 ==1)/sum(denom_folate_rbc_4 ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
-                #Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
+        
+        ## NEW FOLATE ROW FOR FOLATE by RBC or Serum 
+        "Missing Folate - RBC & Serum: n (%)*" = paste0(
+         sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")"))) & 
+            (denom_folate_rbc_4 ==1 | denom_folate_rbc_4 ==1)),
+              " (",
+        format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")")))
+                        & (denom_folate_rbc_4 ==1 | denom_folate_rbc_4 ==1))/sum((denom_folate_rbc_4 ==1 | denom_folate_rbc_4 ==1), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+        
+         #Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
         "Missing Ferritin: n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")")))),
           " (",
@@ -4877,8 +4721,17 @@ visit = "ANC32"
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")"))) & denom_folate_rbc_4 ==1)/sum(denom_folate_rbc_4 ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
+            
+         ## NEW FOLATE ROW FOR FOLATE by RBC or Serum 
+        "Missing Folate - RBC & Serum: n (%)*" = paste0(
+         sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")"))) & 
+            (denom_folate_rbc_4 ==1 | denom_folate_rbc_4 ==1)),
+              " (",
+        format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")")))
+                        & (denom_folate_rbc_4 ==1 | denom_folate_rbc_4 ==1))/sum((denom_folate_rbc_4 ==1 | denom_folate_rbc_4 ==1), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              ")"),
               
-          #Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
+            #Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
             "Missing Ferritin: n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")")))),
               " (",
@@ -4951,15 +4804,6 @@ visit = "ANC32"
       tab_footnote(
         footnote = c("Note: RBC folate started testing: 2024-02-23 (Ghana); 2024-03-05 (CMC); 2024-03-01 (SAS); 2024-04-11 (Kenya); 2024-04-08 (Pakistan); 2024-04-12 (Zambia)")
       ) %>% 
-      # tab_footnote(
-      #   footnote = c("Note: Vitamin B12 total cobalamin and holoTC results delay for Kenya and Zambia due to shipment to KHRC and not start with new kit for Pakistan as of 2024-11-18")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Note: Folate results delay for Kenya and Pakistan due to shipment to KHRC")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Pakistan note: Quansys is ongoing and plan to complete by end Jan 2025.")
-      # ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_4.png"), expand = 10)
 
      knitr::include_graphics(paste0("results/missing_m08_", visit, "_4.png"))
@@ -5279,9 +5123,6 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_5.png"))
       tab_footnote(
         footnote = c("Note: CT/NG testing stopped Ghana: 2025-04-01;CMC: 2025-09-17; SAS: 2025-03-06;Kenya: 2025-02-27; Pakistan: 2025-04-24; Zambia: 2025-03-13")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("Note: We do not expect CT/NG test results at this time for most sites, as the testing plans are to batch test in 2025.")
-      # ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_10.png"), expand = 10)
 
  knitr::include_graphics(paste0("results/missing_m08_", visit, "_10.png"))
@@ -5538,30 +5379,12 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_5.png"))
       tab_footnote(
         footnote = c("*Denominator: Participants with laboratory results on/after test start date at enrollment and with complete MNH08 in person.")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("***Denominator: Participants with testing date (LEPT_IGG_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("****Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("***Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
       tab_footnote(
         footnote = c("Note: We only expect 1000 participants per site. There will be no miss if the goal is reached")
       ) %>%
       tab_footnote(
         footnote = c("Note: ZCD/HEV/Lepto test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-11; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("Note: HEV test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
-      # ) %>%
       tab_footnote(
         footnote = c("SAS Note: ZCD/HEV/Lepto testing ended on 2025-02-01")
       ) %>%
@@ -5668,12 +5491,6 @@ visit = "ANC36"
       tab_footnote(
         footnote = c("***Denominator: Participants with both complete MNH06 and MNH08 in person ")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("Pakistan note: CBC test stopped from April 2024.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Kenya note: CBC collected for ReMAPP only.")
-      # ) %>%
       tab_source_note(
         source_note = "Note: Grey fonts indicate test not done/required by site."
       ) %>%
@@ -5829,7 +5646,6 @@ knitr::include_graphics(paste0("results/missing_m06_", visit, "_2.png"))
                  M08_LBSTDAT_10 = ymd(M08_LBSTDAT_10)
                  
           ) %>% 
-          # filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & SITE != "Pakistan") %>%
           filter(eval(parse(text = paste0("denom_lab_08_", num, " == 1"))) & (!SITE %in% c("Pakistan", "Kenya", "Ghana", "India-SAS") | 
                                                                                 (SITE == "Kenya" & denom_remapp_cbc_5 == 1) | 
                                                                                 (SITE == "Pakistan" & denom_remapp_cbc_5==1) |
@@ -5946,8 +5762,7 @@ knitr::include_graphics(paste0("results/missing_m06_", visit, "_2.png"))
     #neutrophils full cell count, lymphocytes full cell count, Monocyte (full cell count), eosinophils full cell count, plateletcrit, platelet distribution width are not performed at Pakistan
     matrix3_2[c(18,19), c("India-SAS")] = "n/a"
     matrix3_2[c(18,19), c("Pakistan")] = "n/a"
-    # matrix3_2[c(5,7,14,16,18,19), c("Pakistan")] = "n/a"
-    
+
     tb3_2 <- tb_theme2(matrix3_2) %>%
       # table title
       tab_header(
@@ -5971,9 +5786,6 @@ knitr::include_graphics(paste0("results/missing_m06_", visit, "_2.png"))
       tab_footnote(
         footnote = c("SAS Note: Plateletcrit, platelet distribution width are not performed at India-SAS. Post-enrollment CBC testing started on 2024-07-22.")
       ) %>%
-      #   tab_footnote(
-      #   footnote = c("Ghana note: CBC testing stopped from 2024-10-29.")
-      # ) %>%
       tab_footnote(
         footnote = c("Kenya note: CBC collected for ReMAPP only. Only expect CBC when SCRN_OBSSTDAT >= 2023-04-03.")
       ) %>%
@@ -6100,12 +5912,6 @@ matrix3_9 <- df_lab %>%
           " (",
           format(round(sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0 & TB_CULTURE_PERF_ANC36_COMBINED ==1, na.rm = TRUE)/sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
           ")")
-
-        # "Missing GeneXpert Test Result: n(%)**" = paste0(
-        #   sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0 & TB_CULTURE_PERF_ANC36_COMBINED ==0, na.rm = TRUE),
-        #   " (",
-        #   format(round(sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0 & TB_CULTURE_PERF_ANC36_COMBINED ==0, na.rm = TRUE)/sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
-        #   ")")
         
       ) %>%
       t() %>% as.data.frame() %>%
@@ -6142,12 +5948,6 @@ matrix3_9 <- df_lab %>%
           format(round(sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0 & TB_CULTURE_PERF_ANC36_COMBINED ==1, na.rm = TRUE)/sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
           ")")
 
-        # "Missing GeneXpert Test Result: n(%)**" = paste0(
-        #   sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0 & TB_CULTURE_PERF_ANC36_COMBINED ==0, na.rm = TRUE),
-        #   " (",
-        #   format(round(sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0 & TB_CULTURE_PERF_ANC36_COMBINED ==0, na.rm = TRUE)/sum(W4SS_SCREEN_RESULT_ANC36_COMBINED ==0, na.rm= TRUE)*100, 2), nsmall = 0, digits = 2),
-        #   ")")
-        # 
       ) %>%
           t() %>% unlist()
       ) %>%
@@ -7013,6 +6813,15 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_2.png"))
           format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")"))) & denom_folate_rbc_10 ==1)/sum(denom_folate_rbc_10 ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
           ")"),
         
+        ## NEW FOLATE ROW FOR FOLATE by RBC or Serum 
+        "Missing Folate - RBC & Serum: n (%)*" = paste0(
+         sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")"))) & 
+            (denom_folate_rbc_10 ==1 | denom_folate_rbc_10 ==1)),
+              " (",
+        format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")")))
+                        & (denom_folate_rbc_10 ==1 | denom_folate_rbc_10 ==1))/sum((denom_folate_rbc_10 ==1 | denom_folate_rbc_10 ==1), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+              ")"),
+        
         #Quansys 7-plex (P: En, ANC-32, PNC-6; R3: ANC-20)
         "Missing Ferritin: n (%)*" = paste0(
           sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")")))),
@@ -7092,7 +6901,16 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_2.png"))
               " (",
               format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")"))) & denom_folate_rbc_10 ==1)/sum(denom_folate_rbc_10 ==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
               ")"),
-        
+
+             ## NEW FOLATE ROW FOR FOLATE by RBC or Serum 
+            "Missing Folate - RBC & Serum: n (%)*" = paste0(
+             sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")"))) & 
+                (denom_folate_rbc_10 ==1 | denom_folate_rbc_10 ==1)),
+                  " (",
+            format(round(sum(eval(parse(text = paste0("is.na(M08_FOLATE_RBC_NMOLL_LBORRES_", num, ")", " & is.na(M08_FOLATE_PLASMA_NMOLL_LBORRES_", num, ")")))
+                            & (denom_folate_rbc_10 ==1 | denom_folate_rbc_10 ==1))/sum((denom_folate_rbc_10 ==1 | denom_folate_rbc_10 ==1), na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+                  ")"),
+            
             #Quansys 7-plex (P: En, ANC-32, PNC-6; R: ANC-20)
             "Missing Ferritin: n (%)*" = paste0(
               sum(eval(parse(text = paste0("is.na(M08_FERRITIN_LBORRES_", num, ")")))),
@@ -7163,15 +6981,6 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_2.png"))
       tab_footnote(
         footnote = c("Note: RBC folate started testing: 2024-02-23 (Ghana); 2024-03-05 (CMC); 2024-03-01 (SAS); 2024-04-11 (Kenya); 2024-04-08 (Pakistan); 2024-04-12 (Zambia)")
       ) %>% 
-      # tab_footnote(
-      #   footnote = c("Note: Vitamin B12 total cobalamin and holoTC results delay for Kenya and Zambia due to shipment to KHRC and not start with new kit for Pakistan as of 2024-11-18")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Note: Folate results delay for Kenya and Pakistan due to shipment to KHRC")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("Pakistan note: Quansys is ongoing and plan to complete by end Jan 2025.")
-      # ) %>%
       gtsave(paste0("results/missing_m08_", visit, "_4.png"), expand = 10)
 
 knitr::include_graphics(paste0("results/missing_m08_", visit, "_4.png"))
@@ -7428,30 +7237,12 @@ knitr::include_graphics(paste0("results/missing_m08_", visit, "_4.png"))
       tab_footnote(
         footnote = c("*Denominator: Participants with laboratory results on/after test start date at enrollment and with complete MNH08 in person.")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("***Denominator: Participants with testing date (LEPT_IGG_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("****Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("**Denominator: Participants with testing date (LEPT_IGM_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
-      # tab_footnote(
-      #   footnote = c("***Denominator: Participants with testing date (HEV_LBTSTDAT) on/after test start date at enrollment and with complete MNH08 in person.")
-      # ) %>%
       tab_footnote(
         footnote = c("Note: We only expect 1000 participants per site. There will be no miss if the goal is reached")
       ) %>%
       tab_footnote(
         footnote = c("Note: ZCD/HEV/Lepto test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-11; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
       ) %>%
-      # tab_footnote(
-      #   footnote = c("Note: HEV test start dates are: Ghana: 2024-04-09; CMC: 2024-03-06; SAS: 2024-03-12; Kenya: 2024-03-06; Pakistan: 2024-04-08; Zambia: 2023-11-09")
-      # ) %>%
       tab_footnote(
         footnote = c("SAS Note: ZCD/HEV/Lepto testing ended on 2025-02-01")
       ) %>%
