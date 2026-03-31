@@ -14,7 +14,7 @@ library(haven)
 #Site data upload date
 UploadDate = "2026-03-06"
 #*****************************************************************************
-#* 1.Data preparation for lab missingness
+#* Data preparation for lab missingness
 #*****************************************************************************
 # set path to data
 path_to_data <- paste0("~/import/", UploadDate)
@@ -22,7 +22,7 @@ path_to_data <- paste0("~/import/", UploadDate)
 # set path to save 
 path_to_save <- paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Lab-Missingness/data")
 
-#******load data
+# 1. Import data ----
 #load mnh06 data
 mnh06 <- read.csv(paste0(path_to_data,"/mnh06_merged.csv")) 
 
@@ -91,7 +91,8 @@ mnh08_ke_full <- mnh08 %>% filter(SITE == "Kenya") %>%
 
 mnh08 <- bind_rows(mnh08_ke_full, mnh08_no_ke)
 
-#******merge data
+# 2. Merge data ----
+
 #extract unique mnh06 and make wide data
 mnh06_uni <- mnh06 %>% 
   group_by(SITE, MOMID, PREGID, M06_TYPE_VISIT) %>% 
@@ -146,7 +147,8 @@ mnh04_wide <- mnh04_uni %>%
   ) %>% 
   select(-starts_with("n_"))
 
-#merge to create maternal data 
+# 3. Generate baseline maternal dataframe (df_maternal) ----
+
 df_maternal <- MAT_ENROLL %>% 
   select(SITE, MOMID, PREGID, BOE_GA_DAYS_ENROLL, PREG_START_DATE, 
          EDD_BOE, BOE_GA_WKS_ENROLL, ENROLL_SCRN_DATE,REMAPP_ENROLL,REMAPP_AIM3_ENROLL,REMAPP_AIM3_TRI,
@@ -171,6 +173,8 @@ df_maternal <- MAT_ENROLL %>%
   left_join(sas_expansion_ids %>% mutate(SAS_EXPANSION = 1), by = c("PREGID"))
 
 #******clean data
+# 4. Clean data by field type ----
+
 #read in the lab variables we are gonna report
 lab_var <- read_excel("D:/Users/stacie.loisate/Documents/PRISMA-Public/PRISMA-Lab-Report/Lab report variables.xlsx") %>% 
   slice(-1) %>%
@@ -260,6 +264,8 @@ pre_lab_other <- df_maternal %>%
   mutate_all(~ if_else(. %in% c("1907-07-07"), NA, .)) 
 
 #******prepare df_lab --> data for missingness
+# 5. Code all missingness indicators ----
+
 df_lab <- df_maternal %>% 
   select(SITE, MOMID, PREGID, SAS_EXPANSION) %>% 
   left_join(prep_lab_num, by = c("SITE", "MOMID", "PREGID")) %>% 
@@ -267,6 +273,8 @@ df_lab <- df_maternal %>%
   left_join(prep_lab_date, by = c("SITE", "MOMID", "PREGID")) %>% 
   left_join(pre_lab_other, by = c("SITE", "MOMID", "PREGID")) %>% 
   distinct() %>%
+  
+  ## 5.1 Calculate visit windows ----
   #apply monitoring code 
   mutate(VC_ENROLL_DENOM_LATE = ifelse(ENROLL_PASS_LATE == 1, 1, 0), 
          VC_ANC20_DENOM_LATE = ifelse(ANC20_PASS_LATE == 1 & BOE_GA_WKS_ENROLL <= 17 &
@@ -302,6 +310,9 @@ df_lab <- df_maternal %>%
                                         ((CLOSEOUT_DT > PNC52_LATE_WINDOW) | is.na(CLOSEOUT_DT)) & 
                                       ((MAT_DEATH_DATE > PNC52_LATE_WINDOW) | is.na(MAT_DEATH_DATE)), 1, 0)
   ) %>% 
+  
+  ## 5.2 Define denominators by form/visit type ----
+
   #define denominator for form missingness
   mutate(
     #denominator for enrollment should be all enrolled in MAT_ENROLL
@@ -346,8 +357,11 @@ df_lab <- df_maternal %>%
     denom_lab_08_11 = ifelse(M08_TYPE_VISIT_11 == 11 & M08_MAT_VISIT_MNH08_11 == 1, 1, 0),
     denom_lab_08_12 = ifelse(M08_TYPE_VISIT_12 == 12 & M08_MAT_VISIT_MNH08_12 == 1, 1, 0),
   ) %>%
+  
+  ## 5.3 CBC (ReMAPP participants) ----
+
   #define denominator for ReMAPP exclusive labs (RBC at enrollment)
-  # ANC20, ANC28, ANC36, PNC6
+  # ENROLL, ANC20, ANC28, ANC36, PNC6
   mutate(
     denom_remapp_cbc_2 = case_when( ## updated to filter by LBSTDAT instead of ENROLL_SCRN_DATE
       SITE %in% c("Ghana", "Kenya", "Zambia", "India-CMC", "India-SAS") & denom_lab_08_1 == 1 & REMAPP_ENROLL ==1 ~ 1,
@@ -374,7 +388,10 @@ df_lab <- df_maternal %>%
     denom_remapp = case_when( ## updated to filter by LBSTDAT instead of ENROLL_SCRN_DATE
       denom_lab_08_1 == 1 & REMAPP_ENROLL ==1 ~ 1, TRUE ~ 0
     )) %>% 
-  #define denominator for syphilis (test date)
+  
+  ## 5.4 Syphilis  ----
+
+  #define denominator for syphilis (using test date)
   mutate(
     denom_syphilis_enroll = case_when(
       (SITE == "Ghana" & M08_SYPH_TITER_LBTSTDAT_1 >= "2024-04-09") | 
@@ -406,12 +423,17 @@ df_lab <- df_maternal %>%
            (SITE == "India-CMC") |
            (SITE == "India-SAS" &  M06_DIAG_VSDAT_4  >= "2023-12-12" & SAS_EXPANSION==1)) ~ 1, ## only expansion ids are expected to have this test at this visit
       TRUE ~ 0)) %>% 
-  #define denominator for glucose test
+  
+  ## 5.5 Glucose testing  ----
+
   mutate(
     denom_glucose= case_when(
       DIAB_OVERT == 1 | DIAB_OVERT_DX == 1 ~ 0, #overt diabetes
       TRUE ~ 1
     )) %>% 
+  
+  ## 5.6 HIV testing  ----
+
   #define denominator for HIV test 
   mutate(
     denom_hiv= case_when(
@@ -419,6 +441,9 @@ df_lab <- df_maternal %>%
       SITE == "Kenya" & M04_HIV_EVER_MHOCCUR_1 == 0 & M06_HIV_POC_LBPERF_1 == 1 ~ 1, 
       TRUE ~ 0
     )) %>% 
+  
+  ## 5.7 Zcd / Lepto / Hev  ----
+
 ## define denominator zcd/lepto/hev (denom_lept_igm, denom_lept_igg, denom_hev, denom_zcd) 
   mutate(
     denom_zcd_lept_hev_1 = case_when(
@@ -451,7 +476,9 @@ df_lab <- df_maternal %>%
       TRUE ~ 0
     )
   ) %>%
-  #define denominator for RBC disorder test 
+  
+  ## 5.8 RBC disorder  ----
+
   mutate(
     denom_rbc_disorder = case_when(
       denom_lab_08_1 == 1 & 
@@ -463,6 +490,9 @@ df_lab <- df_maternal %>%
            (SITE == "India-SAS" & ENROLL_SCRN_DATE >= "2023-12-12")) ~ 1,
       TRUE ~ 0
     )) %>% 
+  
+  ## 5.9 free T3 and free T4  ----
+
   #define denominator for free t3 and free t4 at ANC32
   mutate(
     denom_t3t4_anc32 = case_when(
@@ -501,6 +531,9 @@ df_lab <- df_maternal %>%
            (SITE == "India-SAS" &  M08_LBSTDAT_1 <= "2024-08-31")) ~ 1, ## added dates to enrollment lft 
       TRUE ~ 0
     )) %>% 
+  
+  ## 5.10 KFTs & LFTs  ----
+
   #define denominator for kidney & liver function tests at ANC32 
   mutate(
     denom_kft_lft_fxn_anc32 = case_when(
@@ -514,6 +547,8 @@ df_lab <- df_maternal %>%
       TRUE ~ 0
     )) %>% 
   
+  ## 5.11 Folate (RBC & Serum)  ----
+
   #define denominator for transition from serum folate to RBC folate 
   mutate(
     denom_folate_rbc_1 = case_when(
@@ -579,6 +614,8 @@ df_lab <- df_maternal %>%
       TRUE ~ 0
     )) %>% 
   
+  ## 5.12 holoTC (RBC & Serum)  ----
+
   #define denominator for holoTC @ Enroll/ANC32 
   mutate(
     denom_holo_1 = case_when(
@@ -602,6 +639,9 @@ df_lab <- df_maternal %>%
       TRUE ~ 0
     ),
     ) %>% 
+  
+  ## 5.13 CTNG ----
+
   #define denominator ctng at enrollment and anc32
   mutate(
     denom_ctng_1 = case_when( # M07_MAT_SPEC_COLLECT_DAT_1
@@ -624,6 +664,9 @@ df_lab <- df_maternal %>%
            (SITE == "India-SAS" & denom_lab_08_4 ==1 & SAS_EXPANSION==1 & (M08_LBSTDAT_1 >= "2024-03-11" & M08_LBSTDAT_1 <= "2025-03-06"))) ~ 1,  ## only expansion ids are expected to have this test at this visit
       TRUE ~ 0
     )) %>% 
+  
+  ## 5.14 CO2 (Kenya & SAS adjustment) ----
+
   # #define denominator for kenya carbon dioxide AND carbon dioxide for SAS at enrollment and ANC32
   mutate(co2_denom_lab_08_1 = case_when(!SITE %in% c("Kenya", "India-SAS") & denom_lab_08_1 == 1 ~ 1,
                                         (SITE ==  "Kenya" & denom_lab_08_1 == 1 & M08_LBSTDAT_1 >="2023-04-01") |
@@ -704,6 +747,9 @@ df_lab <- df_maternal %>%
                                         SITE ==  "Kenya" & denom_lab_08_12 == 1 & M08_LBSTDAT_12 >="2023-03-29" ~ 1, TRUE ~ 0
         )
       ) %>% 
+  
+  ## 5.15 W4SS symptom screen ----
+
         mutate(W4SS_SCREEN_PERF_ENROLL = case_when(M04_TB_CETERM_1_1 %in% c(1, 0) & 
                                                      M04_TB_CETERM_2_1 %in% c(1, 0) & 
                                                M04_TB_CETERM_3_1 %in% c(1, 0) &
@@ -769,6 +815,8 @@ df_lab <- df_maternal %>%
                                                                           SITE %in% c("India-SAS", "India-CMC") & M04_TB_CETERM_1_5 %in% c(1, 0, NA) &  M04_TB_CETERM_2_5 %in% c(1, 0, NA) & M04_TB_CETERM_3_5 %in% c(1, 0, NA) & M04_TB_CETERM_4_5 %in% c(1, 0, NA))) ~ 1,
                                            REMAPP_AIM3_ENROLL ==  0 ~ 77,
                                            TRUE  ~ 0),
+         ## 5.16 TB culture ----
+               
          ## was the test perfromed
          TB_CULTURE_PERF_AIM3 = case_when(REMAPP_AIM3_ENROLL ==  1 & (( M08_TB_CNFRM_LBORRES_1 %in% c(1, 0, 2)) |
                                                                         (M08_TB_CNFRM_LBORRES_2 %in% c(1, 0, 2)) | 
@@ -791,6 +839,9 @@ df_lab <- df_lab %>%
          )
 
 df_lab <- df_lab %>% mutate(ENROLL=1)
+
+# 6. Export ----
+
 #save data
 save(df_maternal, file= paste(path_to_save,"/df_maternal", ".RData",sep = ""))
 save(df_lab, file= paste(path_to_save,"/df_lab", ".RData",sep = ""))
