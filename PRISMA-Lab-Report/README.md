@@ -8,6 +8,9 @@ Codes includes two parts:
 
 **`Lab Distribution:`** Visualize the distribution of lab results both during and after pregnancy, and compare the differences in lab results across all sites. This includes code for scatter plots, line plots, bar plots, and histograms. While we’re not running this part for now, I’ve included the code for future use.
 
+- Link to meta-data spreadsheet [link](https://docs.google.com/spreadsheets/d/1eh6slRp5IHqcYT5FxUp5ArFbLpB4LpXyRBMuhPmJGHE/edit?gid=1177252973#gid=1177252973)
+- Link to lab report update tracker [link](https://docs.google.com/spreadsheets/d/1gWHqU7LFt9kpyz6ebqvfDaFUl3OsT1rRsCw6J0YlzkE/edit?gid=1313345622#gid=1313345622)
+
 #### :pushpin: Updated on 2026-03-31
 #### :pushpin: Originally drafted by: Xiaoyan Hu (xyh@gwu.edu)
 
