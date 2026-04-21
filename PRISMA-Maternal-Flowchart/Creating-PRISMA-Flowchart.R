@@ -121,7 +121,7 @@ flow_core <- Flowchart_df %>%
   # Step 2: Screening enrollment
   fc_filter(
     SCREEN_PASS == "Yes" &
-    PRISMA_ENROLLED == 1 &
+    PRISMA_ENROLL == 1 &
     SCREEN_DENOM == 1,
     label = "Eligible women\nenrolled in PRISMA",
     show_exc         = TRUE,
