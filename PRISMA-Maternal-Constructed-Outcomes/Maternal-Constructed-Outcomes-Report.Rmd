@@ -6843,7 +6843,7 @@ knitr::include_graphics(paste0(path_to_save, "uter_rup_tab_output.png"))
 \newpage
 
 
-## 11. Prolonged labor
+## 11. Prolonged and obstructed labor
 
 **Definition:** Labor lasting >24 hours (from the time of labor onset to the time of infant birth, as reported in MNH09 form)
 
