@@ -8454,4 +8454,3 @@ gtsave(surgery_tab_output, file = "surgery_tab_output.png", path = path_to_save,
 knitr::include_graphics(paste0(path_to_save, "surgery_tab_output.png"))
 
 ```
-

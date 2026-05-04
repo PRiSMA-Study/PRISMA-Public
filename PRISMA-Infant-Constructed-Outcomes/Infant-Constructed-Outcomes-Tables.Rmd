@@ -1,5 +1,5 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2025-11-05)"
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2026-02-17)"
 output:
   pdf_document:
     toc: no
@@ -32,15 +32,13 @@ library(gt) ## for table gen
 library(webshot2)  ## for table gen
 library(readxl)
 
-UploadDate = "2025-10-31"
-# path_to_data <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/data/"
-path_to_data <- "D:/Users/stacie.loisate/Documents/import/outcomes/"
+UploadDate = "2026-03-20"
+path_to_data <- paste0("D:/Users/stacie.loisate/Documents/import/outcomes/", UploadDate, "/")
 
 path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/output/"
 path_to_save_figures <- "D:/Users/stacie.loisate/Documents"
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
-# UploadDate = "2025-04-18"
 mat_enroll <- read_xlsx(paste0("Z:/Outcome Data/", UploadDate, "/MAT_ENROLL.xlsx"))
 infant_outcomes <- read_xlsx(paste0("Z:/Outcome Data/", UploadDate, "/INF_OUTCOMES.xlsx"))
 remapp_ids <- mat_enroll %>% filter(REMAPP_ENROLL ==1)
@@ -49,15 +47,8 @@ infant_trajectory <- read.csv(paste0(path_to_data, "INF_GROWTH_WIDE", ".csv"))
 all_plus_outcome <- read.csv(paste0(path_to_data, "INF_GROWTH_LONG", ".csv"))
 psbi_outcome <- read.csv(paste0(path_to_data, "INF_PSBI_LONG", ".csv"))
 infant_outcomes <- read.csv(paste0(path_to_data, "INF_OUTCOMES", ".csv"))
-
-# infant_trajectory <- read.csv(paste0(path_to_tnt, "INF_GROWTH_WIDE", ".csv"))
-# all_plus_outcome <- read.csv(paste0(path_to_tnt, "INF_GROWTH_LONG", ".csv"))
-# psbi_outcome <- read.csv(paste0(path_to_tnt, "INF_PSBI_LONG", ".csv"))
-# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
-
-# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES", ".csv"))
-# infant_outcomes <- read.csv(paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/", "INF_OUTCOMES-UPDATED", ".csv"))
-# infant_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES-UPDATED", ".csv"))
+infant_ebf_wide <- read.csv(paste0(path_to_data, "INF_EBF_WIDE", ".csv"))
+infant_ebf_long <- read.csv(paste0(path_to_data, "INF_EBF_LONG", ".csv"))
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -141,7 +132,7 @@ g_legend <- function(p) {
 setwd(paste0(path_to_save))
 ```
 
-**Includes data from synapse last updated:** 2025-10-31
+**Includes data from synapse last updated:** 2026-01-30 (2026-01-23 Pakistan; 2026-02-02 Ghana)
 
 \tableofcontents
 
@@ -159,7 +150,6 @@ setwd(paste0(path_to_save))
 ## livebirths (MNH09): sga, preterm
 
 ## special: neo/inf mortality, stillbirth, fetal death
-
 ## lbw: Any infant with a MNH11 form and a reported "live birth" `(BIRTH_DSTERM=1 [MNH09])`.
 ## preterm: Any participant with delivery after 20 weeks with a MNH09 form filled out with a reported "birth outcome" `(BIRTH_DSTERM_INF1-4=1 OR BIRTH_DSTERM_INF1-4=2 [MNH09])` AND has valid gestational age reported in MNH01 `(US_GA_WKS_AGE_FTS1-4 [MNH01], US_GA_DAYS_AGE_FTS1-4 [MNH01], GA_LMP_WEEKS_SCORRES [MNH01])`. Preterm delivery includes live or stillbirths; preterm birth includes only livebirths. 
 ## sga: Any participant with a MNH09 form filled out with a reported "live birth" `(BIRTH_DSTERM_INF1-4=1 [MNH09])`.
@@ -203,10 +193,6 @@ all_births <- infant_outcomes %>%
   
   
 lbw_sum <- infant_outcomes %>% 
-  ## If india-SAS doesn't have data, add emprty row here 
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   filter(LBW_CAT_ANY != 55) %>%  ## remove missing
   rowwise() %>% 
   group_by(SITE) %>% 
@@ -254,10 +240,6 @@ lbw_sum <- infant_outcomes %>%
 
 ## preterm:
 preterm_sum <- infant_outcomes %>% 
-  ## If india-SAS doesn't have data, add emprty row here 
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   filter(PRETERMBIRTH_CAT != 55) %>%  ## remove missing
   rowwise() %>% 
   group_by(SITE) %>% 
@@ -292,10 +274,6 @@ preterm_sum <- infant_outcomes %>%
 
 #sga
 sga_sum <- infant_outcomes %>%
-  ## If india-SAS doesn't have data, add emprty row here 
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   filter(SGA_CAT != 55) %>%  ## remove missing
   rowwise() %>% 
   group_by(SITE) %>% 
@@ -355,9 +333,6 @@ sga_sum <- infant_outcomes %>%
 
 # neonatal mortality (no missing here)infant_outcomes
 neo_mort_sum <- infant_outcomes %>%
-  ## If india-SAS doesn't have data, add emprty row here
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -391,16 +366,7 @@ neo_mort_sum <- infant_outcomes %>%
 ) %>%
    mutate_all(funs(str_replace(., "NaN", "0")))
 
-  #   "Neonatal mortality, n per 1000^a^" = paste0(
-  #     format(sum(TOTAL_NEO_DEATHS==1, na.rm = TRUE), nsmall = 0, digits = 2),
-  #     " (",
-  #     format(round(sum(TOTAL_NEO_DEATHS==1, na.rm = TRUE)/sum(D28_DENOM==1, na.rm = TRUE)*1000, 2), nsmall = 0, digits = 2),
-  #     ")")
-  #
-  #
-  # ) %>%
-
-## remove infant mortality for now -- add back in when we have data
+## remove infant mortality for now -- summary row include neonatal deaths (all dths in the first year of life); Table 5 is deaths after 28 days up to the first year of life 
 inf_mort_sum <- infant_outcomes %>%
   rowwise() %>%
   group_by(SITE) %>%
@@ -437,10 +403,6 @@ inf_mort_sum <- infant_outcomes %>%
 
 # Stillbirth
 stillbirth_sum <- infant_outcomes %>%
-  ## If india-SAS doesn't have data, add emprty row here
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   filter(STILLBIRTH_GESTAGE_CAT != 55) %>%  ## remove missing
   rowwise() %>%
   group_by(SITE) %>%
@@ -490,10 +452,6 @@ stillbirth_sum <- infant_outcomes %>%
 
 # Fetal death (no missing)
 fetal_dth_sum <- infant_outcomes %>%
-  ## If india-SAS doesn't have data, add emprty row here
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -529,10 +487,6 @@ fetal_dth_sum <- infant_outcomes %>%
 
 # asphyxia (no missing)
 birth_asphyxia_sum <- infant_outcomes %>%
-  ## If india-SAS doesn't have data, add emprty row here
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -570,10 +524,6 @@ birth_asphyxia_sum <- infant_outcomes %>%
 # hyperbili by AAP (no missing)
 hyperbili_sum <- infant_outcomes %>%
   filter(LIVEBIRTH==1) %>%
-  ## If india-SAS doesn't have data, add emprty row here
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  ## Add empty rows for missing SITE values if the specific site doesn't exist
-  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -639,10 +589,6 @@ hyperbili_sum <- infant_outcomes %>%
 
 # psbi
 psbi_sum <- infant_outcomes %>%
-  ## If india-SAS doesn't have data, add empty row here
-  # mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>%
-  # ## Add empty rows for missing SITE values if the specific site doesn't exist
-  # complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -674,7 +620,7 @@ psbi_sum <- infant_outcomes %>%
       `colnames<-`(c(.[1,])) %>% unlist()
 ) %>%
   mutate_all(funs(str_replace(., "NaN", "0")))
-# 
+
 ```
 
 ```{r}
@@ -683,7 +629,7 @@ psbi_sum <- infant_outcomes %>%
 infantoutcomes_combined <- bind_rows(all_births, lbw_sum, preterm_sum, sga_sum, neo_mort_sum,inf_mort_sum, stillbirth_sum, fetal_dth_sum, birth_asphyxia_sum, hyperbili_sum, psbi_sum) %>% select("Total", "Ghana", "India-CMC","India-SAS", "Kenya", "Pakistan", "Zambia")
 
 
-infantoutcomes_output <-  infantoutcomes_combined %>% 
+infantoutcomes_output <-infantoutcomes_combined %>% 
   select(-Total) 
 
 # replace NA with 0s (this likely means there is not yet data)
@@ -721,13 +667,11 @@ All infants with a jaundice assessment at <14 weeks of life.</span>")
  ) 
 
 infantoutcomes_summary <-infantoutcomes_combined
-# save data set of summary table to add to monitoring report
-save(infantoutcomes_summary, file= paste("D:/Users/stacie.loisate/Box/Monitoring-Report-Active/data/infantoutcomes_summary", ".RData", sep = ""))
 
-# save(infantoutcomes_summary, file= paste("D:/Users/stacie.loisate/Documents/Output/Outcomes-Queries/ReMIND/infantoutcomes_summary", "pdf", sep = ""))
-# 
-# infantoutcomes_summary %>% gtsave("D:/Users/stacie.loisate/Documents/Output/Outcomes-Queries/ReMIND/infantoutcomes_output.pdf")
-# 
+# save data set of summary table to add to monitoring report (THIS IS ON PAUSE FOR NOW, but once ready to add back into the monitoring report, this can be added back in)
+# save(infantoutcomes_summary, file= paste("D:/Users/stacie.loisate/Box/Monitoring-Report-Active/data/infantoutcomes_summary", ".RData", sep = ""))
+
+
 
 ```
 
@@ -937,7 +881,6 @@ ggplot(data=lowbirthweight_nomissing_prisma,
   geom_histogram(fill = "#317773", color = "black") + #binwidth = 100
   facet_grid(vars(SITE), scales = "free") +
   scale_x_continuous(breaks = seq(0,5000,500)) + 
-  # ggtitle("Birthweight by any reporting method, by Site") + 
   ylab("Count") + 
   xlab("Birthweight, g") + 
   theme_bw() +
@@ -1327,7 +1270,7 @@ Figure 3b. Among all deliveries (stillbirths and livebirths). Gestational age at
 </span>
 
 
-<!-- ### Table 3. Preterm delivery -->
+<!-- REMOVE THIS FOR NOW; can add back in if want to include preterm delivery as well ### Table 3. Preterm delivery --> 
 
 <!-- ```{r} -->
 
@@ -1708,9 +1651,6 @@ stillbirth_livebirth_prop_site <- infant_outcomes %>%
             mutate(GESTAGEBIRTH_ANY = ifelse(GESTAGEBIRTH_ANY >= 42, 42, GESTAGEBIRTH_ANY)) %>%
             group_by(SITE, GESTAGEBIRTH_ANY, LIVEBIRTH) %>%
             summarise(n = n(), .groups = 'drop') %>% # 
-            # full_join(complete_data, by = c("SITE", "GESTAGEBIRTH_BOE", "LIVEBIRTH")) %>%
-            # mutate(n = case_when(is.na(n) ~ n_complete, TRUE ~ n)) %>% 
-            # select(-n_complete) %>% 
             ungroup() %>% 
             group_by(SITE, GESTAGEBIRTH_ANY) %>% 
             mutate(n_total_week = sum(n)) %>% 
@@ -1720,7 +1660,6 @@ stillbirth_livebirth_prop_site <- infant_outcomes %>%
             # mutate_all(funs(str_replace(., "NaN", "0"))) 
 
 stillbirth_livebirth_prop_site$LIVEBIRTH <- factor(stillbirth_livebirth_prop_site$LIVEBIRTH, levels = c(1, 0))
-# write.csv(test, paste0("D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Exploratory-Data-Analysis/", "still-livebirth-stacked-site" ,".csv"), row.names=FALSE)
 
 out2 <- ggplot(stillbirth_livebirth_prop_site, aes(fill=as.factor(LIVEBIRTH), y=pct_week, x=GESTAGEBIRTH_ANY)) + 
     geom_bar(position="stack", stat="identity") + 
@@ -1840,24 +1779,11 @@ sga_tab <- infant_outcomes %>%
   `colnames<-`(c(.[1,])) %>% 
   slice(-1) 
 
-
-# out <- sga %>% filter(SITE == "Kenya" & SGA_CAT==55) %>% select(SITE, MOMID, PREGID, INFANTID, GESTAGEBIRTH_BOE_DAYS, GESTAGEBIRTH_BOE, BWEIGHT_ANY, SEX)
-# write.csv(out, paste0("~/ken_out_ids.csv"), row.names=FALSE)
-
 ```
 
 ```{r}
 
 sga_tab <- sga_tab %>% 
-  # `rownames<-` (c(
-  #   "SGA <3rd percentile",
-  #   "SGA 3rd to <10th percentile",
-  #   "AGA 10th to <90th percentile",
-  #   "LGA >= 90th percentile",
-  #   "Missing"
-  # )
-  # ) %>%
-  # mutate_all(funs(str_replace(., "NA (0)", "0 (0)"))) %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) 
 
 # replace NA with 0s (this likely means there is not yet data)
@@ -1908,7 +1834,6 @@ ggplot(data=infant_outcomes,
   facet_grid(vars(SITE), scales = "free") +
   scale_x_continuous(breaks = seq(0,100,10),
                      limits = c(0,100)) +
-  # ggtitle("Distribution of INTERGROWTH percentiles, by Site") + 
   ylab("Count") + 
   xlab("INTERGROWTH Percentile") + 
   theme_bw() +
@@ -2005,12 +1930,6 @@ neo_mortality_tab <- infant_outcomes %>% ## denominator is all livebirths with a
       format(round(sum(NEO_DTH_CAT == 13, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    # "Death reported but missing time of death " = paste0(
-    #   format(sum(NEO_DTH_CAT == 55, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(NEO_DTH_CAT == 55, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
-    
     "Total neonatal deaths " = paste0(
       format(sum(NEO_DTH_CAT %in% c(11,12,13) & D28_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -2041,14 +1960,7 @@ inf_mortality_tab <- infant_outcomes %>% ## denominator is all livebirths with a
       " (",
       format(round(sum(INF_DTH_FROM28 == 1 & D365_DENOM == 1, na.rm = TRUE)/sum(D365_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
-    
-    # "Death reported but missing time of death  " = paste0(
-    #   format(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(INF_DTH_CAT == 66 & AGE_LAST_SEEN >= 365, na.rm = TRUE)/sum(D28_DENOM == 1 , na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
-    # 
-    
+
     "Total post-neonatal infant deaths  " = paste0(
       format(sum(INF_DTH_FROM28 == 1 & D365_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
@@ -2191,12 +2103,6 @@ stillbirth_tab <- infant_outcomes %>% ## denominator is anyone with a birth outc
       format(round(sum(STILLBIRTH_20WK == 1 & STILLBIRTH_DENOM == 1, na.rm = TRUE)/sum(STILLBIRTH_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
-    # "Missing" = paste0(
-    #   format(sum(STILLBIRTH_GESTAGE_CAT == 55, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(STILLBIRTH_GESTAGE_CAT == 55, na.rm = TRUE)/sum(STILLBIRTH_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"), 
-     
    ## stillbirth timing outcome
     "Denominator  " =  paste0(
       format(sum(STILLBIRTH_20WK == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
@@ -2314,16 +2220,7 @@ fetal_death_tab <- infant_outcomes %>% ## denominator is anyone with a birth out
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
-    
-    # "Denominator" =  paste0(
-    #   format(sum(M04_PRG_DSDECOD == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-    # 
-    # "Fetal loss reported but specified type of loss is missing" = paste0(
-    #   format(sum(INVALID_FETAL_LOSS == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",
-    #   format(round(sum(INVALID_FETAL_LOSS == 1, na.rm = TRUE)/sum(M04_PRG_DSDECOD == 2, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),
-    
+
     ## fetal death 
     
     "Denominator" =  paste0(
@@ -2596,10 +2493,6 @@ hyperbili_all_crit_tab <- infant_outcomes %>% ## Denominator is all livebirths r
   rowwise() %>% 
   group_by(SITE) %>% 
   summarise(
-    
-    ## hyperbili by TCB
-    # "Denominator" = paste0(
-    #   format(sum(DENOM_24HR == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Hyperbilirubinemia <24 hrs of life" = paste0(
       format(sum(INF_HYPERBILI_TCB15_24HR == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
@@ -2629,9 +2522,6 @@ hyperbili_all_crit_tab <- infant_outcomes %>% ## Denominator is all livebirths r
                 (INF_HYPERBILI_TCB15_14DAY == 1), na.rm = TRUE)/sum(DENOM_HYPERBILI_ANY==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-## Hyperbilirubinemia by AAP thresholds
-    # "Denominator " = paste0(
-    #   format(sum(DENOM_24HR == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Hyperbilirubinemia <24 hrs of life " = paste0(
       format(sum(INF_HYPERBILI_AAP_24HR == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
@@ -2898,47 +2788,6 @@ psbi_tab <- psbi_outcome %>% ## Denominator is all livebirths aged 0-59 days
       " (",  format(round(sum(INF_PSBI_PNC6 == 1 & MISSING_TEMP_PNC==1, na.rm = TRUE)/sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"), 
 
-    # "PNC0 " = paste0(format(sum(INF_PSBI_PNC0 == 1 & 
-    #                                     (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
-    #                                     (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",  format(round(sum(INF_PSBI_PNC0 == 1 & 
-    #                                     (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
-    #                                     (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_PNC0 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),  
-    #   
-    #   "PNC1 " = paste0(format(sum(INF_PSBI_PNC1 == 1 & 
-    #                                     (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
-    #                                     (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
-    #   " (",  format(round(sum(INF_PSBI_PNC1 == 1 & 
-    #                                     (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
-    #                                     (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_PNC1 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-    #   ")"),  
-      
-      #  "PNC4 " = paste0(format(sum(INF_PSBI_PNC4 == 1 & 
-      #                                   (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
-      #                                   (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
-      # " (",  format(round(sum(INF_PSBI_PNC4 == 1 & 
-      #                                   (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
-      #                                   (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_PNC4 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      # ")"),  
-      # 
-      # "PNC6 " = paste0(format(sum(INF_PSBI_PNC6 == 1 & 
-      #                                   (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
-      #                                   (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
-      # " (",  format(round(sum(INF_PSBI_PNC6 == 1 & 
-      #                                   (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
-      #                                   (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      # ")"),  
-
-      # "Unscheduled visit " = paste0(format(sum(INF_PSBI_UNSCHED == 1 & 
-      #                                   (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_2 < 35.5) & (M13_TEMP_VSORRES_2 < 0)) | 
-      #                                   (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE), nsmall = 0, digits = 2),
-      # " (",  format(round(sum(INF_PSBI_UNSCHED == 1 & 
-      #                                   (((M13_TEMP_VSORRES_1 > 0 & M13_TEMP_VSORRES_1 < 35.5) & (M11_TEMP_VSORRES_2 < 0)) | 
-      #                                   (M13_TEMP_VSORRES_1 >=38 & M13_TEMP_VSORRES_2 < 0)), na.rm = TRUE)/sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      # ")"), 
-      
-     
       "Unscheduled visit  " = paste0(
       format(sum(INF_PSBI_UNSCHED == 1 & MISSING_TEMP_PNC==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",  format(round(sum(INF_PSBI_UNSCHED == 1 & MISSING_TEMP_PNC==1, na.rm = TRUE)/sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -3130,86 +2979,9 @@ psbi_tab <- psbi_outcome %>% ## Denominator is all livebirths aged 0-59 days
   slice(-1)
 
 
-# 
-# 
-# psbi_tab <- psbi_outcome %>% ## Denominator is all livebirths aged 0-59 days
-#   rowwise() %>% 
-#   group_by(SITE) %>% 
-#   summarise(
-#     
-#     "Denominator" = paste0(
-#        format(sum(INF_PSBI_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-# 
-#     "IPC (target window: delivery to 72 hours" = paste0(
-#       format(sum(INF_PSBI_IPC == 1 , na.rm = TRUE), nsmall = 0, digits = 2),
-#       " (",
-#       format(round(sum(INF_PSBI_IPC == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-#       ")"),
-#     
-#     "PNC0 (target window: 3 to 5 days)" = paste0(
-#       format(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-#       " (",
-#       format(round(sum(INF_PSBI_PNC0 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-#       ")"),
-#     
-#     "PNC1 (target window: 7 to 14 days)" = paste0(
-#       format(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-#       " (",
-#       format(round(sum(INF_PSBI_PNC1 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-#       ")"),
-#     
-#     "PNC4 (target window: 28 to 35 days)" = paste0(
-#       format(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-#       " (",
-#       format(round(sum(INF_PSBI_PNC4 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-#       ")"),
-#     
-#     "PNC6 (target window: 6 to 12 weeks)" = paste0(
-#       format(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-#       " (",
-#       format(round(sum(INF_PSBI_PNC6 == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-#       ")"),
-#     
-#     "Unscheduled" = paste0(
-#       format(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-#       " (",
-#       format(round(sum(INF_PSBI_UNSCHED == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-#       ")"),
-#     
-#     "Hospitalization" = paste0(
-#       format(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-#       " (",
-#       format(round(sum(INF_PSBI_HOSPITAL == 1, na.rm = TRUE)/sum(INF_PSBI_DENOM == 1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-#       ")")
-# 
-#   ) %>% 
-#   t() %>% as.data.frame() %>% 
-#   `colnames<-`(c(.[1,])) %>% 
-#   slice(-1) 
-# 
-
-
 ```
 
 ```{r}
-# psbi_tab <- psbi_tab %>% 
-#   mutate_all(funs(str_replace(., "NaN", "0"))) 
-# 
-# # replace NA with 0s (this likely means there is not yet data)
-# psbi_tab[is.na(psbi_tab)] <- paste0("0 (0)")
-# 
-# psbi_tab_output <- tb_theme1(psbi_tab) %>% 
-#   tab_header(
-#     title = md("**Table 10**")
-#   ) %>%
-#   tab_row_group(
-#     label = html("<span style='font-size: 18px'>PSBI by visit<sup>a</sup></span>"),
-#     rows = 1:8
-#   ) %>%
-#   row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit</span>")) %>% 
-#   tab_footnote(
-#       footnote = html("<span style='font-size: 18px'><sup>a</sup> If an infant has a PSBI diagnosis at more than one time point, they are counted only once for PSBI at any time point.</span>")
-#    )  
 
 psbi_tab <- psbi_tab %>% 
   mutate_all(funs(str_replace(., "NaN", "0"))) 
@@ -3591,16 +3363,10 @@ inf_traj_birth_tab <- infant_trajectory %>%
     "Denominator ^a^" =  paste0(
       format(sum(TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Missing birth date (MNH09)" = paste0(
-      format(sum(is.na(DOB) & TYPE_VISIT == 6), nsmall = 0, digits = 2),
+   "Birthdate–Age Inconsistencies ^b^" = paste0(
+      format(sum(is.na(AGE_IN_DAYS) & TYPE_VISIT == 6), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(is.na(DOB) & TYPE_VISIT == 6)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
-    "Missing visit date at birth (MNH11)" = paste0(
-      format(sum(is.na(VISIT_DATE) & TYPE_VISIT == 6), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(is.na(VISIT_DATE) & TYPE_VISIT == 6)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(is.na(AGE_IN_DAYS) & TYPE_VISIT == 6)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
     "Missing information on infant sex" = paste0(
@@ -3633,14 +3399,14 @@ inf_traj_birth_tab <- infant_trajectory %>%
       format(round(sum(MSRE_COMPLT == 0 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),    
     
-    "Invalid Z score ^b^ ^c^" = paste0(
+    "Invalid Z score ^c^ ^d^" = paste0(
       format(sum(ONE_MSRE_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(ONE_MSRE_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE)/sum(TYPE_VISIT==6, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),    
     
     ## infant trajectories at birth outcome (WHO Standards)
-    "Denominator ^d^" =  paste0(
+    "Denominator ^e^" =  paste0(
       format(sum(MSRE_COMPLT == 1 & NON_TRAJ_FLAG == 1 & TYPE_VISIT == 6, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Underweight (WAZ < -2)" = paste0(
@@ -3755,8 +3521,8 @@ inf_traj_birth_tab <- inf_traj_birth_tab %>%
 # replace NA with 0s (this likely means there is not yet data)
 inf_traj_birth_tab[is.na(inf_traj_birth_tab)] <- paste0("0 (0)")
 
-inf_traj_birth_tab1 <- inf_traj_birth_tab[1:9,]
-inf_traj_birth_tab2 <- inf_traj_birth_tab[10:26,]
+inf_traj_birth_tab1 <- inf_traj_birth_tab[1:8,]
+inf_traj_birth_tab2 <- inf_traj_birth_tab[9:25,]
 
 # table 1
 inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>% 
@@ -3765,7 +3531,7 @@ inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>%
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>"),
-    rows = 1:9
+    rows = 1:8
   ) %>%
 
   row_group_order(
@@ -3792,11 +3558,14 @@ inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total livebirths with MNH09 & MNH11.</span>")
   ) %>%
+    tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Birthdate–Age Inconsistencies: includes records where the timing of birth anthropometric measurement implies (i) a negative calculated age, (ii) age outside the allowable birth visit window (>5 days), or (iii) missing or implausible visit dates (e.g., before 2021 or in the future). These are generally a result of conflicts between site-provided MNH11 visit date and the MNH09 recorded birthdate.</span>")
+  ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Participants who had at least one invalid z-score measure.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Participants who had at least one invalid z-score measure.</span>")
   ) %>% 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup> Invalid Z-score - At least one of the z-scores has been flagged by the World Health Organization (WHO) as biologically implausible (BIV).</span>")
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Invalid Z-score - At least one of the z-scores has been flagged by the World Health Organization (WHO) as biologically implausible (BIV).</span>")
   )
 
 
@@ -3825,7 +3594,7 @@ inf_traj_birth_output2 <- tb_theme1(inf_traj_birth_tab2) %>%
       cell_text(weight = "bold")
     ),
     locations = cells_body(rows = c(
-      "Denominator ^d^"
+      "Denominator ^e^"
     ))
   ) %>% 
   tab_style(
@@ -3833,7 +3602,7 @@ inf_traj_birth_output2 <- tb_theme1(inf_traj_birth_tab2) %>%
       cell_text(weight = "bold")
     ),
     locations = cells_stub(rows = c(
-      "Denominator ^d^"
+      "Denominator ^e^"
     ))
   ) %>% 
   tab_footnote(
@@ -4092,9 +3861,7 @@ inf_traj_onem_output2 <- tb_theme1(inf_traj_onem_tab2) %>%
                  "Denominator ^d^"))) %>% 
     tab_footnote(
       footnote = html("<span style='font-size: 18px'><sup>d</sup> All living infants who have completed at least one visit at one month (21-42 days) of age, AND have all required anthropometric measurements, AND  possess valid z-scores.</span>")
-   )
-
-
+)
 ```
 
 ```{r, out.width = '100%'}
@@ -4375,8 +4142,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width 
 
 
 # all_plus_outcome <- read_csv("~/Analysis/Infant-Constructed-Variables/data/INF_GROWTH_LONG.csv") 
-
-
 birth_df <- all_plus_outcome %>% 
   filter (TYPE_VISIT == 6) %>% 
   mutate (VisitType = 6,
@@ -4858,4 +4623,1099 @@ ggplot(data_summary, aes(x = TYPE_VISIT_CONS, y = Percentage, fill = STATUS)) +
     legend.position = "bottom",
     legend.title = element_text(size = 10),
     legend.text = element_text(size = 8.5))
+```
+
+\newpage
+
+## 13. Exclusive Breastfeeding Analysis 
+
+**Exclusive breastfeeding (EBF) at a given postnatal timepoint is defined cumulatively**.
+
+An infant is classified as **exclusively breastfed** at a given timepoint if the caregiver reported exclusive breastfeeding at that visit and at all prior postnatal visits, with no reported intake of any non-breast-milk foods or liquids at any earlier visit.
+
+If an infant is reported as receiving any non-breast-milk food or liquid at any visit, the infant is considered not exclusively breastfed from that time onward and remains classified as non-EBF at all subsequent timepoints.
+
+For the following tables and descriptive analysis,
+exclusive breastfeeding (EBF) patterns were examined across the early postnatal period, with assessments conducted at both the 6-week and 6-month postnatal visits to capture changes in infant feeding practices over time. The analysis evaluate data availability and measurement completeness, estimate the proportion of infants exclusively breastfed, and explore variation in EBF prevalence across combined size-for-gestational-age and gestational-age (Small Vulnerable Newborn - SVN) groupings.
+
+```{r}
+#EBF General Data Cleaning ----
+inf_ebf_out <- infant_outcomes %>%
+  filter (BIRTH_OUTCOME_REPORTED == 1 & LIVEBIRTH == 1) %>%
+  select (SITE,	MOMID, PREGID, INFANTID, PRETERMDELIV_CAT, SGA_CAT )  %>%
+  mutate(
+    # 1) gestational age group
+    GA_GRP = case_when(
+      PRETERMDELIV_CAT %in% c(10, 11) ~ "Term/Postterm",
+      PRETERMDELIV_CAT %in% c(12, 13, 14, 15) ~ "Preterm",
+      TRUE ~ NA_character_   # includes 55 and anything unexpected
+    ),
+    
+    # 2) size for gestational age group (AGA + LGA combined)
+    SGA_GRP = case_when(
+      SGA_CAT %in% c(11, 12) ~ "SGA",
+      SGA_CAT %in% c(13, 14) ~ "AGA/LGA",
+      TRUE ~ NA_character_   # includes 55 and anything unexpected
+    ),
+    
+    # 3) final 4-category SVN group
+    SVN_GROUP4 = case_when(
+      GA_GRP == "Term/Postterm" & SGA_GRP == "AGA/LGA" ~ "Term AGA",
+      GA_GRP == "Term/Postterm" & SGA_GRP == "SGA"     ~ "Term SGA",
+      GA_GRP == "Preterm"       & SGA_GRP == "AGA/LGA" ~ "Preterm AGA",
+      GA_GRP == "Preterm"       & SGA_GRP == "SGA"     ~ "Preterm SGA",
+      TRUE ~ NA_character_
+    ),
+    
+    SVN_GROUP4_NUM = case_when(
+      GA_GRP == "Term/Postterm" & SGA_GRP == "AGA/LGA" ~ 1,
+      GA_GRP == "Term/Postterm" & SGA_GRP == "SGA"     ~ 2,
+      GA_GRP == "Preterm"       & SGA_GRP == "AGA/LGA" ~ 3,
+      GA_GRP == "Preterm"       & SGA_GRP == "SGA"     ~ 4,
+      TRUE ~ NA
+    ),
+    
+    # optional: flag missing/invalid inputs for your Table 1a "queries"
+    SVN_QUERY_FLAG = case_when(
+      is.na(GA_GRP) ~ "Missing/invalid PRETERMDELIV_CAT",
+      is.na(SGA_GRP) ~ "Missing/invalid SGA_CAT",
+      TRUE ~ "OK"
+    )
+  )
+
+##inf ebf dataset----
+inf_ebf_all <- infant_ebf_wide %>%
+  left_join(
+    inf_ebf_out,
+    by = c("SITE","MOMID", "PREGID","INFANTID")
+  ) 
+
+```
+
+```{r ebf pnc6 setup, include=FALSE, echo=FALSE}
+
+##PNC6 EBF Analysis table ----
+inf_ebf_pnc6 <- inf_ebf_all %>%
+  filter (!is.na (VISIT_DATE_PNC6) & VISIT_DATE_PNC6 != "") %>%
+  
+  select(SITE,	MOMID, PREGID, INFANTID, DOB, VISIT_DATE_PNC6,
+         SVN_GROUP4, SVN_GROUP4_NUM, SVN_QUERY_FLAG,
+         NOT_EBF_FOODS_PNC6, NOT_EBF_REASON_PNC6, EBF_PNC6,
+         NOT_EBF_OTHER_FOOD_SPFY_PNC6, NOT_EBF_OTHER_RSN_SPFY_PNC6)  %>%
+  
+  mutate(
+    EBF_VALID = if_else(EBF_PNC6 == 55, 0, 1),
+    SVN_VALID = if_else(SVN_QUERY_FLAG %in% c("OK"), 1L, 0L),
+    EBF_FOOD_VALID = if_else(NOT_EBF_FOODS_PNC6 == "55" & EBF_PNC6 == 0, 0, 1),
+    EBF_RSN_VALID = if_else(NOT_EBF_REASON_PNC6 == "55" & EBF_PNC6 == 0, 0, 1),
+    QUERY_REMOVE_PNC6 = (SVN_VALID == 0| EBF_RSN_VALID  == 0 | 
+                           EBF_FOOD_VALID  == 0|
+                           EBF_VALID == 0))
+
+###a.Data Completion at 6weeks----
+ebf_pnc6_comp <- inf_ebf_pnc6 %>%
+  group_by(SITE) %>%
+  summarise(
+    "Denominator ^a^" = as.character(n()),
+    
+    "Invalid EBF" = paste0(
+      sum(EBF_VALID == 0L|EBF_RSN_VALID == 0L|EBF_FOOD_VALID == 0L), " (",
+      round(100 * sum(EBF_VALID == 0L|EBF_RSN_VALID == 0L|EBF_FOOD_VALID == 0L) / n(), 1), ")"
+    ),
+    
+    "Missing SVN Group" = paste0(
+      sum(SVN_VALID == 0L), " (",
+      round(100 * sum(SVN_VALID == 0L) / n(), 1), ")"
+    ),
+    
+    "Eligible denominator ^b^" = as.character(sum(!QUERY_REMOVE_PNC6)),
+    
+    .groups = "drop"
+  ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1, ])) %>%
+  slice(-1)
+
+# replace NA/NaN in same spirit as your pipeline
+ebf_pnc6_comp <- ebf_pnc6_comp %>%
+  mutate_all(~str_replace(., "NaN", "0")) 
+ebf_pnc6_comp[is.na(ebf_pnc6_comp)] <- "0 (0)"
+
+# Table a GT
+tb_ebf_comp_pnc6 <- tb_theme1(ebf_pnc6_comp) %>% 
+  tab_header(title = md("**Table 13a(i). EBF data completeness at 6weeks**")) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator includes all infants with non-missing <code>VISIT_DATE_PNC6</code> in <code>INF_EBF_WIDE</code>.</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Eligible denominator excludes invalid EBF values, missing SVN grouping, and (for non-EBF infants) missing foods/reason fields.</span>")
+  ) %>%
+  tab_source_note(
+    source_note = html("<span style='font-size: 18px'><b>Abbreviations:</b> EBF, exclusive breastfeeding; SVN, size-for-gestational-age and gestational age category.</span>")
+  )
+
+
+###b.EBF Prevalence PNC6----
+# Use YOUR exact SVN_GROUP4 labels
+svng_levels <- c("Overall", "Term AGA", "Term SGA", "Preterm AGA", "Preterm SGA")
+
+#Analytic dataset
+ebf_analytic_pnc6 <- inf_ebf_pnc6 %>%
+  filter(!QUERY_REMOVE_PNC6, !is.na(SVN_GROUP4)) %>%
+  mutate(
+    ebf = as.integer(EBF_PNC6),
+    SVN_GROUP4 = as.character(SVN_GROUP4)
+  )
+
+# Keep site columns consistent
+site_levels <- sort(unique(ebf_analytic_pnc6$SITE))
+
+#Add Overall across SVN groups (still by SITE)
+ebf_for_table <- bind_rows(
+  ebf_analytic_pnc6 %>% mutate(SVN_GROUP4 = "Overall"),
+  ebf_analytic_pnc6
+) %>%
+  mutate(
+    SVN_GROUP4 = factor(SVN_GROUP4, levels = svng_levels),
+    SITE = factor(SITE, levels = site_levels)
+  )
+
+#Summarise N and EBF n(%) by SVN_GROUP4 x SITE
+summ_pnc6 <- ebf_for_table %>%
+  group_by(SVN_GROUP4, SITE, .drop = FALSE) %>%
+  summarise(
+    N = n(),
+    EBF_n = sum(ebf == 1, na.rm = TRUE),
+    EBF_pct = if_else(N > 0, 100 * EBF_n / N, NA_real_),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    EBF_n_pct = if_else(N > 0, paste0(EBF_n, " (", sprintf("%.1f", EBF_pct), ")"), "0 (0.0)")
+  )
+
+#Helper: build 2 rows for one group with ALL sites present
+make_two_rows_for_group <- function(g) {
+  df_g <- summ_pnc6 %>%
+    filter(as.character(SVN_GROUP4) == g) %>%
+    complete(
+      SITE = factor(site_levels, levels = site_levels),
+      fill = list(N = 0, EBF_n = 0, EBF_pct = NA_real_, EBF_n_pct = "0 (0.0)")
+    )
+  
+  den <- df_g %>%
+    transmute(SITE, value = as.character(N)) %>%
+    pivot_wider(names_from = SITE, values_from = value)
+  
+  ebf <- df_g %>%
+    transmute(SITE, value = EBF_n_pct) %>%
+    pivot_wider(names_from = SITE, values_from = value)
+  
+  out <- bind_rows(den, ebf)
+  rownames(out) <- c(
+    paste0(g, "__Denominator (N)"),
+    paste0(g, "__EBF n(%)")
+  )
+  out
+}
+
+#Build combined data frame for ALL groups
+ebf_results_pnc6 <- do.call(
+  bind_rows,
+  lapply(svng_levels, make_two_rows_for_group)
+)
+
+# 6) Make ONE gt table using your theme (NO second gt() call)
+table_ebf_prp_pnc6 <- tb_theme1(ebf_results_pnc6) %>%
+  tab_header(title = md("**Table 13a(ii). Exclusive breastfeeding at 6weeks by PRISMA Site and SVN group**")) %>%
+  text_transform(
+    locations = cells_stub(),
+    fn = function(x) sub("^.*__", "", x)
+  )
+
+# 7) Add row groups so each SVN group is a “subtable”  (ONLY ONCE)
+for (g in svng_levels) {
+  table_ebf_prp_pnc6 <- table_ebf_prp_pnc6 %>%
+    tab_row_group(
+      label = g,
+      rows = grepl(paste0("^", g, "__"), rownames(ebf_results_pnc6)),
+      id = g
+    )
+}
+
+
+# 8) Keep group order + add notes
+tb_ebf_prp_pnc6 <- table_ebf_prp_pnc6 %>%
+  row_group_order(groups = svng_levels) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Notes:</b> EBF n(%) is the number of infants exclusively breastfed (n) and percent (%) among the denominator (N) within each site and SVN group.
+      </span>"
+    )
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>SVN groups:</b> 
+      Term AGA = term or postterm infants (&ge;37 weeks) who are appropriate-for-gestational-age (10th to &lt;90th percentile) or large-for-gestational-age (&ge;90th percentile);\n
+      Term SGA = term or postterm infants (&ge;37 weeks) who are small-for-gestational-age (&lt;10th percentile);\n
+      Preterm AGA = preterm infants (&lt;37 weeks) who are appropriate-for-gestational-age or large-for-gestational-age;\n
+      Preterm SGA = preterm infants (&lt;37 weeks) who are small-for-gestational-age.
+      </span>"
+    )
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Abbreviations:</b> EBF, exclusive breastfeeding; SVN, combined size-for-gestational-age and gestational age category.
+      </span>"
+    )
+  )
+
+
+
+###c. Reasons for not EBF at 6weeks---- 
+reason_lu_pnc6 <- tibble::tribble(
+  ~code, ~reason,
+  "1",  "Maternal illness n(%)",
+  "2",  "Maternal death or absence n(%)",
+  "3",  "Infant illness n(%)",
+  "4",  "Congenital malformation n(%)",
+  "5",  "PMTCT n(%)",
+  "6",  "Latching problem n(%)",
+  "7",  "Interference from family or health provider n(%)",
+  "8",  "Maternal preference n(%)",
+  "9",  "Infant greater than 6 months n(%)",
+  "88", "Other reasons n(%)"
+)
+
+# Base population: eligible NOT EBF infants only
+reasons_base_pnc6 <- inf_ebf_pnc6 %>%
+  filter(!QUERY_REMOVE_PNC6) %>%
+  filter(EBF_PNC6 == 0) %>%
+  select(
+    SITE, INFANTID,
+    NOT_EBF_REASON_PNC6,
+    NOT_EBF_OTHER_RSN_SPFY_PNC6
+  )
+
+# Denominator per site (N where EBF_PNC6 == 0)
+denoms_pnc6 <- reasons_base_pnc6 %>%
+  group_by(SITE) %>%
+  summarise(
+    value = as.character(n_distinct(INFANTID)),
+    .groups = "drop"
+  ) %>%
+  mutate(reason = "Denominator") %>%
+  select(reason, SITE, value)
+
+# Parse NOT EBF reasons (multi-response safe)
+reasons_long_pnc6 <- reasons_base_pnc6 %>%
+  mutate(
+    reasons_raw = as.character(NOT_EBF_REASON_PNC6),
+    reasons_raw = str_replace_all(reasons_raw, "\\s+", ""),
+    reasons_raw = str_replace_all(reasons_raw, ",", ";")
+  ) %>%
+  separate_rows(reasons_raw, sep = ";") %>%
+  rename(code = reasons_raw) %>%
+  mutate(code = na_if(code, "")) %>%
+  filter(!is.na(code)) %>%
+  filter(!code %in% c("55", "77")) %>%
+  left_join(reason_lu_pnc6, by = "code") %>%
+  mutate(
+    reason = if_else(is.na(reason),
+                     paste0("Unmapped code: ", code),
+                     reason)
+  )
+
+# Count reasons by site (multi-response)
+reason_counts_pnc6 <- reasons_long_pnc6 %>%
+  group_by(SITE, reason) %>%
+  summarise(n = n_distinct(INFANTID), .groups = "drop") %>%
+  left_join(
+    reasons_base_pnc6 %>%
+      group_by(SITE) %>%
+      summarise(N_not_ebf = n_distinct(INFANTID), .groups = "drop"),
+    by = "SITE"
+  ) %>%
+  mutate(
+    pct = 100 * n / N_not_ebf,
+    value = paste0(n, " (", sprintf("%.1f", pct), ")")
+  ) %>%
+  select(reason, SITE, value)
+
+# Combine denominator row + reasons
+table1c_long_pnc6 <- bind_rows(
+  denoms_pnc6,
+  reason_counts_pnc6
+)
+
+# Wide format
+table1c_df_pnc6 <- table1c_long_pnc6 %>%
+  pivot_wider(names_from = SITE, values_from = value) %>%
+  arrange(
+    factor(
+      reason,
+      levels = c(
+        "Denominator",
+        "Congenital malformation n(%)",
+        "Infant greater than 6 months n(%)",
+        "Infant illness n(%)",
+        "Interference from family or health provider n(%)",
+        "Latching problem n(%)",
+        "Maternal death or absence n(%)",
+        "Maternal illness n(%)",
+        "Maternal preference n(%)",
+        "PMTCT n(%)",
+        "Other reasons n(%)"
+      )
+    )
+  )
+
+table1c_df_pnc6 <- table1c_df_pnc6 %>%
+  mutate_all(~str_replace(., "NaN", "0"))
+table1c_df_pnc6[is.na(table1c_df_pnc6)] <- "0 (0)"
+
+# IMPORTANT: tb_theme1() needs rownames for the stub
+table1c_df_pnc6 <- table1c_df_pnc6 %>%
+  tibble::column_to_rownames("reason")
+
+# Build GT table with your theme (NO second gt() call!)
+tb_ebf_rsn_pnc6 <- tb_theme1(table1c_df_pnc6) %>%
+  tab_header(
+    title = md("**Table 13a(iii). Reasons for not exclusive breastfeeding at 6weeks, by site**")
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_stub(rows = "Denominator")
+  ) %>%
+  # Add horizontal line under Denominator
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = "bottom",
+        color = "grey90",
+        weight = px(2)
+      )
+    ),
+    locations = cells_body(rows = "Denominator")
+  ) %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = "bottom",
+        color = "grey90",
+        weight = px(2)
+      )
+    ),
+    locations = cells_stub(rows = "Denominator")
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Abbreviations:</b> EBF, exclusive breastfeeding; PNC6, postnatal care visit at 6 weeks
+      </span>"
+    )
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Notes:</b> The denominator (N) represents the number of eligible infants who were not exclusively breastfed at 6weeks (EBF_PNC6 = 0) within each site.
+      Reasons are multiple-response; infants may contribute more than one reason, so percentages may sum to &gt;100.
+      Codes 55 (missing information) and 77 (infant is breastfed) are excluded.
+      </span>"
+    )
+  )
+
+
+
+
+###d. PNC6 Non-EBF Foods----
+### d. Non-EBF Foods (Columns = SVN_GROUP4, NOT by SITE) ----
+# 1-Breastmilk, 2-Formula, 3-Animal milk, 4-Water, 5-Gruel/porridge, 6-Honey, 88-Other
+
+food_lu_pnc6 <- tibble::tribble(
+  ~code, ~food,
+  "1",  "Breastmilk",
+  "2",  "Formula",
+  "3",  "Animal milk",
+  "4",  "Water",
+  "5",  "Gruel/porridge",
+  "6",  "Honey",
+  "88", "Other"
+)
+
+# Base: eligible records, NOT EBF only (foods apply when EBF_PNC6 == 0)
+foods_base_pnc6 <- inf_ebf_pnc6 %>%
+  filter(!QUERY_REMOVE_PNC6) %>%
+  filter(EBF_PNC6 == 0) %>%
+  select(INFANTID, SVN_GROUP4, NOT_EBF_FOODS_PNC6)
+
+# Add "Overall" group (across SVN groups)
+foods_base_all_pnc6 <- foods_base_pnc6 %>%
+  mutate(SVN_GROUP4 = "Overall") %>%
+  bind_rows(foods_base_pnc6)
+
+# Denominators: N (NOT EBF infants) by SVN_GROUP4  (NO SITE)
+denoms_foods_pnc6 <- foods_base_all_pnc6 %>%
+  group_by(SVN_GROUP4) %>%
+  summarise(
+    N_not_ebf = n_distinct(INFANTID),
+    .groups = "drop"
+  )
+
+# Denominator row (long)
+denom_rows_pnc6 <- denoms_foods_pnc6 %>%
+  mutate(
+    food = "Denominator",
+    value = as.character(N_not_ebf)
+  ) %>%
+  select(SVN_GROUP4, food, value)
+
+# Parse foods (multi-response safe)
+foods_long_pnc6 <- foods_base_all_pnc6 %>%
+  mutate(
+    foods_raw = as.character(NOT_EBF_FOODS_PNC6),
+    foods_raw = str_replace_all(foods_raw, "\\s+", ""),
+    foods_raw = str_replace_all(foods_raw, ",", ";")
+  ) %>%
+  separate_rows(foods_raw, sep = ";") %>%
+  rename(code = foods_raw) %>%
+  mutate(code = na_if(code, "")) %>%
+  filter(!is.na(code)) %>%
+  filter(!code %in% c("0", "55")) %>%
+  left_join(food_lu_pnc6, by = "code") %>%   # <-- FIXED: use food_lu_pnc6
+  mutate(
+    food = if_else(is.na(food), paste0("Unmapped code: ", code), food)
+  )
+
+# Count foods by SVN_GROUP4 (NO SITE)
+food_counts_pnc6 <- foods_long_pnc6 %>%
+  group_by(SVN_GROUP4, food) %>%
+  summarise(n = n_distinct(INFANTID), .groups = "drop") %>%
+  left_join(denoms_foods_pnc6, by = "SVN_GROUP4") %>%
+  mutate(
+    pct = if_else(N_not_ebf > 0, 100 * n / N_not_ebf, NA_real_),
+    value = paste0(n, " (", sprintf("%.1f", pct), ")"),
+    food = paste0(food, " n(%)")
+  ) %>%
+  select(SVN_GROUP4, food, value)
+
+# Combine denominator row + food rows (long)
+tb_food_long_pnc6 <- bind_rows(denom_rows_pnc6, food_counts_pnc6)
+
+# Wide format (SVN groups as columns)
+tb_food_df_pnc6 <- tb_food_long_pnc6 %>%
+  pivot_wider(names_from = SVN_GROUP4, values_from = value)
+
+# Order: Denominator first, then foods A–Z
+tb_food_df_pnc6 <- tb_food_df_pnc6 %>%
+  mutate(
+    sort_key = if_else(
+      food == "Denominator",
+      "0_denominator",
+      paste0("1_", tolower(food))
+    )
+  ) %>%
+  arrange(sort_key) %>%
+  select(-sort_key)
+
+# Replace NA/NaN like your other tables
+tb_food_df_pnc6 <- tb_food_df_pnc6 %>%
+  mutate_all(~str_replace(., "NaN", "0"))
+tb_food_df_pnc6[is.na(tb_food_df_pnc6)] <- "0 (0)"
+
+# Theme1 needs rownames for stub
+tb_food_theme_pnc6 <- tb_food_df_pnc6 %>%
+  tibble::column_to_rownames("food")
+
+tb_ebf_food_pnc6 <- tb_theme1(tb_food_theme_pnc6) %>%
+  tab_header(
+    title = md("**Table 13a(iv). Non-EBF foods at 6weeks, overall and by SVN group**")
+  ) %>%
+  # Bold Denominator
+  tab_style(
+    style = list(cell_text(weight = "bold")),
+    locations = cells_stub(rows = "Denominator")
+  ) %>%
+  # Line under Denominator (stub + body)
+  tab_style(
+    style = list(cell_borders(sides = "bottom", color = "grey", weight = px(2))),
+    locations = cells_stub(rows = "Denominator")
+  ) %>%
+  tab_style(
+    style = list(cell_borders(sides = "bottom", color = "grey", weight = px(2))),
+    locations = cells_body(rows = "Denominator")
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Notes:</b> Table includes eligible infants who were not exclusively breastfed at six weeks.
+      Percentages use the number of not exclusively breastfed infants within each SVN group as the denominator.
+      Foods are multiple-response; infants may report more than one food, so percentages may sum to &gt;100.
+      Infants exclusively breastfed (code 0) and infants with missing food information (code 55) are excluded from food categories.
+      </span>"
+    )
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Abbreviations:</b> EBF, exclusive breastfeeding; SVN, size-for-gestational-age and gestational age category.
+      </span>"
+    )
+  )
+
+
+```
+
+### 13a. Infant exclusive breastfeeding status at 6weeks
+Infant exclusive breastfeeding (EBF) status was assessed at the 6-week postnatal care visit to describe feeding practices during early infancy. The following tables summarize the completeness of EBF data, the prevalence of exclusive breastfeeding overall and across infant size-for-gestational-age and gestational-age (SVN) categories, and caregiver-reported feeding behaviors among infants who were not exclusively breastfed.
+
+For infants not exclusively breastfed at 6 weeks, additional summaries characterize reported reasons for non-exclusive breastfeeding and the types of non-breastmilk foods or liquids introduced. These caregiver-reported measures allow multiple responses; therefore, percentages may sum to more than 100 percent.
+
+Together, these analyses provide an integrated overview of early infant feeding practices and contextual factors influencing exclusive breastfeeding at the 6-week postnatal timepoint.
+
+#### Table 13a (i). Infant exclusive breastfeeding completion status at 6weeks
+```{r, out.width = '100%'}
+tb_ebf_comp_pnc6 <- tb_ebf_comp_pnc6 %>% gtsave("tb_ebf_comp_pnc6.png", expand = 10)
+knitr::include_graphics("tb_ebf_comp_pnc6.png")
+```
+
+\newpage
+
+#### Table 13a (ii). Infant exclusive breastfeeding prevalence overall and by SVN group at 6weeks
+```{r, out.width = '100%'}
+tb_ebf_prp_pnc6 <- tb_ebf_prp_pnc6 %>% gtsave("tb_ebf_prp_pnc6.png", expand = 10)
+knitr::include_graphics("tb_ebf_prp_pnc6.png")
+```
+\newpage
+
+#### Table 13a (iii). Reasons why infant are not exclusively breastfed as reported by caregiver at 6weeks
+```{r, out.width = '100%'}
+tb_ebf_rsn_pnc6 <- tb_ebf_rsn_pnc6 %>% gtsave("tb_ebf_rsn_pnc6.png", expand = 10)
+knitr::include_graphics("tb_ebf_rsn_pnc6.png")
+```
+\newpage
+
+#### Table 13a (iv). Other foods given to infants not exclusively breastfed as reported by caregiver at 6weeks
+```{r, out.width = '100%'}
+tb_ebf_food_pnc6 <- tb_ebf_food_pnc6 %>% gtsave("tb_ebf_food_pnc6.png", expand = 10)
+knitr::include_graphics("tb_ebf_food_pnc6.png")
+```
+
+```{r ebf pnc26 setup, include=FALSE, echo=FALSE}
+
+##PNC26 EBF Analysis table ----
+inf_ebf_pnc26 <- inf_ebf_all %>%
+  filter (!is.na (VISIT_DATE_PNC26) & VISIT_DATE_PNC26 != "") %>%
+  
+  select(SITE,	MOMID, PREGID, INFANTID, DOB, VISIT_DATE_PNC26,
+         SVN_GROUP4, SVN_GROUP4_NUM, SVN_QUERY_FLAG,
+         NOT_EBF_FOODS_PNC26, NOT_EBF_REASON_PNC26, EBF_PNC26,
+         NOT_EBF_OTHER_FOOD_SPFY_PNC26, NOT_EBF_OTHER_RSN_SPFY_PNC26)  %>%
+  
+  mutate(
+    EBF_VALID = if_else(EBF_PNC26 == 55, 0, 1),
+    SVN_VALID = if_else(SVN_QUERY_FLAG %in% c("OK"), 1L, 0L),
+    EBF_FOOD_VALID = if_else(NOT_EBF_FOODS_PNC26 == "55" & EBF_PNC26 == 0, 0, 1),
+    EBF_RSN_VALID = if_else(NOT_EBF_REASON_PNC26 == "55" & EBF_PNC26 == 0, 0, 1),
+    QUERY_REMOVE_PNC26 = (SVN_VALID == 0| EBF_RSN_VALID  == 0 | 
+                            EBF_FOOD_VALID  == 0|
+                            EBF_VALID == 0))
+
+###a.Data Completion at 26weeks----
+ebf_pnc26_comp <- inf_ebf_pnc26 %>%
+  group_by(SITE) %>%
+  summarise(
+    "Denominator ^a^" = as.character(n()),
+    
+    "Invalid EBF" = paste0(
+      sum(EBF_VALID == 0L|EBF_RSN_VALID == 0L|EBF_FOOD_VALID == 0L), " (",
+      round(100 * sum(EBF_VALID == 0L|EBF_RSN_VALID == 0L|EBF_FOOD_VALID == 0L) / n(), 1), ")"
+    ),
+    
+    "Missing SVN Group" = paste0(
+      sum(SVN_VALID == 0L), " (",
+      round(100 * sum(SVN_VALID == 0L) / n(), 1), ")"
+    ),
+    
+    "Eligible denominator ^b^" = as.character(sum(!QUERY_REMOVE_PNC26)),
+    
+    .groups = "drop"
+  ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1, ])) %>%
+  slice(-1)
+
+# replace NA/NaN in same spirit as your pipeline
+ebf_pnc26_comp <- ebf_pnc26_comp %>%
+  mutate_all(~str_replace(., "NaN", "0")) 
+ebf_pnc26_comp[is.na(ebf_pnc26_comp)] <- "0 (0)"
+
+# Table a GT
+tb_ebf_comp_pnc26 <- tb_theme1(ebf_pnc26_comp) %>% 
+  tab_header(title = md("**Table 13b(i). EBF data completeness at 26weeks**")) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 16px'><sup>a</sup> Denominator includes all infants with non-missing <code>VISIT_DATE_PNC26</code> in <code>INF_EBF_WIDE</code>.</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 16px'><sup>b</sup> Eligible denominator excludes invalid EBF values, missing SVN grouping, and (for non-EBF infants) missing foods/reason fields.</span>")
+  ) %>%
+  tab_source_note(
+    source_note = html("<span style='font-size: 18px'><b>Abbreviations:</b> EBF, exclusive breastfeeding; SVN, size-for-gestational-age and gestational age category.</span>")
+  )
+
+
+###b.EBF Prevalence PNC26----
+# Use YOUR exact SVN_GROUP4 labels
+svng_levels <- c("Overall", "Term AGA", "Term SGA", "Preterm AGA", "Preterm SGA")
+
+#Analytic dataset
+ebf_analytic_pnc26 <- inf_ebf_pnc26 %>%
+  filter(!QUERY_REMOVE_PNC26, !is.na(SVN_GROUP4)) %>%
+  mutate(
+    ebf = as.integer(EBF_PNC26),
+    SVN_GROUP4 = as.character(SVN_GROUP4)
+  )
+
+# Keep site columns consistent
+site_levels <- sort(unique(ebf_analytic_pnc26$SITE))
+
+#Add Overall across SVN groups (still by SITE)
+ebf_for_table <- bind_rows(
+  ebf_analytic_pnc26 %>% mutate(SVN_GROUP4 = "Overall"),
+  ebf_analytic_pnc26
+) %>%
+  mutate(
+    SVN_GROUP4 = factor(SVN_GROUP4, levels = svng_levels),
+    SITE = factor(SITE, levels = site_levels)
+  )
+
+#Summarise N and EBF n(%) by SVN_GROUP4 x SITE
+summ_pnc26 <- ebf_for_table %>%
+  group_by(SVN_GROUP4, SITE, .drop = FALSE) %>%
+  summarise(
+    N = n(),
+    EBF_n = sum(ebf == 1, na.rm = TRUE),
+    EBF_pct = if_else(N > 0, 100 * EBF_n / N, NA_real_),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    EBF_n_pct = if_else(N > 0, paste0(EBF_n, " (", sprintf("%.1f", EBF_pct), ")"), "0 (0.0)")
+  )
+
+#Helper: build 2 rows for one group with ALL sites present
+make_two_rows_for_group <- function(g) {
+  df_g <- summ_pnc26 %>%
+    filter(as.character(SVN_GROUP4) == g) %>%
+    complete(
+      SITE = factor(site_levels, levels = site_levels),
+      fill = list(N = 0, EBF_n = 0, EBF_pct = NA_real_, EBF_n_pct = "0 (0.0)")
+    )
+  
+  den <- df_g %>%
+    transmute(SITE, value = as.character(N)) %>%
+    pivot_wider(names_from = SITE, values_from = value)
+  
+  ebf <- df_g %>%
+    transmute(SITE, value = EBF_n_pct) %>%
+    pivot_wider(names_from = SITE, values_from = value)
+  
+  out <- bind_rows(den, ebf)
+  rownames(out) <- c(
+    paste0(g, "__Denominator (N)"),
+    paste0(g, "__EBF n(%)")
+  )
+  out
+}
+
+#Build combined data frame for ALL groups
+ebf_results_pnc26 <- do.call(
+  bind_rows,
+  lapply(svng_levels, make_two_rows_for_group)
+)
+
+# 6) Make ONE gt table using your theme (NO second gt() call)
+table_ebf_prp_pnc26 <- tb_theme1(ebf_results_pnc26) %>%
+  tab_header(title = md("**Table 13b(ii). Exclusive breastfeeding at 26weeks by PRISMA Site and SVN group**")) %>%
+  text_transform(
+    locations = cells_stub(),
+    fn = function(x) sub("^.*__", "", x)
+  )
+
+# 7) Add row groups so each SVN group is a “subtable”  (ONLY ONCE)
+for (g in svng_levels) {
+  table_ebf_prp_pnc26 <- table_ebf_prp_pnc26 %>%
+    tab_row_group(
+      label = g,
+      rows = grepl(paste0("^", g, "__"), rownames(ebf_results_pnc26)),
+      id = g
+    )
+}
+
+
+# 8) Keep group order + add notes
+tb_ebf_prp_pnc26 <- table_ebf_prp_pnc26 %>%
+  row_group_order(groups = svng_levels) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Notes:</b> EBF n(%) is the number of infants exclusively breastfed (n) and percent (%) among the denominator (N) within each site and SVN group.
+      </span>"
+    )
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>SVN groups:</b> 
+      Term AGA = term or postterm infants (&ge;37 weeks) who are appropriate-for-gestational-age (10th to &lt;90th percentile) or large-for-gestational-age (&ge;90th percentile);\n
+      Term SGA = term or postterm infants (&ge;37 weeks) who are small-for-gestational-age (&lt;10th percentile);\n
+      Preterm AGA = preterm infants (&lt;37 weeks) who are appropriate-for-gestational-age or large-for-gestational-age;\n
+      Preterm SGA = preterm infants (&lt;37 weeks) who are small-for-gestational-age.
+      </span>"
+    )
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Abbreviations:</b> EBF, exclusive breastfeeding; SVN, combined size-for-gestational-age and gestational age category.
+      </span>"
+    )
+  )
+
+
+
+###c. Reasons for not EBF at 26weeks---- 
+reason_lu_pnc26 <- tibble::tribble(
+  ~code, ~reason,
+  "1",  "Maternal illness n(%)",
+  "2",  "Maternal death or absence n(%)",
+  "3",  "Infant illness n(%)",
+  "4",  "Congenital malformation n(%)",
+  "5",  "PMTCT n(%)",
+  "6",  "Latching problem n(%)",
+  "7",  "Interference from family or health provider n(%)",
+  "8",  "Maternal preference n(%)",
+  "9",  "Infant greater than 6 months n(%)",
+  "88", "Other reasons n(%)"
+)
+
+# Base population: eligible NOT EBF infants only
+reasons_base_pnc26 <- inf_ebf_pnc26 %>%
+  filter(!QUERY_REMOVE_PNC26) %>%
+  filter(EBF_PNC26 == 0) %>%
+  select(
+    SITE, INFANTID,
+    NOT_EBF_REASON_PNC26,
+    NOT_EBF_OTHER_RSN_SPFY_PNC26
+  )
+
+# Denominator per site (N where EBF_PNC26 == 0)
+denoms_pnc26 <- reasons_base_pnc26 %>%
+  group_by(SITE) %>%
+  summarise(
+    value = as.character(n_distinct(INFANTID)),
+    .groups = "drop"
+  ) %>%
+  mutate(reason = "Denominator") %>%
+  select(reason, SITE, value)
+
+# Parse NOT EBF reasons (multi-response safe)
+reasons_long_pnc26 <- reasons_base_pnc26 %>%
+  mutate(
+    reasons_raw = as.character(NOT_EBF_REASON_PNC26),
+    reasons_raw = str_replace_all(reasons_raw, "\\s+", ""),
+    reasons_raw = str_replace_all(reasons_raw, ",", ";")
+  ) %>%
+  separate_rows(reasons_raw, sep = ";") %>%
+  rename(code = reasons_raw) %>%
+  mutate(code = na_if(code, "")) %>%
+  filter(!is.na(code)) %>%
+  filter(!code %in% c("55", "77")) %>%
+  left_join(reason_lu_pnc26, by = "code") %>%
+  mutate(
+    reason = if_else(is.na(reason),
+                     paste0("Unmapped code: ", code),
+                     reason)
+  )
+
+# Count reasons by site (multi-response)
+reason_counts_pnc26 <- reasons_long_pnc26 %>%
+  group_by(SITE, reason) %>%
+  summarise(n = n_distinct(INFANTID), .groups = "drop") %>%
+  left_join(
+    reasons_base_pnc26 %>%
+      group_by(SITE) %>%
+      summarise(N_not_ebf = n_distinct(INFANTID), .groups = "drop"),
+    by = "SITE"
+  ) %>%
+  mutate(
+    pct = 100 * n / N_not_ebf,
+    value = paste0(n, " (", sprintf("%.1f", pct), ")")
+  ) %>%
+  select(reason, SITE, value)
+
+# Combine denominator row + reasons
+table1c_long_pnc26 <- bind_rows(
+  denoms_pnc26,
+  reason_counts_pnc26
+)
+
+# Wide format
+table1c_df_pnc26 <- table1c_long_pnc26 %>%
+  pivot_wider(names_from = SITE, values_from = value) %>%
+  arrange(
+    factor(
+      reason,
+      levels = c(
+        "Denominator",
+        "Congenital malformation n(%)",
+        "Infant greater than 6 months n(%)",
+        "Infant illness n(%)",
+        "Interference from family or health provider n(%)",
+        "Latching problem n(%)",
+        "Maternal death or absence n(%)",
+        "Maternal illness n(%)",
+        "Maternal preference n(%)",
+        "PMTCT n(%)",
+        "Other reasons n(%)"
+      )
+    )
+  )
+
+table1c_df_pnc26 <- table1c_df_pnc26 %>%
+  mutate_all(~str_replace(., "NaN", "0"))
+table1c_df_pnc26[is.na(table1c_df_pnc26)] <- "0 (0)"
+
+# IMPORTANT: tb_theme1() needs rownames for the stub
+table1c_df_pnc26 <- table1c_df_pnc26 %>%
+  tibble::column_to_rownames("reason")
+
+# Build GT table with your theme (NO second gt() call!)
+tb_ebf_rsn_pnc26 <- tb_theme1(table1c_df_pnc26) %>%
+  tab_header(
+    title = md("**Table 13b(iii). Reasons for not exclusive breastfeeding at 26weeks, by site**")
+  ) %>%
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_stub(rows = "Denominator")
+  ) %>%
+  # Add horizontal line under Denominator
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = "bottom",
+        color = "grey90",
+        weight = px(2)
+      )
+    ),
+    locations = cells_body(rows = "Denominator")
+  ) %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = "bottom",
+        color = "grey90",
+        weight = px(2)
+      )
+    ),
+    locations = cells_stub(rows = "Denominator")
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Abbreviations:</b> EBF, exclusive breastfeeding; PNC26, postnatal care visit at 6 months.
+      </span>"
+    )
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Notes:</b> The denominator (N) represents the number of eligible infants who were not exclusively breastfed at 26weeks (EBF_PNC26 = 0) within each site.
+      Reasons are multiple-response; infants may contribute more than one reason, so percentages may sum to &gt;100.
+      Codes 55 (missing information) and 77 (infant is breastfed) are excluded.
+      </span>"
+    )
+  )
+
+
+
+
+###d. PNC26 Non-EBF Foods----
+### d. Non-EBF Foods (Columns = SVN_GROUP4, NOT by SITE) ----
+# 1-Breastmilk, 2-Formula, 3-Animal milk, 4-Water, 5-Gruel/porridge, 6-Honey, 88-Other
+
+food_lu_pnc26 <- tibble::tribble(
+  ~code, ~food,
+  "1",  "Breastmilk",
+  "2",  "Formula",
+  "3",  "Animal milk",
+  "4",  "Water",
+  "5",  "Gruel/porridge",
+  "6",  "Honey",
+  "88", "Other"
+)
+
+# Base: eligible records, NOT EBF only (foods apply when EBF_PNC26 == 0)
+foods_base_pnc26 <- inf_ebf_pnc26 %>%
+  filter(!QUERY_REMOVE_PNC26) %>%
+  filter(EBF_PNC26 == 0) %>%
+  select(INFANTID, SVN_GROUP4, NOT_EBF_FOODS_PNC26)
+
+# Add "Overall" group (across SVN groups)
+foods_base_all_pnc26 <- foods_base_pnc26 %>%
+  mutate(SVN_GROUP4 = "Overall") %>%
+  bind_rows(foods_base_pnc26)
+
+# Denominators: N (NOT EBF infants) by SVN_GROUP4  (NO SITE)
+denoms_foods_pnc26 <- foods_base_all_pnc26 %>%
+  group_by(SVN_GROUP4) %>%
+  summarise(
+    N_not_ebf = n_distinct(INFANTID),
+    .groups = "drop"
+  )
+
+# Denominator row (long)
+denom_rows_pnc26 <- denoms_foods_pnc26 %>%
+  mutate(
+    food = "Denominator",
+    value = as.character(N_not_ebf)
+  ) %>%
+  select(SVN_GROUP4, food, value)
+
+# Parse foods (multi-response safe)
+foods_long_pnc26 <- foods_base_all_pnc26 %>%
+  mutate(
+    foods_raw = as.character(NOT_EBF_FOODS_PNC26),
+    foods_raw = str_replace_all(foods_raw, "\\s+", ""),
+    foods_raw = str_replace_all(foods_raw, ",", ";")
+  ) %>%
+  separate_rows(foods_raw, sep = ";") %>%
+  rename(code = foods_raw) %>%
+  mutate(code = na_if(code, "")) %>%
+  filter(!is.na(code)) %>%
+  filter(!code %in% c("0", "55")) %>%
+  left_join(food_lu_pnc26, by = "code") %>%   # <-- FIXED: use food_lu_pnc26
+  mutate(
+    food = if_else(is.na(food), paste0("Unmapped code: ", code), food)
+  )
+
+# Count foods by SVN_GROUP4 (NO SITE)
+food_counts_pnc26 <- foods_long_pnc26 %>%
+  group_by(SVN_GROUP4, food) %>%
+  summarise(n = n_distinct(INFANTID), .groups = "drop") %>%
+  left_join(denoms_foods_pnc26, by = "SVN_GROUP4") %>%
+  mutate(
+    pct = if_else(N_not_ebf > 0, 100 * n / N_not_ebf, NA_real_),
+    value = paste0(n, " (", sprintf("%.1f", pct), ")"),
+    food = paste0(food, " n(%)")
+  ) %>%
+  select(SVN_GROUP4, food, value)
+
+# Combine denominator row + food rows (long)
+tb_food_long_pnc26 <- bind_rows(denom_rows_pnc26, food_counts_pnc26)
+
+# Wide format (SVN groups as columns)
+tb_food_df_pnc26 <- tb_food_long_pnc26 %>%
+  pivot_wider(names_from = SVN_GROUP4, values_from = value)
+
+# Order: Denominator first, then foods A–Z
+tb_food_df_pnc26 <- tb_food_df_pnc26 %>%
+  mutate(
+    sort_key = if_else(
+      food == "Denominator",
+      "0_denominator",
+      paste0("1_", tolower(food))
+    )
+  ) %>%
+  arrange(sort_key) %>%
+  select(-sort_key)
+
+# Replace NA/NaN like your other tables
+tb_food_df_pnc26 <- tb_food_df_pnc26 %>%
+  mutate_all(~str_replace(., "NaN", "0"))
+tb_food_df_pnc26[is.na(tb_food_df_pnc26)] <- "0 (0)"
+
+# Theme1 needs rownames for stub
+tb_food_theme_pnc26 <- tb_food_df_pnc26 %>%
+  tibble::column_to_rownames("food")
+
+tb_ebf_food_pnc26 <- tb_theme1(tb_food_theme_pnc26) %>%
+  tab_header(
+    title = md("**Table 13b(iv). Non-EBF foods at 226weeks, overall and by SVN group**")
+  ) %>%
+  # Bold Denominator
+  tab_style(
+    style = list(cell_text(weight = "bold")),
+    locations = cells_stub(rows = "Denominator")
+  ) %>%
+  # Line under Denominator (stub + body)
+  tab_style(
+    style = list(cell_borders(sides = "bottom", color = "grey", weight = px(2))),
+    locations = cells_stub(rows = "Denominator")
+  ) %>%
+  tab_style(
+    style = list(cell_borders(sides = "bottom", color = "grey", weight = px(2))),
+    locations = cells_body(rows = "Denominator")
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Notes:</b> Table includes eligible infants who were not exclusively breastfed at 26 weeks.
+      Percentages use the number of not exclusively breastfed infants within each SVN group as the denominator.
+      Foods are multiple-response; infants may report more than one food, so percentages may sum to &gt;100.
+      Infants exclusively breastfed (code 0) and infants with missing food information (code 55) are excluded from food categories.
+      </span>"
+    )
+  ) %>%
+  tab_source_note(
+    source_note = html(
+      "<span style='font-size: 18px'>
+      <b>Abbreviations:</b> EBF, exclusive breastfeeding; SVN, size-for-gestational-age and gestational age category.
+      </span>"
+    )
+  )
+
+
+```
+
+\newpage
+
+### 13b. Infant exclusive breastfeeding status at 26weeks
+Infant exclusive breastfeeding (EBF) status was assessed at the 6-week postnatal care visit to describe feeding practices during early infancy. The following tables summarize the completeness of EBF data, the prevalence of exclusive breastfeeding overall and across infant size-for-gestational-age and gestational-age (SVN) categories, and caregiver-reported feeding behaviors among infants who were not exclusively breastfed.
+
+For infants not exclusively breastfed at 6 weeks, additional summaries characterize reported reasons for non-exclusive breastfeeding and the types of non-breastmilk foods or liquids introduced. These caregiver-reported measures allow multiple responses; therefore, percentages may sum to more than 100 percent.
+
+Together, these analyses provide an integrated overview of early infant feeding practices and contextual factors influencing exclusive breastfeeding at the 6-week postnatal timepoint.
+
+#### Table 13b (i). Infant exclusive breastfeeding completion status at 26weeks
+```{r, out.width = '100%'}
+tb_ebf_comp_pnc26 <- tb_ebf_comp_pnc26 %>% gtsave("tb_ebf_comp_pnc26.png", expand = 10)
+knitr::include_graphics("tb_ebf_comp_pnc26.png")
+```
+\newpage
+
+#### Table 13b (ii). Infant exclusive breastfeeding prevalence overall and by SVN group at 26weeks
+```{r, out.width = '100%'}
+tb_ebf_prp_pnc26 <- tb_ebf_prp_pnc26 %>% gtsave("tb_ebf_prp_pnc26.png", expand = 10)
+knitr::include_graphics("tb_ebf_prp_pnc26.png")
+```
+\newpage
+
+#### Table 13b (iii). Reasons why infant are not exclusively breastfed as reported by caregiver at 26weeks
+```{r, out.width = '100%'}
+tb_ebf_rsn_pnc26 <- tb_ebf_rsn_pnc26 %>% gtsave("tb_ebf_rsn_pnc26.png", expand = 10)
+knitr::include_graphics("tb_ebf_rsn_pnc26.png")
+```
+
+\newpage
+
+#### Table 13b (iv). Other foods given to infants not exclusively breastfed as reported by caregiver at 26weeks
+```{r, out.width = '100%'}
+tb_ebf_food_pnc26 <- tb_ebf_food_pnc26 %>% gtsave("tb_ebf_food_pnc26.png", expand = 10)
+knitr::include_graphics("tb_ebf_food_pnc26.png")
 ```

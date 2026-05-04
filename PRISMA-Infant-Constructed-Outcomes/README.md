@@ -8,11 +8,11 @@ accompanying report. This file is an ongoing document that will be
 updated as more outcomes are coded and generated. More information on
 the outcomes coded here can be found in the PRISMA protocol.
 
-#### :pushpin: Updated on 18 December 2024
+#### :pushpin: Updated on 26 March 2026
 
 #### :pushpin: Originally drafted by:
 
-- R code: Stacie (<stacie.loisate@gwu.edu>)
+- R code: Precious Williams (<williams_pj@email.gwu.edu>) & Stacie Loisate (<stacie.loisate@gwu.edu>)
 
 ## Codes included:
 
