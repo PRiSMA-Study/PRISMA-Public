@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: Stacie Loisate
-#* Last updated: February 2026, Erin Oakley, Savannah O'Malley & Stacie Loisate
+#* Last updated: May 2026, Emma Cook & Erin Oakley
 #*****************************************************************************
 library(knitr)
 library(tidyverse)
@@ -47,8 +47,8 @@ library(readxl)
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-# path_to_data <- "Z:/Outcome Data/2026-01-30/" 
-# path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+ path_to_data <- "Z:/Outcome Data/2026-05-01/" 
+ path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 
 datadate <- "2026-01-30"
@@ -56,8 +56,8 @@ today <- Sys.Date()
 format(today, "%Y-%B-%d")
 
 #Savannah's paths
- path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
- path_to_save <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/", datadate, "/")
+# path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
+# path_to_save <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/Output/", datadate, "/")
 
 # Check if the path_to_save directory exists
 if (!dir.exists(path_to_save)) {
@@ -6845,13 +6845,15 @@ knitr::include_graphics(paste0(path_to_save, "uter_rup_tab_output.png"))
 
 ## 11. Prolonged and obstructed labor
 
+Prolonged labor
+
 **Definition:** Labor lasting >24 hours (from the time of labor onset to the time of infant birth, as reported in MNH09 form)
 
 **Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor).
 
 **Note:** Due to data collection differences, this outcome is not available for India-CMC and Ghana sites.
 
-### Table 11. Prolonged labor
+### Table 11a. Prolonged labor
 ```{r}
 
 labor<-left_join(labor,end)
@@ -6996,6 +6998,145 @@ knitr::include_graphics(paste0(path_to_save, "prolong_tab_output.png"))
 
 
 \newpage
+
+
+Obstructed labor
+
+**Definition:** Clinical diagnosis of obstructed labor as reported by each site. 
+
+**Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA) where the woman experienced labor (i.e., excluding cesarean deliveries without any labor).
+
+**Note:** There may be some differences in definition of obstructed labor by site due to national/local guidelines and site-level interpretation. In general, obstructed labor is understood as arrest of dilation or arrest of descent. India-CMC site specifically has a stricter definition than other sites, requiring that intra-operative diagnosis of signs and symptoms including distended bladder and Bandls ring. This distinction leads to a smaller number of cases at the India-CMC site compared to others. 
+
+
+### Table 11b. Obstructed labor
+```{r}
+
+obstr_tab <- labor %>%
+  rowwise() %>%
+  group_by(SITE) %>%
+  summarise(
+
+     "Expected denominator (total completed pregnancies)" = paste0(
+      format(sum(PREG_END== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+     "Excluded: Pregnancy losses <20 weeks GA or induced abortion" = paste0(
+      format(sum(PREG_END== 1 & (OBS_LABOR_MISS==2), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & (OBS_LABOR_MISS==2), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Excluded: Maternal deaths at <20 weeks GA" = paste0(
+      format(sum(PREG_END== 1 & (OBS_LABOR_MISS==3), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & (OBS_LABOR_MISS==3), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Excluded: Pregnancies >=20 weeks that ended in cesarean delivery without labor" = paste0(
+      format(sum(PREG_END== 1 & (OBS_LABOR_MISS==4), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & (OBS_LABOR_MISS==4), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Missing: Unknown if labor occurred or conflicting delivery information" = paste0(
+      format(sum(PREG_END== 1 & (OBS_LABOR_MISS==5), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & (OBS_LABOR_MISS==5), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Missing: Obstructed labor status is missing/unknown" = paste0(
+      format(sum(PREG_END== 1 & (OBS_LABOR_MISS==1), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END== 1 & (OBS_LABOR_MISS==1), na.rm = TRUE)/sum(PREG_END== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Denominator (non-missing)" = paste0(
+      format(sum(PREG_END_DELIV==1 & OBS_LABOR_MISS==0, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "Obstructed labor" = paste0(
+      format(sum(PREG_END_DELIV==1 & OBS_LABOR_MISS==0 & OBS_LABOR==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END_DELIV==1 & OBS_LABOR_MISS==0 & OBS_LABOR==1, na.rm = TRUE)/sum(PREG_END_DELIV==1 & OBS_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "No obstructed labor" = paste0(
+      format(sum(PREG_END_DELIV==1 & OBS_LABOR_MISS==0 & OBS_LABOR==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(PREG_END_DELIV==1 & OBS_LABOR_MISS==0 & OBS_LABOR==0, na.rm = TRUE)/sum(PREG_END_DELIV==1 & OBS_LABOR_MISS==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)  %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+obstr_tab[is.na(obstr_tab)] <- paste0("0 (0)")
+
+obstr_tab_output <- tb_theme1(obstr_tab) %>%
+  tab_header(
+    title = md("**Table 11b**")) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
+        rows = 1:6
+    ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Obstructed labor prevalence</span>"),
+    rows = 7:9
+  ) %>%
+    # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>%
+
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator (total completed pregnancies)",
+                 "Expected denominator (total completed pregnancies)"))) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
+                           "<span style='font-size: 18px'>Obstructed labor prevalence</span>"))  %>%
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(obstr_tab_output, file = "obstr_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "obstr_tab_output.png"))
+
+```
+
+
+\newpage 
 
 
 ## 12. Thyroid Dysfunction
