@@ -109,6 +109,8 @@ highbp <- read_dta(paste0(path_to_data, "MAT_POSTPARTUM_HIGHBP.dta"))  %>% renam
   #filter(PREGID %in% remind.moms$PREGID)
 placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
+highhb<- read_dta(paste0(path_to_data, "MAT_HIGHHB.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
+  #filter(PREGID %in% remind.moms$PREGID)
 
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
@@ -6086,27 +6088,27 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
     "Post partum hemorrhage" = paste0(
-      format(sum(HEM_PPH == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HEM_PPH_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_PPH==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_PPH_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Pre-eclampsia without severe features " = paste0(
-      format(sum(PREECLAMPSIA_NONSEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_NONSEV_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREECLAMPSIA_NONSEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_NONSEV_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Pre-clampsia with severe features/Eclampsia " = paste0(
-      format(sum(PREECLAMPSIA_SEV == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_SEV_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREECLAMPSIA_SEV ==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_SEV_NEARMISS ==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Severe hypertension " = paste0(
-      format(sum(HIGH_BP_SEVERE_ANY==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HIGH_BP_SEVERE_ANY_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HIGH_BP_SEVERE_ANY==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HIGH_BP_SEVERE_ANY_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Sepsis or severe infection *" = paste0(
@@ -6122,15 +6124,15 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
     "Suspected placenta accrete" = paste0(
-      format(sum(PLACENTA_ACCRETE == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PLACENTA_ACCRETE_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PLACENTA_ACCRETE == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PLACENTA_ACCRETE_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Suspected placental abruption" = paste0(
-      format(sum(PLACENTA_ABRUPTION == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PLACENTA_ABRUPTION_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PLACENTA_ABRUPTION == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PLACENTA_ABRUPTION_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Uterine rupture" = paste0(
@@ -6140,15 +6142,15 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
    "Obstructed labor" = paste0(
-      format(sum(OBS_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(OBS_LABOR_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(OBS_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(OBS_LABOR_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Prolonged labor^a^" = paste0(
-      format(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PRO_LABOR_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PRO_LABOR_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Severe abortion complications" = paste0(
@@ -6176,9 +6178,9 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
      "Severe anemia (<7 g/dL for ANC & IPC; < 8 g/dL for PNC)" = paste0(
-       format(sum(ANEMIA_SEV_ANC==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+       format(sum(ANEMIA_SEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
        " (",
-       format(round(sum(ANEMIA_SEV_ANC==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+       format(round(sum(ANEMIA_SEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Mother needed (M09) and/or received (M19) blood transfusion" = paste0(
@@ -6235,27 +6237,27 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
     "Post partum hemorrhage" = paste0(
-      format(sum(HEM_PPH == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HEM_PPH_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_PPH==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_PPH_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Pre-eclampsia without severe features " = paste0(
-      format(sum(PREECLAMPSIA_NONSEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_NONSEV_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREECLAMPSIA_NONSEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_NONSEV_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Pre-clampsia with severe features/Eclampsia " = paste0(
-      format(sum(PREECLAMPSIA_SEV == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_SEV_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREECLAMPSIA_SEV ==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_SEV_NEARMISS ==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Severe hypertension " = paste0(
-      format(sum(HIGH_BP_SEVERE_ANY==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HIGH_BP_SEVERE_ANY_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HIGH_BP_SEVERE_ANY==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HIGH_BP_SEVERE_ANY_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Sepsis or severe infection *" = paste0(
@@ -6271,15 +6273,15 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
     "Suspected placenta accrete" = paste0(
-      format(sum(PLACENTA_ACCRETE == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PLACENTA_ACCRETE_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PLACENTA_ACCRETE == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PLACENTA_ACCRETE_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Suspected placental abruption" = paste0(
-      format(sum(PLACENTA_ABRUPTION == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PLACENTA_ABRUPTION_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PLACENTA_ABRUPTION == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PLACENTA_ABRUPTION_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Uterine rupture" = paste0(
@@ -6289,15 +6291,15 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
    "Obstructed labor" = paste0(
-      format(sum(OBS_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(OBS_LABOR_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(OBS_LABOR == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(OBS_LABOR_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Prolonged labor^a^" = paste0(
-      format(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1  & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PRO_LABOR_NEARMISS == 1 & NEARMISS_DENOM == 1  & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PRO_LABOR == 1 & NEARMISS_DENOM == 1 & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm = TRUE)/sum(NEARMISS_DENOM == 1 & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PRO_LABOR_NEARMISS == 1 & NEARMISS_DENOM == 1 & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm = TRUE)/sum(NEARMISS_DENOM == 1 & SITE %in% c("India-SAS", "Kenya", "Pakistan","Zambia"), na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Severe abortion complications" = paste0(
@@ -6325,9 +6327,9 @@ near_miss_tabb <- near_miss %>%
       ")"),
 
      "Severe anemia (<7 g/dL for ANC & IPC; < 8 g/dL for PNC)" = paste0(
-       format(sum(ANEMIA_SEV_ANC==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+       format(sum(ANEMIA_SEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
        " (",
-       format(round(sum(ANEMIA_SEV_ANC==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+       format(round(sum(ANEMIA_SEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Mother needed (M09) and/or received (M19) blood transfusion" = paste0(
@@ -6469,15 +6471,15 @@ near_miss_tabc <- near_miss %>%
       ")"),
 
       "Severe PPH" = paste0(
-      format(sum(HEM_PPH_SEV == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HEM_PPH_SEV_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_PPH_SEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_PPH_SEV_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Preeclampsia with severe features/eclampsia " = paste0(
-      format(sum(PREECLAMPSIA_SEV == 1 & NEARMISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_SEV_NEARMISS == 1 & NEARMISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREECLAMPSIA_SEV==1 & NEARMISS_DENOM ==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_SEV_NEARMISS==1 & NEARMISS_DENOM ==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Uterine rupture" = paste0(
@@ -6555,15 +6557,15 @@ near_miss_tabc <- near_miss %>%
       ")"),
 
       "Severe PPH" = paste0(
-      format(sum(HEM_PPH_SEV == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(HEM_PPH_SEV_NEARMISS == 1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(HEM_PPH_SEV==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(HEM_PPH_SEV_NEARMISS==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     "Preeclampsia with severe features/eclampsia " = paste0(
-      format(sum(PREECLAMPSIA_SEV == 1 & NEARMISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(PREECLAMPSIA_SEV_NEARMISS == 1 & NEARMISS_DENOM ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(PREECLAMPSIA_SEV==1 & NEARMISS_DENOM ==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(PREECLAMPSIA_SEV_NEARMISS==1 & NEARMISS_DENOM ==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
    "Uterine rupture" = paste0(
@@ -8595,3 +8597,226 @@ gtsave(surgery_tab_output, file = "surgery_tab_output.png", path = path_to_save,
 knitr::include_graphics(paste0(path_to_save, "surgery_tab_output.png"))
 
 ```
+
+\newpage
+
+### 18. Maternal High Hemoglobin in Pregnancy
+
+**Definition:** High hemoglobin levels in pregnancy, as based on results from complete blood count (CBC) measures or point-of-care (POC) hemoglobin tests. Hemoglobin level is based on the highest recorded hemoglobin measure in pregnancy, adjusted for smoking status and elevation as applicable. Categorical hemoglobin levels in pregnancy are defined as:
+
+*First/third trimester:*
+
+-   Very High (>=15 g/dL);
+
+-   High (>=13 & <15 g/dL);
+
+-   Normal HB (>=11 & <13 g/dL);
+
+-   Low HB (mild anemia) (>=10 & <11 g/dL)
+
+-   Low HB (moderate anemia) (>=7 & <10 g/dL)
+
+-   Low HB (severe anemia) (<7 g/dL)
+
+*Second trimester:*
+
+-   Very High (>=15 g/dL);
+
+-   High (>=13 & <15 g/dL);
+
+-   Normal HB (>=10.5 & <13 g/dL);
+
+-   Low HB (mild anemia) (>=9.5 & <10.5 g/dL)
+
+-   Low HB (moderate anemia) (>=7 & <9.5 g/dL)
+
+-   Low HB (severe anemia) (<7 g/dL)
+
+
+The outcome prioritizes CBC tests where possible, as this is the gold standard measure for hemoglobin. We consider the results of POC tests only in instances where there is no concurrent CBC test within 7 days (before or after) of the POC measure.
+
+**Denominator:** All participants with completed pregnancies including:
+
+-   Confirmed enrollment in form MNH02.
+
+-   Confirmed pregnancy end in MNH09 (or MNH04/MNH19 in cases of pregnancy loss).
+
+**Missingness:** Participants may be considered missing for this outcome if:
+
+-   No valid results (CBC or POC) are provided in the lab forms
+
+-   No lab/POC forms (MNH08 or MNH06) dated in pregnancy
+
+-   Missing gestational age at enrollment information (varname: `US_GA_WKS_AGE_FTS1-4`,`US_GA_DAYS_AGE_FTS1-4`, `GA_LMP_WEEKS_SCORRES`, `US_OHOSTDAT`)
+
+\newpage
+
+#### Table 18. High hemoglobin in pregnancy
+```{r}
+
+highhb<-left_join(highhb,end)
+
+highhb_tab <- highhb %>%
+  rowwise() %>%
+  group_by(SITE) %>%
+  summarise(
+
+    #Data Completeness:
+
+    "Expected denominator (completed pregnancies)" = paste0(
+      format(sum(PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    "No valid test results" = paste0(
+      format(sum(HBCAT_ANC_MISS == 1 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBCAT_ANC_MISS == 1 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "No lab/POC forms (MNH06 or MNH08)" = paste0(
+      format(sum(HBCAT_ANC_MISS ==2 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBCAT_ANC_MISS ==2 & PREG_END==1, na.rm = TRUE)/sum(PREG_END==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    #Denominator (for non-missing)
+
+    "Denominator (non-missing)" = paste0(
+      format(sum(HBCAT_ANC_MISS ==0 & PREG_END==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+    #Values:
+
+    "Very High HB (>=15 g/dL)" = paste0(
+      format(sum(HBCAT_ANC == 1 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBCAT_ANC == 1 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "High HB (13 to <15 g/dL)" = paste0(
+      format(sum(HBCAT_ANC == 2 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBCAT_ANC == 2 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+     "Normal HB" = paste0(
+      format(sum(HBCAT_ANC == 3 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBCAT_ANC == 3 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "Low HB (mild anemia)" = paste0(
+      format(sum(HBCAT_ANC == 4 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBCAT_ANC == 4 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Low HB (moderate anemia)" = paste0(
+      format(sum(HBCAT_ANC == 5 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBCAT_ANC == 5 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Low HB (severe anemia)" = paste0(
+      format(sum(HBCAT_ANC == 6 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HBCAT_ANC == 6 & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    #Test type for lowest HB test:
+
+    "CBC Test" = paste0(
+      format(sum(HB_HIGH_ANC_TEST=="CBC" & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_HIGH_ANC_TEST=="CBC" & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    "POC Test" = paste0(
+      format(sum(HB_HIGH_ANC_TEST=="POC" & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(HB_HIGH_ANC_TEST=="POC" & PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm = TRUE)/sum(PREG_END==1 & HBCAT_ANC_MISS ==0, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")")
+
+  ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
+
+
+```
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+highhb_tab[is.na(highhb_tab)] <- paste0("0 (0)")
+
+highhb_output <- tb_theme1(highhb_tab) %>%
+  tab_header(
+    title = md("**Table 18**")) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
+    rows = 1:12
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>High hemoglobin prevalence (highest Hb measure)</span>"),
+    rows = 4:12
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Test type (for highest Hb measure)</span>"),
+    rows = 11:12
+  ) %>%
+ row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
+                   "<span style='font-size: 18px'>High hemoglobin prevalence (highest Hb measure)</span>",
+                  "<span style='font-size: 18px'>Test type (for highest Hb measure)</span>"
+                  )) %>%
+
+  # bold denominator rows 1
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator (non-missing)",
+                 "Denominator (non-missing)"))) %>%
+
+  # bold denominator rows 2
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Expected denominator (completed pregnancies)",
+                 "Expected denominator (completed pregnancies)"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Expected denominator (completed pregnancies)",
+                 "Expected denominator (completed pregnancies)"))) %>%
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))  %>%
+
+   tab_footnote(
+   footnote = html("<span style='font-size: 18px'><sup>Note:</sup> For each observation of high Hb category, we rely on CBC measures of hemoglobin or POC measures of hemoglobin that are not within 7 days of a CBC test. For each participant, this table presents the highest Hb status observed during the window of interest.</span>")
+ )
+```
+
+```{r, out.width = '100%'}
+
+gtsave(highhb_output, file = "highhb_output.png", path = path_to_save, expand=10)
+knitr::include_graphics(paste0(path_to_save, "highhb_output.png"))
+
+```
+
+
+
+
+
