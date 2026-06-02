@@ -1,4 +1,5 @@
-Description
+## Description
+
 This folder contains all codes used to generate the infant outcomes report.
 
 ✏️ Authors: Precious Williams (williams_pj@gwu.edu)
