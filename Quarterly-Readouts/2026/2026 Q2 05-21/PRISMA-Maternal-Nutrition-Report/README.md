@@ -2,7 +2,7 @@
 
 This folder contains all codes used to generate the maternal nutrition report. 
 
-✏️ Authors: Savannah O`Malley (savannah.omalley@gwu.edu)
+✏️ Authors: Emma Cook (emmacook@gwu.edu), Xinyi Li (xinyili@gwu.edu), and Precious Williams (williams_pj@gwu.edu)
 
 ## Codes to generate outcomes:
 
