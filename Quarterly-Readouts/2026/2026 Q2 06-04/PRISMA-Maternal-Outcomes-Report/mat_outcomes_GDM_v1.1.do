@@ -11,20 +11,46 @@
 *Update 7: Upates to file pathways after MAT_ENDPOINTS code was updated (October 1, 2024)
 *Update 8: Update to the variable naming convention (January 10, 2025)
 *Update 9: Update to always select the same OGTT (most recent valid test) (May 13, 2025)
-*Update March 4, 2026 by E Cook
+*Update 10: Review GA cutoffs; make date for all tests 
 
 clear
 set more off
 cap log close
 
 *Directory structure:
-global datadate "2026-05-01"
+
+	// Erin's folders: 
+global dir  "D:\Users\emoakley\Documents\Maternal Outcome Construction" 
+global log "$dir/logs"
+global do "$dir/do"
+global output "$dir/output"
+
+	// Stacked Data Folders (TNT Drive)
+global dadate "2026-05-01"
+global da "Z:/Stacked Data/$dadate" // 
+globa OUT "Z:/Outcome Data/$dadate"
+
+
+global wrk "D:\Users\emoakley\Documents\Outcome Data/$dadate"
+
+global date "260511" 
+
+log using "$log/mat_outcome_construct_gdm_$date", replace
+
+
+/*Savannah's setup codes:
+
+
+	// Stacked Data Folders (TNT Drive)
+global datadate "2026-02-06"
 global dadate "$datadate"
 global da "Z:/Stacked Data/$datadate" // 
-global OUT "Z:\Emma_working_files\GDM/$datadate"
+global OUT "Z:\Savannah_working_files\GDM/$datadate"
 global outcomes "Z:\Outcome Data/$datadate"
 
-// Working Files Folder (TNT-Drive)
+
+
+	// Working Files Folder (TNT-Drive)
 global wrk "$OUT"
 cap mkdir "$OUT" //make this folder if it does not exist
 
@@ -185,9 +211,16 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	*merge in BOE-PREG_START_DATE to create GA at lab variable:
 	*merge m:1 momid pregid using "$wrk/BOE", keepusing(PREG_START_DATE)
 	
+	/*
+	preserve 
+	clear 
+	import delimited "$OUT/MAT_ENROLL", bindquote(strict) case(preserve)
+	save "$OUT/MAT_ENROLL", replace 
+	restore 
+	*/
 		rename momid MOMID 
 		rename pregid PREGID 
-	merge m:1 MOMID PREGID using "$outcomes/MAT_ENROLL", keepusing(PREG_START_DATE)
+	merge m:1 MOMID PREGID using "$OUT/MAT_ENROLL", keepusing(PREG_START_DATE)
 	
 	drop if _merge == 2 
 	
@@ -294,6 +327,7 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	*Check on GA at HbA1c vs. result: 
 	tab HBA1C_GA DIAB_OVERT, m 
 	
+	
 	sort HBA1C_GA
 	
 	list site TYPE_VISIT_08 HBA1C_LBTSTDAT HBA1C_GA PREG_START_DATE ///
@@ -311,7 +345,7 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	rename site SITE
 	
 	keep MOMID PREGID SITE TYPE_VISIT_odm LBSTDAT_odm HBA1C_LBTSTDAT ///
-		HBA1C_GA ENTRY_NUM ENTRY_TOTAL HBA1C_PRCNT DIAB_OVERT
+		HBA1C_GA ENTRY_NUM ENTRY_TOTAL HBA1C_PRCNT DIAB_OVERT 
 	
 	save "$wrk/dm_mnh08", replace 
 	
@@ -343,6 +377,9 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	gen HBA1C_PRCNT = .
 	label var HBA1C_PRCNT "HbA1c result (%)"
 	
+	gen HBA1C_GA = . 
+	label var HBA1C_GA "Gestational age at HbA1c test (enrollment visit or <20 weeks)"
+	
 	*update: use a global macro to automatically set the max number of entries: 
 		sum ENTRY_TOTAL_1
 		
@@ -361,11 +398,18 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	replace DIAB_OVERT = 1 if DIAB_OVERT_`num' == 1 
 	replace DIAB_OVERT = 55 if DIAB_OVERT_`num' == 55 & DIAB_OVERT == . 
 	
+	// GA: 
+	replace HBA1C_GA = HBA1C_GA_`num' if ///
+		(DIAB_OVERT_`num' == 0 | DIAB_OVERT_`num' == 1) & ///
+		(HBA1C_PRCNT == . | (HBA1C_PRCNT_`num' > HBA1C_PRCNT & HBA1C_PRCNT !=.))
+		
+	
 	// HbA1c measure - use higher (more severe) measure if more than one: 
 	replace HBA1C_PRCNT = HBA1C_PRCNT_`num' if ///
 		(DIAB_OVERT_`num' == 0 | DIAB_OVERT_`num' == 1) & ///
 		(HBA1C_PRCNT == . | (HBA1C_PRCNT_`num' > HBA1C_PRCNT & HBA1C_PRCNT !=.))
-	
+		
+
 	// HbA1c <20 weeks: 
 	replace DIAB_OVERT_20 = 0 if DIAB_OVERT_`num' == 0 & DIAB_OVERT_20 != 1 ///
 		& HBA1C_GA_`num' >= 0 & HBA1C_GA_`num' < 140 
@@ -392,6 +436,8 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 		(DIAB_OVERT_`num' == 55)
 	
 	}
+	
+	tab HBA1C_GA, m 
 	
 	tab DIAB_OVERT DIAB_OVERT_20, m 
 	
@@ -496,7 +542,7 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	*merge m:1 momid pregid using "$wrk/BOE", keepusing(PREG_START_DATE)
 		rename momid MOMID 
 		rename pregid PREGID 
-	merge m:1 MOMID PREGID using "$outcomes/MAT_ENROLL", keepusing(PREG_START_DATE)
+	merge m:1 MOMID PREGID using "$OUT/MAT_ENROLL", keepusing(PREG_START_DATE)
 	
 	drop if _merge == 2 
 	
@@ -563,11 +609,30 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 		
 	tab TYPE_VISIT_08 BGLUC_RESULT , m 
 	
+	/* OLD STRATEGY: 
 	*restrict to visit type 3 OR participant reports blood-glucose results at  
 	*another ANC visit: 
-	
 	keep if TYPE_VISIT_08 == 3 | BGLUC_RESULT == 1 
+	*/ 
 	
+	*update on May 6, 2026: PRISMA protocol now calls for repeat OGTT testing for 
+	*those with GDM at PNC follow-up visits (PNC-6, PNC-26, PNC-52). Updating 
+	*the code below to ONLY keep those results recorded during ANC: 
+	
+	merge m:1 MOMID PREGID using "$OUT/MAT_ENDPOINTS", keepusing(PREG_END PREG_END_DATE)
+	
+	drop if _merge == 2
+	
+	tab PREG_END, m 
+	
+	tab LBSTDAT, m 
+	
+	keep if TYPE_VISIT_08 == 3 | ///
+		(LBS_GA >= (20*7) & (LBSTDAT < PREG_END_DATE) & PREG_END ==1 & BGLUC_RESULT==1) | ///
+		(LBS_GA >= (20*7) & (PREG_END==0 | PREG_END==.) & BGLUC_RESULT==1)
+	
+	histogram LBS_GA
+
 
 	*review enrollment visit observation: 
 	list LBS_GA BGLUC_RESULT BGLUC_PRETEST_MMOLL_LBORRES BGLUC_ORAL_1HR_MMOLL_LBORRES ///
@@ -761,7 +826,7 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	* UPDATE INCORPORATED ON MAY 13 2025: 
 	
 	* First, drop any postnatal OGTTs: 
-	merge m:1 MOMID PREGID using "$outcomes/MAT_ENDPOINTS", keepusing(PREG_END PREG_END_DATE)
+	merge m:1 MOMID PREGID using "$OUT/MAT_ENDPOINTS", keepusing(PREG_END PREG_END_DATE)
 	
 	drop if _merge == 2 
 	drop _merge 
@@ -772,15 +837,18 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 		
 	tab POSTNATAL_OGTT TYPE_VISIT_gdm, m 
 	
-	list site PREG_END_DATE LBSTDAT_gdm PREG_END BGLUC_RESULT if ///
-		POSTNATAL_OGTT == 1 & TYPE_VISIT_gdm==3
-		
-	tab POSTNATAL_OGTT ENTRY_TOTAL, m 
+	list MOMID PREGID site PREG_END_DATE LBSTDAT_gdm PREG_END BGLUC_RESULT ///
+		DIAB_GA TYPE_VISIT_gdm if POSTNATAL_OGTT == 1 & TYPE_VISIT_gdm==3
 		
 	*DROP postnatal OGTTs IF the participant has more than one entry: 
 	drop if POSTNATAL_OGTT == 1 & ENTRY_TOTAL > 1 
 	
 	tab ENTRY_NUM, m 
+	
+	*Drop postnatal OGTTs if the participant actually delivered before a submitted 
+	* form for ANC-28 visit type (with no valid test)
+	
+	drop if POSTNATAL_OGTT==1 & BGLUC_RESULT==0 & PREG_END_DATE < LBSTDAT_gdm 
 	
 	*review those with multiple entries:
 	sort MOMID PREGID 
@@ -884,9 +952,16 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	rename ENTRY_NUM_ ENTRY_NUM 
 	
 	tab ENTRY_NUM 
-
+	
+	*Create final variables for OGTT timing (complete tests only)
+	gen OGTT_GA_ = DIAB_GA_ 
+	rename LBSTDAT_gdm_ OGTT_DT_
+	
+	replace OGTT_GA_ = . if BGLUC_RESULT==0 
+	replace OGTT_DT_ = . if BGLUC_RESULT==0
+	
 		
-	reshape wide TYPE_VISIT_gdm LBSTDAT_gdm ///
+	reshape wide TYPE_VISIT_gdm OGTT_DT OGTT_GA ///
 		DIAB_GA DIAB_GEST_FASTING* DIAB_GEST_1HR* DIAB_GEST_2HR* ///
 		BGLUC_PRETEST_MMOLL_LBORRES BGLUC_ORAL_1HR_MMOLL_LBORRES ///
 		BGLUC_ORAL_2HR_MMOLL_LBORRES BGLUC_RESULT ENTRY_TOTAL, ///
@@ -936,6 +1011,7 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	label var BGLUC_ORAL_1HR_MMOLL_LBORRES "1-hour blood glucose test (mmol/L)" 
 	label var BGLUC_ORAL_2HR_MMOLL_LBORRES "2-hour blood glucose test (mmol/L)" 	
 	
+
 	foreach num of numlist 1 {
 		
 	// count of tests with results:
@@ -1546,7 +1622,19 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	tab DIAB_GEST_ANY_MISS DIAB_GEST_ANY, m 
 	tab DIAB_GEST_ANY_MISS DIAB_GEST_ANY if DIAB_GEST_DENOM==1, m 
 	
-
+	*Clean up variables for OGTT date & GA: 
+	rename OGTT_DT_ OGTT_DT 
+	tab OGTT_DT DIAB_GEST_ANY 
+	
+	rename OGTT_GA_ OGTT_GA 
+	
+	label var OGTT_DT "Date of OGTT test (ANC only)"
+	label var OGTT_GA "GA at OGTT test (ANC only)"
+	
+		// to avoid confusion, we will set these to missing for those with 
+		// overt diabetes (Not Applicable for GDM outcome): 
+		replace OGTT_DT = . if DIAB_GEST_ANY==77 
+		replace OGTT_GA = . if DIAB_GEST_ANY==77 
 	
 	*review denominator & set missingness variables -  test-specific
 
@@ -1595,7 +1683,8 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	
 	*restrict to variables for output:
 	keep MOMID PREGID SITE ENROLL DIAB_OVERT_ANY DIAB_OVERT DIAB_OVERT_20 ///
-		DIAB_OVERT_MISS HBA1C_PRCNT HBA1C_COUNT DIAB_GEST_FASTING ///
+		DIAB_OVERT_MISS HBA1C_PRCNT HBA1C_GA HBA1C_COUNT OGTT_DT OGTT_GA /// 
+		DIAB_GEST_FASTING ///
 		DIAB_GEST_FASTING_GA DIAB_GEST_1HR DIAB_GEST_1HR_GA DIAB_GEST_2HR ///
 		DIAB_GEST_2HR_GA DIAB_GEST_ANY DIAB_GEST_ANY_MISS BGLUC_COUNT ///
 		DIAB_GEST_DENOM DIAB_GEST_FASTING_MISS DIAB_GEST_1HR_MISS ///
@@ -1713,7 +1802,6 @@ save "$wrk/MAT_ENDPOINTS.dta", replace
 	* Save a clean copy of GDM to the outcome folder: 
 	 
 	save "$OUT/MAT_GDM", replace 
-	save "$outcomes/MAT_GDM", replace 
 	
 	
 	
