@@ -1,7 +1,7 @@
 #*****************************************************************************
 #* PRISMA Maternal Infection
 #* Drafted: 25 October 2023, Stacie Loisate
-#* Last updated: 26 March 2026
+#* Last updated: 08 May 2026
 
 ## This code will generate maternal infection outcomes at the following time points: 
 # Enrollment
@@ -41,15 +41,15 @@ library(haven)
 
 # UPDATE EACH RUN # 
 # set upload date 
-UploadDate = "2025-10-31"
+UploadDate = "2026-05-01"
 
 # set path to save 
-path_to_save <- "D:/Users/stacie.loisate/Documents/Output/Infection-Troubleshooting/2025-08-25/"
+path_to_save <- "D:/Users/iberdecio3/Desktop/MatInf_Out/"
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
 
 # set path to data
 # path_to_data = paste0("Z:/Stacked Data/",UploadDate)
-path_to_data <- paste0("D:/Users/stacie.loisate/Documents/import/", UploadDate)
+path_to_data <- paste0("D:/Users/iberdecio3/Desktop/MatInf_In/", UploadDate)
 
 mat_enroll <- read_xlsx(paste0(path_to_tnt, "MAT_ENROLL" ,".xlsx" )) %>% select(SITE, MOMID, PREGID, ENROLL, ENROLL_SCRN_DATE, EDD_BOE, PREG_START_DATE) %>% 
   filter(ENROLL == 1)
@@ -1677,21 +1677,21 @@ zik_labels <- zik_export_anc %>%
     ZIK_POSITIVE_EVER_PP_LABEL = factor(ZIK_POSITIVE_EVER_PP,levels = c(1, 0, 77),
                                         labels = c("Zika ever during postpartum", "Zika never during postpartum", "NA/no test performed"))
   ) %>% 
-  mutate(ZIK_POSITIVE_EVER_PREG_CAT_LABEL = case_when(ZIK_IGM_POSITIVE_ENROLL ==1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_POSITIVE_ENROLL != 1 ~ "Baseline IgM+", 
-                                                      ZIK_IGG_POSITIVE_ENROLL ==1 & ZIK_IGG_INCIDENT!=1 & ZIK_IGG_UNKNOWN_BASELINE!=1 & ZIK_IGM_POSITIVE_ENROLL != 1 ~ "Baseline IgG+",
-                                                      ZIK_IGM_POSITIVE_ENROLL ==1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_POSITIVE_ENROLL == 1 ~ "Baseline IgM+ & IgG+", 
+  mutate(ZIK_POSITIVE_EVER_PREG_CAT_LABEL = case_when(ZIK_IGM_POSITIVE_ENROLL ==1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_POSITIVE_ENROLL != 1 ~ "Baseline IgM+",
                                                       ZIK_IGM_POSITIVE_ENROLL !=1 & ZIK_IGM_INCIDENT==1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_INCIDENT != 1 ~ "Incident IgM+", 
-                                                      ZIK_IGG_POSITIVE_ENROLL !=1 & ZIK_IGG_INCIDENT==1 & ZIK_IGG_UNKNOWN_BASELINE!=1 & ZIK_IGM_INCIDENT != 1 ~ "Incident IgG+", 
+                                                      ZIK_IGG_POSITIVE_ENROLL ==1 & ZIK_IGG_INCIDENT!=1 & ZIK_IGG_UNKNOWN_BASELINE!=1 & ZIK_IGM_POSITIVE_ENROLL != 1 & ZIK_IGM_INCIDENT !=1 & ZIK_IGM_UNKNOWN_BASELINE != 1 ~ "Baseline IgG+",
+                                                      ZIK_IGM_POSITIVE_ENROLL ==1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_POSITIVE_ENROLL == 1 ~ "Baseline IgM+ & IgG+", 
+                                                      ZIK_IGG_POSITIVE_ENROLL !=1 & ZIK_IGG_INCIDENT==1 & ZIK_IGG_UNKNOWN_BASELINE!=1 & ZIK_IGM_INCIDENT != 1 & ZIK_IGM_UNKNOWN_BASELINE !=1 & ZIK_IGM_POSITIVE_ENROLL != 1 ~ "Incident IgG+", 
                                                       ZIK_IGM_POSITIVE_ENROLL !=1 & ZIK_IGM_INCIDENT==1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_INCIDENT == 1 ~ "Incident IgM+ & IgG+", 
                                                       ZIK_IGM_POSITIVE_ENROLL !=1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE==1 & ZIK_IGG_UNKNOWN_BASELINE != 1 ~ "IgM+ with unknown baseline",
                                                       ZIK_IGG_POSITIVE_ENROLL !=1 & ZIK_IGG_INCIDENT!=1 & ZIK_IGG_UNKNOWN_BASELINE==1 & ZIK_IGM_UNKNOWN_BASELINE != 1 ~ "IgG+ with unknown baseline",
                                                       ZIK_IGM_POSITIVE_ENROLL !=1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE==1 & ZIK_IGG_UNKNOWN_BASELINE == 1 ~ "IgM+ & IgG+ with unknown baseline",
                                                       TRUE ~ NA
   )) %>% 
-  mutate(ZIK_POSITIVE_EVER_PREG_CAT = case_when(ZIK_IGM_POSITIVE_ENROLL ==1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_POSITIVE_ENROLL != 1 ~ 1, 
+  mutate(ZIK_POSITIVE_EVER_PREG_CAT = case_when(ZIK_IGM_POSITIVE_ENROLL ==1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_POSITIVE_ENROLL != 1 ~ 1,
+                                                ZIK_IGM_POSITIVE_ENROLL !=1 & ZIK_IGM_INCIDENT==1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_INCIDENT != 1 ~ 4, 
                                                 ZIK_IGG_POSITIVE_ENROLL ==1 & ZIK_IGG_INCIDENT!=1 & ZIK_IGG_UNKNOWN_BASELINE!=1 & ZIK_IGM_POSITIVE_ENROLL != 1 ~ 2,
                                                 ZIK_IGM_POSITIVE_ENROLL ==1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_POSITIVE_ENROLL == 1 ~3, 
-                                                ZIK_IGM_POSITIVE_ENROLL !=1 & ZIK_IGM_INCIDENT==1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_INCIDENT != 1 ~ 4, 
                                                 ZIK_IGG_POSITIVE_ENROLL !=1 & ZIK_IGG_INCIDENT==1 & ZIK_IGG_UNKNOWN_BASELINE!=1 & ZIK_IGM_INCIDENT != 1 ~ 5, 
                                                 ZIK_IGM_POSITIVE_ENROLL !=1 & ZIK_IGM_INCIDENT==1 & ZIK_IGM_UNKNOWN_BASELINE!=1 & ZIK_IGG_INCIDENT == 1 ~ 6, 
                                                 ZIK_IGM_POSITIVE_ENROLL !=1 & ZIK_IGM_INCIDENT!=1 & ZIK_IGM_UNKNOWN_BASELINE==1 & ZIK_IGG_UNKNOWN_BASELINE != 1 ~ 7,
@@ -1732,6 +1732,17 @@ zik_export_labels <- zik_labels %>%
          ZIK_POSITIVE_EVER_PP, ZIK_POSITIVE_EVER_PP_LABEL, ZIK_POSITIVE_EVER_PP_CAT, ZIK_POSITIVE_EVER_PP_CAT_LABEL,
          ZIK_DATE_IGM_POSITIVE_PP, ZIK_DATE_IGG_POSITIVE_PP, ZIK_GESTAGE_IGG_POSITIVE_DAYS_PP, ZIK_GESTAGE_IGG_POSITIVE_WKS_PP
   )
+
+#zik_labels %>%
+#tbl_cross(
+#    row = ZIK_POSITIVE_EVER_PREG_CAT_LABEL,
+#    col = ZIK_POSITIVE_EVER_PREG_LABEL,
+#    percent = "none"
+#  ) 
+
+
+
+
 
 # write.xlsx(zik_table, paste0(path_to_save, "zik_table" ,".xlsx"), na="", rowNames=TRUE)
 
@@ -1970,26 +1981,29 @@ chk_labels <- chk_export_anc %>%
     CHK_POSITIVE_EVER_PP_LABEL = factor(CHK_POSITIVE_EVER_PP,levels = c(1, 0, 77),
                                         labels = c("Chikungunya ever during postpartum", "Chikungunya never during postpartum", "NA/no test performed"))
   ) %>% 
-  mutate(CHK_POSITIVE_EVER_PREG_CAT_LABEL = case_when(CHK_IGM_POSITIVE_ENROLL ==1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_POSITIVE_ENROLL != 1 ~ "Baseline IgM+",
-                                                      CHK_IGG_POSITIVE_ENROLL ==1 & CHK_IGG_INCIDENT!=1 & CHK_IGG_UNKNOWN_BASELINE!=1 & CHK_IGM_POSITIVE_ENROLL != 1 ~ "Baseline IgG+",
-                                                      CHK_IGM_POSITIVE_ENROLL ==1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_POSITIVE_ENROLL == 1 ~ "Baseline IgM+ & IgG+",
-                                                      CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT==1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_INCIDENT != 1 ~ "Incident IgM+",
-                                                      CHK_IGG_POSITIVE_ENROLL !=1 & CHK_IGG_INCIDENT==1 & CHK_IGG_UNKNOWN_BASELINE!=1 & CHK_IGM_INCIDENT != 1 ~ "Incident IgG+",
-                                                      CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT==1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_INCIDENT == 1 ~ "Incident IgM+ & IgG+",
-                                                      CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE==1 & CHK_IGG_UNKNOWN_BASELINE != 1 ~ "IgM+ with unknown baseline",
-                                                      CHK_IGG_POSITIVE_ENROLL !=1 & CHK_IGG_INCIDENT!=1 & CHK_IGG_UNKNOWN_BASELINE==1 & CHK_IGM_UNKNOWN_BASELINE != 1 ~ "IgG+ with unknown baseline",
+  mutate(CHK_POSITIVE_EVER_PREG_CAT_LABEL = case_when(CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE==1 & CHK_IGG_UNKNOWN_BASELINE != 1 ~ "IgM+ with unknown baseline",
                                                       CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE==1 & CHK_IGG_UNKNOWN_BASELINE == 1 ~ "IgM+ & IgG+ with unknown baseline",
+                                                      CHK_IGG_POSITIVE_ENROLL !=1 & CHK_IGG_INCIDENT!=1 & CHK_IGG_UNKNOWN_BASELINE==1 & CHK_IGM_UNKNOWN_BASELINE != 1 ~ "IgG+ with unknown baseline",
+                                                      CHK_IGM_POSITIVE_ENROLL ==1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_POSITIVE_ENROLL != 1 ~ "Baseline IgM+",
+                                                      CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT==1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_INCIDENT != 1 ~ "Incident IgM+",
+                                                      CHK_IGG_POSITIVE_ENROLL ==1 & CHK_IGG_INCIDENT!=1 & CHK_IGG_UNKNOWN_BASELINE!=1 & CHK_IGM_POSITIVE_ENROLL != 1 & CHK_IGM_INCIDENT != 1 & CHK_IGM_UNKNOWN_BASELINE != 1 ~ "Baseline IgG+",
+                                                      CHK_IGM_POSITIVE_ENROLL ==1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_POSITIVE_ENROLL == 1 ~ "Baseline IgM+ & IgG+",
+                                                      CHK_IGG_POSITIVE_ENROLL !=1 & CHK_IGG_INCIDENT==1 & CHK_IGG_UNKNOWN_BASELINE!=1 & CHK_IGM_INCIDENT != 1 & CHK_IGM_UNKNOWN_BASELINE !=1 & CHK_IGM_POSITIVE_ENROLL !=1 ~ "Incident IgG+",
+                                                      CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT==1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_INCIDENT == 1 ~ "Incident IgM+ & IgG+",
+                                                    
+                                            
                                                       TRUE ~ NA
   )) %>% 
-  mutate(CHK_POSITIVE_EVER_PREG_CAT = case_when(CHK_IGM_POSITIVE_ENROLL ==1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_POSITIVE_ENROLL != 1 ~ 1,
+  mutate(CHK_POSITIVE_EVER_PREG_CAT = case_when(CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE==1 & CHK_IGG_UNKNOWN_BASELINE != 1 ~ 7,
+                                                CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE==1 & CHK_IGG_UNKNOWN_BASELINE == 1 ~ 9,
+                                                CHK_IGG_POSITIVE_ENROLL !=1 & CHK_IGG_INCIDENT!=1 & CHK_IGG_UNKNOWN_BASELINE==1 & CHK_IGM_UNKNOWN_BASELINE != 1 ~ 8,
+                                                CHK_IGM_POSITIVE_ENROLL ==1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_POSITIVE_ENROLL != 1 ~ 1,
                                                 CHK_IGG_POSITIVE_ENROLL ==1 & CHK_IGG_INCIDENT!=1 & CHK_IGG_UNKNOWN_BASELINE!=1 & CHK_IGM_POSITIVE_ENROLL != 1 ~ 2,
                                                 CHK_IGM_POSITIVE_ENROLL ==1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_POSITIVE_ENROLL == 1 ~ 3,
                                                 CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT==1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_INCIDENT != 1 ~ 4,
                                                 CHK_IGG_POSITIVE_ENROLL !=1 & CHK_IGG_INCIDENT==1 & CHK_IGG_UNKNOWN_BASELINE!=1 & CHK_IGM_INCIDENT != 1 ~ 5,
                                                 CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT==1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_INCIDENT == 1 ~ 6,
-                                                CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE==1 & CHK_IGG_UNKNOWN_BASELINE != 1 ~ 7,
-                                                CHK_IGG_POSITIVE_ENROLL !=1 & CHK_IGG_INCIDENT!=1 & CHK_IGG_UNKNOWN_BASELINE==1 & CHK_IGM_UNKNOWN_BASELINE != 1 ~ 8,
-                                                CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE==1 & CHK_IGG_UNKNOWN_BASELINE == 1 ~ 9,
+                                                
                                                 TRUE ~ NA
   )) %>% 
   mutate(CHK_POSITIVE_EVER_PP_CAT_LABEL = case_when(CHK_IGM_POSITIVE_EVER_PP ==1 & CHK_IGM_POSITIVE_EVER_PREG==1 ~ "Chikungunya IgM+ during pregnancy and postpartum", 
@@ -2026,6 +2040,13 @@ chk_export_labels <- chk_labels %>%
          CHK_POSITIVE_EVER_PP, CHK_POSITIVE_EVER_PP_LABEL, CHK_POSITIVE_EVER_PP_CAT, CHK_POSITIVE_EVER_PP_CAT_LABEL,
          CHK_DATE_IGM_POSITIVE_PP, CHK_DATE_IGG_POSITIVE_PP, CHK_GESTAGE_IGG_POSITIVE_DAYS_PP, CHK_GESTAGE_IGG_POSITIVE_WKS_PP
   )
+
+#chk_labels %>%
+#  tbl_cross(
+#    row = CHK_POSITIVE_EVER_PREG_CAT_LABEL,
+#    col = CHK_POSITIVE_EVER_PREG_LABEL,
+#    percent = "none"
+#  )
 
 
 #*****************************************************************************
@@ -2264,10 +2285,10 @@ den_labels <- den_export_anc %>%
                                         labels = c("dengue ever during postpartum", "dengue never during postpartum", "NA/no test performed"))
   ) %>% 
   mutate(DEN_POSITIVE_EVER_PREG_CAT_LABEL = case_when(DEN_IGM_POSITIVE_ENROLL ==1 & DEN_IGM_INCIDENT!=1 & DEN_IGM_UNKNOWN_BASELINE!=1 & DEN_IGG_POSITIVE_ENROLL != 1 ~ "Baseline IgM+",
-                                                      DEN_IGG_POSITIVE_ENROLL ==1 & DEN_IGG_INCIDENT!=1 & DEN_IGG_UNKNOWN_BASELINE!=1 & DEN_IGM_POSITIVE_ENROLL != 1 ~ "Baseline IgG+",
-                                                      DEN_IGM_POSITIVE_ENROLL ==1 & DEN_IGM_INCIDENT!=1 & DEN_IGM_UNKNOWN_BASELINE!=1 & DEN_IGG_POSITIVE_ENROLL == 1 ~ "Baseline IgM+ & IgG+",
                                                       DEN_IGM_POSITIVE_ENROLL !=1 & DEN_IGM_INCIDENT==1 & DEN_IGM_UNKNOWN_BASELINE!=1 & DEN_IGG_INCIDENT != 1 ~ "Incident IgM+",
-                                                      DEN_IGG_POSITIVE_ENROLL !=1 & DEN_IGG_INCIDENT==1 & DEN_IGG_UNKNOWN_BASELINE!=1 & DEN_IGM_INCIDENT != 1 ~ "Incident IgG+",
+                                                      DEN_IGG_POSITIVE_ENROLL ==1 & DEN_IGG_INCIDENT!=1 & DEN_IGG_UNKNOWN_BASELINE!=1 & DEN_IGM_POSITIVE_ENROLL != 1 & DEN_IGM_INCIDENT != 1 & DEN_IGM_UNKNOWN_BASELINE != 1 ~ "Baseline IgG+",
+                                                      DEN_IGM_POSITIVE_ENROLL ==1 & DEN_IGM_INCIDENT!=1 & DEN_IGM_UNKNOWN_BASELINE!=1 & DEN_IGG_POSITIVE_ENROLL == 1 ~ "Baseline IgM+ & IgG+",
+                                                      DEN_IGG_POSITIVE_ENROLL !=1 & DEN_IGG_INCIDENT==1 & DEN_IGG_UNKNOWN_BASELINE!=1 & DEN_IGM_INCIDENT != 1 & DEN_IGM_UNKNOWN_BASELINE != 1 & DEN_IGM_POSITIVE_ENROLL != 1 ~ "Incident IgG+",
                                                       DEN_IGM_POSITIVE_ENROLL !=1 & DEN_IGM_INCIDENT==1 & DEN_IGM_UNKNOWN_BASELINE!=1 & DEN_IGG_INCIDENT == 1 ~ "Incident IgM+ & IgG+",
                                                       DEN_IGM_POSITIVE_ENROLL !=1 & DEN_IGM_INCIDENT!=1 & DEN_IGM_UNKNOWN_BASELINE==1 & DEN_IGG_UNKNOWN_BASELINE != 1 ~ "IgM+ with unknown baseline",
                                                       DEN_IGG_POSITIVE_ENROLL !=1 & DEN_IGG_INCIDENT!=1 & DEN_IGG_UNKNOWN_BASELINE==1 & DEN_IGM_UNKNOWN_BASELINE != 1 ~ "IgG+ with unknown baseline",
@@ -2298,6 +2319,12 @@ den_labels <- den_export_anc %>%
                                               TRUE ~ NA
   ))  
 
+#den_labels %>%
+#  tbl_cross(
+#    row = DEN_POSITIVE_EVER_PREG_CAT_LABEL,
+#    col = DEN_POSITIVE_EVER_PREG_LABEL,
+#    percent = "none"
+#  )
 
 den_export_labels <- den_labels %>%
   select(SITE, MOMID, PREGID,
@@ -2336,6 +2363,8 @@ zik_export_labels <- zik_export_labels %>%
          ZIK_IGG_WITH_DEN_IGG_SAME_DAY = case_when(ymd(DEN_DATE_IGG_POSITIVE) <= ymd(ZIK_DATE_IGG_POSITIVE) ~ 1, TRUE ~0), 
   ) %>% 
   select(-DEN_DATE_IGG_POSITIVE, -DEN_DATE_IGM_POSITIVE)
+
+
 
 
 #*****************************************************************************
@@ -2718,13 +2747,24 @@ datasets <- list(
 )
 
 ## THE FOLLOWING CODE WILL GENERATE A WIDE DATASET WITH ONE ROW FOR EACH MOM FOR EACH VISIT 
-mat_infection <- datasets %>% reduce(full_join, by =  c("SITE","MOMID", "PREGID"))
+
+#original
+#mat_infection <- datasets %>% reduce(full_join, by =  c("SITE","MOMID", "PREGID"))
+
+#added 5/12 to include ENROLL from MAT_ENROLL to final dataset
+mat_infection <- datasets %>% 
+  reduce(full_join, by = c("SITE","MOMID","PREGID")) %>%
+  left_join(
+    mat_enroll %>% select(SITE, MOMID, PREGID, ENROLL),
+    by = c("SITE", "MOMID", "PREGID")
+  )
 
 duplicates<- tb_export_labels_nodup %>% group_by(MOMID, PREGID) %>%
   mutate(n=n()) %>% filter(n>1) %>% 
   select(SITE, MOMID, PREGID, n)
 
 dim(mat_enroll)
+
 dim(mat_infection)
 
 ## generate any infection variables 
@@ -2742,7 +2782,7 @@ incident_infections <- c("HIV_POSITIVE_INCIDENT", "SYPH_POSITIVE_INCIDENT", "CT_
 
 mat_infection = MAT_INFECTION
 mat_infection <- mat_infection %>% 
-  # left_join(mat_end %>% select(SITE, PREGID, PREG_END), by = c("SITE", "PREGID")) %>% 
+  #left_join(mat_end %>% select(SITE, PREGID, PREG_END), by = c("SITE", "PREGID")) %>% 
   mutate(ANY_INFECTION_ENROLL = case_when(HIV_POSITIVE_ENROLL ==1 | 
                                             SYPH_POSITIVE_ENROLL ==1 | 
                                             CT_TEST_POSITIVE_ENROLL ==1 | 
@@ -2794,21 +2834,21 @@ mat_infection <- mat_infection %>%
                                       TRUE ~ 0
   )
   )  %>%
-  mutate(ANY_INFECTION_ENROLL_LIST = pmap_chr(select(., all_of(enroll_infections)), function(...) {
+  mutate(ANY_INFECTION_ENROLL_LIST = pmap_chr(pick(all_of(enroll_infections)), function(...) {
     vals <- c(...)
     # Remove NAs first, then check for == 1
     clean_vals <- vals[!is.na(vals)]
     keep_names <- names(clean_vals)[clean_vals == 1]
     paste(keep_names, collapse = ", ")
   })) %>% 
-  mutate(ANY_INFECTION_INCIDENT_LIST = pmap_chr(select(., all_of(incident_infections)), function(...) {
+  mutate(ANY_INFECTION_INCIDENT_LIST = pmap_chr(pick(all_of(incident_infections)), function(...) {
     vals <- c(...)
     # Remove NAs first, then check for == 1
     clean_vals <- vals[!is.na(vals)]
     keep_names <- names(clean_vals)[clean_vals == 1]
     paste(keep_names, collapse = ", ")
   })) %>% 
-  mutate(ANY_INFECTION_EVER_PREG_LIST = pmap_chr(select(., all_of(ever_preg_infections)), function(...) {
+  mutate(ANY_INFECTION_EVER_PREG_LIST = pmap_chr(pick(all_of(ever_preg_infections)), function(...) {
     vals <- c(...)
     # Remove NAs first, then check for == 1
     clean_vals <- vals[!is.na(vals)]
@@ -2842,9 +2882,9 @@ for (i in names(test)[-c(1:4)]) {
 table(test$ANY_INFECTION_ENROLL_LIST)
 
 # library(openxlsx)
-write.xlsx(mat_infection, paste0("D:/Users/stacie.loisate/Documents/Output/Infection-Troubleshooting/data/", Sys.Date(),"-mat_infection" ,".xlsx"), na="", rowNames=FALSE)
+#write.xlsx(mat_infection, paste0("D:/Users/stacie.loisate/Documents/Output/Infection-Troubleshooting/data/", Sys.Date(),"-mat_infection" ,".xlsx"), na="", rowNames=FALSE)
 write.csv(mat_infection, paste0("D:/Users/stacie.loisate/Documents/Output/Infection-Troubleshooting/data/", Sys.Date(),"-mat_infection" ,".csv"), row.names=FALSE)
 
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
-write.xlsx(mat_infection, paste0(path_to_tnt, "MAT_INFECTION" ,".xlsx"), na="", row.names=FALSE)
-write.csv(mat_infection, paste0(path_to_tnt, "MAT_INFECTION" ,".csv"),  row.names=FALSE)
+write.xlsx(mat_infection, paste0(path_to_save, "MAT_INFECTION" ,".xlsx"), na="", row.names=FALSE)
+write.csv(mat_infection, paste0(path_to_save, "MAT_INFECTION" ,".csv"),  row.names=FALSE)
