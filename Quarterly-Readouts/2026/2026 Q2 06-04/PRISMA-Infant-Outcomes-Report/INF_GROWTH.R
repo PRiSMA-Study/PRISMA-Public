@@ -1,7 +1,7 @@
 #*****************************************************************************
 #* PRISMA Infant Outcomes: 
 #* Drafted: 01 June 2024, Precious Williams `williams_pj@gwu.edu`
-#* Last updated: 17 February 2026
+#* Last updated: 17 June 2026
 #* Updated to include query datasets and to track visit completion properly
 
 # Infant Growth Outcomes
@@ -15,7 +15,7 @@
 
 #*****************************************************************************
 # clear environment 
-rm(list = ls())
+#rm(list = ls())
 
 # load packages 
 library(tidyverse)
@@ -759,8 +759,6 @@ tbirth_measure <- allbirth_anthro %>%
     # Get a GIGS package sex classification
     sex_gigs = if_else(SEX == 1, "M", "F")) %>%
     # Calculate z-score using INTERGROWTH-21st standards
-    # --- INTERGROWTH EXTENDED (gigs) ---
-  # --- INTERGROWTH EXTENDED (gigs) ---
   rowwise() %>%
   mutate(
     ZLEN_IG = if (!is.na(PREG_GA_CALC) && !is.na(LENGTH) && 
@@ -792,7 +790,6 @@ tbirth_measure <- allbirth_anthro %>%
   ) %>%
   ungroup() %>% 
       mutate(
-    
     # Calculate weight-for-length z-score using INTERGROWTH-21st standards
     ZWFL_IG = case_when(SEX == 1  & WEIGHT > 0 ~ igb_wlr2zscore(PREG_GA_CALC, wlr, sex = "Male"),
                         SEX == 2 & WEIGHT > 0 ~ igb_wlr2zscore(PREG_GA_CALC, wlr, sex = "Female"),
