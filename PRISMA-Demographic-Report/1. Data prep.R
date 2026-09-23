@@ -15,7 +15,7 @@ library(readxl)
 UploadDate = "2026-05-01"
 
 #****************************************************************************
-# 0. Helper functions ---- 
+# Helper functions ---- 
 #****************************************************************************
 
 ## Date cleaning function (from Flowchart workflow) ----
@@ -46,7 +46,7 @@ clean_date <- function(x,
 
 
 #****************************************************************************
-#1.Load and merge data ---- 
+# Load and merge data ---- 
 #****************************************************************************
 
 #set path to save 
@@ -115,7 +115,7 @@ mnh06 <- read.csv(paste0(path_to_data,"/mnh06_merged.csv")) %>%
 
 
 #****************************************************************************
-#2.Define demographic characters ----
+# Define demographic characters ----
 #****************************************************************************
 ## Merge all MNH files ----
 df_maternal <- MAT_ENROLL %>%
@@ -126,7 +126,7 @@ df_maternal <- MAT_ENROLL %>%
   left_join(mnh05, by = c("SITE", "MOMID", "PREGID")) %>%
   left_join(mnh06, by = c("SITE", "MOMID", "PREGID"))
 
-## 4b. Prepare demographic variables ----
+##Prepare demographic variables ----
 prep_demo <- df_maternal %>%
   dplyr::select("SCRNID", "MOMID", "PREGID", "SITE",
                 PREG_START_DATE, BOE_GA_DAYS_ENROLL,
@@ -160,7 +160,7 @@ prep_demo <- df_maternal %>%
          M04_PH_PREV_RPORRES = case_when(M04_PH_PREV_RPORRES %in% c(-5, -7, 55, 77) ~ NA, TRUE ~ M04_PH_PREV_RPORRES)) %>%
   mutate(M04_PH_PREV_RPORRES = ifelse(M04_PH_PREV_RPORRES == 77, NA, M04_PH_PREV_RPORRES))
 
-## 4c. Construct demographic variables ----
+## Construct demographic variables ----
 df_demo <- prep_demo %>%
   mutate(
     # Female-headed household
@@ -428,7 +428,7 @@ df_demo <- prep_demo %>%
   # Convert final demographic variable names to uppercase
   rename_with(toupper)
 
-### Add demographic variable labels ----
+## Add demographic variable labels ----
 demo_labels <- c(
   SITE = "Study site",
   SCRNID = "Screening ID",
