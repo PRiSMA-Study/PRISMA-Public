@@ -1,17 +1,25 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'>Demographics Report (Issued: 2025-05-28)"
-# date: "`r Sys.Date()`"
+title: "<span style='font-size: 18px'> <span style='text-align: center'>Demographics Report"
+date: "`r Sys.Date()`"
 output:
   pdf_document:
     toc: no
     toc_depth: 3
     latex_engine: xelatex
     keep_tex: true
+include-in-header:
+- \usepackage{booktabs,longtable}
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                    encoding=encoding, 
+                    output_file= paste('D:/Users/williams_pj/Documents/Analysis/Demographics/2026-05-01/output/Demographics-Report_', Sys.Date(), '.pdf', sep='')) })
 ---
 
 *Demographic table is showing baseline household and individual characteristic.*
 
-**Date of included data upload to Synapse: ** 2025-04-18
+**Date of included data upload to Synapse: ** 2026-05-01
+
+**Date report issued: **  `r Sys.Date()`
 
 \tableofcontents
 
@@ -30,8 +38,11 @@ library(officer)
 library(kableExtra)
 library(ggh4x)
 
-# load("derived_data/df_demo.rda")
-load("~/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/df_demo.RData")
+UploadDate = "2026-05-01"
+
+load(paste0("~/Analysis/Demographics/", UploadDate, "/derived_data/df_demo.RData"))
+
+#load("~/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/df_demo.RData")
 
 #table format 1
 tb_theme1 <- function(matrix){
