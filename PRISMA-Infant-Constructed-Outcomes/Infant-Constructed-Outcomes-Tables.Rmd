@@ -1,16 +1,25 @@
 ---
-title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA-Infant-Outcomes (Issued: 2026-02-17)"
+title: "PRISMA-Infant-Outcomes (Issued: `r Sys.Date()`)"
+
 output:
   pdf_document:
     toc: no
-    toc_depth: 4
+    toc_depth: 6
     latex_engine: xelatex
-    keep_tex: true
+    keep_tex: FALSE
 include-in-header:
-- \usepackage{ booktabs,longtable}
+- \usepackage{booktabs,longtable}
+
+knit: (function(inputFile, encoding) { 
+      rmarkdown::render(inputFile,
+                    encoding=encoding, 
+                    output_file= paste('D:/Users/williams_pj/Documents/Analysis/Infant-Constructed-Variables/output/2026-09-18/', Sys.Date(), '_Infant-Outcomes-Report',  '.pdf', sep='')) })
+
 ---
 
 ```{r setup, include=FALSE}
+
+UploadDate = "2026-09-18"
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%") 
 knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -32,16 +41,16 @@ library(gt) ## for table gen
 library(webshot2)  ## for table gen
 library(readxl)
 
-UploadDate = "2026-03-20"
-path_to_data <- paste0("D:/Users/stacie.loisate/Documents/import/outcomes/", UploadDate, "/")
 
-path_to_save <- "D:/Users/stacie.loisate/Box/PRISMA-Analysis/Infant-Constructed-Variables/output/"
-path_to_save_figures <- "D:/Users/stacie.loisate/Documents"
-path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
+path_to_data <- paste0("D:/Users/williams_pj/Documents/Analysis/Infant-Constructed-Variables/data/", UploadDate, "/")
 
-mat_enroll <- read_xlsx(paste0("Z:/Outcome Data/", UploadDate, "/MAT_ENROLL.xlsx"))
-infant_outcomes <- read_xlsx(paste0("Z:/Outcome Data/", UploadDate, "/INF_OUTCOMES.xlsx"))
-remapp_ids <- mat_enroll %>% filter(REMAPP_ENROLL ==1)
+path_to_save <- paste0("D:/Users/williams_pj/Documents/Analysis/Infant-Constructed-Variables/output/", UploadDate, "/")
+path_to_save_figures <- paste0("D:/Users/williams_pj/Documents/Analysis/Infant-Constructed-Variables/output/", UploadDate, "/")
+
+path_to_tnt <- paste0("Z:/Constructed Data/", UploadDate, "/")
+
+mat_enroll <- read.csv(paste0(path_to_tnt, "/MAT_STUDYSTATUS.csv"))
+remapp_ids <- mat_enroll %>% filter(REMAPP_ENROLL == 1)
 
 infant_trajectory <- read.csv(paste0(path_to_data, "INF_GROWTH_WIDE", ".csv"))
 all_plus_outcome <- read.csv(paste0(path_to_data, "INF_GROWTH_LONG", ".csv"))
@@ -128,11 +137,11 @@ g_legend <- function(p) {
   return(legend_gtable)
 }
 
-
 setwd(paste0(path_to_save))
+
 ```
 
-**Includes data from synapse last updated:** 2026-01-30 (2026-01-23 Pakistan; 2026-02-02 Ghana)
+**Includes data from synapse last updated:** 2026-05-01 
 
 \tableofcontents
 
@@ -821,20 +830,26 @@ lbw_output <- tb_theme1(lowbirthweight_tab) %>%
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
-    rows = 1:5
+    rows = 1:5,
+    id = "data_completeness"
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>PRISMA measured birthweight <sup>b</sup>, n (%)</span>"),
-    rows = 6:9
+    rows = 6:9,
+    id = "prisma_measured"
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Any method measured birthweight <sup>c</sup>, n (%)</span>"),
-    rows = 10:13
+    rows = 10:13,
+    id = "any_method"
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>",
-                  "<span style='font-size: 18px'>PRISMA measured birthweight <sup>b</sup>, n (%)</span>",
-                  "<span style='font-size: 18px'>Any method measured birthweight <sup>c</sup>, n (%)</span>")
-                  )  %>%
+  row_group_order(
+    groups = c(
+      "data_completeness",
+      "prisma_measured",
+      "any_method"
+    )
+  ) %>%
   tab_style(
       style = list(
         cell_text(weight = "bold")
@@ -955,6 +970,8 @@ Figure 2c. Hours following birth weight measurement recorded by PRISMA-trained s
 **Definition:** Preterm delivery prior to 37 completed weeks of gestation. Further classified as: extremely preterm (<28 weeks), very preterm (28 to <32 weeks), moderate preterm (32 to <34 weeks), late preterm (34 to <37 weeks), term (37 to <41 weeks), and postterm (>41 weeks). 
 
 **Denominator:** All participants with delivery after 20 weeks with a MNH09 form filled out with a reported "birth outcome" `(BIRTH_DSTERM_INF1-4=1 OR BIRTH_DSTERM_INF1-4=2 [MNH09])` AND has valid gestational age reported in MNH01 `(US_GA_WKS_AGE_FTS1-4 [MNH01], US_GA_DAYS_AGE_FTS1-4 [MNH01], GA_LMP_WEEKS_SCORRES [MNH01])`. Preterm delivery includes live or stillbirths; preterm birth includes only livebirths. 
+
+**BOE Gestational Age at Birth:** Gestational age at birth determined using the Best Obstetric Estimate (BOE), based on available clinical information including last menstrual period (LMP), ultrasound dating, and the ACOG gestational age dating algorithm.
 
 ***Note:** Gestational age information collected in MNH01 is used to generate best obstetric estimates for EDD. These constructed variables are then used to calculate GA at time of birth.* 
 
@@ -1175,20 +1192,26 @@ preterm_output <- tb_theme1(preterm_tab) %>%
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data Completeness [MNH01] (among participants with a reported livebirth or stillbirth)</span>"),
-    rows = 1:3
+    rows = 1:3,
+    id = "data_completeness"
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Preterm birth severity (livebirths) (categorical), n (%)</span>"),
-    rows = 4:10
+    rows = 4:10,
+    id = "preterm_birth_livebirths"
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Preterm delivery severity (live & stillbirths) (categorical), n (%)</span>"),
-    rows = 11:17
+    rows = 11:17,
+    id = "preterm_delivery_live_stillbirths"
   ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data Completeness [MNH01] (among participants with a reported livebirth or stillbirth)</span>",
-                  "<span style='font-size: 18px'>Preterm birth severity (livebirths) (categorical), n (%)</span>",
-                  "<span style='font-size: 18px'>Preterm delivery severity (live & stillbirths) (categorical), n (%)</span>")
-                  ) %>% 
+  row_group_order(
+    groups = c(
+      "data_completeness",
+      "preterm_birth_livebirths",
+      "preterm_delivery_live_stillbirths"
+    )
+  ) %>% 
     tab_style(
       style = list(
         cell_text(weight = "bold")
@@ -1679,15 +1702,22 @@ out2 <- ggplot(stillbirth_livebirth_prop_site, aes(fill=as.factor(LIVEBIRTH), y=
          legend.text = element_text(size = 11),
          legend.position = "bottom",
          legend.title = element_blank(),
-         panel.grid.minor = element_blank())
- 
-ggsave(paste0("PRISMA_live-still_bysite2", ".png"), path = path_to_save_figures,
-       width = 6, height = 5)
+         panel.grid.minor = element_blank()) 
+ggsave(
+  filename = "PRISMA_live-still_bysite2.png",
+  plot = out2,
+  width = 6,
+  height = 5,
+  dpi = 300
+)
+
 
 ```
 
 ```{r, out.width = '100%'}
-knitr::include_graphics("D:/Users/stacie.loisate/Documents/PRISMA_live-still_bysite2.png")
+
+knitr::include_graphics("PRISMA_live-still_bysite2.png")
+#knitr::include_graphics(paste0 (path_to_save_figures,"PRISMA_live-still_bysite2.png"))
 ```
 
 \newpage
@@ -1794,10 +1824,11 @@ sga_output <- tb_theme1(sga_tab) %>%
     title = md("**Table 4**")
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Size for Gestational Age (Cateogorical)<sup>a</sup>, n (%)</span>"),
-    rows = 1:5
-  )  %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Size for Gestational Age (Cateogorical)<sup>a</sup>, n (%)</span>")) %>% 
+    label = html("<span style='font-size: 18px'>Size for Gestational Age (Categorical)<sup>a</sup>, n (%)</span>"),
+    rows = 1:5,
+    id = "sga"
+  ) %>%
+  row_group_order(groups = "sga") %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all livebirths.</span>")
  ) %>% 
@@ -1985,22 +2016,28 @@ mortality_output <- tb_theme1(mortality_all_tab) %>%
   tab_header(
     title = md("**Table 5**")
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Data Completeness<sup>a</sup></span>"),
-    rows = 1:3
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>"),
-    rows = 4:8
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of Post-neonatal Infant Mortality<sup>c</sup></span>"),
-    rows = 9:11
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data Completeness<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>",
-                  "<span style='font-size: 18px'>Timing of Post-neonatal Infant Mortality<sup>c</sup></span>")
-                  ) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Data Completeness<sup>a</sup></span>"),
+  rows = 1:3,
+  id = "data_completeness"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Timing of Neonatal Mortality<sup>b</sup></span>"),
+  rows = 4:8,
+  id = "neonatal_mortality"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Timing of Post-neonatal Infant Mortality<sup>c</sup></span>"),
+  rows = 9:11,
+  id = "postneonatal_mortality"
+) %>%
+row_group_order(
+  groups = c(
+    "data_completeness",
+    "neonatal_mortality",
+    "postneonatal_mortality"
+  )
+) %>% 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all reported deaths <365 days who have passed the risk period with a visit OR died within the risk period OR death was reported but date of death = missing OR date of death < DOB.</span>")
  )  %>% 
@@ -2142,22 +2179,28 @@ stillbirth_output <- tb_theme1(stillbirth_tab) %>%
   tab_header(
     title = md("**Table 6**")
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness<sup>a b</sup></span>"),
-    rows = 1:2
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Stillbirth (categorical)<sup>c</sup></span>"),
-    rows = 3:7
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Timing of stillbirth<sup>d</sup></span>"),
-    rows = 8:11
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness<sup>a b</sup></span>",
-                             "<span style='font-size: 18px'>Stillbirth (categorical)<sup>c</sup></span>",
-                             "<span style='font-size: 18px'>Timing of stillbirth<sup>d</sup></span>")
-                  ) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Data completeness<sup>a b</sup></span>"),
+  rows = 1:2,
+  id = "data_completeness"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Stillbirth (categorical)<sup>c</sup></span>"),
+  rows = 3:7,
+  id = "stillbirth"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Timing of stillbirth<sup>d</sup></span>"),
+  rows = 8:11,
+  id = "timing_stillbirth"
+) %>%
+row_group_order(
+  groups = c(
+    "data_completeness",
+    "stillbirth",
+    "timing_stillbirth"
+  )
+) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all particpants with a birth outcome reported in MNH09.</span>")
  ) %>% 
@@ -2278,16 +2321,22 @@ fetaldeath_output <- tb_theme1(fetal_death_tab) %>%
     title = md("**Table 7**")
   ) %>%
 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Fetal death <sup>a</sup></span>"),
-    rows = 1:5
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Other fetal death <sup>b</sup></span>"),
-    rows = 6:7
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Fetal death <sup>a</sup></span>",
-                             "<span style='font-size: 18px'>Other fetal death <sup>b</sup></span>")) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Fetal death <sup>a</sup></span>"),
+  rows = 1:5,
+  id = "fetal_death"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Other fetal death <sup>b</sup></span>"),
+  rows = 6:7,
+  id = "other_fetal_death"
+) %>%
+row_group_order(
+  groups = c(
+    "fetal_death",
+    "other_fetal_death"
+  )
+) %>%
 tab_footnote(
     footnote = html("<span style='font-size: 18px'> <sup>a</sup> Denominator is n total deliveries excluding induced abortions</span>")
  )  %>% 
@@ -2424,21 +2473,28 @@ birth_asphyxia_tab[is.na(birth_asphyxia_tab)] <- paste0("0 (0)")
 asphyxia_output <- tb_theme1(birth_asphyxia_tab) %>% 
   tab_header(
     title = md("**Table 8**")) %>% 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>"),
-    rows = 1:2
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Indicators of birth asphyxia<sup>a</sup></span>"),
-    rows = 3:9
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Perinatal birth asphyxia<sup>a</sup></span>"),
-    rows = 10:11
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Indicators of birth asphyxia<sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Perinatal birth asphyxia<sup>a</sup></span>")) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>"),
+  rows = 1:2,
+  id = "data_completeness"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Indicators of birth asphyxia<sup>a</sup></span>"),
+  rows = 3:9,
+  id = "indicators_asphyxia"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Perinatal birth asphyxia<sup>a</sup></span>"),
+  rows = 10:11,
+  id = "perinatal_asphyxia"
+) %>%
+row_group_order(
+  groups = c(
+    "data_completeness",
+    "indicators_asphyxia",
+    "perinatal_asphyxia"
+  )
+) %>%
 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total liveborn infants with a MNH11 form filled out.</span>")
@@ -2634,16 +2690,18 @@ hyperbili_all_crit_output1 <- tb_theme1(hyperbili_all_crit_tab_1) %>%
     title = md("**Table 9a (continued on next page)**")
   ) %>%
   tab_row_group(
-    label = html("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (>15mg/dL)</span>"),
-    rows = 1:4
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (AAP threshold) <sup>a</sup></span>"),
-    rows = 5:8
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (>15mg/dL)</span>",
-                  "<span style='font-size: 18px'>Hyperbilirubinemia by TCB (AAP threshold) <sup>a</sup></span>"
-                  )) %>% 
+  label = html("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (>15mg/dL)</span>"),
+  rows = 1:4,
+  id = "tcb_15"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (AAP threshold) <sup>a</sup></span>"),
+  rows = 5:8,
+  id = "tcb_aap"
+) %>%
+row_group_order(
+  groups = c("tcb_15", "tcb_aap")
+) %>%
   tab_footnote(
       footnote = html("<span style='font-size: 18px'><sup>a</sup> AAP and NICE threshold determined by the following inputs: phototherapy thresholds with no hyperbilirubinemia neurotoxicity risk factor, gestational age at delivery, and infant age at time of assessment (days and hours).</span>")
    )  
@@ -2652,18 +2710,19 @@ hyperbili_all_crit_output2 <- tb_theme1(hyperbili_all_crit_tab_2) %>%
   tab_header(
     title = md("**Table 9a continued**")
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (NICE threshold) <sup>a</sup></span>"),
-    rows = 1:4
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Jaundice (IMCI criteria)</span>"),
-    rows = 5:8
-  ) %>%
-  row_group_order(groups = c(
-                   "<span style='font-size: 18px'>Hyperbilirubinemia by TCB (NICE threshold) <sup>a</sup></span>",
-                  "<span style='font-size: 18px'>Jaundice (IMCI criteria)</span>")
-                  ) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Hyperbilirubinemia by TCB (NICE threshold) <sup>a</sup></span>"),
+  rows = 1:4,
+  id = "tcb_nice"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Jaundice (IMCI criteria)</span>"),
+  rows = 5:8,
+  id = "imci_jaundice"
+) %>%
+row_group_order(
+  groups = c("tcb_nice", "imci_jaundice")
+) %>%
   tab_footnote(
       footnote = html("<span style='font-size: 18px'><sup>a</sup> AAP and NICE threshold determined by the following inputs: phototherapy thresholds with no hyperbilirubinemia neurotoxicity risk factor, gestational age at delivery, and infant age at time of assessment (days and hours).</span>")
    )  
@@ -3000,17 +3059,18 @@ psbi_tab_output1 <- tb_theme1(psbi_tab1) %>%
     title = md("**Table 10**")
   ) %>%
  tab_row_group(
-    label = html("<span style='font-size: 18px'>Data Completeness: missing confirmatory respiratory rate measurement <sup>a</sup></span>"),
-    rows = 1:7
-  ) %>%
-  
-   tab_row_group(
-    label = html("<span style='font-size: 18px'>Data Completeness: missing confirmatory temperature measurement <sup>b</sup></span>"),
-    rows = 8:14
-  ) %>%
-
-  row_group_order(groups = c("<span style='font-size: 18px'>Data Completeness: missing confirmatory respiratory rate measurement <sup>a</sup></span>",
-                             "<span style='font-size: 18px'>Data Completeness: missing confirmatory temperature measurement <sup>b</sup></span>")) %>% 
+  label = html("<span style='font-size: 18px'>Data Completeness: missing confirmatory respiratory rate measurement <sup>a</sup></span>"),
+  rows = 1:7,
+  id = "missing_rr"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Data Completeness: missing confirmatory temperature measurement <sup>b</sup></span>"),
+  rows = 8:14,
+  id = "missing_temp"
+) %>%
+row_group_order(
+  groups = c("missing_rr", "missing_temp")
+) %>%
   tab_footnote(
       footnote = html("<span style='font-size: 18px'><sup>a</sup> Missing confirmatory respiratory rate measurements among those with a RR>=60 breaths per minute. Denominator is n total psbi cases at the specified visit.</span>")
    ) %>% 
@@ -3023,51 +3083,54 @@ psbi_tab_output2 <- tb_theme1(psbi_tab2) %>%
     title = md("**Table 10 continued**")
   ) %>%
 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
-    rows = 1:22
-  ) %>%
-  
-tab_style(
-      style = list(
-        cell_text(weight = "bold")
-        ),
-      locations = cells_stub(rows = c(
-        "IPC (target window: delivery to 72 hours)",
-        "PNC0 (target window: 3 to 5 days)",
-        "PNC1 (target window: 7 to 14 days)"
-        ))) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
+  rows = 1:22,
+  id = "psbi_by_visit"
+) %>%
 
-    ## indent severe categories 
+tab_style(
+  style = list(cell_text(weight = "bold")),
+  locations = cells_stub(
+    rows = c(
+      "IPC (target window: delivery to 72 hours)",
+      "PNC0 (target window: 3 to 5 days)",
+      "PNC1 (target window: 7 to 14 days)"
+    )
+  )
+) %>% 
+
   tab_style(
       style = list(
-        cell_text(indent = px(40), size = 24)
+        cell_text(indent = px(40))
         ),
-      locations = cells_stub(rows = c("Difficulty in feeding",
-                                      "Convulsions",
-                                      "Fast breathing (RR>=60)",
-                                      "Severe chest in-drawing",
-                                      "Fever (>=38C)",
-                                      "Low body temperature (<35.5C)",
-                                      
-                                      "Difficulty in feeding ",
-                                      "Convulsions ",
-                                      "Fast breathing (RR>=60) ",
-                                      "Severe chest in-drawing ",
-                                      "Fever (>=38C) ",
-                                      "Low body temperature (<35.5C) " ,
-                                      
-                                      "Difficulty in feeding  ",
-                                      "Convulsions  ",
-                                      "Fast breathing (RR>=60)  ",
-                                      "Severe chest in-drawing  ",
-                                      "Fever (>=38C)  ",
-                                      "Low body temperature (<35.5C)  "
-                                      
-                                      )) 
-      ) %>% 
+  locations = cells_stub(
+    rows = c(
+      "Difficulty in feeding",
+      "Convulsions",
+      "Fast breathing (RR>=60)",
+      "Severe chest in-drawing",
+      "Fever (>=38C)",
+      "Low body temperature (<35.5C)",
+      
+      "Difficulty in feeding ",
+      "Convulsions ",
+      "Fast breathing (RR>=60) ",
+      "Severe chest in-drawing ",
+      "Fever (>=38C) ",
+      "Low body temperature (<35.5C) ",
+      
+      "Difficulty in feeding  ",
+      "Convulsions  ",
+      "Fast breathing (RR>=60)  ",
+      "Severe chest in-drawing  ",
+      "Fever (>=38C)  ",
+      "Low body temperature (<35.5C)  "
+    )
+  )
+) %>% 
 
-  row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>")) %>% 
+row_group_order(groups = "psbi_by_visit") %>%
 
   tab_footnote(
       footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all livebirths aged 0-59 days.</span>")
@@ -3079,41 +3142,45 @@ psbi_tab_output3 <- tb_theme1(psbi_tab3) %>%
   tab_header(
     title = md("**Table 10 continued**")
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
-    rows = 1:14
-  ) %>%
-  
+tab_row_group(
+  label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
+  rows = 1:14,
+  id = "psbi_by_visit"
+) %>%
+
 tab_style(
-      style = list(
-        cell_text(weight = "bold")
-        ),
-      locations = cells_stub(rows = c(
-        "PNC4 (target window: 28 to 35 days)",
-        "PNC6 (target window: 6 to 12 weeks)"))) %>% 
+  style = list(cell_text(weight = "bold")),
+  locations = cells_stub(
+    rows = c(
+      "PNC4 (target window: 28 to 35 days)",
+      "PNC6 (target window: 6 to 12 weeks)"
+    )
+  )
+) %>% 
 
-    ## indent severe categories 
-  tab_style(
-      style = list(
-        cell_text(indent = px(40), size = 24)
-        ),
-      locations = cells_stub(rows = c("Difficulty in feeding   ",
-                                      "Convulsions   ",
-                                      "Fast breathing (RR>=60)   ",
-                                      "Severe chest in-drawing   ",
-                                      "Fever (>=38C)   ",
-                                      "Low body temperature (<35.5C)   ", 
-                                      
-                                      "Difficulty in feeding    ",
-                                      "Convulsions    ",
-                                      "Fast breathing (RR>=60)    ",
-                                      "Severe chest in-drawing    ",
-                                      "Fever (>=38C)    ",
-                                      "Low body temperature (<35.5C)    " 
-                                                                            )) 
-      ) %>% 
+## indent severe categories 
+tab_style(
+  style = list(cell_text(indent = px(40))),
+  locations = cells_stub(
+    rows = c(
+      "Difficulty in feeding   ",
+      "Convulsions   ",
+      "Fast breathing (RR>=60)   ",
+      "Severe chest in-drawing   ",
+      "Fever (>=38C)   ",
+      "Low body temperature (<35.5C)   ", 
+      
+      "Difficulty in feeding    ",
+      "Convulsions    ",
+      "Fast breathing (RR>=60)    ",
+      "Severe chest in-drawing    ",
+      "Fever (>=38C)    ",
+      "Low body temperature (<35.5C)    "
+    )
+  )
+) %>% 
 
-  row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>")) %>% 
+row_group_order(groups = "psbi_by_visit") %>%
   tab_footnote(
       footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all livebirths aged 0-59 days.</span>")
    )
@@ -3124,47 +3191,47 @@ psbi_tab_output4 <- tb_theme1(psbi_tab4) %>%
   tab_header(
     title = md("**Table 10 continued**")
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
-    rows = 1:14
-  ) %>%
-  
-  ## bold visits
+tab_row_group(
+  label = html("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>"),
+  rows = 1:14,
+  id = "psbi_by_visit"
+) %>%
+
+## bold visits
 tab_style(
-      style = list(
-        cell_text(weight = "bold")
-        ),
-      locations = cells_stub(rows = c(
-        "Unscheduled", 
-        "Hospitalization"))) %>% 
+  style = list(cell_text(weight = "bold")),
+  locations = cells_stub(
+    rows = c(
+      "Unscheduled", 
+      "Hospitalization"
+    )
+  )
+) %>% 
 
-    ## indent severe categories 
-  tab_style(
-      style = list(
-        cell_text(indent = px(40), size = 24)
-        ),
-      locations = cells_stub(rows = c(
+## indent severe categories 
+tab_style(
+  style = list(cell_text(indent = px(40))),
+  locations = cells_stub(
+    rows = c(
+      "Difficulty in feeding     ",
+      "Convulsions     ",
+      "Fast breathing (RR>=60)     ",
+      "Severe chest in-drawing     ",
+      "Fever (>=38C)     ",
+      "Low body temperature (<35.5C)     ",
+      
+      "Difficulty in feeding      ",
+      "Convulsions      ",
+      "Fast breathing (RR>=60)      ",
+      "Severe chest in-drawing      ",
+      "Fever (>=38C)      ",
+      "Low body temperature (<35.5C)      "
+    )
+  )
+) %>% 
 
-                                      "Difficulty in feeding     ",
-                                      "Convulsions     ",
-                                      "Fast breathing (RR>=60)     ",
-                                      "Severe chest in-drawing     ",
-                                      "Fever (>=38C)     ",
-                                      "Low body temperature (<35.5C)     " ,
-                                      
-                                      "Difficulty in feeding      ",
-                                      "Convulsions      ",
-                                      "Fast breathing (RR>=60)      ",
-                                      "Severe chest in-drawing      ",
-                                      "Fever (>=38C)      ",
-                                      "Low body temperature (<35.5C)      " 
-                                      
-                                      )) 
-      ) %>% 
-
-  row_group_order(groups = c("<span style='font-size: 18px'>PSBI by visit <sup>c</sup></span>")) %>% 
-  tab_footnote(
-      footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all livebirths aged 0-59 days.</span>")
+row_group_order(groups = "psbi_by_visit") %>%
+tab_footnote(    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all livebirths aged 0-59 days.</span>")
    )
 
 
@@ -3272,11 +3339,12 @@ neonatal_sepsis_tab[is.na(neonatal_sepsis_tab)] <- paste0("0 (0)")
 neonatal_sepsis_output <- tb_theme1(neonatal_sepsis_tab) %>% 
   tab_header(
     title = md("**Table 11**")) %>% 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Neonatal Sepsis</span>"),
-    rows = 1:4
-  ) %>%
-  row_group_order(groups = c("<span style='font-size: 18px'>Neonatal Sepsis</span>")) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Neonatal Sepsis</span>"),
+  rows = 1:4,
+  id = "neonatal_sepsis"
+) %>%
+row_group_order(groups = "neonatal_sepsis") %>%
   ## indent severe categories 
   tab_style(
       style = list(
@@ -3529,16 +3597,12 @@ inf_traj_birth_output1 <- tb_theme1(inf_traj_birth_tab1) %>%
   tab_header(
     title = md("**Table 12a**")
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>"),
-    rows = 1:8
-  ) %>%
-
-  row_group_order(
-    groups = c(
-      "<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>"
-    )
-  ) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Data completeness at birth (0 – 5 days)</span>"),
+  rows = 1:8,
+  id = "data_completeness_birth"
+) %>%
+row_group_order(groups = "data_completeness_birth") %>%
   tab_style(
     style = list(
       cell_text(weight = "bold")
@@ -3575,20 +3639,19 @@ inf_traj_birth_output2 <- tb_theme1(inf_traj_birth_tab2) %>%
     title = md("**Table 12a continued**")
   ) %>%
 
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Infant growth outcomes at birth (0 – 5 days) using WHO Standards</span>"),
-    rows = 1:9
-  ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Infant growth outcomes at birth (0 – 5 days) using Intergrowth Standard (adjusting for preterm deliveries)</span>"),
-    rows = 10:17
-  ) %>%
-  row_group_order(
-    groups = c(
-      "<span style='font-size: 18px'>Infant growth outcomes at birth (0 – 5 days) using WHO Standards</span>",
-      "<span style='font-size: 18px'>Infant growth outcomes at birth (0 – 5 days) using Intergrowth Standard (adjusting for preterm deliveries)</span>"
-    )
-  ) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Infant growth outcomes at birth (0 – 5 days) using WHO Standards</span>"),
+  rows = 1:9,
+  id = "who_growth"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Infant growth outcomes at birth (0 – 5 days) using Intergrowth Standard (adjusting for preterm deliveries)</span>"),
+  rows = 10:17,
+  id = "intergrowth_growth"
+) %>%
+row_group_order(
+  groups = c("who_growth", "intergrowth_growth")
+) %>%
   tab_style(
     style = list(
       cell_text(weight = "bold")
@@ -3801,12 +3864,12 @@ inf_traj_onem_output1 <- tb_theme1(inf_traj_onem_tab1) %>%
   tab_header(
     title = md("**Table 12b**")
   ) %>%
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Data completeness at one month (21 to 42 days)</span>"),
-    rows = 1:6
-  ) %>%
-
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at one month (21 to 42 days)</span>")) %>% 
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Data completeness at one month (21 to 42 days)</span>"),
+  rows = 1:6,
+  id = "data_completeness_1m"
+) %>%
+row_group_order(groups = "data_completeness_1m") %>%
     tab_style(
       style = list(
         cell_text(weight = "bold")
@@ -3834,19 +3897,19 @@ inf_traj_onem_output2 <- tb_theme1(inf_traj_onem_tab2) %>%
     title = md("**Table 12b continued**")
   ) %>%
   
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Infant growth outcomes in the first month of life using WHO Growth Standards</span>"),
-    rows = 1:9
-  ) %>%
-  
-    tab_row_group(
-    label = html("<span style='font-size: 18px'>Infant growth outcomes in the first month of life using Intergrowth Standard (adjusting for preterm deliveries)</span>"),
-    rows = 10:17
-  ) %>%
-
-  row_group_order(groups = c(
-                             "<span style='font-size: 18px'>Infant growth outcomes in the first month of life using WHO Growth Standards</span>",
-                             "<span style='font-size: 18px'>Infant growth outcomes in the first month of life using Intergrowth Standard (adjusting for preterm deliveries)</span>")) %>% 
+ tab_row_group(
+  label = html("<span style='font-size: 18px'>Infant growth outcomes in the first month of life using WHO Growth Standards</span>"),
+  rows = 1:9,
+  id = "who_growth_1m"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Infant growth outcomes in the first month of life using Intergrowth Standard (adjusting for preterm deliveries)</span>"),
+  rows = 10:17,
+  id = "intergrowth_1m"
+) %>%
+row_group_order(
+  groups = c("who_growth_1m", "intergrowth_1m")
+) %>%
     tab_style(
       style = list(
         cell_text(weight = "bold")
@@ -4055,12 +4118,10 @@ inf_traj_sixm_output1 <- tb_theme1(inf_traj_sixm_tab1) %>%
   ) %>%
   tab_row_group(
     label = html("<span style='font-size: 18px'>Data completeness at six months (171  to 222 days)</span>"),
-    rows = 1:6
+    rows = 1:6,
+    id = "datacomp_6m"
   ) %>%
-   
-   
-  row_group_order(groups = c("<span style='font-size: 18px'>Data completeness at six months (171  to 222 days)</span>")) %>% 
-  
+  row_group_order(groups = c("datacomp_6m")) %>% 
   tab_style(
       style = list(
         cell_text(weight = "bold")
@@ -4091,17 +4152,17 @@ inf_traj_sixm_output2 <- tb_theme1(inf_traj_sixm_tab2) %>%
 
  tab_row_group(
     label = html("<span style='font-size: 18px'>Infant growth outcomes at six months using WHO Growth Standards</span>"),
-    rows = 1:9
+    rows = 1:9,
+    id = "who_growth_6m"
   ) %>%
    
   tab_row_group(
     label = html("<span style='font-size: 18px'>Infant growth outcomes at six months using Intergrowth Standard (adjusting for preterm deliveries)</span>"),
-    rows = 10:17
+    rows = 10:17,
+    id = "intergrowth_6m"
   ) %>%
    
-  row_group_order(groups = c(
-                             "<span style='font-size: 18px'>Infant growth outcomes at six months using WHO Growth Standards</span>",
-                             "<span style='font-size: 18px'>Infant growth outcomes at six months using Intergrowth Standard (adjusting for preterm deliveries)</span>")) %>% 
+  row_group_order(groups = c("who_growth_6m", "intergrowth_6m")) %>% 
   
   tab_style(
       style = list(
