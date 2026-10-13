@@ -18,3 +18,8 @@ If report generation fails due to missing LaTeX dependencies, install or update 
 
 ```r
 tinytex::install_tinytex(repository = "ctan")
+
+If specific LaTeX packages are missing, install them with:
+
+```r
+tinytex::tlmgr_install(c("multirow", "wrapfig"))
