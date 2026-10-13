@@ -8,9 +8,9 @@ This repository contains the code used to generate the **PRISMA MNH Maternal Out
 
 ### `row_group_order()` Error
 
-A June 2026 update to the **gt** package introduced changes that caused errors in `row_group_order()`.
+An update to the **gt** package introduced changes that caused errors in `row_group_order()`.
 
-**Solution:** Add an `id` argument to `tab_row_group()`.
+**Solution:** Add an `id` argument to `tab_row_group()`. Updated June 2026.
 
 ### LaTeX / TinyTeX Errors
 
