@@ -2,13 +2,19 @@
 
 ## Description
 
-This folder contains the code used to generate the PRISMA MNH Maternal Outcomes Report. 
+This repository contains the code used to generate the **PRISMA MNH Maternal Outcomes Report**.
 
-### Troubleshooting notes
-- row_group_order() error:
-  - There was an update to the gt package, which caused an error in row_group_order() and required updates to the code. Update: add id to tab_row_group (updated June 2026)
-- LaTex / tinytex error:
-  - install tinytex using this code:
-    - tinytex::install_tinytex(repository = "ctan")
-  - certain packages may not be installed, fix using:
-    - tinytex::tlmgr_install(c("multirow", "wrapfig"))
+## Troubleshooting
+
+### `row_group_order()` Error
+
+A June 2026 update to the **gt** package introduced changes that caused errors in `row_group_order()`.
+
+**Solution:** Add an `id` argument to `tab_row_group()`.
+
+### LaTeX / TinyTeX Errors
+
+If report generation fails due to missing LaTeX dependencies, install or update **TinyTeX**:
+
+```r
+tinytex::install_tinytex(repository = "ctan")
