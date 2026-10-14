@@ -1,0 +1,908 @@
+---
+title: "<span style='font-size: 18px'> <span style='text-align: center'> PRISMA Maternal and Infant Cause of Death (Dataset: 2024-07-26)"
+output:
+  pdf_document:
+    toc: no
+    toc_depth: 4
+    latex_engine: xelatex
+    keep_tex: true
+include-in-header:
+- \usepackage{ booktabs,longtable}
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%") 
+knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+#*****************************************************************************
+#* PRISMA Infant Outcomes -- TABLES 
+#* Drafted: 01 January 2024, Stacie Loisate
+#* Last updated: 13 May 2024
+#*****************************************************************************
+rm(list = ls())
+
+library(knitr)
+library(tidyverse)
+library(reshape2)
+library(lubridate)
+library(kableExtra)
+# library(emo)
+library(naniar)
+library(RColorBrewer)
+library(gt) ## for table gen
+library(webshot2)  ## for table gen
+
+
+path_to_data <- "D:/Users/williams_pj/Documents/Analysis/COD/data/"
+path_to_save <- "D:/Users/williams_pj/Documents/Analysis/COD/output/"
+
+inf_cod <- read.csv(paste0(path_to_data, "INF_COD.csv")) 
+mat_cod <- read.csv(paste0(path_to_data, "MAT_COD.csv")) 
+
+tb_theme1 <- function(matrix){
+  tb <- matrix %>%
+    gt(
+      rownames_to_stub = TRUE
+    ) %>%
+    opt_align_table_header(align = "left") %>%
+    tab_spanner(
+      label = "Sites"
+      # columns = c(-Total)
+    ) %>%
+    opt_stylize(style = 6, color = 'gray') %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "darkblue"),
+        cell_text(weight = "bold"),
+        cell_text(v_align = "middle"),
+        cell_text(color = "white", size = px(18))
+      ),
+      locations = list(
+        cells_title()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "lightblue"),
+        cell_text(color = "black", size = px(18)),
+        cell_text(v_align = "middle")
+      ),
+      locations = list(
+        cells_stubhead(),
+        cells_column_spanners(),
+        cells_column_labels()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = "#F0F0F0"),
+        cell_text(v_align = "middle", size = px(18))
+      ),
+      locations = list(
+        cells_stub()
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_column_labels(columns = everything())
+      )
+    ) %>%
+    tab_style(
+      style = list(
+        cell_text(align = "center", size = px(18))
+      ),
+      locations = list(
+        cells_body(columns = everything())
+      )
+    ) %>%
+    fmt_markdown(columns = everything()) %>%
+    tab_options(table.width = pct(100)) %>%
+    cols_width(1 ~ px(300))
+}
+
+
+# Function to extract and format legend horizontally
+g_legend <- function(p) {
+  tmp <- ggplot_gtable(ggplot_build(p))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend_gtable <- tmp$grobs[[leg]]
+  
+  # Arrange legend components horizontally
+  legend_gtable$widths <- unit(rep(1, ncol(legend_gtable)), "null")
+  legend_gtable$grobs <- legend_gtable$grobs[order(legend_gtable$layout$l)]
+  
+  return(legend_gtable)
+}
+
+
+setwd(paste0(path_to_save))
+```
+
+**Includes data from synapse last updated:** 2024-06-28
+
+\tableofcontents
+
+\newpage
+
+## 1. PRISMA Maternal Cause of Death 
+
+### Table 1. Summary of all Maternal Cause of Death 
+
+**Denominator:** All recorded cases of maternal deaths. 
+
+**Information for Maternal Death is collected from the following dataset from 06-28-2024 data upload:**
+  
+**1.** MNH04: ANC Clinical Status Form.
+
+**2.** MNH09: Maternal Labor and Delivery Outcome Form.
+
+**3.** MNH10: Maternal Post - Delivery Outcome Form.
+
+**4.** MNH12: Maternal PNC Clinical Status Form.
+
+**5.** MNH19: Maternal Hospitalization Form.
+
+**6.** MNH23: Maternal Close-out Form.
+
+
+*For more detailed output, please refer to the specified sections below. *
+```{r}
+
+# maternal cause of death
+
+mat_cod_alt <- mat_cod %>%
+  mutate(existing_site = ifelse(SITE == "India-SAS" | SITE == "India-CMC" | SITE == "Ghana", 1, 0))
+
+# Step 2: Add rows for "India-SAS" and "India-CMC" if they don't exist
+if(!any(mat_cod_alt$SITE == "India-SAS")) {
+  mat_cod_alt <- mat_cod_alt %>%
+    add_row(SITE = "India-SAS", existing_site = 0)
+}
+
+if(!any(mat_cod_alt$SITE == "India-CMC")) {
+  mat_cod_alt <- mat_cod_alt %>%
+    add_row(SITE = "India-CMC", existing_site = 0)
+}
+
+if(!any(mat_cod_alt$SITE == "Ghana")) {
+  mat_cod_alt <- mat_cod_alt %>%
+    add_row(SITE = "Ghana", existing_site = 0)
+}
+mat_cod_sum <- mat_cod_alt %>% 
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "All Maternal Deaths" = paste0(
+      format(sum(!is.na(PREGID), na.rm = TRUE), nsmall = 0, digits = 2)
+    ),
+  
+    
+    "Denominator" = paste0(
+      format(sum(DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2)
+    ),
+    
+    "Missing Closeout Form (MNH23), n (%)" = paste0(
+      format(sum(MNH23_CMPTE != 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MNH23_CMPTE != 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+    
+    "Missing Verbal Autopsy Form (MNH27), n (%)" = paste0(
+      format(sum(DATA_COMP != 1 & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DATA_COMP != 1 & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+    
+   "Missing Cause of Death, n (%)" = paste0(
+      format(sum(MISS_COD == 1 & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MISS_COD == 1 & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+   "Missing Date of Death, n (%) ^b^" = paste0(
+      format(sum(DDTH_MISS == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DDTH_MISS == 1, na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+   
+    "Denominator " = paste0(
+      format(sum(DATA_COMP == 1, na.rm = TRUE), nsmall = 0, digits = 2)
+    ),
+    
+    "Missing Date of Death - Verbal Autopsy, n (%)" = paste0(
+      format(sum(DDTH_MISS_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(DDTH_MISS_VA == 1, na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+    
+    
+    "Denominator  " = paste0(
+      format(sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE), nsmall = 0, digits = 2)
+    ),
+    
+    "Road traffic accident, n (%)" = paste0(
+      format(sum(COD == "Road traffic accident", na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Road traffic accident", na.rm = TRUE)/sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+    
+    "Obstetric haemorrhage, n (%)" = paste0(
+      format(sum(COD == "Obstetric haemorrhage", na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Obstetric haemorrhage", na.rm = TRUE) / sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+    
+    "Other and unspecified cardiac diseases, n (%)" = paste0(
+      format(sum(COD == "Other and unspecified cardiac dis", na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Other and unspecified cardiac dis", na.rm = TRUE) / sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+    
+    "Pregnancy-induced hypertension, n (%)" = paste0(
+      format(sum(COD == "Pregnancy-induced hypertension", na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Pregnancy-induced hypertension", na.rm = TRUE) / sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+    
+    "Pregnancy-related sepsis, n (%)" = paste0(
+      format(sum(COD == "Pregnancy-related sepsis", na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Pregnancy-related sepsis", na.rm = TRUE) / sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+    
+    "Reproductive neoplasms MF, n (%)" = paste0(
+      format(sum(COD == "Reproductive neoplasms MF", na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Reproductive neoplasms MF", na.rm = TRUE) / sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE) * 100, 2), nsmall = 0, digits = 2),
+      ")"
+    ),
+    "Undetermined, n (%)" = paste0(
+      format(sum(COD == "Undetermined" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Undetermined", na.rm = TRUE) / sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+      `Unknown Cause of Death, n (%)^e^` = paste0(
+      format(sum(COD == "Unknown", na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(COD == "Unknown", na.rm = TRUE) / sum(!is.na(COD) & MISS_COD == 0, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+  )  %>%
+  t() %>% as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1) 
+
+```
+
+```{r}
+# Replace NaN with 0 in the entire dataframe
+mat_cod_sum <- mat_cod_sum %>% 
+  mutate_all(~str_replace(., "NaN", "0"))
+
+# Replace NA with 0 (0)
+mat_cod_sum[is.na(mat_cod_sum)] <- "0 (0)"
+
+# Generate the formatted table
+mat_cod_output <- tb_theme1(mat_cod_sum) %>% 
+  tab_header(
+    title = md("**Table 1**")
+  ) %>%
+  
+    tab_row_group(
+    label = html(""),
+    rows = 1
+  ) %>%
+  
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness<sup>a</sup></span>"),
+    rows = 2:6
+  ) %>%
+  
+    tab_row_group(
+    label = html("<span style='font-size: 18px'>Verbal autopsy discrepancies n (%)<sup>c</sup></span>"),
+    rows = 7:8
+  ) %>%
+  
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>PRISMA Maternal Cause of Death, n (%)<sup>d</sup></span>"),
+    rows = 9:17
+  )  %>%
+  row_group_order(groups = c("","Data completenessa", "Verbal autopsy discrepancies n (%)c", "PRISMA Maternal Cause of Death, n (%)d")) %>% 
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_body(rows = c(
+      "All Maternal Deaths",
+      "Denominator",
+      "Denominator ",
+      "Denominator  "))) %>% 
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_stub(rows = c(
+      "All Maternal Deaths",
+      "Denominator",
+      "Denominator ",
+      "Denominator  ")))%>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is any reported maternal death from any CRF Form (MNH04, MNH09, MNH19, MNH23) with death after 42 days. Protocol specifies to complete verbal autopsy after 30days.</span>")
+  ) %>%
+ 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> These are cases with missing date of death in MNH04, MNH09, MNH19 or MNH23.</span>")
+  ) %>%
+  
+   tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is any reported maternal death with completed verbal autopsy form (MNH27).</span>")
+  ) %>%
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is all reported maternal death with a cause of death.</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> These are IDs in the COD dataset with missing or NA values.</span>")
+  )
+
+```
+
+```{r, out.width = '100%'}
+mat_cod_output <- mat_cod_output %>% gtsave("mat_cod_output.png", expand = 10)
+knitr::include_graphics("mat_cod_output.png")
+```
+
+\newpage
+
+## 2. PRISMA Infant Cause of Death 
+
+**Categorization of fetal and infant death:** 
+  
+**1. Stillbirths:** defined as fetal loss >= 20 weeks gestation showing no signs of life, as indicated by absence of breathing, heartbeat, pulsation of the umbilical cord, or definite movements of voluntary muscles
+
+**2. Neonatal Death:** Death of a live born child child aged under 4 weeks.
+
+**2. Postneonatal Death:** Death of a live born child child aged 4 weeks to 1year.
+
+
+&nbsp;
+
+**Completion of Verbal Autopsy form should be done as follows:**
+  
+  **1.** Stillbirths and Neonatal deaths: If the death occurred for a neonate <28 days, complete 2016 WHO Verbal Autopsy Instrument v1.5.1 - Questionnaire for the death of a child aged under 4 weeks. Record results on MNH28: VA Neonate Instrument. 
+
+  **2.** Post Neonatal Death: If the death occurred for an infant ≥28 days, complete 2016 WHO Verbal Autopsy Instrument v1.5.1 - Questionnaire for the death of a child aged 4 weeks to 11 years. Record results on MNH29: VA Child Instrument.
+
+Information for Infant Death is collected from the following dataset from 06-28-2024 data
+upload:
+
+1. MNH04: ANC Clinical Status Form.
+
+2. MNH09: Maternal Labor and Delivery Outcome Form.
+
+3. MNH24: Infant Close-out Form.
+
+Please **note** that this report excludes cases where deaths were reported with no InfantID provided.
+
+For more detailed output, please refer to the specified sections below.
+
+
+```{r}
+
+inf_cod <- inf_cod %>% mutate (DEATH_RSN = ifelse (INFANTID == "PS-6042", 2, DEATH_RSN ))
+
+inf_cod_still <- inf_cod %>% filter (DEATH_RSN == 1)
+
+inf_cod_still[inf_cod_still == ""] <- NA_character_
+
+inf_cod_sum <- inf_cod_still %>%
+  group_by(SITE) %>%
+  summarise(
+    
+   `All Stillbirths` = paste0(
+      format(sum(!is.na(INFANTID), na.rm = TRUE), nsmall = 0, digits = 2)
+    ), 
+    
+    # Denominator for due VA
+    `Denominator` = paste0(
+      format(sum(DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2)
+    ), 
+    
+    # Missing Verbal Autopsy Form (MNH28)
+    `Missing Verbal Autopsy Form, n (%)` = paste0(
+      format(sum(is.na(DATA_COMP) & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(is.na(DATA_COMP) & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Missing Cause of Death
+    `Missing Cause of Death, n (%)` = paste0(
+      format(sum(MISS_COD == 1 & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(MISS_COD == 1 & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Missing Date of Death
+    `Missing Date of Death, n (%)^b^` = paste0(
+      format(sum(DDTH_MISS == 1 & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(DDTH_MISS == 1 & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Denominator for data completeness
+    `Denominator ` = paste0(
+      format(sum(DATA_COMP == 1, na.rm = TRUE), nsmall = 0, digits = 2)
+    ),
+   
+       # Missing Verbal Autopsy Date of Death
+    `Missing Verbal Autopsy Date of Death, n (%)` = paste0(
+      format(sum(DDTH_MISS_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(DDTH_MISS_VA == 1, na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+   
+    # Incorrect Verbal Autopsy Form
+    `Incorrect Verbal Autopsy Form, n (%)^d^` = paste0(
+      format(sum(FORM_EQ == 0 & DATA_COMP == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(FORM_EQ == 0 & DATA_COMP == 1, na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Inconsistent Date of Death
+    `Inconsistent Date of Death, n (%)^e^` = paste0(
+      format(sum(DOD_EQ == 0 & DATA_COMP == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(DOD_EQ == 0 & DATA_COMP == 1, na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Denominator for cause of death determination
+    `Denominator  ` = paste0(
+      format(sum(!is.na(COD), na.rm = TRUE), nsmall = 0, digits = 2)
+    ),
+    
+    # Fresh stillbirth
+    `Fresh stillbirth, n (%)` = paste0(
+      format(sum(COD == "Fresh stillbirth" & DEATH_RSN == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(COD == "Fresh stillbirth" & DEATH_RSN == 1, na.rm = TRUE) / sum(!is.na(COD) & DEATH_RSN == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Macerated stillbirth
+    `Macerated stillbirth, n (%)` = paste0(
+      format(sum(COD == "Macerated stillbirth" & DEATH_RSN == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(COD == "Macerated stillbirth" & DEATH_RSN == 1, na.rm = TRUE) / sum(!is.na(COD) & DEATH_RSN == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+     
+    "Prematurity, n (%) " = paste0(
+      format(sum(COD == "Prematurity", na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Prematurity" , na.rm = TRUE) / sum(!is.na(COD), na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Birth asphyxia, n (%) " = paste0(
+      format(sum(COD == "Birth asphyxia", na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Birth asphyxia" , na.rm = TRUE) / sum(!is.na(COD), na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    # Undetermined
+    `Undetermined, n (%)` = paste0(
+      format(sum(COD == "Undetermined" & DEATH_RSN == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(COD == "Undetermined" & DEATH_RSN == 1, na.rm = TRUE) / sum(!is.na(COD) & DEATH_RSN == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Unknown Cause of Death
+    `Unknown Cause of Death, n (%) ^g^` = paste0(
+      format(sum(COD == "Unknown" & DEATH_RSN == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(COD == "Unknown" & DEATH_RSN == 1, na.rm = TRUE) / sum(!is.na(COD) & DEATH_RSN == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    )
+  ) %>%
+  t() %>%
+  as.data.frame() %>%
+  `colnames<-`(.[1,]) %>%
+  slice(-1)
+
+```
+
+
+\newpage
+### Table 2a: Stillbirth Cause of Deaths 
+```{r}
+inf_cod_sum <- inf_cod_sum %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+# replace NA with 0s (this likely means there is not yet data)
+inf_cod_sum[is.na(inf_cod_sum)] <- paste0("0 (0)")
+
+inf_cod_output <- tb_theme1(inf_cod_sum) %>% 
+  tab_header(
+    title = md("**Table 2a**")
+  ) %>%  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
+    rows = 2:5
+  ) %>%
+  tab_row_group(
+    label = html(""),
+    rows = 1
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Verbal autopsy discrepancies n (%) <sup>c</sup></span>"),
+    rows = 6:9
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Cause of Death, n (%) <sup>f</sup></span>"),
+    rows = 10:16
+  ) %>%
+  row_group_order(groups = c("",
+                              "Data completeness a",
+                             "Verbal autopsy discrepancies n (%) c",
+                             "Cause of Death, n (%) f"))  %>%
+     tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator ",
+                 "Denominator",
+                 "Denominator  ",
+                 "All Stillbirths"
+                 ))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator ",
+                 "Denominator",
+                 "Denominator  ",
+                 "All Stillbirths"))) %>% 
+  
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all reported fetal death recorded with date of death after 42days. Protocol specifies to complete verbal autopsy after 30days </span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> These are cases missing date of death in MNH04, MNH09, or MNH24 uploaded forms</span>")
+  )%>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all fetal death recorded from MNH04, MNH09, or MNH24 with a Verbal Autopsy Form.</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Cases where MNH29 form was completed instead of MNH28.</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Cases where date of death from MNH04, MNH09, or MNH24 does not match the Verbal Autopsy reported date.</span>")
+  ) %>%
+    tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>f</sup> Denominator is all reported fetal with a cause of death.</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>g</sup> These are IDs in the COD dataset with missing or NA values.</span>")
+  )
+```
+
+```{r, out.width = '100%'}
+inf_cod_output <- inf_cod_output %>% gtsave("inf_cod_output.png", expand = 10)
+knitr::include_graphics("inf_cod_output.png")
+```
+
+\newpage
+### Table 2b: Neonatal and Postneonatal Cause of Deaths (continued on next page)
+
+```{r}
+
+inf_cod_df <- inf_cod %>% filter (DEATH_RSN %in% c(2,3))
+
+unique_cod_test <- inf_cod_df %>%
+  filter(MISS_COD == 0 & SITE == "Pakistan") %>%
+  distinct(COD)
+
+inf_cod_df[inf_cod_df == ""] <- NA_character_
+
+inf_cod_sum_1 <- inf_cod_df %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+  `All Neonatal and Postneonatal Deaths` = paste0(
+      format(sum(!is.na(INFANTID), na.rm = TRUE), nsmall = 0, digits = 2)
+    ), 
+    
+    # Denominator for due VA
+    `Denominator` = paste0(
+      format(sum(DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2)
+    ), 
+   
+      "Missing Closeout Form, n (%)" = paste0(
+      format(sum(MNH24_CMPTE != 1 & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MNH24_CMPTE != 1 & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),  
+      # Missing Verbal Autopsy Form (MNH28 or MNH29)
+    `Missing Verbal Autopsy Form, n (%)` = paste0(
+      format(sum(is.na(DATA_COMP) & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(is.na(DATA_COMP) & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Missing Cause of Death
+    `Missing Cause of Death, n (%)` = paste0(
+      format(sum(MISS_COD == 1 & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(MISS_COD == 1 & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Missing Date of Death
+    `Missing Date of Death, n (%)^b^` = paste0(
+      format(sum(DDTH_MISS == 1 & DUE_VA == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(DDTH_MISS == 1 & DUE_VA == 1, na.rm = TRUE) / sum(DUE_VA == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+
+    # Denominator for data completeness
+    `Denominator ` = paste0(
+      format(sum(DATA_COMP == 1, na.rm = TRUE), nsmall = 0, digits = 2)
+    ),
+  
+      # Missing Verbal Autopsy Date of Death
+    `Missing Verbal Autopsy Date of Death, n (%)` = paste0(
+      format(sum(DDTH_MISS_VA == 1 , na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(DDTH_MISS_VA == 1, na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Incorrect Verbal Autopsy Form
+    `Incorrect Verbal Autopsy Form, n (%)^d^` = paste0(
+      format(sum(FORM_EQ == 0 & DATA_COMP == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(FORM_EQ == 0 & DATA_COMP == 1, na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+    
+    # Inconsistent Date of Death
+    `Inconsistent Date of Death, n (%)^e^` = paste0(
+      format(sum(DOD_EQ == 0 & DATA_COMP == 1, na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(DOD_EQ == 0 & DATA_COMP == 1, na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+  ) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)
+
+inf_cod_sum_2 <- inf_cod_df %>%
+  rowwise() %>% 
+  group_by(SITE) %>% 
+  summarise(
+    
+    "Denominator  " = format(sum(!is.na(COD), na.rm = TRUE), nsmall = 0, digits = 2),
+    
+   "Misclassified Stillbirth, n (%)" = paste0(
+      format(sum(STILLBIRTH_EQ == 0 & !is.na(COD), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(STILLBIRTH_EQ == 0 & !is.na(COD), na.rm = TRUE) / sum(DATA_COMP == 1, na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+  
+    "Prematurity, n (%) " = paste0(
+      format(sum(COD == "Prematurity" & DEATH_RSN %in% c(2,3), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Prematurity" & DEATH_RSN %in% c(2,3), na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Birth asphyxia, n (%) " = paste0(
+      format(sum(COD == "Birth asphyxia" & DEATH_RSN %in% c(2,3), na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Birth asphyxia" & DEATH_RSN %in% c(2,3), na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Congenital malformation, n (%)" = paste0(
+      format(sum(COD == "Congenital malformation" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Congenital malformation" , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Other and unspecified infect diseases, n (%)" = paste0(
+      format(sum(COD == "Other and unspecified infect dis" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Other and unspecified infect dis" , na.rm = TRUE) / sum(!is.na(COD), na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Road traffic accident, n (%)" = paste0(
+      format(sum(COD == "Road traffic accident" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Road traffic accident" , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Acute resp infect incl pneumonia, n (%)" = paste0(
+      format(sum(COD == "Acute resp infect incl pneumonia" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Acute resp infect incl pneumonia" , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Diarrhoeal diseases, n (%)" = paste0(
+      format(sum(COD == "Diarrhoeal diseases" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Diarrhoeal diseases" , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Meningitis and encephalitis, n (%)" = paste0(
+      format(sum(COD == "Meningitis and encephalitis" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Meningitis and encephalitis" , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Neonatal pneumonia, n (%)" = paste0(
+      format(sum(COD == "Neonatal pneumonia" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Neonatal pneumonia" , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Neonatal sepsis, n (%)" = paste0(
+      format(sum(COD == "Neonatal sepsis" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Neonatal sepsis" , na.rm = TRUE) / sum(!is.na(COD)  , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Other and unspecified cardiac diseases, n (%)" = paste0(
+      format(sum(COD == "Other and unspecified cardiac dis" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Other and unspecified cardiac dis" , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Severe malnutrition, n (%)" = paste0(
+      format(sum(COD == "Severe malnutrition" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Severe malnutrition" , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Renal failure, n (%)" = paste0(
+      format(sum(COD == "Renal failure" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Renal failure" , na.rm = TRUE) / sum(!is.na(COD) ,  na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+    
+    "Undetermined, n (%) " = paste0(
+      format(sum(COD == "Undetermined" , na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(COD == "Undetermined"  , na.rm = TRUE) / sum(!is.na(COD) , na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2),
+      ")"
+    ),
+
+      # Unknown Cause of Death
+    `Unknown Cause of Death, n (%)^b^` = paste0(
+      format(sum(COD == "Unknown" , na.rm = TRUE), nsmall = 0, digits = 2), " (",
+      format(round(sum(COD == "Unknown" , na.rm = TRUE) / sum(!is.na(COD), na.rm = TRUE) * 100, 2), nsmall = 2, digits = 2), ")"
+    ),
+
+  ) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  `colnames<-`(c(.[1,])) %>% 
+  slice(-1)
+
+```
+
+
+```{r}
+
+inf_cod_sum_1 <- inf_cod_sum_1 %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+# replace NA with 0s (this likely means there is not yet data)
+inf_cod_sum_1[is.na(inf_cod_sum_1)] <- paste0("0 (0)")
+
+inf_cod_output_1 <- tb_theme1(inf_cod_sum_1) %>% 
+  tab_header(
+    title = md("**Table 2b**")) %>%   
+  tab_row_group(
+    label = html(""),
+    rows = 1
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Data completeness <sup>a</sup></span>"),
+    rows = 2:6
+  ) %>%
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Verbal autopsy discrepancies, n (%) <sup>c</sup></span>"),
+    rows = 7:10
+  ) %>%
+  row_group_order(groups = c("",
+                             "Data completeness a",
+                             "Verbal autopsy discrepancies, n (%) c"))  %>%
+     tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                 "Denominator ",
+                 "Denominator",
+                 "All Neonatal and Postneonatal Deaths"
+                 ))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator ",
+                 "Denominator",
+                 "All Neonatal and Postneonatal Deaths"))) %>% 
+ 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all infant death recorded with date of death after 42days.Protocol specifies to complete verbal autopsy after 30days.</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Infants missing date of death in MNH24.</span>")
+  )%>%
+  
+   tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>c</sup> Denominator is all infant death recorded in MNH24 with a Verbal Autopsy Form (MNH28 or MNH29).</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>d</sup> Cases where MNH28 form was completed instead of MNH29 and vice versa.</span>")
+  ) %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>e</sup> Cases where the date of death in MNH24 does not match the Verbal Autopsy reported date.</span>")
+  ) 
+```
+
+```{r, out.width = '100%'}
+inf_cod_output_1 <- inf_cod_output_1 %>% gtsave("inf_cod_output_1.png", expand = 10)
+knitr::include_graphics("inf_cod_output_1.png")
+```
+
+```{r}
+inf_cod_sum_2 <- inf_cod_sum_2 %>% 
+  mutate_all(funs(str_replace(., "NaN", "0"))) 
+
+# replace NA with 0s (this likely means there is not yet data)
+inf_cod_sum_2[is.na(inf_cod_sum_2)] <- paste0("0 (0)")
+
+inf_cod_output_2 <- tb_theme1(inf_cod_sum_2) %>% 
+  tab_header(
+    title = md("**Table 2b continued**")) %>%   
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Cause of Death, n (%) <sup>a</sup></span>"),
+    rows = 1:17
+  ) %>%
+  row_group_order(groups = c("Cause of Death, n (%) a"))  %>%
+     tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c("Denominator  "))) %>% 
+  tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c("Denominator  "))) %>% 
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all infant deaths with a cause of death.</span>")
+  )  %>%
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> These are IDs in the COD dataset with missing or NA values.</span>")
+  )
+```
+
+```{r, out.width = '100%'}
+inf_cod_output_2 <- inf_cod_output_2 %>% gtsave("inf_cod_output_2.png", expand = 10)
+knitr::include_graphics("inf_cod_output_2.png")
+```
