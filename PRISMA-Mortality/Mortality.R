@@ -1182,7 +1182,7 @@ for (site in sites) {
     site_upload_date <- site_upload_date_map[site]
     
     #file_path <- paste0("Z:/SynapseCSVs/", site, "/", UploadDate, "/", form, ".csv")
-    file_path <- paste0("Z:/PRISMA_Data_Uploads/", UploadDate, "/", site_upload_date, "_", site_prefix_map[site], "/", form, ".csv")
+    file_path <- paste0("Z:/PRISMA_Data_Uploads/", site_upload_date, "/", site_upload_date, "_", site_prefix_map[site], "/", form, ".csv")
     
     
     if (!file.exists(file_path)) {
@@ -1412,7 +1412,7 @@ all_mat_merged <- all_mat_merged %>%
 
 ## Save final datasets to path ----                                           
 write.csv(all_inf_merged, paste0(path_to_tnt, "INF_COD" ,".csv"), na="", row.names=FALSE)
-write.csv(all_mat_merged, paste0(path_to_tnt, "MAT_COD" ,".csv"), na="", row.names=FALSE)
+# write.csv(all_mat_merged, paste0(path_to_tnt, "MAT_COD" ,".csv"), na="", row.names=FALSE)
 
 write.csv(all_inf_merged, paste0(path_to_save, "INF_COD" ,".csv"), na="", row.names=FALSE)
 write.csv(all_mat_merged, paste0(path_to_save, "MAT_COD" ,".csv"), na="", row.names=FALSE)
@@ -1820,7 +1820,7 @@ mat_07_preg_death <- mat_06_late_d %>%
 
 # Keep only the maternal mortality outcome variables needed for the
 # shortened maternal outcomes dataset.
-MAT_MORTALITY <- mat_07_preg_death %>%
+mat_mortality_time <- mat_07_preg_death %>%
   select(
     SITE, MOMID, PREGID, PREG_END, MAT_DEATH, MAT_DEATH_DATE,
     MAT_DEATH_MISSCAUSE, MAT_DEATH_MISSDATE, MAT_DEATH_42,
@@ -1834,7 +1834,7 @@ MAT_MORTALITY <- mat_07_preg_death %>%
 # Maternal mortality categories distinguish obstetric, non-obstetric,
 # unknown cause of death, and missing cause of death.
 # Pregnancy-related deaths are labeled by timing and include any cause.
-MAT_MORTALITY <- MAT_MORTALITY %>%
+mat_mortality_time <- mat_mortality_time %>%
   mutate(
     MAT_MORTALITY = haven::labelled(
       MAT_MORTALITY,
@@ -1857,9 +1857,9 @@ MAT_MORTALITY <- MAT_MORTALITY %>%
       label = "Late pregnancy-related death (42-365 days pp, any cause)"))
 
 # Review the final dataset dimensions and missing values for key outcomes.
-print(dim(MAT_MORTALITY))
+print(dim(mat_mortality_time))
 
-MAT_MORTALITY %>%
+mat_mortality_time %>%
   summarise(
     N = n(),
     MAT_MORTALITY_MISSING = sum(is.na(MAT_MORTALITY)),
@@ -1869,15 +1869,66 @@ MAT_MORTALITY %>%
   ) %>%
   print()
 
-## 10. Save ----
+# ## 10. Save 
+# # Export the final maternal mortality outcomes to CSV or Stata format.
+# write.csv(MAT_MORTALITY, paste0(path_to_tnt, "MAT_MORTALITY.csv"),
+#           na = "", row.names = FALSE)
+# write_dta(MAT_MORTALITY, paste0(path_to_tnt, "MAT_MORTALITY.dta"))
+# 
+# write.csv(MAT_MORTALITY, paste0(path_to_save, "MAT_MORTALITY.csv"),
+#           na = "", row.names = FALSE)
+# write_dta(MAT_MORTALITY, paste0(path_to_save, "MAT_MORTALITY.dta"))
 
-# Export the final maternal mortality outcomes to CSV or Stata format.
-write.csv(MAT_MORTALITY, paste0(path_to_tnt, "MAT_MORTALITY.csv"),
+# Merge COD and Mortality ----
+
+#*****************************************************************************
+## Maternal mortality and cause of death: Deaths only
+#*****************************************************************************
+# Use all deaths in MAT_COD as the denominator
+mat_cod_deaths <- all_mat_merged %>%
+  distinct(SITE, MOMID, PREGID, .keep_all = TRUE)
+
+# Join maternal mortality outcomes to cause of death data
+mat_mortality_all <- mat_cod_deaths %>%
+  left_join(
+    mat_mortality_time,
+    by = c("SITE", "MOMID", "PREGID"),
+    relationship = "one-to-one"
+  ) %>%
+  select(
+    SITE, MOMID, PREGID,
+    MAT_DEATH, MAT_DEATH_DATE, MAT_DEATH_42,
+    MAT_MORTALITY, MAT_MORTALITY_LATE,
+    MAT_MORTALITY_D, MAT_MORTALITY_LATE_D,
+    PREG_DEATH, PREG_DEATH_LATE,
+    COD, COD_TEXT, IV_COD, IV_COD_TEXT,
+    everything()
+  )
+
+# Check denominator and mortality classifications
+mat_mortality_all %>%
+  summarise(
+    TOTAL_DEATHS = n(),
+    MAT_DEATH = sum(MAT_DEATH == 1, na.rm = TRUE),
+    PREG_DEATH = sum(PREG_DEATH == 1, na.rm = TRUE),
+    MAT_MORTALITY = sum(MAT_MORTALITY == 1, na.rm = TRUE),
+    MISSING_MORTALITY = sum(is.na(MAT_MORTALITY))
+  )
+
+mat_mort_time <- mat_mortality_time %>% filter (MAT_DEATH == 1)
+
+nrow(all_mat_merged)
+nrow(mat_mort_time)
+nrow(mat_mortality_all)
+
+names (mat_mortality_all)
+
+# Save dataset
+write.csv(mat_mortality_all, paste0(path_to_tnt, "MAT_MORTALITY.csv"),
           na = "", row.names = FALSE)
-write_dta(MAT_MORTALITY, paste0(path_to_tnt, "MAT_MORTALITY.dta"))
+write_dta(mat_mortality_all, paste0(path_to_tnt, "MAT_MORTALITY.dta"))
 
-write.csv(MAT_MORTALITY, paste0(path_to_save, "MAT_MORTALITY.csv"),
+write.csv(mat_mortality_all, paste0(path_to_save, "MAT_MORTALITY.csv"),
           na = "", row.names = FALSE)
-write_dta(MAT_MORTALITY, paste0(path_to_save, "MAT_MORTALITY.dta"))
-
+write_dta(mat_mortality_all, paste0(path_to_save, "MAT_MORTALITY.dta"))
 
