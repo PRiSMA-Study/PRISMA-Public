@@ -1,6 +1,5 @@
 ---
 title: "PRISMA-Infant-Outcomes (Issued: `r Sys.Date()`)"
-
 output:
   pdf_document:
     toc: no
@@ -9,17 +8,29 @@ output:
     keep_tex: FALSE
 include-in-header:
 - \usepackage{booktabs,longtable}
-
 knit: (function(inputFile, encoding) { 
       rmarkdown::render(inputFile,
                     encoding=encoding, 
                     output_file= paste('D:/Users/williams_pj/Documents/Analysis/Infant-Constructed-Variables/output/2026-09-18/', Sys.Date(), '_Infant-Outcomes-Report',  '.pdf', sep='')) })
-
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
 
 UploadDate = "2026-09-18"
+
+#site specific dates 
+UploadDate_site <- c(
+  "Ghana" = "2026-09-18",
+  "India-CMC" = "2026-09-18",
+  "India-SAS" = "2026-09-18",
+  "Kenya" = "2026-09-04",
+  "Pakistan" = "2026-07-24",
+  "Zambia" = "2026-09-18"
+)
+
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%") 
 knitr::opts_chunk$set(out.width = "100%", fig.align = "center")
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
@@ -42,6 +53,8 @@ library(webshot2)  ## for table gen
 library(readxl)
 
 
+
+##Load datasets ----
 path_to_data <- paste0("D:/Users/williams_pj/Documents/Analysis/Infant-Constructed-Variables/data/", UploadDate, "/")
 
 path_to_save <- paste0("D:/Users/williams_pj/Documents/Analysis/Infant-Constructed-Variables/output/", UploadDate, "/")
@@ -54,11 +67,99 @@ remapp_ids <- mat_enroll %>% filter(REMAPP_ENROLL == 1)
 
 infant_trajectory <- read.csv(paste0(path_to_data, "INF_GROWTH_WIDE", ".csv"))
 all_plus_outcome <- read.csv(paste0(path_to_data, "INF_GROWTH_LONG", ".csv"))
-psbi_outcome <- read.csv(paste0(path_to_data, "INF_PSBI_LONG", ".csv"))
+psbi_outcome_long <- read.csv(paste0(path_to_data, "INF_PSBI_LONG", ".csv"))
+psbi_outcome_wide <- read.csv(paste0(path_to_data, "INF_PSBI_WIDE", ".csv"))
 infant_outcomes <- read.csv(paste0(path_to_data, "INF_OUTCOMES", ".csv"))
 infant_ebf_wide <- read.csv(paste0(path_to_data, "INF_EBF_WIDE", ".csv"))
 infant_ebf_long <- read.csv(paste0(path_to_data, "INF_EBF_LONG", ".csv"))
 
+
+##dataset modifications ----
+###psbi 
+# Define infant identifiers
+id_vars <- c("SITE", "MOMID", "PREGID", "INFANTID")
+
+# Prepare visit-level PSBI data
+psbi_cases <- psbi_outcome_long %>%
+  # Retain one record per infant per visit, prioritizing PSBI = 1, then 0, then 55
+  group_by(across(all_of(id_vars)), VISIT_WINDOW) %>%
+  arrange(
+    case_when(
+      INF_PSBI == 1  ~ 1,
+      INF_PSBI == 0  ~ 2,
+      INF_PSBI == 55 ~ 3,
+      TRUE           ~ 4
+    ),
+    .by_group = TRUE
+  ) %>%
+  slice(1) %>%
+  ungroup() %>%
+  # Create visit-specific PSBI indicators
+  mutate(
+    INF_PSBI_IPC = as.integer(VISIT_WINDOW == "IPC" & INF_PSBI == 1),
+    INF_PSBI_PNC0 = as.integer(VISIT_WINDOW == "PNC0" & INF_PSBI == 1),
+    INF_PSBI_PNC1 = as.integer(VISIT_WINDOW == "PNC1" & INF_PSBI == 1),
+    INF_PSBI_PNC4 = as.integer(VISIT_WINDOW == "PNC4" & INF_PSBI == 1),
+    INF_PSBI_PNC6 = as.integer(VISIT_WINDOW == "PNC6" & INF_PSBI == 1),
+    INF_PSBI_UNSCHED = as.integer(VISIT_WINDOW == "INBETWEEN" & INF_PSBI == 1),
+    INF_PSBI_HOSPITAL = as.integer(VISIT_WINDOW == "HOSPITAL" & INF_PSBI == 1)
+  )
+
+# Identify infants without a suspected PSBI record
+psbi_non_cases <- psbi_outcome_wide %>%
+  anti_join(psbi_cases, by = id_vars) %>%
+  # Set visit-specific PSBI indicators to 0
+  mutate(
+    INF_PSBI_IPC = 0L,
+    INF_PSBI_PNC0 = 0L,
+    INF_PSBI_PNC1 = 0L,
+    INF_PSBI_PNC4 = 0L,
+    INF_PSBI_PNC6 = 0L,
+    INF_PSBI_UNSCHED = 0L,
+    INF_PSBI_HOSPITAL = 0L
+  )
+
+# Combine PSBI cases and non-cases
+psbi_outcome <- bind_rows(psbi_cases, psbi_non_cases) %>%
+  # Add infant-level denominator from the wide dataset
+  select(-any_of("INF_PSBI_DENOM")) %>%
+  left_join(
+    psbi_outcome_wide %>%
+      select(all_of(id_vars), INF_PSBI_DENOM),
+    by = id_vars
+  ) %>%
+  # Count each eligible infant once, regardless of number of visits
+  group_by(across(all_of(id_vars))) %>%
+  mutate(
+    INF_PSBI_DENOM = if_else(
+      row_number() == 1,
+      INF_PSBI_DENOM,
+      0L
+    )
+  ) %>%
+  ungroup()
+
+# Check denominator against original datasets
+psbi_outcome %>%
+  summarise(denominator = sum(INF_PSBI_DENOM == 1, na.rm = TRUE))
+
+sum(infant_outcomes$LIVEBIRTH == 1, na.rm = TRUE)
+
+psbi_outcome_wide %>%
+  summarise(denominator = sum(INF_PSBI_DENOM == 1, na.rm = TRUE))
+
+# Summarize suspected PSBI cases by site and visit
+psbi_outcome %>%
+  group_by(SITE) %>%
+  summarise(
+    across(
+      starts_with("INF_PSBI_"),
+      ~ sum(. == 1, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  )
+
+##themes ----
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
     gt(
@@ -123,7 +224,7 @@ tb_theme1 <- function(matrix){
     cols_width(1 ~ px(300))
 }
  
-
+##Functions ----
 # Function to extract and format legend horizontally
 g_legend <- function(p) {
   tmp <- ggplot_gtable(ggplot_build(p))
@@ -141,7 +242,13 @@ setwd(paste0(path_to_save))
 
 ```
 
-**Includes data from synapse last updated:** 2026-05-01 
+**Includes data from Synapse last updated:**
+- Ghana: `r UploadDate_site["Ghana"]`
+- India-CMC: `r UploadDate_site["India-CMC"]`
+- India-SAS: `r UploadDate_site["India-SAS"]`
+- Kenya: `r UploadDate_site["Kenya"]`
+- Pakistan: `r UploadDate_site["Pakistan"]`
+- Zambia: `r UploadDate_site["Zambia"]`
 
 \tableofcontents
 
@@ -149,10 +256,13 @@ setwd(paste0(path_to_save))
 
 ## 1. Summary
 
-### Table 1. Summary of all infant outcomes included in this report. 
-**Denominator:** All livebirths unless otherwise specified. All missing is excluded.  
+### Table 1. Summary of all infant outcomes included in this report.
+
+**Denominator:** All livebirths unless otherwise specified. All missing
+is excluded.
 
 <!-- *For more detailed output, please refer to the specified sections below. * -->
+
 ```{r}
 ## updated 1/12
 ## livebirths (MNH11): lbw, asphyxia
@@ -691,23 +801,29 @@ knitr::include_graphics("infantoutcomes_output.png")
 
 \newpage
 
-## 2. Low birthweight 
+## 2. Low birthweight
 
-**Definition:** Defined as liveborn infant weighing less than 2500g at birth. 
+**Definition:** Defined as liveborn infant weighing less than 2500g at
+birth.
 
-**Denominator:** All livebirths. 
+**Denominator:** All livebirths.
 
-&nbsp;
+ 
 
-**To be included as "non-missing" for this outcome, a participant must have:**
+**To be included as "non-missing" for this outcome, a participant must
+have:**
 
 **1.** Live birth (varname: `BIRTH_DSTERM [MNH09]`).
 
-**2.** Birthweight measured by PRISMA staff <72 hours following birth (varnames [form]: `BW_EST_FAORRES [MNH11]`, `BW_FAORRES [MNH11]`, `BW_FAORRES_REPORT [MNH11]`).
+**2.** Birthweight measured by PRISMA staff \<72 hours following birth
+(varnames [form]: `BW_EST_FAORRES [MNH11]`, `BW_FAORRES [MNH11]`,
+`BW_FAORRES_REPORT [MNH11]`).
 
-**3.** Facility reported birthweight where PRISMA <72 hours not available (varnames [form]: `BW_FAORRES_REPORT [MNH11]`).
+**3.** Facility reported birthweight where PRISMA \<72 hours not
+available (varnames [form]: `BW_FAORRES_REPORT [MNH11]`).
 
-### Table 2. Low birthweight 
+### Table 2. Low birthweight
+
 ```{r}
 
 lowbirthweight_tab <- infant_outcomes %>%
@@ -885,7 +1001,8 @@ knitr::include_graphics("lbw_output.png")
 
 \newpage
 
-### Figure 2a. PRISMA-measured birthweights across sites. 
+### Figure 2a. PRISMA-measured birthweights across sites.
+
 ```{r, out.width = '100%'}
 
 lowbirthweight_nomissing_prisma <- infant_outcomes %>% filter(BWEIGHT_PRISMA > 0, BWEIGHT_PRISMA<=5000)
@@ -911,7 +1028,8 @@ ggplot(data=lowbirthweight_nomissing_prisma,
 
 ```
 
-### Figure 2b. Facility-reported birthweights across sites. 
+### Figure 2b. Facility-reported birthweights across sites.
+
 ```{r, out.width = '100%'}
 
 lowbirthweight_nomissing_facility <- infant_outcomes %>% filter(M11_BW_FAORRES_REPORT > 0, M11_BW_FAORRES_REPORT<=5000)
@@ -938,6 +1056,7 @@ ggplot(data=lowbirthweight_nomissing_facility,
 \newpage
 
 ### Figure 2c. Hours following birth infant was weighed across sites.
+
 ```{r}
 
 ggplot(data=infant_outcomes,
@@ -958,46 +1077,71 @@ ggplot(data=infant_outcomes,
   geom_vline(mapping=aes(xintercept=72), linetype ="dashed", color = "red")
   
 ```
-<span style="font-size: 88%;">
-Figure 2c. Hours following birth weight measurement recorded by PRISMA-trained staff (or Facility reported where PRISMA measurement not available). Report of "0" indicates the measurement was taken <1hr following birth. Dashed lines represent 24, 48, and 72 hour time points. 
-</span>
 
+[ Figure 2c. Hours following birth weight measurement recorded by
+PRISMA-trained staff (or Facility reported where PRISMA measurement not
+available). Report of "0" indicates the measurement was taken \<1hr
+following birth. Dashed lines represent 24, 48, and 72 hour time points.
+]{style="font-size: 88%;"}
 
 \newpage
 
 ## 3. Gestational age at delivery
 
-**Definition:** Preterm delivery prior to 37 completed weeks of gestation. Further classified as: extremely preterm (<28 weeks), very preterm (28 to <32 weeks), moderate preterm (32 to <34 weeks), late preterm (34 to <37 weeks), term (37 to <41 weeks), and postterm (>41 weeks). 
+**Definition:** Preterm delivery prior to 37 completed weeks of
+gestation. Further classified as: extremely preterm (\<28 weeks), very
+preterm (28 to \<32 weeks), moderate preterm (32 to \<34 weeks), late
+preterm (34 to \<37 weeks), term (37 to \<41 weeks), and postterm (\>41
+weeks).
 
-**Denominator:** All participants with delivery after 20 weeks with a MNH09 form filled out with a reported "birth outcome" `(BIRTH_DSTERM_INF1-4=1 OR BIRTH_DSTERM_INF1-4=2 [MNH09])` AND has valid gestational age reported in MNH01 `(US_GA_WKS_AGE_FTS1-4 [MNH01], US_GA_DAYS_AGE_FTS1-4 [MNH01], GA_LMP_WEEKS_SCORRES [MNH01])`. Preterm delivery includes live or stillbirths; preterm birth includes only livebirths. 
+**Denominator:** All participants with delivery after 20 weeks with a
+MNH09 form filled out with a reported "birth outcome"
+`(BIRTH_DSTERM_INF1-4=1 OR BIRTH_DSTERM_INF1-4=2 [MNH09])` AND has valid
+gestational age reported in MNH01
+`(US_GA_WKS_AGE_FTS1-4 [MNH01], US_GA_DAYS_AGE_FTS1-4 [MNH01], GA_LMP_WEEKS_SCORRES [MNH01])`.
+Preterm delivery includes live or stillbirths; preterm birth includes
+only livebirths.
 
-**BOE Gestational Age at Birth:** Gestational age at birth determined using the Best Obstetric Estimate (BOE), based on available clinical information including last menstrual period (LMP), ultrasound dating, and the ACOG gestational age dating algorithm.
+**BOE Gestational Age at Birth:** Gestational age at birth determined
+using the Best Obstetric Estimate (BOE), based on available clinical
+information including last menstrual period (LMP), ultrasound dating,
+and the ACOG gestational age dating algorithm.
 
-***Note:** Gestational age information collected in MNH01 is used to generate best obstetric estimates for EDD. These constructed variables are then used to calculate GA at time of birth.* 
+***Note:** Gestational age information collected in MNH01 is used to
+generate best obstetric estimates for EDD. These constructed variables
+are then used to calculate GA at time of birth.*
 
-&nbsp;
+ 
 
-**To be included as "non-Missing" for this outcome, a participant must have:**
+**To be included as "non-Missing" for this outcome, a participant must
+have:**
 
-**1.** Reported gestational age by either LMP or Ultrasound (varnames [form]: `US_GA_WKS_AGE_FTS1-4 [MNH01]`, `US_GA_DAYS_AGE_FTS1-4 [MNH01]`, `GA_LMP_WEEKS_SCORRES [MNH01]`).
+**1.** Reported gestational age by either LMP or Ultrasound (varnames
+[form]: `US_GA_WKS_AGE_FTS1-4 [MNH01]`, `US_GA_DAYS_AGE_FTS1-4 [MNH01]`,
+`GA_LMP_WEEKS_SCORRES [MNH01]`).
 
-**2.** Valid enrollment ultrasound visit date (varname: `US_OHOSTDAT [MNH01]`)
+**2.** Valid enrollment ultrasound visit date (varname:
+`US_OHOSTDAT [MNH01]`)
 
 **3.** Valid date of birth (varname: `DELIV_DSSTDAT_INF1-4 [MNH09]`).
 
-**4.** Birth outcome reported as a "Live birth" or "Fetal death" (varname: `BIRTH_DSTERM_INF1-4 [MNH09]`).
+**4.** Birth outcome reported as a "Live birth" or "Fetal death"
+(varname: `BIRTH_DSTERM_INF1-4 [MNH09]`).
 
-&nbsp;
+ 
 
 **Common causes for a participant to be marked as "Missing":**
 
-**-** Participant is missing a reported GA by Ultrasound AND GA by LMP in MNH01.
+**-** Participant is missing a reported GA by Ultrasound AND GA by LMP
+in MNH01.
 
-**-** Participant has multiple or is missing an enrollment ultrasound visit (`TYPE_VISIT=1`).
+**-** Participant has multiple or is missing an enrollment ultrasound
+visit (`TYPE_VISIT=1`).
 
-**-** Default value is used for enrollment ultrasound visit date (`US_OHOSTDAT=07-07-1907`). 
+**-** Default value is used for enrollment ultrasound visit date
+(`US_OHOSTDAT=07-07-1907`).
 
-**-** Birth outcome is reported as "77, Not applicable". 
+**-** Birth outcome is reported as "77, Not applicable".
 
 \newpage
 
@@ -1240,6 +1384,7 @@ knitr::include_graphics("preterm_output.png")
 \newpage
 
 ### Figure 3a. Distribution of days difference between GA by US and GA by LMP reporting across sites.
+
 ```{r}
 
 infant_outcomes$GA_DIFF_DAYS = abs(infant_outcomes$GA_DIFF_DAYS)
@@ -1264,7 +1409,8 @@ ggplot(data=infant_outcomes %>% filter(abs(GA_DIFF_DAYS) < 300),
 
 \newpage
 
-### Figure 3b. Distribution of gestational age at birth in weeks. 
+### Figure 3b. Distribution of gestational age at birth in weeks.
+
 ```{r}
 # infant_outcomes_fig <- infant_outcomes %>% 
 #   mutate(GESTAGEBIRTH_ANY = as.numeric(GESTAGEBIRTH_BOE_DAYS)) %>% filter(GESTAGEBIRTH_BOE_DAYS>0) %>% 
@@ -1288,182 +1434,294 @@ ggplot(data=infant_outcomes %>% filter(LIVEBIRTH == 1 | STILLBIRTH_20WK==1),
         panel.grid.minor = element_blank())
   
 ```
-<span style="font-size: 88%;">
-Figure 3b. Among all deliveries (stillbirths and livebirths). Gestational age at birth was calculated by taking the difference between the DOB and "estimated conception date" determined by BOE.  
-</span>
 
+[ Figure 3b. Among all deliveries (stillbirths and livebirths).
+Gestational age at birth was calculated by taking the difference between
+the DOB and "estimated conception date" determined by BOE.\
+]{style="font-size: 88%;"}
 
-<!-- REMOVE THIS FOR NOW; can add back in if want to include preterm delivery as well ### Table 3. Preterm delivery --> 
+<!-- REMOVE THIS FOR NOW; can add back in if want to include preterm delivery as well ### Table 3. Preterm delivery -->
 
 <!-- ```{r} -->
 
 <!-- # N(%) without both US and LMP; (MISSING_BOTH_US_LMP) -->
+
 <!-- # Distribution of GA_DIFF_DAYS;  -->
+
 <!-- # N% where US is used vs. where LMP is used. (BOE_METHOD (where 1 = US and 2 = LMP)) -->
+
 <!-- # Histograms of GA at birth (GA_AT_BIRTH_WKS) -->
 
 <!-- # a. Post-term delivery (>=41 weeks): Delivery after 41 weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_GT41] -->
+
 <!-- # b. Term delivery (37 to <41 weeks): Delivery between 37 and <41 weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT41] -->
+
 <!-- # c. Preterm delivery (<37 weeks): Delivery prior to 37 completed weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT37] -->
+
 <!-- # d. Preterm delivery (<34 weeks): Delivery prior to 34 completed weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT34] -->
+
 <!-- # e. Preterm delivery (<32 weeks): Delivery prior to 32 completed weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT32] -->
+
 <!-- # f. Preterm delivery (<28 weeks): Delivery prior to 28 completed weeks of gestation (live or stillbirth). [varname: PRETERMBIRTH_LT28] -->
+
 <!-- # g. Preterm delivery severity (categorical): Late preterm (34 to <37 wks), early preterm (32 to <34 wks), very preterm (28 to <32 wks), extremely preterm (<28 weeks) [varname: PRETERMBIRTH_CAT] -->
 
-
 <!-- preterm_birth_tab <- preterm_birth %>% -->
+
 <!--   ## If India-SAS doesn't have data, add empty row here  -->
+
 <!--   mutate(existing_site = ifelse(SITE == "India-SAS", 1, 0)) %>% -->
+
 <!--   ## Add empty rows for missing SITE values if the specific site doesn't exist -->
+
 <!--   complete(SITE = ifelse(existing_site == 0, "India-SAS", SITE), fill = list(SITE = NA)) %>% -->
+
 <!--   rowwise() %>%  -->
+
 <!--   group_by(SITE) %>%  -->
+
 <!--   summarise( -->
 
 <!--     "Denominator^a^  " =  paste0( -->
+
 <!--       format(sum(BIRTH_OUTCOME_REPORTED ==1, na.rm = TRUE), nsmall = 0, digits = 2)), -->
 
 <!--     "20 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 20, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 20, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "21 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 21, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 21, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "22 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 22, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 22, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "23 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 23, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 23, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "24 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 24, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 24, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "25 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 25, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 25, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "26 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 26, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 26, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "27 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 27, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 27, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "28 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 28, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 28, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "29 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 29, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 29, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "30 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 30, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 30, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "31 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 31, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 31, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "32 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 32, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 32, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "33 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 33, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 33, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "34 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 34, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 34, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"),  -->
+
 <!--      "35 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 35, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 35, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "36 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 36, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 36, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"),  -->
 
 <!--      "37 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 37, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 37, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "38 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 38, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 38, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"),    -->
 
 <!--     "39 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 39, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 39, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "40 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE == 40, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE == 40, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--     "41 weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE ==41, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE ==41, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
-
 <!--     "42+ weeks" = paste0( -->
+
 <!--           format(sum(GESTAGEBIRTH_BOE >=42, na.rm = TRUE), nsmall = 0, digits = 2), -->
+
 <!--           " (", -->
+
 <!--           format(round(sum(GESTAGEBIRTH_BOE >=42, na.rm = TRUE)/sum(BIRTH_OUTCOME_REPORTED==1, na.rm = TRUE)*100, 2), nsmall = 0, digits = 2), -->
+
 <!--           ")"), -->
 
 <!--   )  %>% -->
+
 <!--   t() %>% as.data.frame() %>%  -->
+
 <!--   `colnames<-`(c(.[1,])) %>%  -->
+
 <!--   slice(-1)  -->
 
 <!-- ``` -->
@@ -1471,77 +1729,134 @@ Figure 3b. Among all deliveries (stillbirths and livebirths). Gestational age at
 <!-- ```{r} -->
 
 <!-- preterm_tab2 <- preterm_birth_tab %>%  -->
+
 <!--   # `rownames<-` (c( -->
+
 <!--   #   "Denominator", -->
+
 <!--   #   "Missing both US and LMP GA, n (%)", -->
+
 <!--   #   "BOE = Ultrasound, n (%)", -->
+
 <!--   #   "BOE = LMP, n (%)", -->
+
 <!--   #    -->
+
 <!--   #   "Denominator ", -->
+
 <!--   #   "Extremely preterm (<28wks)", -->
+
 <!--   #   "Very preterm (28 to <32wks)", -->
+
 <!--   #   "Moderate preterm (32 to <34wks)", -->
+
 <!--   #   "Late preterm (34 to <37wks)", -->
+
 <!--   #   "Term (37 to <41wks)", -->
+
 <!--   #   "Postterm (>=41wks)", -->
+
 <!--   #  -->
+
 <!--   #   "Denominator  ", -->
+
 <!--   #   "Extremely preterm (<28wks) ", -->
+
 <!--   #   "Very preterm (28 to <32wks) ", -->
+
 <!--   #   "Moderate preterm (32 to <34wks) ", -->
+
 <!--   #   "Late preterm (34 to <37wks) ", -->
+
 <!--   #   "Term (37 to <41wks) ", -->
+
 <!--   #   "Postterm (>=41wks) " -->
+
 <!--   #  -->
+
 <!--   # ) -->
+
 <!--   # ) %>%  -->
+
 <!--   mutate_all(funs(str_replace(., "NaN", "0")))  -->
 
 <!-- # replace NA with 0s (this likely means there is not yet data) -->
+
 <!-- preterm_tab2[is.na(preterm_tab2)] <- paste0("0 (0)") -->
 
 <!-- preterm_output2 <- tb_theme1(preterm_tab2) %>%  -->
+
 <!--   tab_header( -->
+
 <!--     title = md("**Table 3**") -->
+
 <!--   ) %>% -->
+
 <!--   tab_row_group( -->
+
 <!--     label = html("<span style='font-size: 18px'>Preterm delivery severity (live & stillbirths) (continuous), n (%)</span>"), -->
+
 <!--     rows = 1:24 -->
+
 <!--   ) %>% -->
+
 <!--   row_group_order(groups = c("<span style='font-size: 18px'>Preterm delivery severity (live & stillbirths) (continuous), n (%)</span>") -->
+
 <!--                   ) %>%  -->
+
 <!--     tab_style( -->
+
 <!--       style = list( -->
+
 <!--         cell_text(weight = "bold") -->
+
 <!--         ), -->
+
 <!--       locations = cells_body(rows = c( -->
+
 <!--                  "Denominator^a^  "))) %>%  -->
+
 <!--   tab_style( -->
+
 <!--       style = list( -->
+
 <!--         cell_text(weight = "bold") -->
+
 <!--         ), -->
+
 <!--       locations = cells_stub(rows = c( -->
+
 <!--                  "Denominator^a^  "))) %>%  -->
+
 <!--     tab_footnote( -->
+
 <!--     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with a reported live birth or stillbirth.</span>") -->
+
 <!--  ) %>%  -->
+
 <!--       ## indent severe categories  -->
+
 <!--   tab_style( -->
+
 <!--       style = list( -->
+
 <!--         cell_text(indent = px(40), size = 24) -->
+
 <!--         ), -->
+
 <!--       locations = cells_stub(rows = rownames(preterm_birth_tab)[-1])  -->
+
 <!--       )  -->
-
-
 
 <!-- ``` -->
 
 <!-- ```{r, out.width = '100%'} -->
-<!-- preterm_output2 <- preterm_output2 %>% gtsave("preterm_output2.png", expand = 10) -->
-<!-- knitr::include_graphics("preterm_output2.png") -->
-<!-- ``` -->
 
+<!-- preterm_output2 <- preterm_output2 %>% gtsave("preterm_output2.png", expand = 10) -->
+
+<!-- knitr::include_graphics("preterm_output2.png") -->
+
+<!-- ``` -->
 
 <!-- \newpage -->
 
@@ -1550,63 +1865,96 @@ Figure 3b. Among all deliveries (stillbirths and livebirths). Gestational age at
 <!-- ```{r, out.width = '100%', out.height='100%'} -->
 
 <!-- # Define a custom labeling function -->
+
 <!-- custom_labels <- function(x) { -->
+
 <!--   ifelse(x == 42, "42+", as.character(x)) -->
+
 <!-- } -->
 
 <!-- test <- preterm_birth %>% -->
+
 <!--   filter(BIRTH_OUTCOME_REPORTED == 1) %>% -->
+
 <!--     mutate(GESTAGEBIRTH_BOE = as.numeric(GESTAGEBIRTH_BOE)) %>%  -->
+
 <!--   filter(GESTAGEBIRTH_BOE>=20) %>%  -->
+
 <!--   select(SITE, LIVEBIRTH, GESTAGEBIRTH_BOE) %>% -->
+
 <!--   mutate(GESTAGEBIRTH_BOE = ifelse(GESTAGEBIRTH_BOE >= 42, 42, GESTAGEBIRTH_BOE)) %>% -->
+
 <!--   group_by(SITE, GESTAGEBIRTH_BOE, LIVEBIRTH) %>% -->
+
 <!--   summarise(n = n(), .groups = 'drop') %>%  -->
+
 <!--   ungroup() %>%  -->
+
 <!--   group_by(SITE, GESTAGEBIRTH_BOE) %>%  -->
+
 <!--   mutate(n_total_week = sum(n)) %>%  -->
+
 <!--   ungroup() %>%  -->
+
 <!--   group_by(SITE, GESTAGEBIRTH_BOE, LIVEBIRTH) %>% -->
+
 <!--   mutate(pct_week = round(n/n_total_week*100, 1))  -->
 
 <!-- test$LIVEBIRTH <- factor(test$LIVEBIRTH, levels = c(1, 0)) -->
 
 <!-- out <- ggplot(test, aes(fill=as.factor(LIVEBIRTH), y=n, x=GESTAGEBIRTH_BOE)) +  -->
+
 <!--     geom_bar(position="stack", stat="identity") +  -->
+
 <!--     facet_grid(vars(SITE), scales = "free") + -->
 
 <!--     scale_fill_manual(values = c("#78c57e","darkred"), name = "", #   -->
+
 <!--                       labels = c("0" = "Stillbirth", "1" = "Live birth")) +  -->
+
 <!--     ylab("N events") +  -->
+
 <!--     xlab("GA at delivery (weeks)") + -->
 
 <!--   scale_x_continuous(breaks = seq(20, 42, 2), labels = custom_labels) + -->
 
 <!--   theme_bw() +  -->
+
 <!--   theme(strip.background = element_rect(fill = "white"), -->
+
 <!--          strip.text = element_text(size = 9),  -->
+
 <!--          axis.text.x = element_text(size = 12, vjust = 1, hjust = 0.5), -->
+
 <!--          axis.text.y = element_text(size = 10), -->
+
 <!--          axis.title.x = element_text(size = 11), -->
+
 <!--          axis.title.y = element_text(size = 11), -->
+
 <!--          legend.text = element_text(size = 11), -->
+
 <!--          legend.position = "bottom", -->
+
 <!--          legend.title = element_blank(), -->
+
 <!--          panel.grid.minor = element_blank()) -->
 
 <!-- ggsave(paste0("PRISMA_live-still_bysite", ".png"), path = path_to_save_figures, -->
+
 <!--        width = 6, height = 5) -->
 
 <!-- ``` -->
 
 <!-- ```{r, out.width = '100%'} -->
+
 <!-- knitr::include_graphics("D:/Users/stacie.loisate/Documents/PRISMA_live-still_bysite.png") -->
 
 <!-- ``` -->
 
 \newpage
 
-### Figure 3c. Proportion of stillbirths and livebirths among all deliveries by gestational age where each week of gestation totals to 100% percent. 
+### Figure 3c. Proportion of stillbirths and livebirths among all deliveries by gestational age where each week of gestation totals to 100% percent.
 
 ```{r, out.width = '100%'}
 
@@ -1655,9 +2003,10 @@ ggplot(stillbirth_livebirth_prop, aes(fill=as.factor(LIVEBIRTH), y=pct_week, x=G
     panel.grid.minor = element_blank())
 
 ```
+
 \newpage
 
-### Figure 3d. By site, proportion of stillbirths and livebirths among all deliveries by gestational age where each week of gestation totals to 100% percent. 
+### Figure 3d. By site, proportion of stillbirths and livebirths among all deliveries by gestational age where each week of gestation totals to 100% percent.
 
 ```{r, out.width = '100%'}
 
@@ -1723,43 +2072,60 @@ knitr::include_graphics("PRISMA_live-still_bysite2.png")
 \newpage
 
 ## 4. Size for gestational age (SGA/LGA)
-**Definition:** GA & sex-specific birthweight percentiles per INTERGROWTH standard.Further classified as <3rd, 3rd to 10th, 10th to <90th, >=90th. 
 
-**Denominator:** All livebirths. 
+**Definition:** GA & sex-specific birthweight percentiles per
+INTERGROWTH standard.Further classified as \<3rd, 3rd to 10th, 10th to
+\<90th, \>=90th.
 
-***Note:** Gestational age information collected in MNH01 is used to generate best obstetric estimates for EDD. These constructed variables are then used to calculate GA at time of birth.* 
+**Denominator:** All livebirths.
 
-&nbsp;
+***Note:** Gestational age information collected in MNH01 is used to
+generate best obstetric estimates for EDD. These constructed variables
+are then used to calculate GA at time of birth.*
 
-**To be included as "non-Missing" for this outcome, a participant must have:**
+ 
 
-**1.** Reported gestational age by either LMP or Ultrasound (varnames [form]: `US_GA_WKS_AGE_FTS1-4 [MNH01]`, `US_GA_DAYS_AGE_FTS1-4 [MNH01]`, `GA_LMP_WEEKS_SCORRES [MNH01]`).
+**To be included as "non-Missing" for this outcome, a participant must
+have:**
+
+**1.** Reported gestational age by either LMP or Ultrasound (varnames
+[form]: `US_GA_WKS_AGE_FTS1-4 [MNH01]`, `US_GA_DAYS_AGE_FTS1-4 [MNH01]`,
+`GA_LMP_WEEKS_SCORRES [MNH01]`).
 
 **2.** Valid date of birth (varname: `DELIV_DSSTDAT_INF1-4 [MNH09]`).
 
-**3.** Birthweight measured by PRISMA staff <72 hours following birth OR facility reported birthweight where PRISMA not available (varnames [form]: `BW_EST_FAORRES [MNH11]`, `BW_FAORRES [MNH11]`, `BW_FAORRES_REPORT [MNH11]`).
+**3.** Birthweight measured by PRISMA staff \<72 hours following birth
+OR facility reported birthweight where PRISMA not available (varnames
+[form]: `BW_EST_FAORRES [MNH11]`, `BW_FAORRES [MNH11]`,
+`BW_FAORRES_REPORT [MNH11]`).
 
 **4.** Live birth (varname: `BIRTH_DSTERM_INF1-4 [MNH09]`).
 
 **5.** Sex of infant (varname: `SEX_INF1-4 [MNH09]`).
 
-&nbsp;
+ 
 
 **Common causes for a participant to be marked as "Missing":**
 
-**-** Participant is missing a reported GA by Ultrasound AND GA by LMP in MNH01.
+**-** Participant is missing a reported GA by Ultrasound AND GA by LMP
+in MNH01.
 
-**-** Participant is missing an enrollment ultrasound visit (`TYPE_VISIT=1`).
+**-** Participant is missing an enrollment ultrasound visit
+(`TYPE_VISIT=1`).
 
-**-** PRISMA-measured AND Facility-reported birthweights are missing from MNH11.
+**-** PRISMA-measured AND Facility-reported birthweights are missing
+from MNH11.
 
-**-** MNH11 forms missing for infants (i.e. infantid present in MNH09, but is missing an MNH11 form).
+**-** MNH11 forms missing for infants (i.e. infantid present in MNH09,
+but is missing an MNH11 form).
 
-**-** Gestational age at birth less than 33 weeks or over 42 weeks. 
+**-** Gestational age at birth less than 33 weeks or over 42 weeks.
 
-**-** INFANTID in MNH09 `(INFANTID_INF1-4)` that can be linked to MNH11 `(INFANTID)`.
+**-** INFANTID in MNH09 `(INFANTID_INF1-4)` that can be linked to MNH11
+`(INFANTID)`.
 
-### Table 4. Size for gestational age at birth 
+### Table 4. Size for gestational age at birth
+
 ```{r}
 #* 3. SGA
 # a. Size for gestational age - categorical. [varname: SGA_CAT]
@@ -1857,6 +2223,7 @@ knitr::include_graphics("sga_output.png")
 \newpage
 
 ### Figure 4. Distribution of INTERGROWTH percentiles across sites.
+
 ```{r}
 
 ggplot(data=infant_outcomes,
@@ -1880,20 +2247,26 @@ ggplot(data=infant_outcomes,
 
 ## 5. Mortality
 
-**Definition:** Death of a liveborn baby. Further stratified as neonatal mortality (death of a liveborn baby in the first 28 days of life) and infant mortality (death of a liveborn baby in the first 365 days of life).
+**Definition:** Death of a liveborn baby. Further stratified as neonatal
+mortality (death of a liveborn baby in the first 28 days of life) and
+infant mortality (death of a liveborn baby in the first 365 days of
+life).
 
+**Denominator:** All livebirths AND have passed the risk period with a
+visit OR died within the risk period.
 
-**Denominator:** All livebirths AND have passed the risk period with a visit OR died within the risk period.
+ 
 
-&nbsp;
+**To be included as "non-Missing" for this outcome, a participant must
+have:**
 
-**To be included as "non-Missing" for this outcome, a participant must have:**
+**1.** Valid date of birth (varname: `DELIV_DSSTDAT_INF1-4 [MNH09]`).
 
-**1.** Valid date of birth (varname: `DELIV_DSSTDAT_INF1-4 [MNH09]`). 
-
-**2.** Birth outcome reported as "live birth" (varname: `BIRTH_DSTERM [MNH09]`)
+**2.** Birth outcome reported as "live birth" (varname:
+`BIRTH_DSTERM [MNH09]`)
 
 ### Table 5. Mortality
+
 ```{r, mortality, message = FALSE, warning = FALSE}
 
 #  4. Neonatal mortality: Denominator is all livebirths reported in MNH11 with mnh09 filled out 
@@ -2075,23 +2448,28 @@ knitr::include_graphics("mortality_output.png")
 
 ## 6. Stillbirth
 
-**Definition:** Death prior to delivery of a fetus at >=20 weeks of gestation, excluding induced abortions.
+**Definition:** Death prior to delivery of a fetus at \>=20 weeks of
+gestation, excluding induced abortions.
 
 **Denominator:** All infants with a delivery outcome.
 
+ 
 
-&nbsp;
+**To be included as "non-Missing" for this outcome, a participant must
+have:**
 
-**To be included as "non-Missing" for this outcome, a participant must have:**
+**1.** Valid date of birth OR valid fetal loss date (varname:
+`FETAL_LOSS_DSSTDAT [MNH04]` OR `DELIV_DSSTDAT_INF1-4 [MNH09]`).
 
-**1.** Valid date of birth OR valid fetal loss date (varname: `FETAL_LOSS_DSSTDAT [MNH04]` OR `DELIV_DSSTDAT_INF1-4 [MNH09]`).
+**2.** Birth outcome reported in MNH04 or MNH11 (varname:
+`PRG_DSDECOD [MNH04]` OR `BIRTH_DSTERM [MNH09]`)
 
-**2.** Birth outcome reported in MNH04 or MNH11 (varname: `PRG_DSDECOD [MNH04]` OR `BIRTH_DSTERM [MNH09]`)
-
-**3.** Reported gestational age by either LMP or Ultrasound (varnames [form]: `US_GA_WKS_AGE_FTS1-4 [MNH01]`, `US_GA_DAYS_AGE_FTS1-4 [MNH01]`, `GA_LMP_WEEKS_SCORRES [MNH01]`).
-
+**3.** Reported gestational age by either LMP or Ultrasound (varnames
+[form]: `US_GA_WKS_AGE_FTS1-4 [MNH01]`, `US_GA_DAYS_AGE_FTS1-4 [MNH01]`,
+`GA_LMP_WEEKS_SCORRES [MNH01]`).
 
 ### Table 6. Stillbirth
+
 ```{r}
 
 stillbirth_tab <- infant_outcomes %>% ## denominator is anyone with a birth outcome reported 
@@ -2242,17 +2620,21 @@ knitr::include_graphics("stillbirth_output.png")
 
 ## 7. Fetal death
 
-**Definition:** Death prior to delivery of a fetus at any gestational age. 
+**Definition:** Death prior to delivery of a fetus at any gestational
+age.
 
-**Denominator:** All infants with a delivery outcome. 
+**Denominator:** All infants with a delivery outcome.
 
-&nbsp;
+ 
 
-**To be included as "non-Missing" for this outcome, a participant must have:**
+**To be included as "non-Missing" for this outcome, a participant must
+have:**
 
-**1.** Valid date of birth OR valid fetal loss date (varname: `FETAL_LOSS_DSSTDAT [MNH04]` OR `DELIV_DSSTDAT_INF1-4 [MNH09]`).
+**1.** Valid date of birth OR valid fetal loss date (varname:
+`FETAL_LOSS_DSSTDAT [MNH04]` OR `DELIV_DSSTDAT_INF1-4 [MNH09]`).
 
 ### Table 7. Fetal death
+
 ```{r}
 
 fetal_death_tab <- infant_outcomes %>% ## denominator is anyone with a birth outcome reported 
@@ -2372,19 +2754,24 @@ knitr::include_graphics("fetaldeath_output.png")
 
 ## 8. Perinatal birth asphyxia
 
-**Definition:** Clinician reports failure to breathe spontaneously in the first minute after delivery or breathing assistance was required. 
+**Definition:** Clinician reports failure to breathe spontaneously in
+the first minute after delivery or breathing assistance was required.
 
-**Denominator:** All livebirths. 
+**Denominator:** All livebirths.
 
-&nbsp;
+ 
 
-**To be included as "non-Missing" for this outcome, a participant must have:**
+**To be included as "non-Missing" for this outcome, a participant must
+have:**
 
-**1.** Valid birth complications reported in MNH11 or MNH20 (varname: `INF_PROCCUR_1-6 [MNH11]`)
+**1.** Valid birth complications reported in MNH11 or MNH20 (varname:
+`INF_PROCCUR_1-6 [MNH11]`)
 
-**2.** Valid birth complications reported in MNH20, if applicable (varname: `BIRTH_COMPL_MHTERM_3 [MNH20]`)
+**2.** Valid birth complications reported in MNH20, if applicable
+(varname: `BIRTH_COMPL_MHTERM_3 [MNH20]`)
 
 ### Table 8. Perinatal birth asphyxia
+
 ```{r}
 
 birth_asphyxia_tab <- infant_outcomes %>% ## denominator is anyone with a birth outcome reported 
@@ -2531,13 +2918,16 @@ knitr::include_graphics("asphyxia_output.png")
 
 ## 9. Hyperbilirubinemia
 
-**Definition:** Defined as the presence of excess bilirubin during the first week of life (delivery to 7 days of age). 
+**Definition:** Defined as the presence of excess bilirubin during the
+first week of life (delivery to 7 days of age).
 
-**Denominator:** All liveborn infants with a measurement taken within the testing window. 
+**Denominator:** All liveborn infants with a measurement taken within
+the testing window.
 
-&nbsp;
+ 
 
 ### Table 9. Hyperbilirubinemia
+
 ```{r, hyperbilirubinemia, message = FALSE, warning = FALSE}
 #  9. Hyperbilirubinemia: Denominator is all livebirths reported in MNH11 with mh09 filled out and have passed the risk period with a visit OR died within the risk period 
   # a. hyperbilirubinemia by TCB
@@ -2744,16 +3134,18 @@ knitr::include_graphics("hyperbili_all_crit_output2.png")
 
 \newpage
 
-
 ## 10. PSBI
 
-**Definition:** Presence of any clinical signs or symptoms as defined by the WHO IMCI criteria, which are consistent with possible severe bacterial infection from delivery to 59 days.
+**Definition:** Presence of any clinical signs or symptoms as defined by
+the WHO IMCI criteria, which are consistent with possible severe
+bacterial infection from delivery to 59 days.
 
-**Denominator:** All livebirths aged 0-59 days. 
+**Denominator:** All livebirths aged 0-59 days.
 
-&nbsp;
+ 
 
 ### Table 10. PSBI
+
 ```{r, psbi, message = FALSE, warning = FALSE}
 # Has the baby had difficulty in feeding
 # Has the baby had convulsions? 
@@ -3260,7 +3652,8 @@ psbi_tab_output3 <- psbi_tab_output3 %>% gtsave("psbi_tab_output3.png", expand =
 knitr::include_graphics("psbi_tab_output3.png")
 ```
 
-\newpage 
+\newpage
+
 ```{r, out.width = '100%'}
 
 psbi_tab_output4 <- psbi_tab_output4 %>% gtsave("psbi_tab_output4.png", expand = 8)
@@ -3271,9 +3664,15 @@ knitr::include_graphics("psbi_tab_output4.png")
 
 ## 11. Neonatal Sepsis
 
-**Definition:** Inflammatory response and organ dysfunction following presence of a severe infection from delivery to 28 days as suspected (by a clinician) or proven (with culture). Defined below using reported neonatal sepsis variables and confirmed blood culture (varnames [form]: `INFANT_MHTERM_10 [MNH11]`, `INFANT_MHTERM_10 [MNH13]`, `INFECTION_MHTERM_1 [MNH20]`,`CULTURE_LBORRES [MNH11]`, `BLD_CULT_LBORRES [MNH13]`, `BLD_CULT_LBORRES [MNH20]`).
+**Definition:** Inflammatory response and organ dysfunction following
+presence of a severe infection from delivery to 28 days as suspected (by
+a clinician) or proven (with culture). Defined below using reported
+neonatal sepsis variables and confirmed blood culture (varnames [form]:
+`INFANT_MHTERM_10 [MNH11]`, `INFANT_MHTERM_10 [MNH13]`,
+`INFECTION_MHTERM_1 [MNH20]`,`CULTURE_LBORRES [MNH11]`,
+`BLD_CULT_LBORRES [MNH13]`, `BLD_CULT_LBORRES [MNH20]`).
 
-**Denominator:** All livebirths. 
+**Denominator:** All livebirths.
 
 ### Table 11. Neonatal Sepsis
 
@@ -3387,33 +3786,52 @@ knitr::include_graphics("neonatal_sepsis_output.png")
 ```
 
 \newpage
+
 ## 12. Infant growth trajectories
 
-**Definitions:** 
+**Definitions:**
 
-**-** Underweight (Weight for Age - WAZ):  Proportion of infants more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 	
+**-** Underweight (Weight for Age - WAZ): Proportion of infants more
+than 2 standard deviations (z score) below the WHO Children Health
+Reference Growth Standard.
 
-**-** Severely Underweight (Weight for Age - WAZ): Proportion of infants more than 3 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 	
+**-** Severely Underweight (Weight for Age - WAZ): Proportion of infants
+more than 3 standard deviations (z score) below the WHO Children Health
+Reference Growth Standard.
 
-**-** Wasting (Weight for Length - WFL): Proportion of infants with more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 
+**-** Wasting (Weight for Length - WFL): Proportion of infants with more
+than 2 standard deviations (z score) below the WHO Children Health
+Reference Growth Standard.
 
-**-** Severe Wasting (Weight for Length - WFL): Proportion of infants more than 3 standard deviations (z score) below the WHO Children Health Reference Growth Standard.
+**-** Severe Wasting (Weight for Length - WFL): Proportion of infants
+more than 3 standard deviations (z score) below the WHO Children Health
+Reference Growth Standard.
 
-**-** Stunting (Length for Age - LAZ): Proportion of infants more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard
+**-** Stunting (Length for Age - LAZ): Proportion of infants more than 2
+standard deviations (z score) below the WHO Children Health Reference
+Growth Standard
 
-**-** Severe Stunting (Length for Age - LAZ): Proportion of infants more than 3 standard deviations  (z score) below the WHO Children Health Reference Growth Standard
+**-** Severe Stunting (Length for Age - LAZ): Proportion of infants more
+than 3 standard deviations (z score) below the WHO Children Health
+Reference Growth Standard
 
-**-** Microcephaly ( Head circumference for Age - HCZ): Proportion of infants more than 3 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 
+**-** Microcephaly ( Head circumference for Age - HCZ): Proportion of
+infants more than 3 standard deviations (z score) below the WHO Children
+Health Reference Growth Standard.
 
-**-** Overweight (Weight for Length - WFL): Proportion of infants with more than 2 standard deviations (z score) below the WHO Children Health Reference Growth Standard. 
+**-** Overweight (Weight for Length - WFL): Proportion of infants with
+more than 2 standard deviations (z score) below the WHO Children Health
+Reference Growth Standard.
 
-&nbsp;
+ 
 
 \newpage
 
 ### Table 12a. Infant growth outcome at birth
 
-**Denominator:** All liveborn infants who have completed the IPC visit (0-5 days) (MNH11 & MNH09) AND have all anthropometric measures AND have valid z-scores.
+**Denominator:** All liveborn infants who have completed the IPC visit
+(0-5 days) (MNH11 & MNH09) AND have all anthropometric measures AND have
+valid z-scores.
 
 ```{r}
 
@@ -3689,7 +4107,9 @@ knitr::include_graphics("inf_traj_birth_output2.png")
 
 ### Table 12b. Infant growth outcome at one month
 
-**Denominator:** All liveborn infants who have completed at least one visit at one month (21-42 days) of age, AND have all required anthropometric measurements, AND  possess valid z-scores.
+**Denominator:** All liveborn infants who have completed at least one
+visit at one month (21-42 days) of age, AND have all required
+anthropometric measurements, AND possess valid z-scores.
 
 ```{r}
 
@@ -3941,7 +4361,9 @@ knitr::include_graphics("inf_traj_onem_output2.png")
 
 ### Table 12c. Infant growth outcome at six months
 
-**Denominator:** All liveborn infants who have completed at least one visit at six months of age (171-222 days) AND have all required anthropometric measurements AND possess valid z-scores.
+**Denominator:** All liveborn infants who have completed at least one
+visit at six months of age (171-222 days) AND have all required
+anthropometric measurements AND possess valid z-scores.
 
 ```{r}
 
@@ -4556,51 +4978,50 @@ my_theme_1 <- function() {
 
 ```
 
-
 **Infant growth visualizations**
 
-The following distributions visualizes the mean Length for Age (LAZ), Weight for Age (WAZ)
-and Head Circumference (HC) Z-scores by site
+The following distributions visualizes the mean Length for Age (LAZ),
+Weight for Age (WAZ) and Head Circumference (HC) Z-scores by site
 
-Z-scores were generated using the 
+Z-scores were generated using the
 
-1. Intergrowth Standard
-2. WHO Standard
+1.  Intergrowth Standard
+2.  WHO Standard
 
-For IPC Visits, the Intergrowth package calculates Z-scores for all infants based on the Gestational Age at birth. 
-However, for subsequent visits, the Intergrowth package ONLY ADJUSTS FOR PRETERM babies. 
-This adjustment is only available for;
+For IPC Visits, the Intergrowth package calculates Z-scores for all
+infants based on the Gestational Age at birth. However, for subsequent
+visits, the Intergrowth package ONLY ADJUSTS FOR PRETERM babies. This
+adjustment is only available for;
 
-- Weight for Age
-- Length for Age
-- Head Circumference for Age
+-   Weight for Age
+-   Length for Age
+-   Head Circumference for Age
 
-There is no r-package available to adjust for preterm Weight-for-Length z-score after birth
-
-
+There is no r-package available to adjust for preterm Weight-for-Length
+z-score after birth
 
 **PRISMA Visit Windows:**
 
-**Birth:** Initial measurement at birth;   
+**Birth:** Initial measurement at birth;
 
-**PNC-4:** Postnatal check at 28-35 days; 
+**PNC-4:** Postnatal check at 28-35 days;
 
-**PNC-6:** Postnatal check at 6-12 weeks;  
+**PNC-6:** Postnatal check at 6-12 weeks;
 
-**PNC-26:** Postnatal check at 26-39 weeks; 
+**PNC-26:** Postnatal check at 26-39 weeks;
 
 **PNC-52:** Postnatal check at 52-64 weeks.
 
+**Abbreviations:**
 
-**Abbreviations:** 
-
-**LAZ:** Length-for-Age Z-score, WAZ: Weight-for-Age Z-score, 
+**LAZ:** Length-for-Age Z-score, WAZ: Weight-for-Age Z-score,
 
 **WLF:** Weight-for-length, HC: Head Circumference
 
 \newpage
 
-### Figure 5: Mean infant growth measures by PRISMA PNC visit windows across sites. 
+### Figure 5: Mean infant growth measures by PRISMA PNC visit windows across sites.
+
 ```{r, out.width = "105%",fig.height= 6.5, fig.width=8, fig.align='left'}
 
 ggplot(all_data, aes(x = TYPE_VISIT_CONS, y = fit, color = Method, shape = Method)) +
@@ -4638,24 +5059,29 @@ ggplot(all_data, aes(x = TYPE_VISIT_CONS, y = fit, color = Method, shape = Metho
 
 ```
 
-
 \newpage
 
-### Figure 6: cummulative change in stunting across PRISMA PNC visit windows 
- 
+### Figure 6: cummulative change in stunting across PRISMA PNC visit windows
+
 Definitions of stunting status categories
 
-1. **Never Stunted**: Children who have never been stunted at any recorded time point .
+1.  **Never Stunted**: Children who have never been stunted at any
+    recorded time point .
 
-2. **No Longer Stunting**: Children who were previously stunted but are not stunted in the current time point.
+2.  **No Longer Stunting**: Children who were previously stunted but are
+    not stunted in the current time point.
 
-3. **Newly Stunted**: Children who were not stunted in the previous time point but are stunted in the current time point.
+3.  **Newly Stunted**: Children who were not stunted in the previous
+    time point but are stunted in the current time point.
 
-4. **Still Stunted**: Children who remain stunted across consecutive time points.
+4.  **Still Stunted**: Children who remain stunted across consecutive
+    time points.
 
-5. **Increased Stunting**: Children who were stunted in the previous time point and have transitioned to severe stunting.
+5.  **Increased Stunting**: Children who were stunted in the previous
+    time point and have transitioned to severe stunting.
 
-6. **Stunting Relapse**: Children who were not stunted previously, then stunted, recovered, and are stunted again.
+6.  **Stunting Relapse**: Children who were not stunted previously, then
+    stunted, recovered, and are stunted again.
 
 ```{r, out.width = "100%", fig.width= 8, fig.height= 6, fig.align='left'}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%") 
@@ -4688,16 +5114,30 @@ ggplot(data_summary, aes(x = TYPE_VISIT_CONS, y = Percentage, fill = STATUS)) +
 
 \newpage
 
-## 13. Exclusive Breastfeeding Analysis 
+## 13. Exclusive Breastfeeding Analysis
 
-**Exclusive breastfeeding (EBF) at a given postnatal timepoint is defined cumulatively**.
+**Exclusive breastfeeding (EBF) at a given postnatal timepoint is
+defined cumulatively**.
 
-An infant is classified as **exclusively breastfed** at a given timepoint if the caregiver reported exclusive breastfeeding at that visit and at all prior postnatal visits, with no reported intake of any non-breast-milk foods or liquids at any earlier visit.
+An infant is classified as **exclusively breastfed** at a given
+timepoint if the caregiver reported exclusive breastfeeding at that
+visit and at all prior postnatal visits, with no reported intake of any
+non-breast-milk foods or liquids at any earlier visit.
 
-If an infant is reported as receiving any non-breast-milk food or liquid at any visit, the infant is considered not exclusively breastfed from that time onward and remains classified as non-EBF at all subsequent timepoints.
+If an infant is reported as receiving any non-breast-milk food or liquid
+at any visit, the infant is considered not exclusively breastfed from
+that time onward and remains classified as non-EBF at all subsequent
+timepoints.
 
-For the following tables and descriptive analysis,
-exclusive breastfeeding (EBF) patterns were examined across the early postnatal period, with assessments conducted at both the 6-week and 6-month postnatal visits to capture changes in infant feeding practices over time. The analysis evaluate data availability and measurement completeness, estimate the proportion of infants exclusively breastfed, and explore variation in EBF prevalence across combined size-for-gestational-age and gestational-age (Small Vulnerable Newborn - SVN) groupings.
+For the following tables and descriptive analysis, exclusive
+breastfeeding (EBF) patterns were examined across the early postnatal
+period, with assessments conducted at both the 6-week and 6-month
+postnatal visits to capture changes in infant feeding practices over
+time. The analysis evaluate data availability and measurement
+completeness, estimate the proportion of infants exclusively breastfed,
+and explore variation in EBF prevalence across combined
+size-for-gestational-age and gestational-age (Small Vulnerable Newborn -
+SVN) groupings.
 
 ```{r}
 #EBF General Data Cleaning ----
@@ -5232,13 +5672,27 @@ tb_ebf_food_pnc6 <- tb_theme1(tb_food_theme_pnc6) %>%
 ```
 
 ### 13a. Infant exclusive breastfeeding status at 6weeks
-Infant exclusive breastfeeding (EBF) status was assessed at the 6-week postnatal care visit to describe feeding practices during early infancy. The following tables summarize the completeness of EBF data, the prevalence of exclusive breastfeeding overall and across infant size-for-gestational-age and gestational-age (SVN) categories, and caregiver-reported feeding behaviors among infants who were not exclusively breastfed.
 
-For infants not exclusively breastfed at 6 weeks, additional summaries characterize reported reasons for non-exclusive breastfeeding and the types of non-breastmilk foods or liquids introduced. These caregiver-reported measures allow multiple responses; therefore, percentages may sum to more than 100 percent.
+Infant exclusive breastfeeding (EBF) status was assessed at the 6-week
+postnatal care visit to describe feeding practices during early infancy.
+The following tables summarize the completeness of EBF data, the
+prevalence of exclusive breastfeeding overall and across infant
+size-for-gestational-age and gestational-age (SVN) categories, and
+caregiver-reported feeding behaviors among infants who were not
+exclusively breastfed.
 
-Together, these analyses provide an integrated overview of early infant feeding practices and contextual factors influencing exclusive breastfeeding at the 6-week postnatal timepoint.
+For infants not exclusively breastfed at 6 weeks, additional summaries
+characterize reported reasons for non-exclusive breastfeeding and the
+types of non-breastmilk foods or liquids introduced. These
+caregiver-reported measures allow multiple responses; therefore,
+percentages may sum to more than 100 percent.
+
+Together, these analyses provide an integrated overview of early infant
+feeding practices and contextual factors influencing exclusive
+breastfeeding at the 6-week postnatal timepoint.
 
 #### Table 13a (i). Infant exclusive breastfeeding completion status at 6weeks
+
 ```{r, out.width = '100%'}
 tb_ebf_comp_pnc6 <- tb_ebf_comp_pnc6 %>% gtsave("tb_ebf_comp_pnc6.png", expand = 10)
 knitr::include_graphics("tb_ebf_comp_pnc6.png")
@@ -5247,20 +5701,25 @@ knitr::include_graphics("tb_ebf_comp_pnc6.png")
 \newpage
 
 #### Table 13a (ii). Infant exclusive breastfeeding prevalence overall and by SVN group at 6weeks
+
 ```{r, out.width = '100%'}
 tb_ebf_prp_pnc6 <- tb_ebf_prp_pnc6 %>% gtsave("tb_ebf_prp_pnc6.png", expand = 10)
 knitr::include_graphics("tb_ebf_prp_pnc6.png")
 ```
+
 \newpage
 
 #### Table 13a (iii). Reasons why infant are not exclusively breastfed as reported by caregiver at 6weeks
+
 ```{r, out.width = '100%'}
 tb_ebf_rsn_pnc6 <- tb_ebf_rsn_pnc6 %>% gtsave("tb_ebf_rsn_pnc6.png", expand = 10)
 knitr::include_graphics("tb_ebf_rsn_pnc6.png")
 ```
+
 \newpage
 
 #### Table 13a (iv). Other foods given to infants not exclusively breastfed as reported by caregiver at 6weeks
+
 ```{r, out.width = '100%'}
 tb_ebf_food_pnc6 <- tb_ebf_food_pnc6 %>% gtsave("tb_ebf_food_pnc6.png", expand = 10)
 knitr::include_graphics("tb_ebf_food_pnc6.png")
@@ -5747,27 +6206,45 @@ tb_ebf_food_pnc26 <- tb_theme1(tb_food_theme_pnc26) %>%
 \newpage
 
 ### 13b. Infant exclusive breastfeeding status at 26weeks
-Infant exclusive breastfeeding (EBF) status was assessed at the 6-week postnatal care visit to describe feeding practices during early infancy. The following tables summarize the completeness of EBF data, the prevalence of exclusive breastfeeding overall and across infant size-for-gestational-age and gestational-age (SVN) categories, and caregiver-reported feeding behaviors among infants who were not exclusively breastfed.
 
-For infants not exclusively breastfed at 6 weeks, additional summaries characterize reported reasons for non-exclusive breastfeeding and the types of non-breastmilk foods or liquids introduced. These caregiver-reported measures allow multiple responses; therefore, percentages may sum to more than 100 percent.
+Infant exclusive breastfeeding (EBF) status was assessed at the 6-week
+postnatal care visit to describe feeding practices during early infancy.
+The following tables summarize the completeness of EBF data, the
+prevalence of exclusive breastfeeding overall and across infant
+size-for-gestational-age and gestational-age (SVN) categories, and
+caregiver-reported feeding behaviors among infants who were not
+exclusively breastfed.
 
-Together, these analyses provide an integrated overview of early infant feeding practices and contextual factors influencing exclusive breastfeeding at the 6-week postnatal timepoint.
+For infants not exclusively breastfed at 6 weeks, additional summaries
+characterize reported reasons for non-exclusive breastfeeding and the
+types of non-breastmilk foods or liquids introduced. These
+caregiver-reported measures allow multiple responses; therefore,
+percentages may sum to more than 100 percent.
+
+Together, these analyses provide an integrated overview of early infant
+feeding practices and contextual factors influencing exclusive
+breastfeeding at the 6-week postnatal timepoint.
 
 #### Table 13b (i). Infant exclusive breastfeeding completion status at 26weeks
+
 ```{r, out.width = '100%'}
 tb_ebf_comp_pnc26 <- tb_ebf_comp_pnc26 %>% gtsave("tb_ebf_comp_pnc26.png", expand = 10)
 knitr::include_graphics("tb_ebf_comp_pnc26.png")
 ```
+
 \newpage
 
 #### Table 13b (ii). Infant exclusive breastfeeding prevalence overall and by SVN group at 26weeks
+
 ```{r, out.width = '100%'}
 tb_ebf_prp_pnc26 <- tb_ebf_prp_pnc26 %>% gtsave("tb_ebf_prp_pnc26.png", expand = 10)
 knitr::include_graphics("tb_ebf_prp_pnc26.png")
 ```
+
 \newpage
 
 #### Table 13b (iii). Reasons why infant are not exclusively breastfed as reported by caregiver at 26weeks
+
 ```{r, out.width = '100%'}
 tb_ebf_rsn_pnc26 <- tb_ebf_rsn_pnc26 %>% gtsave("tb_ebf_rsn_pnc26.png", expand = 10)
 knitr::include_graphics("tb_ebf_rsn_pnc26.png")
@@ -5776,6 +6253,7 @@ knitr::include_graphics("tb_ebf_rsn_pnc26.png")
 \newpage
 
 #### Table 13b (iv). Other foods given to infants not exclusively breastfed as reported by caregiver at 26weeks
+
 ```{r, out.width = '100%'}
 tb_ebf_food_pnc26 <- tb_ebf_food_pnc26 %>% gtsave("tb_ebf_food_pnc26.png", expand = 10)
 knitr::include_graphics("tb_ebf_food_pnc26.png")

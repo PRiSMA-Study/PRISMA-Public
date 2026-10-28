@@ -2894,8 +2894,13 @@ psbi_long_export <- psbi_long %>%
     # --- PSBI variables ---
     INF_PSBI, VISIT_WINDOW,
     # --- symptom variables ---
-    contains("SYMPTOM"),contains("SIGN"),contains("FEVER"),
-    contains("COUGH"),contains("BREATH"),contains("TEMP"))
+    # Clinical signs and symptoms
+    contains("SYMPTOM"), contains("SIGN"),
+    contains("POOR_FEED"), contains("CONV"),
+    contains("BREATH"), contains("RR"),
+    contains("CHEST"), contains("COUGH"),
+    contains("FEVER"), contains("TEMP"),
+    contains("HYPO"))
 
 
 ##  Exports 

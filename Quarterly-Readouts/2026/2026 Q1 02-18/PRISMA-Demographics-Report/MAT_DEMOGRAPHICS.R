@@ -282,10 +282,10 @@ df_demo <- prep_demo %>%
     ), 
     #singleton
     singleton = case_when(
-      M06_SINGLETON_PERES == 1 ~ 1,
-      M06_SINGLETON_PERES == 0 ~ 0,
       M01_FETUS_CT_PERES_US == 1 ~ 1, 
       M01_FETUS_CT_PERES_US > 1 ~ 0,
+      M06_SINGLETON_PERES == 1 ~ 1,
+      M06_SINGLETON_PERES == 0 ~ 0,
       TRUE ~ NA_real_
     ), 
     #educated
