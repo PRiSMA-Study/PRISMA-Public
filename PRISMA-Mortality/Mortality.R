@@ -1926,9 +1926,10 @@ names (mat_mortality_all)
 # Save dataset
 write.csv(mat_mortality_all, paste0(path_to_tnt, "MAT_MORTALITY.csv"),
           na = "", row.names = FALSE)
-write_dta(mat_mortality_all, paste0(path_to_tnt, "MAT_MORTALITY.dta"))
+
+writexl::write_xlsx(mat_mortality_all, paste0(path_to_tnt, "MAT_MORTALITY.xlsx"))
 
 write.csv(mat_mortality_all, paste0(path_to_save, "MAT_MORTALITY.csv"),
           na = "", row.names = FALSE)
-write_dta(mat_mortality_all, paste0(path_to_save, "MAT_MORTALITY.dta"))
 
+writexl::write_xlsx(mat_mortality_all, paste0(path_to_save, "MAT_MORTALITY.xlsx"))
