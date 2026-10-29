@@ -66,7 +66,7 @@ if (file.exists(file.path(path_to_data, "INF_OUTCOMES.rda"))) {
 if (file.exists(file.path(path_to_data, "MAT_ENROLL.rda"))) {
   load(file.path(path_to_data, "MAT_ENROLL.rda"))      # loads: mat_enroll
 } else {
-  mat_enroll <- read.csv(file.path(path_to_tnt, "MAT_ENROLL.csv"))
+  mat_enroll <- read.csv(file.path(path_to_tnt, "MAT_STUDYSTATUS.csv"))
   save(mat_enroll, file = file.path(path_to_data, "MAT_ENROLL.rda"))
 }
 

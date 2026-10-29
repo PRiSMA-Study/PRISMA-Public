@@ -243,12 +243,18 @@ setwd(paste0(path_to_save))
 ```
 
 **Includes data from Synapse last updated:**
-- Ghana: `r UploadDate_site["Ghana"]`
-- India-CMC: `r UploadDate_site["India-CMC"]`
-- India-SAS: `r UploadDate_site["India-SAS"]`
-- Kenya: `r UploadDate_site["Kenya"]`
-- Pakistan: `r UploadDate_site["Pakistan"]`
-- Zambia: `r UploadDate_site["Zambia"]`
+
+-   Ghana: `r UploadDate_site["Ghana"]`
+
+-   India-CMC: `r UploadDate_site["India-CMC"]`
+
+-   India-SAS: `r UploadDate_site["India-SAS"]`
+
+-   Kenya: `r UploadDate_site["Kenya"]`
+
+-   Pakistan: `r UploadDate_site["Pakistan"]`
+
+-   Zambia: `r UploadDate_site["Zambia"]`
 
 \tableofcontents
 
@@ -1078,11 +1084,11 @@ ggplot(data=infant_outcomes,
   
 ```
 
-[ Figure 2c. Hours following birth weight measurement recorded by
+[Figure 2c. Hours following birth weight measurement recorded by
 PRISMA-trained staff (or Facility reported where PRISMA measurement not
 available). Report of "0" indicates the measurement was taken \<1hr
-following birth. Dashed lines represent 24, 48, and 72 hour time points.
-]{style="font-size: 88%;"}
+following birth. Dashed lines represent 24, 48, and 72 hour time
+points.]{style="font-size: 88%;"}
 
 \newpage
 
@@ -1435,7 +1441,7 @@ ggplot(data=infant_outcomes %>% filter(LIVEBIRTH == 1 | STILLBIRTH_20WK==1),
   
 ```
 
-[ Figure 3b. Among all deliveries (stillbirths and livebirths).
+[Figure 3b. Among all deliveries (stillbirths and livebirths).
 Gestational age at birth was calculated by taking the difference between
 the DOB and "estimated conception date" determined by BOE.\
 ]{style="font-size: 88%;"}

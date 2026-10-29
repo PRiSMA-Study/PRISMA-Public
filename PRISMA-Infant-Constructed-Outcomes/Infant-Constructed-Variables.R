@@ -2905,7 +2905,7 @@ psbi_long_export <- psbi_long %>%
 
 ##  Exports 
 write.csv(psbi_long_export, file.path(path_to_save, "INF_PSBI_LONG.csv"),       row.names = FALSE)
-write.csv(psbi_long_export, file.path(path_to_tnt,  "INF_PSBI_LONG.csv"),       row.names = FALSE)
+# write.csv(psbi_long_export, file.path(path_to_tnt,  "INF_PSBI_LONG.csv"),       row.names = FALSE)
 write.csv(psbi_outcome_wide,file.path(path_to_save, "INF_PSBI_WIDE.csv"),       row.names = FALSE)
 write.csv(psbi_outcome_sub, file.path(path_to_save, "INF_PSBI_IHME.csv"),       row.names = FALSE)
 
@@ -3582,23 +3582,23 @@ infant_outcomes <- inf_baseline %>%
   full_join(neo_sepsis[c("SITE", "INFANTID", "MOMID", "PREGID",
                          "NEO_SEPSIS", "NEO_SEPSIS_PSBI",
                          "NEO_SEPSIS_CULTURE", "NEO_SEPSIS_AGE")],
-            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
-  full_join(fetal_anomaly_final[c("SITE", "INFANTID", "MOMID", "PREGID",
-                                  "INF_ANOMALY", "INF_ANOMALY_TYPE", "INF_ANOMALY_COUNT",
-                                  "INF_ANOMALY_CLEFTLIP", "INF_ANOMALY_NEURAL", "INF_ANOMALY_ABDOMINAL",
-                                  "INF_ANOMALY_BLADDER", "INF_ANOMALY_KIDNEY", "INF_ANOMALY_ANORECTAL",
-                                  "INF_ANOMALY_HEART", "INF_ANOMALY_BOWEL", "INF_ANOMALY_TRACH",
-                                  "INF_ANOMALY_HYDROCEPH", "INF_ANOMALY_HIPDYSP", "INF_ANOMALY_SKELDYSP",
-                                  "INF_ANOMALY_CLUBFOOT", "INF_ANOMALY_OTHER", "INF_ANOMALY_FINGERS",
-                                  "INF_ANOMALY_UNKNOWN")],
-            by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
-  full_join(inf_presentation[c("SITE", "INFANTID", "MOMID", "PREGID",
-                               "INF_PRES", "INF_PRES_CEPH", "INF_PRES_BREECH",
-                               "INF_PRES_TRANS", "INF_PRES_BROW", "INF_PRES_OTHER",
-                               "INF_MODE_CES", "INF_MODE_VAG",
-                               "INF_MODE_VAG_ASSISTED", "INF_MODE_VAG_FORCEPS",
-                               "INF_PRES_DENOM", "INF_MODE_DENOM")],
-            by = c("SITE", "INFANTID", "MOMID", "PREGID"))
+            by = c("SITE", "INFANTID", "MOMID", "PREGID")) 
+  # full_join(fetal_anomaly_final[c("SITE", "INFANTID", "MOMID", "PREGID",
+  #                                 "INF_ANOMALY", "INF_ANOMALY_TYPE", "INF_ANOMALY_COUNT",
+  #                                 "INF_ANOMALY_CLEFTLIP", "INF_ANOMALY_NEURAL", "INF_ANOMALY_ABDOMINAL",
+  #                                 "INF_ANOMALY_BLADDER", "INF_ANOMALY_KIDNEY", "INF_ANOMALY_ANORECTAL",
+  #                                 "INF_ANOMALY_HEART", "INF_ANOMALY_BOWEL", "INF_ANOMALY_TRACH",
+  #                                 "INF_ANOMALY_HYDROCEPH", "INF_ANOMALY_HIPDYSP", "INF_ANOMALY_SKELDYSP",
+  #                                 "INF_ANOMALY_CLUBFOOT", "INF_ANOMALY_OTHER", "INF_ANOMALY_FINGERS",
+  #                                 "INF_ANOMALY_UNKNOWN")],
+  #           by = c("SITE", "INFANTID", "MOMID", "PREGID")) %>%
+  # full_join(inf_presentation[c("SITE", "INFANTID", "MOMID", "PREGID",
+  #                              "INF_PRES", "INF_PRES_CEPH", "INF_PRES_BREECH",
+  #                              "INF_PRES_TRANS", "INF_PRES_BROW", "INF_PRES_OTHER",
+  #                              "INF_MODE_CES", "INF_MODE_VAG",
+  #                              "INF_MODE_VAG_ASSISTED", "INF_MODE_VAG_FORCEPS",
+  #                              "INF_PRES_DENOM", "INF_MODE_DENOM")],
+  #           by = c("SITE", "INFANTID", "MOMID", "PREGID"))
 
 
 ## data cleaning - recode missing 
@@ -3632,7 +3632,8 @@ infant_outcomes<- infant_outcomes %>%
          DELIVERY_DATETIME,GESTAGEBIRTH_ANY,GESTAGEBIRTH_ANY_DAYS, GESTAGE_FETAL_LOSS_WKS, 
          CLOSEOUT, DTH_INDICATOR,AGE_LAST_SEEN, DEATHDATE_MNH24, DEATHTIME_MNH24, DEATH_DATETIME, AGEDEATH_DAYS, AGEDEATH_HRS,
          D28_DENOM, D365_DENOM,MISSING_MNH09, MISSING_MNH11, DTH_TIME_MISSING, DOB_AFTER_DEATH,
-         BWEIGHT_PRISMA, BWEIGHT_ANY,M11_BW_FAORRES_REPORT, contains("LBW"),BW_TIME, MISSING_TIME, MISSING_PRISMA, MISSING_FACILITY, MISSING_BOTH, contains("PRETERM"), contains("SGA"), contains("NEO_DTH"),INF_DTH,INF_FETAL_DTH_DENOM,
+         BWEIGHT_PRISMA, BWEIGHT_ANY,M11_BW_FAORRES_REPORT, contains("LBW"),BW_TIME, MISSING_TIME, MISSING_PRISMA, MISSING_FACILITY, 
+         MISSING_BOTH, contains("PRETERM"), contains("SGA"), contains("NEO_DTH"),INF_DTH,INF_FETAL_DTH_DENOM,
          contains("STILLBIRTH"), MISSING_SIGNS_OF_LIFE, contains("INF_"),
          contains("DENOM_HYPERBILI"), DENOM_JAUN,NEO_SEPSIS, NEO_SEPSIS_PSBI, NEO_SEPSIS_CULTURE, NEO_SEPSIS_AGE,
          INF_SGA_POSTTERM, INF_AGA_POSTTERM, INF_BREATH_MASK_VENT, INF_BREATH_PRESSURE, INF_BREATH_SUCTION,
