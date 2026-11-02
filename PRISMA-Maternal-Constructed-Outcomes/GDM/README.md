@@ -8,32 +8,6 @@ The program generates both laboratory-based and clinically reported indicators o
 
 ---
 
-## Version History
-
-### Original Version
-
-**April 2024**
-Erin Oakley
-
-### Current Version
-
-**October 2026**  
-Emma K. Cook (emmacook@gwu.edu)
-
-Major updates include:
-
-- HbA1c threshold corrected to ≥6.5%.
-- Revised denominator definitions based on ERS and CRS feedback.
-- Exclusion of India-SAS from the 1-hour OGTT assessment.
-- Addition of reported pre-existing diabetes diagnosis variables.
-- Addition of diabetes treatment variables.
-- Addition of alternative diagnostic criteria (WHO, Canadian, ACOG, DIPSI).
-- Standardized OGTT selection algorithm using the most recent valid test.
-- Inclusion of gestational age and date variables for all laboratory measures.
-- Updates for revised MAT_STUDYSTATUS structure.
-
----
-
 ## Required Inputs
 
 Required datasets:
@@ -43,6 +17,8 @@ Required datasets:
 - MNH09
 - MNH19
 - MAT_STUDYSTATUS
+
+Note: stacked data (mnh04, mnh08, mnh09, mnh19) processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
 
 ---
 
@@ -155,3 +131,18 @@ Women are included in the gestational diabetes denominator if:
 - Have not been classified with overt diabetes,
 - Remained pregnant beyond 28 weeks gestation or had a valid OGTT result,
 - Were not closed out before the ANC-28 assessment window.
+
+---
+
+## Version History
+
+### Original Version
+
+**April 2024**
+Erin Oakley
+
+### Current Version
+
+**October 2026**  
+Emma K. Cook (emmacook@gwu.edu)
+
