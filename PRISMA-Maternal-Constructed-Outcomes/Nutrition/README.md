@@ -32,6 +32,8 @@ Creates BRINDA-adjusted ferritin and soluble transferrin receptor (sTfR) values.
 - `mnh06.dta`
 - `mnh08.dta`
 
+Note: stacked data processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
+
 **Key steps**
 - Cleans ferritin, CRP, AGP, and sTfR results
 - Carries forward malaria tests occurring within 30 days before specimen collection
@@ -57,6 +59,8 @@ Constructs maternal nutrition indicators across pregnancy and postpartum visits.
 - `MAT_STUDYSTATUS.dta`
 - `MAT_BASELINE.dta`
 - `mnh08_BRINDA_adj_iron.dta`
+
+Note: stacked data processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
 
 **Key outputs**
 - `MAT_NUTR_LONG.dta` (visit-level)
