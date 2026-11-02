@@ -1,0 +1,424 @@
+---
+title: "Mat_GDM_analysis"
+author: "Fouzia Farooq"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+#TODO EXCLUDE PPL WITH HBA1C HIGh from missing info. (Those who have high hba1c at enrollment will not have a fasting/ogtt test)
+# Remove everyone who has a high hba1c from calc. Missing in having a fasting test and OGTT b/c these ppl can’t have GDM then and their test won’t be done either.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE}
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(stringr)
+# library(ThemePark)
+library(purrr)
+library(lubridate)
+library(readr)
+library(tidyr)
+library(haven)
+library(tableone)
+library(kableExtra)
+library(VennDiagram)
+library(ggvenn)
+library(wesanderson)
+```
+
+# OVERT diabetes = check if a women at enrollment has been diagnosed using hba1c.
+# GDM: Among women who have an ANC28 and have a GA_AT_VISI>20. 
+# WOMEN WHO WERE ENROLLED >18 WEEKS WILL NOT HAVE AN ANC20 VISIT FORM BUT THEY SHOULD HAVE ANC28
+
+```{r}
+# merged_df <- readRDS('../data_out/merged_df.RDS')
+diabetes_df <- read.csv('../data_out/mat_diabetes_vars_20240315.csv', header = TRUE)
+window_subset_df <- read.csv('../data_out/window_subset_df.csv', header = TRUE)
+```
+
+# Convert "1907-07-07" to NA:
+# CATEGORICAL: 
+# ---- 77, Not applicable 
+# ---- 55, Missing 
+# ---- 66, Refused to answer
+# ---- 99, Don't know
+
+# CONTINUOUS:
+# ---- -7, Not applicable 
+# ---- -5, Missing 
+# ---- -6, Refused to answer
+# ---- -9, Don't know
+# DATE: 
+# ---- 07-07-1907, Not applicable 
+# ---- 05-05-1905, Missing 
+# ---- 06-06-1906, Refused to answer
+# ---- 09-09-1909, Don't know
+
+# TIME: 
+# ---- 77:77, Not applicable 
+# ---- 55:55, Missing 
+# ---- 66:66, Refused to answer
+# ---- 99:99, Don't know
+```{r echo=FALSE}
+CONVERT_NA <- TRUE
+if(CONVERT_NA ==TRUE){
+  
+  diabetes_df <- diabetes_df %>% #b/c I am passing in the entire dataframe, I don't need to specify the first parameter.
+    mutate_all(function(d) {
+      if_else(d=="1907-07-07", NA, d)
+    })
+  
+  diabetes_df <- diabetes_df %>% 
+    mutate_all(function(d) {
+      if_else(d==-7, NA, d)
+    })
+  
+  diabetes_df <- diabetes_df %>% 
+    mutate_all(function(d) {
+      if_else(d==77, NA, d)
+    })
+  
+  # -5 IS MISSING FOR CONTINOUS
+  diabetes_df <- diabetes_df %>% 
+    mutate_all(function(d) {
+      if_else(d==-5, NA, d)
+    })
+  
+  # 55 IS MISSING FOR CATEGORICAL
+  diabetes_df <- diabetes_df %>% 
+    mutate_all(function(d) {
+      if_else(d==55, NA, d) 
+    })
+  
+  # 55:55 IS MISSING FOR TIME
+  diabetes_df <- diabetes_df %>% 
+    mutate_all(function(d) {
+      if_else(d=='55:55', NA, d)
+    })
+}
+```
+
+
+# SET TO WOMEN WHO HAVE VISIT 3
+```{r}
+diabetes_df2 <- left_join(diabetes_df, window_subset_df, 
+                         by = c("MOMID", "PREGID", "SITE"))
+
+# diabetes_df2 <- diabetes_df  %>% filter(!is.na(M08_LBSTDAT_3)) #THOSE WHO HAVE A VISIT_3 FORM 
+```
+
+```{r}
+temp.df <- diabetes_df2 %>% select(MOMID, SITE, M08_MAT_VISIT_MNH08_1, M08_MAT_VISIT_FORM_COMPLETED_1, M08_MAT_VISIT_MNH08_3, M08_MAT_VISIT_FORM_COMPLETED_3, ANC32_PASS)
+
+missing_mnh08_diab_df <- diabetes_df2 %>%
+  select(MOMID, PREGID, SITE, DELIVERED_FF.x, M08_MAT_VISIT_MNH08_1, M08_MAT_VISIT_FORM_COMPLETED_1, ENROLL_PASS,
+         M08_MAT_VISIT_MNH08_3, M08_MAT_VISIT_FORM_COMPLETED_3, ANC28_PASS)
+
+temp.df %>% summarize(n())
+write.csv(missing_mnh08_diab_df, '../data_out/missing_mnh08_df_diab_20240315_data.csv')
+```
+
+# WOMEN WHO HAVE A GA >=20 WEEKS
+```{r}
+diabetes_df3 <- diabetes_df2 %>%
+  filter(floor(M08_GA_AT_VISIT_3/7) >=20) %>% 
+  filter(ANC28_PASS==1) # Ask Emily - if she wants this or not. 
+
+temp.df <- diabetes_df3 %>%
+  select(MOMID, SITE, M08_MAT_VISIT_MNH08_3, M08_MAT_VISIT_FORM_COMPLETED_3, ANC28_PASS, ENROLL_PASS)
+
+#temp.df2 <- merged_df %>% filter(SITE=="Zambia") %>%
+ # select(MOMID, SITE, M08_GA_AT_VISIT_3, M08_LBSTDAT_3, M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3, 
+  #       ANC28_PASS, M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3,
+   #      EST_CONCEP_DATE, GA_ENROLL_DAYS, M01_US_GA_WKS_AGE_FTS1_1,  GA_US_DAYS_FTS1_1, LMP_GA_DAYS) 
+# IF mnh08 overdue ==1, missing the from (for missing variable frequency).  Denominator - everyone who has passed the window. 
+```
+
+-5 = missing
+-7 = missing
+If i am using ANC28_PASS variable (has the ANC28 window passed; if yes = she should have a form), i need to use M08_OVERDUE variable with it to see if she is overdue for the form that she should have or not. (if OVERDUE==1, then that means she's missing the form and the variable will be missing also). Otherwise, I can also just use MAT_VISIT_FORM_COMPLETED variable alone. 
+
+Use: ANC28_PASS==1 and M08_OVERDUE together 
+M08_OVERDUE - will show that MNH08 form is missing.They get a =1 only if they are overdue for their visit, so if 0 or NA, she is not overdue. 
+otherwise: 
+M08_MAT_VISIT_FORM_COMPLETED is missing = 0, then form is missing.
+
+if OVERDUE is 0 or NA and she is still missing _VISIT_FORM, that's not good. 
+
+OVERDUE variables tell us do they have the form or not (when they should have the form)
+
+
+for HTN here's what I should do: 
+If_else GA at enroll >18 or 19 use enrollment visit form only
+If GA <=17 weeks, she should have an ANC20 form. use ANC20 visit.
+
+# GESTATIONAL DIABETES - SECONDARY OUTCOME: GEST_DIAB***
+
+Look at: 
+- MNH04 ANC28, 32, 36
+- MNH06 ANC 28
+- MNH08 <20, 28
+- MNH09 L&D/IPC: M09_GEST_DIAB_MHOCCUR_6
+- MNH19 Hospitalization visit
+
+```{r echo=FALSE}
+##################################################################################
+#TODO 
+# NOTES: 
+#TODO HBa1c needs to be checked for Kenya - All are done at enrollment they say
+# 1. NEED TO ADD ADDITIONAL CONDITIONS FOR DIAGNOSED # 
+# 2. ALL OF MEASURED variables are NA - FASTING OGTT, HbA1c# 
+
+##################################################################################
+temp.df <- diabetes_df3 %>% select(MOMID, SITE, M08_HBA1C_PRCNT_1) %>% filter(SITE=="Pakistan") 
+# MEASURED # 
+############
+
+temp.df <- diabetes_df3 %>% 
+  select(MOMID, SITE, M08_HBA1C_PRCNT_1, M08_HBA1C_LBORRES_1, M08_BGLUC_PRETEST_MMOLL_LBORRES_3, 
+         M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3, M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3) %>% filter(SITE=="Ghana")
+
+diabetes_df3 <- diabetes_df3 %>% 
+  #dplyr::filter(SITE=="Pakistan") %>%
+  mutate(GEST_DIAB_MEAS = case_when((((is.na(M08_HBA1C_PRCNT_1) | M08_HBA1C_PRCNT_1<6.5) & # If HbA1C is not done, that's ok, we still want to keep that info. 
+                                        ((M08_BGLUC_PRETEST_MMOLL_LBORRES_3>=5.1 | # confirm pre test (fasting) OGTT is high at ANC28
+                                           # when fasting OGTT is high, then 1-hr or 2-hr should be also high at ANC28
+                                           M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3>=10.0) |  # 1-hr at ANC28
+                                        M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3 >=8.5))) ~ 1,
+                                    
+                                    ((is.na(M08_BGLUC_PRETEST_MMOLL_LBORRES_3) |
+                                       M08_BGLUC_PRETEST_MMOLL_LBORRES_3==-5 |
+                                       M08_BGLUC_PRETEST_MMOLL_LBORRES_3==-7)  & 
+                                      
+                                      (is.na(M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3) | 
+                                         M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3==-5 |
+                                         M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3==-7) &
+                                      
+                                      (is.na(M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3) | 
+                                         M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3==-5 | 
+                                         M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3==-7)) ~ as.numeric(NA),
+                                    TRUE ~ as.numeric(0))) 
+
+table(GEST_DIAB_MEAS = diabetes_df3$GEST_DIAB_MEAS, SITE = diabetes_df3$SITE, useNA = "always")
+round(prop.table(table(GEST_DIAB_MEAS = diabetes_df3$GEST_DIAB_MEAS, SITE = diabetes_df3$SITE, useNA = "always"), margin=2)*100,2)
+
+table(diabetes_df3$M08_MAT_VISIT_FORM_COMPLETED_1, useNA = "always")
+temp.df <- diabetes_df3 %>% filter(SITE=="Ghana") %>% select(MOMID, SITE, M08_MAT_VISIT_FORM_COMPLETED_1, M08_LBSTDAT_1, M08_HBA1C_PRCNT_1)
+
+########################################################################################
+```
+
+# SUBSET OF VARIABLES THAT MAKE GEST_DIAB_MEAS
+```{r}
+table(diabetes_df$M08_HBA1C_PRCNT_1, useNA = "always") # has -5 and -7 as NA
+# overt diabetes:
+diabetes_df <- diabetes_df3 
+diabetes_df <- diabetes_df %>% filter(!is.na(M08_LBSTDAT_3)) %>%
+  mutate(OVERT_DIA = case_when(M08_HBA1C_PRCNT_1>=6.5 ~ 1,
+                               (is.na(M08_HBA1C_PRCNT_1) |
+                                  M08_HBA1C_PRCNT_1==-5 |
+                                  M08_HBA1C_PRCNT_1==-7) ~ as.numeric(NA),
+         TRUE ~ as.numeric(0)))
+
+table(diabetes_df$OVERT_DIA, diabetes_df$SITE, useNA = "always")
+round(prop.table(table(diabetes_df$OVERT_DIA, diabetes_df$SITE, useNA = "always"), margin=2)*100,2)
+
+temp.df <- diabetes_df %>% 
+  select(MOMID, SITE, OVERT_DIA, M08_HBA1C_PRCNT_1) %>% 
+  filter(SITE=="Ghana")
+
+# NOTE: No one has fasting, 1-hr or 2-hr OGTT at VISIT 4, or 5 - so i am just gonna keep subset to ANC28
+temp.df <- diabetes_df %>% 
+  select(MOMID, SITE, OVERT_DIA, M08_HBA1C_PRCNT_1, 
+         M08_BGLUC_PRETEST_MMOLL_LBORRES_3, M08_BGLUC_PRETEST_MMOLL_LBORRES_4, M08_BGLUC_PRETEST_MMOLL_LBORRES_5,
+         M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3, M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_4, M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_5,
+         M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3, M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_4, M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_5) 
+
+# FASTING: 
+diabetes_df <- diabetes_df %>% filter(!is.na(M08_LBSTDAT_3)) %>%
+  mutate(OGTT_PRE = case_when(M08_BGLUC_PRETEST_MMOLL_LBORRES_3>=5.1 & 
+                                (M08_HBA1C_PRCNT_1<6.5 | is.na(M08_HBA1C_PRCNT_1)) ~ 1,
+                              (is.na(M08_BGLUC_PRETEST_MMOLL_LBORRES_3) |
+                                 M08_BGLUC_PRETEST_MMOLL_LBORRES_3==-5 |
+                                 M08_BGLUC_PRETEST_MMOLL_LBORRES_3==-7) ~ as.numeric(NA),
+         TRUE ~ as.numeric(0)))
+temp.df <- diabetes_df %>% select(MOMID, SITE, M08_HBA1C_PRCNT_1, M08_BGLUC_PRETEST_MMOLL_LBORRES_3, OGTT_PRE, M08_MAT_VISIT_FORM_COMPLETED_3, ANC28_PASS)
+table(diabetes_df$OGTT_PRE, diabetes_df$SITE, useNA = "always")
+round(prop.table(table(diabetes_df$OGTT_PRE, diabetes_df$SITE, useNA = "always"), margin=2)*100,2)
+
+
+# OGTT 1-hr: 
+diabetes_df <- diabetes_df %>% filter(!is.na(M08_LBSTDAT_3)) %>%
+  mutate(OGTT_1hr = case_when(M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3>=10.0 & 
+                                (M08_HBA1C_PRCNT_1<6.5 | is.na(M08_HBA1C_PRCNT_1)) ~ 1,
+                              (is.na(M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3) |
+                                 M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3==-5 |
+                                 M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3==-7) ~ as.numeric(NA),
+         TRUE ~ as.numeric(0))) #%>%
+     #filter(OGTT_1hr==1) %>% select(MOMID, OGTT_1hr, M08_BGLUC_ORAL_1HR_MMOLL_LBORRES)
+table(diabetes_df$OGTT_1hr, diabetes_df$SITE, useNA = "always")
+round(prop.table(table(diabetes_df$OGTT_1hr, diabetes_df$SITE, useNA = "always"), margin=2)*100,2)
+
+# OGTT 2-hr: 
+diabetes_df <- diabetes_df %>% filter(!is.na(M08_LBSTDAT_3)) %>%
+  mutate(OGTT_2hr = case_when(M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3>=8.5 & 
+                                (M08_HBA1C_PRCNT_1<6.5 | is.na(M08_HBA1C_PRCNT_1)) ~ 1,
+                              (is.na(M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3) | 
+                                 M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3==-5 |
+                                 M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3==-7) ~ as.numeric(NA),
+         TRUE ~ as.numeric(0)))
+
+temp.df <- diabetes_df %>% select(MOMID, SITE, M08_BGLUC_PRETEST_MMOLL_LBORRES_3, M08_BGLUC_PRETEST_MMOLL_LBORRES_4,
+                                  M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_3, M08_BGLUC_ORAL_1HR_MMOLL_LBORRES_4, 
+                                  M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_3, M08_BGLUC_ORAL_2HR_MMOLL_LBORRES_4)
+table(diabetes_df$OGTT_2hr, diabetes_df$SITE, useNA = "always")
+round(prop.table(table(diabetes_df$OGTT_2hr, diabetes_df$SITE, useNA = "always"), margin=2)*100,2)
+
+diabetes_df <- diabetes_df %>%
+  mutate(GEST_DIAB_MEAS_TEST = case_when((OVERT_DIA==0 & (OGTT_PRE==1  | OGTT_1hr==1 | OGTT_2hr==1)) ~ 1,
+         TRUE ~ as.numeric(0)))
+table(diabetes_df$GEST_DIAB_MEAS_TEST, diabetes_df$SITE)
+round(prop.table(table(diabetes_df$GEST_DIAB_MEAS_TEST, diabetes_df$SITE, useNA = "always"), margin=2)*100,2)
+
+# RUN THIS WRITE.CSV CODE SO THAT 'MAT_GDM_TABLES.RMD' RUNS
+write.csv(diabetes_df, '../data_out/mat_diabetes_fortables_20240315_data.csv') # restricted to women who have a visit 3. 
+```
+
+# VennDiagram - All site
+```{r}
+GDM_pre <- diabetes_df %>% filter(OGTT_PRE==1) %>% 
+  select(MOMID) %>% unlist()
+
+GDM_1 <- diabetes_df %>% filter(OGTT_1hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+GDM_2 <- diabetes_df %>% filter(OGTT_2hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+# Package ggvenn
+ggvenn(data = list(`Fasting glucose` = GDM_pre,
+                   `1-hr OGTT` = GDM_1,
+                   `2-hr OGTT` = GDM_2), 
+       fill_color = wesanderson::wes_palette("FantasticFox1", n=3),
+       text_size = 3.5,
+       stroke_size = 0.5,set_name_size = 5)
+```
+
+# VennDiagram - Ghana
+```{r}
+GDM_pre <- diabetes_df %>% filter(SITE=="Ghana") %>%
+  filter(OGTT_PRE==1) %>%
+  select(MOMID) %>% unlist()
+
+GDM_1 <- diabetes_df %>% filter(SITE=="Ghana") %>%
+  filter(OGTT_1hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+GDM_2 <- diabetes_df %>% filter(SITE=="Ghana") %>%
+  filter(OGTT_2hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+# Package ggvenn
+ggvenn(data = list(`Fasting glucose` = GDM_pre,
+                   `1-hr OGTT` = GDM_1,
+                   `2-hr OGTT` = GDM_2), 
+       fill_color = wesanderson::wes_palette("Rushmore1", n=3),
+       text_size = 3.5,
+       stroke_size = 0.5,set_name_size = 5)
+```
+
+# VennDiagram - Kenya
+```{r}
+GDM_pre <- diabetes_df %>% filter(SITE=="Kenya") %>%
+  filter(OGTT_PRE==1) %>%
+  select(MOMID) %>% unlist()
+
+GDM_1 <- diabetes_df %>% filter(SITE=="Kenya") %>% 
+  filter(OGTT_1hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+GDM_2 <- diabetes_df %>% filter(SITE=="Kenya") %>% 
+  filter(OGTT_2hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+# Package ggvenn
+ggvenn(data = list(`Fasting glucose` = GDM_pre,
+                   `1-hr OGTT` = GDM_1,
+                   `2-hr OGTT` = GDM_2), 
+       fill_color = wesanderson::wes_palette("B", n=3),
+       text_size = 3.5,
+       stroke_size = 0.5,set_name_size = 5)
+```
+
+# VennDiagram - Pakistan
+```{r}
+GDM_pre <- diabetes_df %>% filter(SITE=="Pakistan") %>%
+  filter(OGTT_PRE==1) %>%
+  select(MOMID) %>% unlist()
+
+GDM_1 <- diabetes_df %>% filter(SITE=="Pakistan") %>% 
+  filter(OGTT_1hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+GDM_2 <- diabetes_df %>% filter(SITE=="Pakistan") %>% 
+  filter(OGTT_2hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+# Package ggvenn
+ggvenn(data = list(`Fasting glucose` = GDM_pre,
+                   `1-hr OGTT` = GDM_1,
+                   `2-hr OGTT` = GDM_2), 
+       fill_color = wesanderson::wes_palette("BottleRocket2", n=3),
+       text_size = 3.5,
+       stroke_size = 0.5,set_name_size = 5)
+```
+
+# VennDiagram - Zambia
+```{r}
+GDM_pre <- diabetes_df %>% filter(SITE=="Zambia") %>%
+  filter(OGTT_PRE==1) %>%
+  select(MOMID) %>% unlist()
+
+GDM_1 <- diabetes_df %>% filter(SITE=="Zambia") %>% 
+  filter(OGTT_1hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+GDM_2 <- diabetes_df %>% filter(SITE=="Zambia") %>% 
+  filter(OGTT_2hr==1) %>% 
+  select(MOMID) %>% unlist()
+
+# Package ggvenn
+ggvenn(data = list(`Fasting glucose` = GDM_pre,
+                   `1-hr OGTT` = GDM_1,
+                   `2-hr OGTT` = GDM_2), 
+       fill_color = wesanderson::wes_palette("Chevalier1", n=3),
+       text_size = 3.5,
+       stroke_size = 0.5,set_name_size = 5)
+```
+
+
+#  DIAGNOISED - OVERT DIABETES
+```{r}
+# This is DIAGNOSED at enrollment, ANC28, 32, 36 through MNH04.
+
+#tapply(diabetes_df$M08_HBA1C_LBORRES_1, diabetes_df$SITE, summary)
+# %>% group_by(SITE) %>% summary(M08_HBA1C_LBORRES_1)
+# HAVE YOU EVER BEEN DIAGNOSED WITH DIABETES (PRE-EXISITING OR CHRONIC) NEED FROM VISITS 3,4,5.
+diabetes_df3 <- diabetes_df3 %>% 
+  mutate(OVERT_DIAB_DIAG = case_when((is.na(M04_DIABETES_EVER_MHOCCUR_3==0) | M04_DIABETES_EVER_MHOCCUR_3==0 | 
+                                       is.na(M04_DIABETES_EVER_MHOCCUR_4) | M04_DIABETES_EVER_MHOCCUR_4==0 | 
+                                       is.na(M04_DIABETES_EVER_MHOCCUR_5) | M04_DIABETES_EVER_MHOCCUR_5==0) &
+                                      ((M09_GEST_DIAB_MHOCCUR_6==1 | # WAS MOTHER DIAGNOSED WITH GDM
+                                          (M09_INDUCED_PROCCUR_6==1 & M09_INDUCED_PRINDC_6==8)) |
+                                         (M19_PRIMARY_MHTERM_13==4 & M19_LD_COMPL_MHTERM_3_13)) ~ 1,
+                                    TRUE ~ as.numeric(0)))
+
+table(OVERT_DIAB_DIAG = diabetes_df3$OVERT_DIAB_DIAG, SITE = diabetes_df3$SITE, useNA = "always")
+round(prop.table(table(OVERT_DIAB_DIAG = diabetes_df3$OVERT_DIAB_DIAG, SITE = diabetes_df3$SITE, useNA = "always"), margin=2)*100,2)
+
+```
