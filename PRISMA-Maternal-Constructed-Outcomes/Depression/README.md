@@ -8,25 +8,9 @@ The program generates longitudinal depression measures, participant-level summar
 
 ---
 
-## Version History
-
-### Original Version
-
-Savannah O'Malley (savannah.omalley@gwu.edu)
-
-### Current Version
-
-**October 2026**  
-Emma K. Cook (emmacook@gwu.edu)
-
-Updates:
-- Updated for Q3 data lock restructuring.
-- Modified to use `MAT_STUDYSTATUS`
-
----
-
 ## Required Inputs
 - MNH25
+  - Note: stacked data processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
 - MAT_STUDYSTATUS
 
 ---
@@ -90,3 +74,21 @@ The program identifies:
 - Worst antenatal depression score
 - First date meeting depression screening criteria
 - First date meeting site-specific depression criteria
+
+---
+
+## Version History
+
+### Original Version
+
+Savannah O'Malley (savannah.omalley@gwu.edu)
+
+### Current Version
+
+**October 2026**  
+Emma K. Cook (emmacook@gwu.edu)
+
+Updates:
+- Updated for Q3 data lock restructuring.
+- Modified to use `MAT_STUDYSTATUS`
+
