@@ -13,6 +13,7 @@ The final dataset contains the earliest valid creatinine measurement before 28 w
 Required datasets:
 
 - MNH08
+  - Note: stacked data processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
 - MAT_BASELINE
 - MAT_STUDYSTATUS
 
