@@ -6,18 +6,17 @@ output:
     toc: no
     toc_depth: 3
     latex_engine: xelatex
-    keep_tex: true
 include-in-header:
 - \usepackage{booktabs,longtable}
 knit: (function(inputFile, encoding) { 
       rmarkdown::render(inputFile,
                     encoding=encoding, 
-                    output_file= paste('D:/Users/williams_pj/Documents/Analysis/Demographics/2026-05-01/output/Demographics-Report_', Sys.Date(), '.pdf', sep='')) })
+                    output_file= paste('Z:/Emma_working_files/Reports_working files/demographics/2026-09-18/Demographics-Report_', Sys.Date(), '.pdf', sep='')) })
 ---
 
 *Demographic table is showing baseline household and individual characteristic.*
 
-**Date of included data upload to Synapse: ** 2026-05-01
+**Date of included data upload to Synapse: ** 2026-09-18
 
 **Date report issued: **  `r Sys.Date()`
 
@@ -31,18 +30,21 @@ library(tidyverse)
 library(lubridate)
 library(gt)
 library(naniar)
-library(emo)
+#library(emo) #never used
 library(webshot2)
 library(flextable)
 library(officer)
 library(kableExtra)
 library(ggh4x)
+library(haven)
 
-UploadDate = "2026-05-01"
+UploadDate = "2026-09-18"
+datadate <- "2026-09-18"
 
-load(paste0("~/Analysis/Demographics/", UploadDate, "/derived_data/df_demo.RData"))
+path_to_data <- paste0("Z:/Constructed Data/", datadate, "/") 
 
-#load("~/PRISMA-Analysis-Stacie/Maternal-Outcomes/data/df_demo.RData")
+df_demo <- read_dta(paste0(path_to_data, "MAT_BASELINE.dta"))
+path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/demographics/", datadate ,"/")
 
 #table format 1
 tb_theme1 <- function(matrix){
@@ -353,8 +355,9 @@ tb_demo_a <- tb_theme1(matrix_demo_a) %>%
 ```
 
 ```{r, out.width = '100%'}
-png_demo_a <- tb_demo_a %>% gtsave("demo_a.png", expand = 10)
-knitr::include_graphics("demo_a.png")
+png_demo_a <- tb_demo_a %>% gtsave(file="demo_a.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "demo_a.png"))
+
 ```
 
 \newpage
@@ -717,11 +720,13 @@ tb_demo_b_p2 <- tb_theme1(matrix_demo_b_p2) %>%
 
 ```{r, out.width = '98%'}
 #knit tables
-png_demo_b_p1 <- tb_demo_b_p1 %>% gtsave("demo_b_p1.png", expand = 10)
-knitr::include_graphics("demo_b_p1.png")
-png_demo_b_p2 <- tb_demo_b_p2 %>% gtsave("demo_b_p2.png", expand = 10)
-knitr::include_graphics("demo_b_p2.png")
-pdf("test.pdf", onefile=TRUE)
+png_demo_b_p1 <- tb_demo_b_p1 %>% gtsave(file="demo_b_p1.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "demo_b_p1.png"))
+
+png_demo_b_p2 <- tb_demo_b_p2 %>% gtsave(file="demo_b_p2.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "demo_b_p2.png"))
+
+pdf(paste0(path_to_save, "test.pdf"), onefile = TRUE)
 ```
 
 \newpage
@@ -918,8 +923,9 @@ tb_demo_c <- tb_theme1(matrix_demo_c) %>%
 
 ```{r, out.width = '100%'}
 #knit table
-png_demo_c <- tb_demo_c %>% gtsave("demo_c.png", expand = 10)
-knitr::include_graphics("demo_c.png")
+png_demo_c <- tb_demo_c %>% gtsave(file = "demo_c.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "demo_c.png"))
+
 ```
 
 \newpage
@@ -1095,6 +1101,7 @@ tb_demo_d <- tb_theme1(matrix_demo_d) %>%
 
 ```{r, out.width = '100%'}
 #knit table
-png_demo_d <- tb_demo_d %>% gtsave("demo_d.png", expand = 10)
-knitr::include_graphics("demo_d.png")
+png_demo_d <- tb_demo_d %>% gtsave(file = "demo_d.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "demo_d.png"))
+
 ```
