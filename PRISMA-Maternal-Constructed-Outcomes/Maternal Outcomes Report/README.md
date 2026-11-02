@@ -24,3 +24,7 @@ If specific LaTeX packages are missing, install them with:
 ```r
 tinytex::tlmgr_install(c("multirow", "wrapfig"))
 ```
+
+## Updates
+
+Sepsis added October 28, 2026 (for Q3 data lock [2026-09-18] reports)
