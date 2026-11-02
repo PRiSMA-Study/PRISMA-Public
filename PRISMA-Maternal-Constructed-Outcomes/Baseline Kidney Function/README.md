@@ -8,23 +8,6 @@ The final dataset contains the earliest valid creatinine measurement before 28 w
 
 ---
 
-## Version History
-
-### Original Version
-
-**April 2025**
-Erin Oakley
-
-### Current Version
-
-**October 2026**  
-Emma K. Cook (emmacook@gwu.edu)
-
-Updates:
-- Assumed maintenance and ongoing updates of kidney function variable construction code.
-
----
-
 ## Required Inputs
 
 Required datasets:
@@ -44,7 +27,7 @@ Required datasets:
 - Maternal age from `MAT_BASELINE` is incorporated into the eGFR calculation.
 - When multiple creatinine measurements are available, the earliest valid measurement is selected.
 - The final dataset is restricted to creatinine measurements obtained before **28 weeks' gestation**.
-- Gestational age at specimen collection is derived using pregnancy start date information from `MAT_STUDYSTATUS`.
+- Gestational age at specimen collection is derived using pregnancy start date from `MAT_STUDYSTATUS`.
 
 ### References
 
@@ -67,12 +50,12 @@ Required datasets:
 
 - CREATININE_GA
 
-### Supporting Variables
+---
 
-- MAT_AGE
+## Version History
 
-### Identifiers
+**Original Version (April 2025)**  
+Erin Oakley
 
-- SITE
-- MOMID
-- PREGID
+**Current Version (October 2026)**  
+Emma K. Cook (emmacook@gwu.edu)
