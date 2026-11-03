@@ -1,12 +1,13 @@
 #*****************************************************************************
 #* PRISMA Maternal Infection
 #* Drafted: 25 October 2023, Stacie Loisate
-#* Last updated: 08 May 2026
+#* Updated: 21 October 2026, Casey Kalman
+#* Last updated: 21 October 2026
 
 ## This code will generate maternal infection outcomes at the following time points: 
 # Enrollment
 # 1. HIV
-# 2. MALilis
+# 2. Syphilis
 # 3. Gonorrhea
 # 4. Chlamydia
 # 5. Genital Ulcers
@@ -17,9 +18,8 @@
 # 10. Leptospirosis
 
 # Any visit 
-# 1. MALilis 
 # 1. HIV
-# 2. MALilis
+# 2. Syphilis
 # 3. Gonorrhea
 # 4. Chlamydia
 # 5. Genital Ulcers
@@ -30,35 +30,79 @@
 #*****************************************************************************
 #* Data Setup  ----
 #*****************************************************************************
-library(tidyverse)
-library(readr)
-library(dplyr)
-library(readxl)
-library(gmodels)
-library(kableExtra)
-library(lubridate)
-library(haven)
 
+#environment setup----
+rm(list = ls())
+
+###packages----
+#cmk: changed to use pacman to check for install and install if needed
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, #includes dplyr
+               readr,
+               #dplyr,
+               readxl,
+               gmodels,
+               kableExtra,
+               lubridate,
+               haven,
+               openxlsx, 
+               janitor)
+
+###global variables and paths----
 # UPDATE EACH RUN # 
 # set upload date 
-UploadDate = "2026-05-01"
+UploadDate = "2026-09-18"
 
 # set path to save 
-path_to_save <- "D:/Users/iberdecio3/Desktop/MatInf_Out/"
-path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
+path_to_save <- paste0("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Infection/", UploadDate, "/")
+#path_to_tnt <- paste0("Z:/Outcome Data/",UploadDate,"/DATA TEAM USE ONLY - Q3 updates", "/")
 
 # set path to data
-# path_to_data = paste0("Z:/Stacked Data/",UploadDate)
-path_to_data <- paste0("D:/Users/iberdecio3/Desktop/MatInf_In/", UploadDate)
+path_to_data = paste0("Z:/Stacked Data/",UploadDate)
+#path_to_data <- paste0("D:/Users/ckalman/Documents/StackedData/", UploadDate)
 
-mat_enroll <- read_xlsx(paste0(path_to_tnt, "MAT_ENROLL" ,".xlsx" )) %>% select(SITE, MOMID, PREGID, ENROLL, ENROLL_SCRN_DATE, EDD_BOE, PREG_START_DATE) %>% 
-  filter(ENROLL == 1)
 
-mat_dem <- read_xlsx(paste0(path_to_tnt, "MAT_DEMOGRAPHIC" ,".xlsx" )) 
+####Read data from Z drive (first time)----
+# if(UploadDate<'2026-09-18'){
+#   
+#   path_to_tnt <- paste0("Z:/Outcome Data/",UploadDate, "/")
+#   
+#   mat_enroll <- read_dta(paste0(path_to_tnt, UploadDate,"/MAT_ENROLL.dta"))%>%rename_with(toupper)
+#   mat_end <- read_dta(paste0(path_to_tnt,UploadDate,"/MAT_ENDPOINTS.dta"))%>%rename_with(toupper)
+#   mat_dem <- read_dta(paste0(path_to_tnt,UploadDate,"/MAT_DEMOGRAPHIC.dta"))%>%rename_with(toupper)
+# 
+# } else {
 
-mat_end <- read_dta(paste0("Z:/Outcome Data/", UploadDate,  "/MAT_ENDPOINTS.dta")) %>%  
-  ## only want all pregnancy endpoints excluding moms who have died before delivery and induced abortions
-  filter(PREG_END ==1 & MAT_DEATH==0)
+path_to_tnt <- paste0("Z:/Constructed Data/",UploadDate, "/")
+
+mat_studystatus<-read_dta(paste0(path_to_tnt,"/MAT_STUDYSTATUS.dta"))%>%rename_with(toupper)
+mat_dem <- read_dta(paste0(path_to_tnt,"/MAT_BASELINE.dta"))%>%rename_with(toupper)
+
+anc <- c("ENROLL", "ANC20", "ANC28", "ANC32", "ANC36")
+pnc <- paste0("PNC", c(0, 1, 4, 6, 26, 52))
+
+mat_enroll_vars <- c(
+  "SITE", "SCRNID", "MOMID", "PREGID", "ENROLL", "REMAPP_ENROLL",
+  "REMAPP_AIM3_ENROLL", "REMAPP_AIM3_TRI", "ENROLL_SCRN_DATE", "PREG_START_DATE",
+  "EST_CONCEP_DATE_US", "EST_CONCEP_DATE_LMP", "M01_US_OHOSTDAT", "EDD_BOE",
+  "GA_DIFF_DAYS", "BOE_METHOD", "BOE_GA_WKS_ENROLL", "BOE_GA_DAYS_ENROLL",
+  "US_GA_DAYS_ENROLL", "US_GA_WKS_ENROLL", "LMP_GA_DAYS_ENROLL", "LMP_GA_WKS_ENROLL",
+  outer(anc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
+)
+
+mat_endpoints_vars <- c(
+  "SITE", "MOMID", "PREGID", "PREG_END", "PREG_END_GA", "PREG_END_DATE",
+  "PREG_LOSS", "PREG_LOSS_INDUCED", "PREG_LOSS_DEATH",
+  "PREG_END_SOURCE", "CLOSEOUT", "CLOSEOUT_DT", "CLOSEOUT_GA",
+  "CLOSEOUT_TYPE", "CLOSEOUT_DAYS_PP", "MAT_DEATH", "MAT_DEATH_DATE", "MAT_DEATH_GA",
+  "MAT_DEATH_MISSDATE", "MAT_DEATH_INFAGE","PREG_END_PP42_DT", "MAT_DEATH_42", "STOP_DATE",
+  outer(pnc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
+)
+
+mat_enroll <- select(mat_studystatus, any_of(mat_enroll_vars))
+mat_end <- select(mat_studystatus, any_of(mat_endpoints_vars))
+#}
+
 
 # import forms 
 mnh02 <- read.csv(paste0(path_to_data,"/", "mnh02_merged.csv"))
@@ -66,7 +110,23 @@ mnh04 <- read.csv(paste0(path_to_data,"/", "mnh04_merged.csv"))
 mnh06 <- read.csv(paste0(path_to_data,"/", "mnh06_merged.csv"))
 mnh07 <- read.csv(paste0(path_to_data,"/", "mnh07_merged.csv"))
 mnh08 <- read.csv(paste0(path_to_data,"/", "mnh08_merged.csv"))
-mnh19 <- read.csv(paste0(path_to_data,"/", "mnh19_merged.csv"))
+mnh19 <- read.csv(paste0(path_to_data,"/", "mnh19_merged.csv"), fileEncoding = "latin1")
+
+#save to file
+save(
+  mnh02,
+  mnh04,
+  mnh06,
+  mnh07,
+  mnh08,
+  mnh19,
+  mat_enroll,
+  mat_end,
+  mat_dem,
+  file = (paste0("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Infection/",UploadDate,"/data_in/input_dataframes_infection_",UploadDate,".rda")))
+
+####Just load data----
+load(paste0("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Infection/",UploadDate,"/data_in/input_dataframes_infection_",UploadDate,".rda"))
 
 #MNH02
 if (any(duplicated(mnh02[c("SITE","SCRNID", "MOMID", "PREGID", "M02_SCRN_OBSSTDAT")]))) {
@@ -91,6 +151,8 @@ if (any(duplicated(mnh02[c("SITE","SCRNID", "MOMID", "PREGID", "M02_SCRN_OBSSTDA
   print("No duplicates in mnh02")
 }
 
+#Remove duplicates----
+#Keeps first observation when duplicates are found
 #MNH04
 if (any(duplicated(mnh04[c("SITE", "MOMID", "PREGID",  "M04_TYPE_VISIT")]))) {
   # extract duplicated ids
@@ -217,15 +279,17 @@ mnh08 <- mnh08 %>%
   mutate(TYPE_VISIT=M08_TYPE_VISIT) %>% 
   mutate(VISIT_DATE=M08_LBSTDAT)%>% 
   filter(M08_MAT_VISIT_MNH08 %in% c(1,2)) %>% 
-  ## GENERATE VARIABLE FOR ZCD EXPANSION 
-  mutate(ZCD_EXPANSION_DATE = case_when(SITE == "Ghana" ~ "2024-04-09", ## CONFIRM 04-09 IS THE RIGHT DATE -- THERE ARE N=2 TESTS DATED 04-08
-                                        SITE == "India-CMC" ~ "2024-04-23",
-                                        SITE == "India-SAS" ~ "2024-04-29",
-                                        SITE == "Kenya" ~ "2024-05-06",
-                                        SITE == "Pakistan" ~ "2024-04-05",
-                                        SITE == "Zambia" ~ "2024-03-19",
-                                        TRUE ~ NA
-  )) %>% 
+  ## *** ZCD EXPANSION DEFINITION *** ----
+## GENERATE VARIABLE FOR ZCD EXPANSION 
+## cmk: Edited 10/21/2026
+mutate(ZCD_EXPANSION_DATE = case_when(SITE == "Ghana" ~ "2024-04-09", ## CONFIRM 04-09 IS THE RIGHT DATE -- THERE ARE N=2 TESTS DATED 04-08
+                                      SITE == "India-CMC" ~ "2024-03-06",
+                                      SITE == "India-SAS" ~ "2024-03-11",
+                                      SITE == "Kenya" ~ "2024-03-07",
+                                      SITE == "Pakistan" ~ "2024-04-05",
+                                      SITE == "Zambia" ~ "2023-11-09",
+                                      TRUE ~ NA
+)) %>% 
   ## GENERATE VARIABLE FOR HEV EXPANSION 
   mutate(HEV_EXPANSION_DATE = case_when(SITE == "Ghana" ~ "2024-04-09", ## CONFIRM 04-09 IS THE RIGHT DATE -- THERE ARE N=2 TESTS DATED 04-08
                                         SITE == "India-CMC" ~ "2024-03-06",
@@ -726,6 +790,7 @@ mal_export <- malaria %>%
   # generate variable of days between first infection and re-infection 
   mutate(MAL_TIME_BETWEEN_INFECTIONS_DAYS = as.numeric(MAL_POSITIVE_REINFECT_DATE-ymd(MAL_POSITIVE_DATE)),
          MAL_TIME_BETWEEN_INFECTIONS_WKS = MAL_TIME_BETWEEN_INFECTIONS_DAYS %/% 7)
+
 table(mal_export$MAL_POSITIVE_INCIDENT)
 
 ## add labels
@@ -1014,7 +1079,7 @@ hev <- mat_enroll %>%
                                   TRUE ~ 0)
   ) %>%
   # Test result available? 
-  mutate(HEV_IGM_RESULT_AVAI = case_when(M08_HEV_IGG_LBORRES %in% c(0,1,2) ~ 1, TRUE ~ 0),
+  mutate(HEV_IGM_RESULT_AVAI = case_when(M08_HEV_IGM_LBORRES %in% c(0,1,2) ~ 1, TRUE ~ 0), #Casey's note - changed variable from M08_HEV_IGG --> IGM
          HEV_IGG_RESULT_AVAI = case_when(M08_HEV_IGG_LBORRES %in% c(0,1,2) ~ 1, TRUE ~ 0)
   ) %>% 
   # Test result by titers
@@ -1448,7 +1513,8 @@ zik <- mat_enroll %>%
   # merge in mnh07 for specimen collection date
   left_join(mnh07 %>% select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, M07_MAT_SPEC_COLLECT_DAT), 
             by = c("SITE", "MOMID", "PREGID", "TYPE_VISIT", "VISIT_DATE")) %>% 
-  filter(ZCD_EXPANSION==1) %>% 
+  ##***ZCD Expansion filter applied***----
+filter(ZCD_EXPANSION==1) %>% 
   # Was test performed?
   mutate(ZIK_IGM_PERF = case_when(M08_ZCD_LBPERF_1 ==1 ~ 1,
                                   is.na(M08_ZCD_LBPERF_1) ~ 0,
@@ -1740,10 +1806,6 @@ zik_export_labels <- zik_labels %>%
 #    percent = "none"
 #  ) 
 
-
-
-
-
 # write.xlsx(zik_table, paste0(path_to_save, "zik_table" ,".xlsx"), na="", rowNames=TRUE)
 
 #*****************************************************************************
@@ -1990,8 +2052,8 @@ chk_labels <- chk_export_anc %>%
                                                       CHK_IGM_POSITIVE_ENROLL ==1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_POSITIVE_ENROLL == 1 ~ "Baseline IgM+ & IgG+",
                                                       CHK_IGG_POSITIVE_ENROLL !=1 & CHK_IGG_INCIDENT==1 & CHK_IGG_UNKNOWN_BASELINE!=1 & CHK_IGM_INCIDENT != 1 & CHK_IGM_UNKNOWN_BASELINE !=1 & CHK_IGM_POSITIVE_ENROLL !=1 ~ "Incident IgG+",
                                                       CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT==1 & CHK_IGM_UNKNOWN_BASELINE!=1 & CHK_IGG_INCIDENT == 1 ~ "Incident IgM+ & IgG+",
-                                                    
-                                            
+                                                      
+                                                      
                                                       TRUE ~ NA
   )) %>% 
   mutate(CHK_POSITIVE_EVER_PREG_CAT = case_when(CHK_IGM_POSITIVE_ENROLL !=1 & CHK_IGM_INCIDENT!=1 & CHK_IGM_UNKNOWN_BASELINE==1 & CHK_IGG_UNKNOWN_BASELINE != 1 ~ 7,
@@ -2723,13 +2785,254 @@ tb_export_labels <- tb_labels %>%
 # write.xlsx(tb_table, paste0(path_to_save, "tb_table" ,".xlsx"), na="", rowNames=TRUE)
 
 
+#*****************************************************************************
+# CREATING LONG DATASET ----
+#*****************************************************************************
+
+hiv_long<-hiv%>%
+            select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, HIV_RDT_PERF, HIV_RESULT_AVAI, HIV_RDT_POSITIVE, DATE_POSITIVE)%>%
+            mutate(VISIT_DATE=ymd(VISIT_DATE), 
+                   INFECTION = "HIV", 
+                   TEST = "RDT",
+                   PERFORMED=HIV_RDT_PERF, 
+                   RESULT_AVAI = HIV_RESULT_AVAI, 
+                   RESULT=HIV_RDT_POSITIVE, 
+                   DATE_POSITIVE=DATE_POSITIVE)%>%
+            select(-c(HIV_RDT_PERF, HIV_RESULT_AVAI, HIV_RDT_POSITIVE))
+
+syphilis_long<-syphilis%>%
+                select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, SYPH_RDT_PERF, SYPH_RDT_RESULT_AVAI, SYPH_RDT_POSITIVE, DATE_POSITIVE)%>%
+                mutate(VISIT_DATE=ymd(VISIT_DATE), 
+                       INFECTION = "Syphilis", 
+                       TEST = "RDT",
+                       PERFORMED=SYPH_RDT_PERF, 
+                       RESULT_AVAI = SYPH_RDT_RESULT_AVAI, 
+                       RESULT=SYPH_RDT_POSITIVE, 
+                       DATE_POSITIVE=DATE_POSITIVE)%>%
+                select(-c(SYPH_RDT_PERF, SYPH_RDT_RESULT_AVAI, SYPH_RDT_POSITIVE))
+
+malaria_long<-malaria%>%
+                select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, MAL_RDT_PERF, MAL_RDT_RESULT_AVAI, MAL_RDT_POSITIVE, DATE_POSITIVE)%>%
+                mutate(VISIT_DATE=ymd(VISIT_DATE), 
+                       INFECTION = "Malaria", 
+                       TEST = "RDT",
+                       PERFORMED=MAL_RDT_PERF, 
+                       RESULT_AVAI = MAL_RDT_RESULT_AVAI, 
+                       RESULT=MAL_RDT_POSITIVE, 
+                       DATE_POSITIVE=DATE_POSITIVE)%>%
+                select(-c(MAL_RDT_PERF, MAL_RDT_RESULT_AVAI, MAL_RDT_POSITIVE))
+
+hbv_long<-hbv%>%
+            select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, HBV_RDT_PERF, HBV_RDT_RESULT_AVAI, HBV_RDT_POSITIVE, DATE_POSITIVE)%>%
+            mutate(VISIT_DATE=ymd(VISIT_DATE), 
+                   INFECTION = "HBV", 
+                   TEST = "RDT",
+                   PERFORMED=HBV_RDT_PERF, 
+                   RESULT_AVAI =HBV_RDT_RESULT_AVAI, 
+                   RESULT=HBV_RDT_POSITIVE, 
+                   DATE_POSITIVE=DATE_POSITIVE)%>%
+            select(-c(HBV_RDT_PERF, HBV_RDT_RESULT_AVAI, HBV_RDT_POSITIVE))
+
+hcv_long<-hcv%>%
+            select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, HCV_RDT_PERF, HCV_RDT_RESULT_AVAI, HCV_RDT_POSITIVE, DATE_POSITIVE)%>%
+            mutate(VISIT_DATE=ymd(VISIT_DATE), 
+                   INFECTION = "HCV", 
+                   TEST = "RDT",
+                   PERFORMED=HCV_RDT_PERF, 
+                   RESULT_AVAI=HCV_RDT_RESULT_AVAI, 
+                   RESULT=HCV_RDT_POSITIVE, 
+                   DATE_POSITIVE=DATE_POSITIVE)%>%
+            select(-c(HCV_RDT_PERF, HCV_RDT_RESULT_AVAI, HCV_RDT_POSITIVE))
+
+zik_igm_long<-zik%>%
+                select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, ZIK_IGM_PERF, ZIK_IGM_RESULT_AVAI, ZIK_IGM_POSITIVE, DATE_IGM_POSITIVE)%>%
+                mutate(VISIT_DATE=ymd(VISIT_DATE), 
+                       INFECTION = "Zika", 
+                       TEST = "IgM",
+                       PERFORMED=ZIK_IGM_PERF, 
+                       RESULT_AVAI=ZIK_IGM_RESULT_AVAI, 
+                       RESULT=ZIK_IGM_POSITIVE, 
+                       DATE_POSITIVE=DATE_IGM_POSITIVE)%>%
+                select(-c(ZIK_IGM_PERF, ZIK_IGM_RESULT_AVAI, ZIK_IGM_POSITIVE, DATE_IGM_POSITIVE))
+
+zik_igg_long<-zik%>%
+                  select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, ZIK_IGG_PERF, ZIK_IGG_RESULT_AVAI, ZIK_IGG_POSITIVE, DATE_IGG_POSITIVE)%>%
+                  mutate(VISIT_DATE=ymd(VISIT_DATE), 
+                         INFECTION = "Zika", 
+                         TEST = "IgG",
+                         PERFORMED=ZIK_IGG_PERF, 
+                         RESULT_AVAI=ZIK_IGG_RESULT_AVAI, 
+                         RESULT=ZIK_IGG_POSITIVE, 
+                         DATE_POSITIVE=DATE_IGG_POSITIVE)%>%
+                select(-c(ZIK_IGG_PERF, ZIK_IGG_RESULT_AVAI, ZIK_IGG_POSITIVE, DATE_IGG_POSITIVE))
+
+hev_igg_long<-hev%>%
+            select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, HEV_IGG_PERF, HEV_IGG_RESULT_AVAI, HEV_IGG_POSITIVE, DATE_IGG_POSITIVE)%>%
+            mutate(VISIT_DATE=ymd(VISIT_DATE), 
+                   INFECTION = "HEV", 
+                   TEST = "IgG",
+                   PERFORMED=HEV_IGG_PERF, 
+                   RESULT_AVAI=HEV_IGG_RESULT_AVAI, 
+                   RESULT=HEV_IGG_POSITIVE, 
+                   DATE_POSITIVE=DATE_IGG_POSITIVE)%>%
+              select(-c(HEV_IGG_PERF, HEV_IGG_RESULT_AVAI, HEV_IGG_POSITIVE, DATE_IGG_POSITIVE))
+
+hev_igm_long<-hev%>%
+  select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, HEV_IGM_PERF, HEV_IGM_RESULT_AVAI, HEV_IGM_POSITIVE, DATE_IGM_POSITIVE)%>%
+  mutate(VISIT_DATE=ymd(VISIT_DATE), 
+         INFECTION = "HEV", 
+         TEST = "IgM",
+         PERFORMED=HEV_IGM_PERF, 
+         RESULT_AVAI=HEV_IGM_RESULT_AVAI, 
+         RESULT=HEV_IGM_POSITIVE, 
+         DATE_POSITIVE=DATE_IGM_POSITIVE)%>%
+  select(-c(HEV_IGM_PERF, HEV_IGM_RESULT_AVAI, HEV_IGM_POSITIVE, DATE_IGM_POSITIVE))
+
+chk_igg_long<-chk%>%
+            select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, CHK_IGG_PERF, CHK_IGG_RESULT_AVAI, CHK_IGG_POSITIVE, DATE_IGG_POSITIVE)%>%
+            mutate(VISIT_DATE=ymd(VISIT_DATE),
+                   INFECTION = "Chikungunya",
+                   TEST = "IgG",
+                   PERFORMED=CHK_IGG_PERF,
+                   RESULT_AVAI=CHK_IGG_RESULT_AVAI,
+                   RESULT=CHK_IGG_POSITIVE,
+                   DATE_POSITIVE=DATE_IGG_POSITIVE)%>%
+  select(-c(CHK_IGG_PERF, CHK_IGG_RESULT_AVAI, CHK_IGG_POSITIVE, DATE_IGG_POSITIVE))
+
+chk_igm_long<-chk%>%
+                select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, CHK_IGM_PERF, CHK_IGM_RESULT_AVAI, CHK_IGM_POSITIVE, DATE_IGM_POSITIVE)%>%
+                mutate(VISIT_DATE=ymd(VISIT_DATE),
+                       INFECTION = "Chikungunya",
+                       TEST = "IgM",
+                       PERFORMED=CHK_IGM_PERF,
+                       RESULT_AVAI=CHK_IGM_RESULT_AVAI,
+                       RESULT=CHK_IGM_POSITIVE,
+                       DATE_POSITIVE=DATE_IGM_POSITIVE)%>%
+  select(-c(CHK_IGM_PERF, CHK_IGM_RESULT_AVAI, CHK_IGM_POSITIVE, DATE_IGM_POSITIVE))
+
+den_igg_long<-den%>%
+                select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, DEN_IGG_PERF, DEN_IGG_RESULT_AVAI, DEN_IGG_POSITIVE, DATE_IGG_POSITIVE)%>%
+                mutate(VISIT_DATE=ymd(VISIT_DATE),
+                       INFECTION = "Dengue",
+                       TEST = "IgG",
+                       PERFORMED=DEN_IGG_PERF,
+                       RESULT_AVAI=DEN_IGG_RESULT_AVAI,
+                       RESULT=DEN_IGG_POSITIVE,
+                       DATE_POSITIVE=DATE_IGG_POSITIVE)%>%
+  select(-c(DEN_IGG_PERF, DEN_IGG_RESULT_AVAI, DEN_IGG_POSITIVE, DATE_IGG_POSITIVE))
+
+den_igm_long<-den%>%
+                select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, DEN_IGM_PERF, DEN_IGM_RESULT_AVAI, DEN_IGM_POSITIVE, DATE_IGM_POSITIVE)%>%
+                mutate(VISIT_DATE=ymd(VISIT_DATE),
+                       INFECTION = "Dengue",
+                       TEST = "IgM",
+                       PERFORMED=DEN_IGM_PERF,
+                       RESULT_AVAI=DEN_IGM_RESULT_AVAI,
+                       RESULT=DEN_IGM_POSITIVE,
+                       DATE_POSITIVE=DATE_IGM_POSITIVE)%>%
+  select(-c(DEN_IGM_PERF, DEN_IGM_RESULT_AVAI, DEN_IGM_POSITIVE, DATE_IGM_POSITIVE))
+
+lept_igg_long<-lept%>%
+                  select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, LEPT_IGG_PERF, LEPT_IGG_RESULT_AVAI, LEPT_IGG_POSITIVE, DATE_IGG_POSITIVE)%>%
+                  mutate(VISIT_DATE=ymd(VISIT_DATE),
+                         INFECTION = "Leptospirosis",
+                         TEST = "IgG",
+                         PERFORMED=LEPT_IGG_PERF,
+                         RESULT_AVAI=LEPT_IGG_RESULT_AVAI,
+                         RESULT=LEPT_IGG_POSITIVE,
+                         DATE_POSITIVE=DATE_IGG_POSITIVE)%>%
+  select(-c(LEPT_IGG_PERF, LEPT_IGG_RESULT_AVAI, LEPT_IGG_POSITIVE, DATE_IGG_POSITIVE))
+
+lept_igm_long<-lept%>%
+                select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, LEPT_IGM_PERF, LEPT_IGM_RESULT_AVAI, LEPT_IGM_POSITIVE, DATE_IGM_POSITIVE)%>%
+                mutate(VISIT_DATE=ymd(VISIT_DATE),
+                       INFECTION = "Leptospirosis",
+                       TEST = "IgM",
+                       PERFORMED=LEPT_IGM_PERF,
+                       RESULT_AVAI=LEPT_IGM_RESULT_AVAI,
+                       RESULT=LEPT_IGM_POSITIVE,
+                       DATE_POSITIVE=DATE_IGM_POSITIVE)%>%
+  select(-c(LEPT_IGM_PERF, LEPT_IGM_RESULT_AVAI, LEPT_IGM_POSITIVE, DATE_IGM_POSITIVE))
+
+ct_long<-ct_titer%>%
+            select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, CT_TEST_PERF, CT_TEST_RESULT_AVAI, CT_TEST_POSITIVE, DATE_POSITIVE)%>%
+            mutate(VISIT_DATE=ymd(VISIT_DATE),
+                   INFECTION = "CT",
+                   TEST = "Titer",
+                   PERFORMED=CT_TEST_PERF,
+                   RESULT_AVAI=CT_TEST_RESULT_AVAI,
+                   RESULT=CT_TEST_POSITIVE,
+                   DATE_POSITIVE=DATE_POSITIVE)%>%
+  select(-c(CT_TEST_PERF, CT_TEST_RESULT_AVAI, CT_TEST_POSITIVE))
+
+ng_long<-ng_titer%>%
+          select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, NG_TEST_PERF, NG_TEST_RESULT_AVAI, NG_TEST_POSITIVE, DATE_POSITIVE)%>%
+          mutate(VISIT_DATE=ymd(VISIT_DATE),
+                 INFECTION = "NG",
+                 TEST = "Titer",
+                 PERFORMED=NG_TEST_PERF,
+                 RESULT_AVAI=NG_TEST_RESULT_AVAI,
+                 RESULT=NG_TEST_POSITIVE,
+                 DATE_POSITIVE=DATE_POSITIVE)%>%
+  select(-c(NG_TEST_PERF, NG_TEST_RESULT_AVAI, NG_TEST_POSITIVE))
+
+tb_long<-tb%>%
+          select(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE, TB_CULT_PERF, TB_CULT_RESULT_AVAI, TB_CULT_POSITIVE, DATE_TB_CULT_POSITIVE)%>%
+          mutate(VISIT_DATE=ymd(VISIT_DATE),
+                 INFECTION = "TB",
+                 TEST = "Culture",
+                 PERFORMED=TB_CULT_PERF,
+                 RESULT_AVAI=TB_CULT_RESULT_AVAI,
+                 RESULT=TB_CULT_POSITIVE,
+                 DATE_POSITIVE=DATE_TB_CULT_POSITIVE)%>%
+  select(-c(TB_CULT_PERF, TB_CULT_RESULT_AVAI, TB_CULT_POSITIVE, DATE_TB_CULT_POSITIVE))
+
+mat_infection_long<-rbind(hiv_long, 
+                    syphilis_long, 
+                    malaria_long, 
+                    hbv_long, 
+                    hcv_long, 
+                    hev_igg_long, hev_igm_long, 
+                    ct_long, 
+                    ng_long, 
+                    chk_igg_long, chk_igm_long, 
+                    den_igg_long, den_igm_long, 
+                    zik_igg_long, zik_igm_long, 
+                    lept_igg_long, lept_igm_long,
+                    tb_long)%>%
+  mutate(
+    across(
+      c(INFECTION, TEST, PERFORMED, RESULT_AVAI, RESULT),
+      as.character
+    )
+  )%>%
+  #select(-c())%>%
+  #group_by(SITE, MOMID, PREGID, VISIT_DATE, TYPE_VISIT)
+  pivot_longer(cols=c(PERFORMED, RESULT_AVAI, RESULT),
+               names_to="attribute", 
+               values_to="values")%>%
+  mutate(TEST_TYPE=paste(INFECTION, TEST, sep="_"),
+         ATTRIBUTE=paste(INFECTION, TEST, attribute, sep="_"))%>%
+  select(-c(attribute, INFECTION, TEST, DATE_POSITIVE, TEST_TYPE))%>%
+  pivot_wider(id_cols = c(SITE, MOMID, PREGID, TYPE_VISIT, VISIT_DATE),
+              names_from = c(ATTRIBUTE),
+              values_from = values)%>%
+  rename_with(toupper)
+  
+colnames(mat_infection_long)
 
 #*****************************************************************************
-# EXPORTING ----
+#Export long----
+#*****************************************************************************
+
+write.csv(mat_infection_long, paste0(path_to_save, "data_out/MAT_INFECTION_LONG" ,".csv"))
+writexl::write_xlsx(long,"~/OutcomeDatasets/Analysis/Infection/2026-09-18/data_out/MAT_INFECTION_LONG.xlsx")
+
+#*****************************************************************************
+# MERGING FOR WIDE  ----
 #*****************************************************************************
 tb_export_labels_nodup <- tb_export_labels %>% filter(!is.na(TB_CULT_POSITIVE_ENROLL_LABEL))
 
-#### Merge data together ----
 datasets <- list(
   HEV = hev_export_labels,
   ZIK = zik_export_labels,
@@ -2780,7 +3083,7 @@ incident_infections <- c("HIV_POSITIVE_INCIDENT", "SYPH_POSITIVE_INCIDENT", "CT_
                          "CHK_IGM_INCIDENT", "CHK_IGG_INCIDENT", "DEN_IGM_INCIDENT", "DEN_IGG_INCIDENT", "LEPT_IGM_INCIDENT", "LEPT_IGG_INCIDENT", "TB_CULT_POSITIVE_INCIDENT")
 
 
-mat_infection = MAT_INFECTION
+#mat_infection = MAT_INFECTION
 mat_infection <- mat_infection %>% 
   #left_join(mat_end %>% select(SITE, PREGID, PREG_END), by = c("SITE", "PREGID")) %>% 
   mutate(ANY_INFECTION_ENROLL = case_when(HIV_POSITIVE_ENROLL ==1 | 
@@ -2866,6 +3169,8 @@ mat_infection <- mat_infection %>%
                                                    TRUE ~ 0))
 
 
+
+#QC----
 table(mat_infection$ANY_INFECTION_ENROLL_LIST)
 table(mat_infection$ANY_INFECTION_EVER_PREG_LIST)
 table(mat_infection$ANY_INFECTION_INCIDENT_LIST)
@@ -2874,6 +3179,9 @@ test <- mat_infection %>% filter(ANY_INFECTION_ENROLL ==1) %>%
   select(SITE, PREGID, ANY_INFECTION_ENROLL, ANY_INFECTION_ENROLL_LIST,all_of(enroll_infections)) %>% 
   filter(SITE == "Ghana")
 
+mat_infection%>%
+  tabyl(ANY_INFECTION_EVER_PREG, SITE)
+
 ## run quick tab of each inclusion criteria 
 for (i in names(test)[-c(1:4)]) {
   print(i)
@@ -2881,10 +3189,82 @@ for (i in names(test)[-c(1:4)]) {
 }
 table(test$ANY_INFECTION_ENROLL_LIST)
 
+test<-read_csv("~/OutcomeDatasets/Analysis/Infection/data_out2026-10-19-mat_infection.csv")
+test<-read_csv("~/OutcomeDatasets/Analysis/Infection/data_out2026-10-21-mat_infection.csv")
+
+test%>%
+  tabyl(ANY_INFECTION_EVER_PREG, SITE)
+
+#*****************************************************************************
+#EXPORTING----
+#*****************************************************************************
+
 # library(openxlsx)
 #write.xlsx(mat_infection, paste0("D:/Users/stacie.loisate/Documents/Output/Infection-Troubleshooting/data/", Sys.Date(),"-mat_infection" ,".xlsx"), na="", rowNames=FALSE)
-write.csv(mat_infection, paste0("D:/Users/stacie.loisate/Documents/Output/Infection-Troubleshooting/data/", Sys.Date(),"-mat_infection" ,".csv"), row.names=FALSE)
+write.csv(mat_infection, paste0("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Infection/data_out", Sys.Date(),"-mat_infection" ,".csv"), row.names=FALSE)
 
 path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
-write.xlsx(mat_infection, paste0(path_to_save, "MAT_INFECTION" ,".xlsx"), na="", row.names=FALSE)
-write.csv(mat_infection, paste0(path_to_save, "MAT_INFECTION" ,".csv"),  row.names=FALSE)
+write.xlsx(mat_infection, paste0(path_to_save, "data_out/MAT_INFECTION" ,".xlsx"), na="", rowNames=FALSE)
+write.csv(mat_infection, paste0(path_to_save, "data_out/MAT_INFECTION" ,".csv"))
+
+#*****************************************************************************
+#ZCD Date checks----
+#*****************************************************************************
+
+results_available<-c("ZIK_IGM_RESULTS_AVAI","ZIK_IGG_RESULTS_AVAIL","CHK_IGM_RESULT_AVAI","CHK_IGG_RESULT_AVAI","DEN_IGM_RESULT_AVAI","DEN_IGG_RESULT_AVAI")
+positive_dates<-c("DATE_IGM_POSITIVE", "DATE_IGG_POSITIVE")
+
+#Zika, Chikungunya, and Dengue
+colnames(mat_infection)%>%data.frame()%>%View()
+colnames(zik)
+
+
+zik_min<-zik%>%
+  filter(ZIK_IGG_RESULT_AVAI==1 | ZIK_IGM_RESULT_AVAI==1)%>%
+  group_by(SITE)%>%
+  summarize(zik_spec_collection=min(M07_MAT_SPEC_COLLECT_DAT, na.rm=TRUE),
+            zik_igm_positive=min(DATE_IGM_POSITIVE, na.rm=TRUE),
+            zik_igg_positive=min(DATE_IGG_POSITIVE, na.rm=TRUE), 
+            zik_visit_date=min(VISIT_DATE, na.rm=TRUE))%>%
+  mutate(zik_min_positive_date=pmin(zik_igm_positive, zik_igg_positive))%>%
+  select(-c(zik_igm_positive, zik_igg_positive))
+
+zik_min
+
+chk_min<-chk%>%
+  filter(CHK_IGG_RESULT_AVAI==1 | CHK_IGM_RESULT_AVAI==1)%>%
+  group_by(SITE)%>%
+  summarize(chk_spec_collection=min(M07_MAT_SPEC_COLLECT_DAT, na.rm=TRUE),
+            chk_igm_positive=min(DATE_IGM_POSITIVE, na.rm=TRUE),
+            chk_igg_positive=min(DATE_IGG_POSITIVE, na.rm=TRUE),
+            chk_visit_date=min(VISIT_DATE, na.rm=TRUE))%>%
+  mutate(chk_min_positive_date=pmin(chk_igm_positive, chk_igg_positive))%>%
+  select(-c(chk_igm_positive, chk_igg_positive))
+
+den_min<-den%>%
+  filter(DEN_IGG_RESULT_AVAI==1 | DEN_IGM_RESULT_AVAI==1)%>%
+  group_by(SITE)%>%
+  summarize(den_spec_collection=min(M07_MAT_SPEC_COLLECT_DAT, na.rm=TRUE),
+            den_igm_positive=min(DATE_IGM_POSITIVE, na.rm=TRUE),
+            den_igg_positive=min(DATE_IGG_POSITIVE, na.rm=TRUE),
+            den_visit_date=min(VISIT_DATE, na.rm=TRUE))%>%
+  mutate(den_min_positive_date=pmin(den_igm_positive, den_igg_positive))%>%
+  select(-c(den_igm_positive, den_igg_positive))
+
+#specimen collection date
+full_join(zik_min, chk_min, by=c("SITE"))%>%
+  full_join(., den_min, by=c("SITE"))%>%
+  mutate(MIN_COLLECTION_DATE=pmin(zik_spec_collection, chk_spec_collection, den_spec_collection))%>%
+  select(SITE, matches("spec_collection$"), MIN_COLLECTION_DATE)
+
+#positive date
+full_join(zik_min, chk_min, by=c("SITE"))%>%
+  full_join(., den_min, by=c("SITE"))%>%
+  mutate(MIN_POSITIVE_DATE=pmin(zik_min_positive_date, chk_min_positive_date, den_min_positive_date))%>%
+  select(SITE, matches("min_positive_date$"), MIN_POSITIVE_DATE)
+
+#visit date
+full_join(zik_min, chk_min, by=c("SITE"))%>%
+  full_join(., den_min, by=c("SITE"))%>%
+  mutate(MIN_VISIT_DATE=pmin(zik_visit_date, chk_visit_date, den_visit_date))%>%
+  select(SITE, matches("visit_date$"), MIN_VISIT_DATE)
