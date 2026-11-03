@@ -314,35 +314,8 @@ summary_tab1 <- mat_infection  %>%
       format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE)/sum(LEPT_IGM_PERF_EVER_PREG ==1 | LEPT_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
     #Casey's Edit
-    "Sepsis Diagnosis" = paste0(
-     format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    ),
-
-    "Infection Related Severe Maternal Outcome" = paste0(
-      format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    ),
-
-    "Infection with Complications" = paste0(
-      format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    ),
-    
-    "Less Severe Infection" = paste0(
-      format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    )
+      ")")
 
    ) %>%
   t() %>% as.data.frame() %>%
@@ -383,35 +356,8 @@ summary_tab1 <- mat_infection  %>%
       format(sum(CHK_POSITIVE_EVER_PREG==1 & (CHK_IGM_PERF_EVER_PREG==1 | CHK_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2)),
         
     "Leptospirosis ever during pregnancy (IgM+ or incident IgG+)" = paste0(
-      format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2)),
     #Casey's Edit    
-    "Sepsis Diagnosis" = paste0(
-     format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    ),
-
-    "Infection Related Severe Maternal Outcome" = paste0(
-      format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    ),
-
-    "Infection with Complications" = paste0(
-      format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    ),
-    
-    "Less Severe Infection" = paste0(
-      format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    )
+      format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2))
   ) %>%
         t() %>%
         as.data.frame() %>%
@@ -889,15 +835,100 @@ summary_tab1 <- mat_infection  %>%
         as.data.frame() %>%
       `colnames<-`(c(.[1,])) %>% unlist()
         )
+ 
+ summary_tab14 <- sepsis %>%
+  rowwise() %>%
+  group_by(SITE) %>%
+  summarise(
 
- summary_tab <- rbind(summary_tab1)
+  #Casey's Edit
+    "Sepsis Diagnosis" = paste0(
+     format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    ),
 
- summary_tab_2 <- rbind(summary_tab2,summary_tab3,summary_tab4,
+    "Infection Related Severe Maternal Outcome" = paste0(
+      format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    ),
+
+    "Infection with Complications" = paste0(
+      format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    ),
+    
+    "Less Severe Infection" = paste0(
+      format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    )
+
+  )  %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1) %>%
+        add_column(
+      .before = 1,
+      
+      "Total" = sepsis %>%
+        plyr::summarise(
+   
+    "Sepsis Diagnosis" = paste0(
+     format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    ),
+
+    "Infection Related Severe Maternal Outcome" = paste0(
+      format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    ),
+
+    "Infection with Complications" = paste0(
+      format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    ),
+    
+    "Less Severe Infection" = paste0(
+      format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    )
+
+  ) %>%
+        t() %>%
+        as.data.frame() %>%
+      `colnames<-`(c(.[1,])) %>% unlist()
+        )
+
+  #Ever during pregnancy: Infection
+  summary_tab <- rbind(summary_tab1)
+ 
+ 
+  #Mid Pregnancy Outcomes
+  summary_tab_2 <- rbind(summary_tab2,summary_tab3,summary_tab4,
                       summary_tab5, summary_tab6,summary_tab7,summary_tab8,
                       summary_tab9,summary_tab9b)
  
+  #Postpartum outcomes
   summary_tab_3 <- rbind(
                       summary_tab10,summary_tab11,summary_tab12, summary_tab13)
+  
+  #intrapartum outcomes
+  summary_tab_4<-rbind(summary_tab14)
 
 
 
@@ -924,13 +955,7 @@ summary_tab_output <- tb_theme1(summary_tab) %>%
     rows = 1:11,
     id   = "infection_ever"
     ) %>%
-  
   #Casey's Edit  
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Intrapartum Infection Outcomes</span>"),
-    rows = 12:15,
-    id   = "infection_outcomes"
-    ) %>%
  
  row_group_order(groups = c("infection_ever")) %>%
 
@@ -980,6 +1005,20 @@ summary_tab_output3 <- tb_theme1(summary_tab_3) %>%
     footnote = html("<span style='font-size: 18px'><sup>Note </sup> See outcome-specific section for denominators.</span>")
  )
 
+summary_tab_output4 <- tb_theme1(summary_tab_4) %>%
+  tab_header(
+    title = md("**Table I, continued part 3**"))%>%
+  
+  tab_row_group(
+    label = html("<span style='font-size: 18px'>Intrapartum outcomes</span>"),
+        rows = 1:4,
+    id = "intrapartum_outcomes"
+  ) %>%
+ row_group_order(groups = c("intrapartum_outcomes")) 
+   
+
+summary_tab_output4 
+
 ```
 
 ```{r warning=TRUE, out.width='100%'}
@@ -995,11 +1034,17 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output2.png"))
 
 ```
 
-
 ```{r, out.width = '100%'}
 
 gtsave(summary_tab_output3, file = "summary_tab_output3.png", path = path_to_save, expand = 10)
 knitr::include_graphics(paste0(path_to_save, "summary_tab_output3.png"))
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(summary_tab_output4, file = "summary_tab_output4.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "summary_tab_output4.png"))
 
 ```
 
