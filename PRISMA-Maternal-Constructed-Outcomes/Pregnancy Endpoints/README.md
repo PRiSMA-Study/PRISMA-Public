@@ -6,32 +6,6 @@ This program creates the PRISMA MNH maternal pregnancy endpoint outcomes dataset
 
 ---
 
-## Version History
-
-### Original Version
-
-**March 2024**  
-Erin Oakley (emoakley@gwu.edu)
-
-### Major Updates
-
-- March-October 2024: Development and refinement of preterm birth, PPROM, labor, and delivery classification algorithms.
-- May 2024: Added uterine rupture, prolonged labor, and obstructed labor outcomes.
-- March 2025: Added PROM and membrane rupture duration (`MEM_HOURS`) for IHME requests.
-- August 2025: Added birth location variables.
-- January 2025: Updated variable names to align with PRISMA naming conventions.
-
-### Current Version
-
-**October 2026**  
-Emma K. Cook (emmacook@gwu.edu)
-
-Updates:
-- Transitioned to use `MAT_STUDYSTATUS` as the primary endpoint source dataset.
-- Outputs MAT_PREGEND instead of separate MAT_LABOR, MAT_PRETERM, and MAT_UTERINERUP
-
----
-
 ## Required Inputs
 
 Required datasets:
@@ -41,11 +15,10 @@ Required datasets:
 - MNH12: PNC clinical status
 - MNH19: Maternal hospitalization form
 
-This program also uses the user-written Stata command [`str2date`](https://github.com/PRiSMA-Study/PRISMA-Analysis-Savannah/blob/main/str2date.ado) to convert string dates to Stata date format.
-
-Additional package:
-
-- `betterbar` (optional; used only for QC figures)
+**Notes:**
+- This program uses the user-written Stata command [`str2date`](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/blob/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files/str2date.ado) to convert string dates to Stata date format.
+- Stacked data (mnh00-01, mnh03-06) was processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
+- `betterbar` package used (optional; used only for QC figures; install using: ssc install betterbar)
 
 ---
 
@@ -195,3 +168,31 @@ Labor was induced; includes all of the following:
 
 - **Denominator:** Pregnancies with labor and delivery information available
 - **Values:** `1=Yes`, `0=No`, `55=Missing`
+
+---
+
+## Version History
+
+### Original Version
+
+**March 2024**  
+Erin Oakley (emoakley@gwu.edu)
+
+### Major Updates
+
+- March-October 2024: Development and refinement of preterm birth, PPROM, labor, and delivery classification algorithms.
+- May 2024: Added uterine rupture, prolonged labor, and obstructed labor outcomes.
+- March 2025: Added PROM and membrane rupture duration (`MEM_HOURS`) for IHME requests.
+- August 2025: Added birth location variables.
+- January 2025: Updated variable names to align with PRISMA naming conventions.
+
+### Current Version
+
+**October 2026**  
+Emma K. Cook (emmacook@gwu.edu)
+
+Updates:
+- Transitioned to use `MAT_STUDYSTATUS` as the primary endpoint source dataset.
+- Outputs MAT_PREGEND instead of separate MAT_LABOR, MAT_PRETERM, and MAT_UTERINERUP
+
+
