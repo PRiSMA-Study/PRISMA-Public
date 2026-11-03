@@ -18,11 +18,9 @@ Required datasets:
 - MNH05: Maternal anthropometric form
 - MNH06: Maternal point of care diagnostics form
 
-**Notes:**
-
-This program uses the user-written Stata command [`str2date`](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/blob/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files/str2date.ado) to convert string dates to Stata date format.
-
-Stacked data (mnh00-01, mnh03-06) was processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
+Notes:
+- This program uses the user-written Stata command [`str2date`](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/blob/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files/str2date.ado) to convert string dates to Stata date format.
+- Stacked data (mnh00-01, mnh03-06) was processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
 
 ---
 
