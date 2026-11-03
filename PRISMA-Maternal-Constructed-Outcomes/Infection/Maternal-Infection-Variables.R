@@ -279,15 +279,17 @@ mnh08 <- mnh08 %>%
   mutate(TYPE_VISIT=M08_TYPE_VISIT) %>% 
   mutate(VISIT_DATE=M08_LBSTDAT)%>% 
   filter(M08_MAT_VISIT_MNH08 %in% c(1,2)) %>% 
-  ## GENERATE VARIABLE FOR ZCD EXPANSION 
-  mutate(ZCD_EXPANSION_DATE = case_when(SITE == "Ghana" ~ "2024-04-09", ## CONFIRM 04-09 IS THE RIGHT DATE -- THERE ARE N=2 TESTS DATED 04-08
-                                        SITE == "India-CMC" ~ "2024-04-23",
-                                        SITE == "India-SAS" ~ "2024-04-29",
-                                        SITE == "Kenya" ~ "2024-05-06",
-                                        SITE == "Pakistan" ~ "2024-04-05",
-                                        SITE == "Zambia" ~ "2024-03-19",
-                                        TRUE ~ NA
-  )) %>% 
+  ## *** ZCD EXPANSION DEFINITION *** ----
+## GENERATE VARIABLE FOR ZCD EXPANSION 
+## cmk: Edited 10/21/2026
+mutate(ZCD_EXPANSION_DATE = case_when(SITE == "Ghana" ~ "2024-04-09", ## CONFIRM 04-09 IS THE RIGHT DATE -- THERE ARE N=2 TESTS DATED 04-08
+                                      SITE == "India-CMC" ~ "2024-03-06",
+                                      SITE == "India-SAS" ~ "2024-03-11",
+                                      SITE == "Kenya" ~ "2024-03-07",
+                                      SITE == "Pakistan" ~ "2024-04-05",
+                                      SITE == "Zambia" ~ "2023-11-09",
+                                      TRUE ~ NA
+)) %>% 
   ## GENERATE VARIABLE FOR HEV EXPANSION 
   mutate(HEV_EXPANSION_DATE = case_when(SITE == "Ghana" ~ "2024-04-09", ## CONFIRM 04-09 IS THE RIGHT DATE -- THERE ARE N=2 TESTS DATED 04-08
                                         SITE == "India-CMC" ~ "2024-03-06",
