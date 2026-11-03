@@ -65,8 +65,8 @@ format(today, "%Y-%B-%d")
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
- # path_to_data <- "Z:/Outcome Data/2026-05-01/" 
- # path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+# path_to_data <- "Z:/Constructed Data/2026-09-18/"
+# path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 #Savannah's paths
 # path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
@@ -79,11 +79,11 @@ format(today, "%Y-%B-%d")
 
 
 # Emma's paths: 
-  # path_to_data <- paste0("D:/Users/emmacook/Documents/Outcome data/", datadate, "/") 
-  # path_to_save <- paste0("D:/Users/emmacook/Documents/Maternal_Outcomes_Report/output/", datadate, "/")
+   path_to_data <- paste0("D:/Users/emmacook/Documents/Outcome data/", datadate, "/") 
+   path_to_save <- paste0("D:/Users/emmacook/Documents/Maternal_Outcomes_Report/output/", datadate, "/")
   
-path_to_data <- paste0("Z:/Constructed Data/", datadate, "/") 
-path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
+# path_to_data <- paste0("Z:/Constructed Data/", datadate, "/") 
+# path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
 
 # Check if the path_to_save directory exists
 if (!dir.exists(path_to_save)) {
@@ -1962,7 +1962,85 @@ knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri3_output.png"))
 
 ```{r, out.width = '100%', fig.align='center'}
 
-knitr::include_graphics(paste0(path_to_data, "anemia-fig.png"))
+#install.packages("remotes")
+#remotes::install_github("davidsjoberg/ggsankey")
+library(ggsankey)
+
+  anemia<- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))
+  pregend<-read_dta(paste0(path_to_data, "MAT_STUDYSTATUS.dta"))
+  
+  anemia<-left_join(anemia,pregend)
+  
+  anemia <- anemia %>%
+    filter(PREG_END == 1 & ANEMIA_T1_DENOM==1 & ANEMIA_T3_DENOM_NOT != 6 ) 
+  
+  sankey <- anemia 
+  
+		sankey$ANEMIA_T1<- ifelse(is.na(sankey$ANEMIA_T1) & sankey$ANEMIA_T1_DENOM == 0 & 
+		                          sankey$ANEMIA_T3_DENOM_NOT >= 1 & sankey$ANEMIA_T3_DENOM_NOT <= 5,
+		                          77, sankey$ANEMIA_T1)
+		
+		sankey$ANEMIA_T2<- ifelse(is.na(sankey$ANEMIA_T2) & sankey$ANEMIA_T2_DENOM == 0 & 
+		                          sankey$ANEMIA_T3_DENOM_NOT >= 1 & sankey$ANEMIA_T3_DENOM_NOT <= 5,
+		                          77, sankey$ANEMIA_T2)
+		
+		sankey$ANEMIA_T3<- ifelse(is.na(sankey$ANEMIA_T3) & sankey$ANEMIA_T3_DENOM == 0 & 
+		                          sankey$ANEMIA_T3_DENOM_NOT >= 1 & sankey$ANEMIA_T3_DENOM_NOT <= 5,
+		                          77, sankey$ANEMIA_T3)
+		
+  sankey <- sankey %>%
+    select("PREGID","ANEMIA_T1","ANEMIA_T2","ANEMIA_T3")
+  
+  colnames(sankey)<-c("PREGID", "Trimester 1", 
+                      "Trimester 2", "Trimester 3")
+  
+  sankey <- sankey %>%
+  make_long("Trimester 1", "Trimester 2", "Trimester 3")
+  
+  sankey$node <- ifelse(sankey$node==0,"No anemia",
+                    ifelse(sankey$node==1,"Mild anemia",
+                    ifelse(sankey$node==2,"Moderate anemia",
+                    ifelse(sankey$node==3,"Severe anemia",
+                    ifelse(sankey$node==55,"Missing",
+                    ifelse(sankey$node==77,"Pregnancy ended",
+                    "Missing information"))))))
+  
+  sankey$next_node <- ifelse(sankey$next_node==0,"No anemia",
+                    ifelse(sankey$next_node==1,"Mild anemia",
+                    ifelse(sankey$next_node==2,"Moderate anemia",
+                    ifelse(sankey$next_node==3,"Severe anemia",
+                    ifelse(sankey$next_node==55,"Missing",
+                    ifelse(sankey$next_node==77,"Pregnancy ended",
+                    "Missing information"))))))
+  
+  sankey$node <- factor(sankey$node,
+  levels = c("Pregnancy ended","Missing","Severe anemia","Moderate anemia",
+             "Mild anemia","No anemia"))
+  
+  sankey$next_node <- factor(sankey$next_node,
+  levels = c("Pregnancy ended","Missing","Severe anemia","Moderate anemia",
+             "Mild anemia","No anemia"))
+  
+
+
+anemia_fig<-  ggplot(sankey, aes(x = x, 
+               next_x = next_x, 
+               node = node, 
+               next_node = next_node,
+               fill = factor(node),
+               label=node)) +
+  scale_fill_manual(values=c("Missing"="gray", "No anemia"="green4",
+                             "Mild anemia"="gold2","Moderate anemia"="maroon",
+                             "Severe anemia"="navy",
+                             "Pregnancy ended"="sienna"))+
+  geom_sankey(flow.alpha = 0.5, node.color = .6, node.width=0.5) +
+  theme_sankey(base_size = 8) +  
+  geom_sankey_label(size = 4, color = "black", fill=NA,label.size=NA) +
+  theme(legend.position="none")+
+  xlab("Timing")+
+  theme(axis.title.x = element_text(size = 15),axis.text.x = element_text(size = 12))
+
+(anemia_fig)
 
 ```
 
@@ -8048,37 +8126,128 @@ knitr::include_graphics(paste0(path_to_save, "induced_tab_output.png"))
 
 ## 17. Unplanned surgery
 
-Includes any unplanned surgery that occurs during pregnancy and within 42 days postpartum.
-
-Most events occur at labor and delivery (recorded on MNH09 & MNH10) in the context of interventions for management of postpartum hemorrhage.
-
-Other events may be recorded at labor and delivery or on the hospitalization form (MNH19). These include:
-
-
--   Laparotomy (includes "laparotomy" checkbox on MNH19, hysterectomy, and bowel resection)
--   Other unplanned surgery, recorded from free text response variable `M19_TX_PRTRT`  (includes D&C, D&E, hysterotomy)
-
-Additionally, we report the following events:
+This outcome is defined as any unplanned surgery that occurs during pregnancy or within 42 days postpartum. Most events occur at labor and delivery (recorded on MNH09 or MNH10 forms). Other events may be recorded during a hospitalization event in pregnancy or in the postnatal period (MNH19 form). The PRISMA definition of unplanned surgery includes the following:
 
 -   Emergent cesarean delivery
+-   Surgical interventions for the management of postpartum hemorrhage
+-   Laparotomy (including hysterectomy, bowel resection, or other laparotomy)
+-   Other unplanned surgery as reported during hospitalization, recorded from free text response variable in the hospitalization form variable `TX_PRTRT`  (includes D&C, D&E, hysterotomy)
+
+Because cesarean deliveries identified as "emergent" are the most common unplanned surgery, we first present overall statistics on cesarean deliveries by type in Table 17a. These include:
+
+-   Planned cesarean delivery
+-   Emergent cesarean delivery
+-   Cesarean delivery with unknown status
+
+Table 17b presents the Unplanned Surgery Outcome, as described above. In addition to the Unplanned Surgery Outcome, we also present details on "other surgeries of interest" that are NOT included in the outcome, including:
 -   Episiotomy
 
 
--   Expected denominator: all women who have passed 42 days postpartum. If pregnancy end date is not known, estimated due date is used to calculate the window.
+-   Expected denominator: all women who have passed 42 days postpartum, without closing out of the study. If pregnancy end date is not known, estimated due date is used to calculate the window. Note that this denominator is aligned with the "Near-Miss" outcome denominator (See section 9 for more details on the denominator).
 
--   Near-miss denominator: passed 42 days postpartum, MINUS:
-  -   "healthy" and closed out during the window
-  -   "healthy" and did not have a MNH09/MNH12/MNH19 form
-  -   "healthy" and not seen 42+ days postpartum
-
-
-*Note: "healthy" indicates a woman who is alive, did not experience a potentially life-threatening condition, and did not experience near-miss criteria. Under this definition, a women who e.g., closed out before 42 days postpartum but also experienced a PLTC would still be included in the denominator*
+### Table 17a. Cesarean deliveries
+```{r}
+nearmiss2 <- left_join(near_miss,labor, join_by(SITE, MOMID,PREGID)) %>% filter(NEARMISS_DENOM==1)
 
 
-See section 9 for more details on the denominator. 
+ces_tab <- nearmiss2 %>%
+  rowwise() %>%
+  group_by(SITE) %>%
+  summarise(
 
 
-### Table 17. Surgeries (Planned + Unplanned)
+"Denominator^a^" = paste0(
+
+      format(sum(NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
+
+  "Total cesarean deliveries, n(%)" = paste0(
+      format(sum(MAT_CES_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_CES_ANY==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+ "Emergent cesarean, n(%)" = paste0(
+      format(sum(MAT_CES_EMERGENT==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_CES_EMERGENT==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+ "Planned cesarean, n(%)" = paste0(
+      format(sum(MAT_CES_PLAN==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_CES_PLAN==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+ "Cesarean, unknown, n(%)" = paste0(
+      format(sum(MAT_CES_PLAN==55, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(MAT_CES_PLAN==55, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+    ) %>%
+  t() %>% as.data.frame() %>%
+  `colnames<-`(c(.[1,])) %>%
+  slice(-1)  %>%
+  mutate_all(funs(str_replace(., "NaN", "0"))) %>%
+  mutate_all(funs(str_replace(., "NA", "0")))
+
+
+
+```
+
+
+```{r}
+# replace NA with 0s (this likely means there is not yet data)
+ces_tab[is.na(ces_tab)] <- paste0("0 (0)")
+
+ces_tab_output <- tb_theme1(ces_tab) %>%
+  tab_header(
+    title = md("**Table 17a**")) %>%
+ 
+
+   tab_style(
+      style = list(
+        cell_text(indent = px(10), style = "italic")
+        ),
+      locations = cells_stub(rows = c(
+        'Emergent cesarean, n(%)',
+        'Planned cesarean, n(%)',
+        'Cesarean, unknown, n(%)'))
+      ) %>%
+  
+   tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_body(rows = c(
+                "Denominator^a^"))) %>%
+tab_style(
+      style = list(
+        cell_text(weight = "bold")
+        ),
+      locations = cells_stub(rows = c(
+                 "Denominator^a^"))) %>%
+
+   tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>a</sup>Denominator is women who have passed 42 days, minus those who are healthy and have closed out early, are missing MNH09/MNH12/MNH19 form, or who have not been seen 42+ days postpartum. See section 9 for more details.</span>" ))
+
+
+
+
+```
+
+```{r, out.width = '100%'}
+
+gtsave(ces_tab_output, file = "ces_tab_output.png", path = path_to_save, expand = 10)
+knitr::include_graphics(paste0(path_to_save, "ces_tab_output.png"))
+
+```
+
+
+
+
+
+### Table 17b. Unplanned surgery
 ```{r}
 nearmiss2 <- left_join(near_miss,labor, join_by(SITE, MOMID,PREGID)) %>% filter(NEARMISS_DENOM==1)
 
@@ -8093,30 +8262,6 @@ surgery_tab <- nearmiss2 %>%
 
       format(sum(NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-  "Total surgeries, n(%)" = paste0(
-      format(sum(UNPLANNED_SURGERY == 1 | EPIS_PROCCUR == 1 | MAT_CES_ANY==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum( UNPLANNED_SURGERY == 1 | EPIS_PROCCUR == 1 | MAT_CES_ANY==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
- "Planned cesarean, n(%)" = paste0(
-      format(sum(MAT_CES_PLAN==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_CES_PLAN==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
-
- "Cesarean, unknown, n(%)" = paste0(
-      format(sum(MAT_CES_PLAN==55, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(MAT_CES_PLAN==55, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
-
- "Episiotomy, n(%)" = paste0(
-      format(sum(EPIS_PROCCUR==1, na.rm = TRUE), nsmall = 0, digits = 2),
-      " (",
-      format(round(sum(EPIS_PROCCUR==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-      ")"),
 
  "Total unplanned surgeries, n(%)" = paste0(
       format(sum(UNPLANNED_SURGERY == 1 | MAT_CES_EMERGENT==1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -8129,12 +8274,6 @@ surgery_tab <- nearmiss2 %>%
       " (",
       format(round(sum(MAT_CES_EMERGENT==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
-
-# "Other unplanned surgeries, n(%)" = paste0(
-#      format(sum(UNPLANNED_SURGERY == 1, na.rm = TRUE), nsmall = 0, digits = 2),
-#     " (",
-#      format(round(sum(UNPLANNED_SURGERY == 1  , na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-#      ")"),
 
  "Intervention for PPH, n(%)^b^" = paste0(
       format(sum(PPH_PROC_IPC_SURG == 1, na.rm = TRUE), nsmall = 0, digits = 2),
@@ -8154,10 +8293,16 @@ surgery_tab <- nearmiss2 %>%
       format(round(sum(HYSTERECTOMY == 1, na.rm = TRUE)/sum(NEARMISS_DENOM, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-"Miscellaneous unplanned surgery, n(%)^d^" = paste0(
+"Other unplanned surgery, n(%)^d^" = paste0(
       format(sum(RSN_PPH_PROC_IPC_VESSEL == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(RSN_PPH_PROC_IPC_VESSEL == 1, na.rm = TRUE)/sum(NEARMISS_DENOM, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      ")"),
+
+ "Episiotomy, n(%)" = paste0(
+      format(sum(EPIS_PROCCUR==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      " (",
+      format(round(sum(EPIS_PROCCUR==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
     ) %>%
@@ -8178,9 +8323,26 @@ surgery_tab[is.na(surgery_tab)] <- paste0("0 (0)")
 
 surgery_tab_output <- tb_theme1(surgery_tab) %>%
   tab_header(
-    title = md("**Table 17**")) %>%
+    title = md("**Table 17b**")) %>%
+ tab_row_group(
+  rows = 1:1,
+  label = html("<span style='font-size: 18px'>Unplanned surgery denominator</span>"),
+  id = "denom"
+) %>%
+ tab_row_group(
+  label = html("<span style='font-size: 18px'>Unplanned surgery outcome</span>"),
+  rows = 2:7,
+  id = "outcome"
+) %>%
+tab_row_group(
+  label = html("<span style='font-size: 18px'>Other surgeries of interest</span>"),
+  rows = 8:8,
+  id = "other"
+) %>%
+row_group_order(
+  groups = c("denom", "outcome", "other")
+) %>%
  
-
    tab_style(
       style = list(
         cell_text(indent = px(10), style = "italic")
@@ -8189,7 +8351,7 @@ surgery_tab_output <- tb_theme1(surgery_tab) %>%
         'Emergent cesarean, n(%)',
         'Intervention for PPH, n(%)^b^',
         'Laparotomy, n(%)^c^',
-        'Miscellaneous unplanned surgery, n(%)^d^'))
+        'Other unplanned surgery, n(%)^d^'))
       ) %>%
   
   tab_style(
@@ -8218,9 +8380,9 @@ tab_style(
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup>Surgical interventions for PPH include vessel ligation, brace sutures, and other unspecified surgical intervention.</span>" ))  %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>c</sup>Laparotomy includes laparotomy indicated on MNH19, hysterectomy, and bowel resection.</span>" ))  %>%
+    footnote = html("<span style='font-size: 18px'><sup>c</sup>Laparotomy includes hysterectomy, bowel resection, and laparotomy-unspecified (as indicated on MNH19).</span>" ))  %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>d</sup>Miscellaneous unplanned surgery includes D&C and D&E.</span>" )) %>%
+    footnote = html("<span style='font-size: 18px'><sup>d</sup>Other unplanned surgery includes D&C and D&E.</span>" )) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note: </sup>Participants may fall into more than one category, e.g., hysterectomy (recorded in M19) + surgical intervention for PPH (recorded in M09).</span>" ))
 
