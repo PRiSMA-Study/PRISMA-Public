@@ -60,14 +60,19 @@
 # Document any new exclusions after September 28, 2026 and apply them to the specific query only.
 #*****************************************************************************
 
-### data queries 
-library(tidyverse)
-library(ggplot2)
-library(RColorBrewer)
-library(data.table)
-library(openxlsx)
-library(haven)
-library(readxl)
+rm(list = ls())
+
+#environment set up ----
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse,
+               ggplot2,
+               RColorBrewer,
+               data.table,
+               openxlsx,
+               haven,
+               readxl,
+               lubridate)
 
 ## set upload dates
 #UploadDate = "2026-05-01"
