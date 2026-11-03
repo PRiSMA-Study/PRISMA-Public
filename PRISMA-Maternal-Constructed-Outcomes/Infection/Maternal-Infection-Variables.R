@@ -1079,7 +1079,7 @@ hev <- mat_enroll %>%
                                   TRUE ~ 0)
   ) %>%
   # Test result available? 
-  mutate(HEV_IGM_RESULT_AVAI = case_when(M08_HEV_IGG_LBORRES %in% c(0,1,2) ~ 1, TRUE ~ 0),
+  mutate(HEV_IGM_RESULT_AVAI = case_when(M08_HEV_IGM_LBORRES %in% c(0,1,2) ~ 1, TRUE ~ 0), #Casey's note - changed variable from M08_HEV_IGG --> IGM
          HEV_IGG_RESULT_AVAI = case_when(M08_HEV_IGG_LBORRES %in% c(0,1,2) ~ 1, TRUE ~ 0)
   ) %>% 
   # Test result by titers
