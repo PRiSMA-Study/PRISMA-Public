@@ -795,6 +795,7 @@ hem_export_wide <- hem_export %>%
       ifelse(. == "", NA, .),               # return NA if empty
     .groups = "drop"
   ) %>%
+  #ungroup() %>% #Casey's Notes: Changed from .groups="drop" to ungroup()
   
   mutate(
     ## Postpartum hemorrhage (HEM_PPH)  ---- 
@@ -805,7 +806,7 @@ hem_export_wide <- hem_export %>%
     # 2. create var that pulls the date of event; if participant has multiple events, pull the earliest 
     HEM_PPH_DATE_MAX = {
       pos_dates <- HEM_PPH_DATE[HEM_PPH == 1 & !is.na(HEM_PPH_DATE)]
-      if (length(pos_dates) > 0) min(pos_dates, na.rm = TRUE) else as.Date(NA)
+      if (length(pos_dates) > 0) min(pos_dates, na.rm = TRUE) else NA_Date_
     },
     
     # 3. create var that pulls the form source inclusion criteria pulled from 
@@ -943,9 +944,11 @@ hem_export_wide_rsn <- hem_export_wide %>%
   rename_with(~ gsub("_MAX$", "", .x))
 
 # generate a smaller dataset that pulls the max case for each inclusion criteria; this will later be merged onto the full dataset
+# Casey's Note: Received error about max() returning -Inf values because all NAs
 hem_export_rsn_detail <- hem_export_wide %>%
   group_by(SITE, MOMID, PREGID) %>%
-  summarise(across(all_of(c(aph_rsn, pph_rsn, pph_sev_rsn)),~ replace(max(.x, na.rm = TRUE), is.infinite(max(.x, na.rm = TRUE)), 77),
+  summarise(across(all_of(c(aph_rsn, pph_rsn, pph_sev_rsn)),
+                   ~ replace(max(.x, na.rm = TRUE), is.infinite(max(.x, na.rm = TRUE)), 77),
                    .names = "{.col}"),.groups = "drop") %>% 
   ungroup() 
 
