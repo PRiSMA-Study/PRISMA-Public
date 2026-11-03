@@ -1257,11 +1257,11 @@ aph_subset <- hem_export_merged %>%
 pph_subset <- hem_export_merged %>% filter(HEM_PPH == 1) %>%
   select(-contains("HEM_PPH_SEV")) %>%
   select(SITE, MOMID, PREGID, PREG_START_DATE, PREG_END_DATE,
-         contains("HEM_PPH"), pph_rsn)
+         contains("HEM_PPH"), all_of(pph_rsn))
 
 pph_sev_subset <- hem_export_merged %>% filter(HEM_PPH_SEV == 1) %>%
   select(SITE, MOMID, PREGID, PREG_START_DATE, PREG_END_DATE,
-         contains("HEM_PPH_SEV"), pph_sev_rsn)
+         contains("HEM_PPH_SEV"), all_of(pph_sev_rsn))
 
 ## run quick tab of each inclusion criteria 
 for (i in names(hem_export_merged)[-c(1:5)]) {
