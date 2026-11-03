@@ -1353,10 +1353,10 @@ combined_queries <- hem_query_list %>%
   ### Remove specific India-CMC cases from specific queries only ----
   ## the site confirmed they do not have data to confirm this
   filter(
-    !(Site == "India-CMC" &
-        ((PregID == "IBM-0020-01" &
+    !(SITE == "India-CMC" &
+        ((PREGID == "IBM-0020-01" &
              exclusion_rsn == "pph in mnh09 then severe in mnh12") |
-            (PregID == "IBM-0474-01" &
+            (PREGID == "IBM-0474-01" &
                exclusion_rsn == "pph blood loss in mnh12 only (-7 MNH09)")))) %>%
 
   ### Remove previously reviewed and confirmed cases from specific queries only ----
