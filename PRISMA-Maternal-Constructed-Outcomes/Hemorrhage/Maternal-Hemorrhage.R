@@ -964,7 +964,7 @@ mat_studystatus%>%
 dim(hem_export_wide_rsn)
 dim(hem_export_rsn_detail)
 
-names (hem_export_rsn_detail)
+names(hem_export_rsn_detail)
 names(hem_export_wide_rsn)
 
 
@@ -1159,7 +1159,8 @@ query6_output <- query_pph_pnc_blood_loss %>%
   mutate(n_pct = round(n/total_pph*100, 1))
 
 
-ggplot(data = query_pph_pnc_blood_loss %>% filter(exclusion_rsn == "pph blood loss in mnh12 only (-7 MNH09)"), aes(x = HEM_PPH_AGE_PP_DAYS, fill = SITE)) + 
+ggplot(data = query_pph_pnc_blood_loss %>% 
+         filter(exclusion_rsn == "pph blood loss in mnh12 only (-7 MNH09)"), aes(x = HEM_PPH_AGE_PP_DAYS, fill = SITE)) + 
   geom_histogram(color = "grey") + 
   xlab("Days postpartum") + 
   scale_x_continuous(breaks = seq(0,20,2), limits = c(0, 20)) +
@@ -1248,9 +1249,10 @@ duplicates <- hem_export_merged %>% group_by(SITE, MOMID, PREGID) %>% mutate(n=n
 paste0(dim(duplicates)[1], " duplicates in final dataset")
 
 ## the only thing remaining is figuring out the form issue in mnh09 for aph
-aph_subset <- hem_export_merged %>% filter(HEM_APH == 1) %>%
-  select(SITE, MOMID, PREGID, PREG_START_DATE, PREG_END_DATE,
-         contains("HEM_APH"), aph_rsn)
+aph_subset <- hem_export_merged %>% 
+              filter(HEM_APH == 1) %>%
+              select(SITE, MOMID, PREGID, PREG_START_DATE, PREG_END_DATE,
+                     contains("HEM_APH"), all_of(aph_rsn))
 
 pph_subset <- hem_export_merged %>% filter(HEM_PPH == 1) %>%
   select(-contains("HEM_PPH_SEV")) %>%
@@ -1267,12 +1269,12 @@ for (i in names(hem_export_merged)[-c(1:5)]) {
   print(table(hem_export_merged[[i]], useNA = "ifany"))
 }
 
-
+# --> EXPOERT MAT_HEMORRHAGE----
 write.csv(hem_export_merged, paste0(path_to_save, "/MAT_HEMORRHAGE" ,".csv"), na="",row.names=FALSE)
 write.xlsx(hem_export_merged, paste0(path_to_save, "/MAT_HEMORRHAGE" ,".xlsx"),na="", rowNames=FALSE)
 
-write.csv(hem_export_merged, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".csv"), na="",row.names=FALSE)
-write.xlsx(hem_export_merged, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".xlsx"),na="", rowNames=FALSE)
+# write.csv(hem_export_merged, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".csv"), na="",row.names=FALSE)
+# write.xlsx(hem_export_merged, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".xlsx"),na="", rowNames=FALSE)
 
 table(hem_export_merged$HEM_APH, hem_export_merged$SITE)
 table(hem_export_merged$HEM_PPH, hem_export_merged$SITE)
