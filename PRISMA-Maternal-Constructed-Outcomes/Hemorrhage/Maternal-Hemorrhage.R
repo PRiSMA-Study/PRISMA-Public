@@ -768,12 +768,22 @@ hem_export_wide <- hem_export %>%
     HEM_APH_MAX = max(HEM_APH, na.rm = TRUE),
     
     # 2. create var that pulls the date of event; if participant has multiple events, pull the earliest 
-    HEM_APH_DATE_MIDPOINT_MAX = if (any(HEM_APH == 1, na.rm = TRUE)) 
-      min(HEM_APH_DATE[HEM_APH == 1], na.rm = TRUE) else NA_Date_,
+    # Casey's notes: made adjustment to account for instances in which no APH_DATE is listed (all NAs)
+    HEM_APH_DATE_MIDPOINT_MAX = {
+      d <- HEM_APH_DATE[which(HEM_APH==1)]
+      if(all(is.na(d))) NA_Date_ else min(d, na.rm=TRUE)
+      # if (any(HEM_APH == 1, na.rm = TRUE)) 
+      # min(HEM_APH_DATE[HEM_APH == 1], na.rm = TRUE) else NA_Date_
+      },
     
-    HEM_APH_DATE_VISIT_MAX = if (any(HEM_APH == 1, na.rm = TRUE)) 
-      min(HEM_APH_DATE_VISIT[HEM_APH == 1], na.rm = TRUE) else NA_Date_,
-    
+    HEM_APH_DATE_VISIT_MAX = {
+      d <- HEM_APH_DATE_VISIT[which(HEM_APH==1)]
+      if(all(is.na(d))) NA_Date_ else min(d, na.rm=TRUE)
+      
+      # if (any(HEM_APH == 1, na.rm = TRUE)) 
+      # min(HEM_APH_DATE_VISIT[HEM_APH == 1], na.rm = TRUE) else NA_Date_,
+    },
+      
     # 3. create var that pulls the form source inclusion criteria pulled from 
     HEM_APH_FORM_SOURCE_MAX = HEM_APH_SOURCE %>%
       na.omit() %>%                         # remove NAs
