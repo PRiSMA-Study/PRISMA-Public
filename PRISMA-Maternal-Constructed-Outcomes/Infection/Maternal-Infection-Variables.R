@@ -3029,7 +3029,7 @@ write.csv(mat_infection_long, paste0(path_to_save, "data_out/MAT_INFECTION_LONG"
 writexl::write_xlsx(long,"~/OutcomeDatasets/Analysis/Infection/2026-09-18/data_out/MAT_INFECTION_LONG.xlsx")
 
 #*****************************************************************************
-# EXPORTING ----
+# MERGING FOR WIDE  ----
 #*****************************************************************************
 tb_export_labels_nodup <- tb_export_labels %>% filter(!is.na(TB_CULT_POSITIVE_ENROLL_LABEL))
 
