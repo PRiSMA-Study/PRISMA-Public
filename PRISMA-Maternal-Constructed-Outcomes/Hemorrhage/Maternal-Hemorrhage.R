@@ -10,7 +10,6 @@
 
 ## Hemorrhage (antepartum)
 # ## required variables & logic
-# M04_APH_CEOCCUR_1-5==1 (Current clinical status: antepartum hemorrhage)
 # APH_UNSCHED_ANY==1 (Current clinical status: antepartum hemorrhage @ at any unscheduled visit)
 # M09_APH_CEOCCUR_6==1 (Did the mother experience antepartum hemorrhage?)
 # HEM_HOSP_ANY==1 (specify type of labor/delivery or birth complication: APH or PPH or vaginal bleeding)
@@ -61,63 +60,119 @@
 # Document any new exclusions after September 28, 2026 and apply them to the specific query only.
 #*****************************************************************************
 
-### data queries 
-library(tidyverse)
-library(ggplot2)
-library(RColorBrewer)
-library(data.table)
-library(openxlsx)
-library(haven)
-library(readxl)
+rm(list = ls())
+
+#environment set up ----
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse,
+               ggplot2,
+               RColorBrewer,
+               data.table,
+               openxlsx,
+               haven,
+               readxl,
+               lubridate)
 
 ## set upload dates
-UploadDate = "2026-05-01"
+#UploadDate = "2026-05-01"
+UploadDate = "2026-09-18"
 
 # Import data ---- 
 ## Set path to save ---- 
-path_to_save <- paste0("~/Analysis/Hemorrhage/", UploadDate, "/derived_data")
+path_to_save <- paste0("~/OutcomeDatasets/Analysis/Hemorrhage/", UploadDate, "/derived_data")
 dir.create(path_to_save, recursive = TRUE, showWarnings = FALSE)
 
-path_to_output <- paste0("~/Analysis/Hemorrhage/", UploadDate, "/output")
+path_to_output <- paste0("~/OutcomeDatasets/Analysis/Hemorrhage/", UploadDate, "/output")
 dir.create(path_to_output, recursive = TRUE, showWarnings = FALSE)
 
-path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
-
-## Set path to data ---- 
-path_to_data <- paste0("~/Analysis/Merged_data/", UploadDate)
-
 ## Query Folder relevant paths ---
-path_to_queries <- paste0("~/Analysis/Hemorrhage/", UploadDate, "/queries")
+path_to_queries <- paste0("~/OutcomeDatasets/Analysis/Hemorrhage/", UploadDate, "/queries")
 dir.create(path_to_queries, recursive = TRUE, showWarnings = FALSE)
 #Define the path where the PPH files are located
-pph_directory <- "D:/Users/williams_pj/Documents/Analysis/Quarterly-Readouts/2026 Q2 06-04/case review"
+pph_directory <- "D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Quarterly-Readouts/2026 Q3/case review"
 
-## Import enrolment, infant outcomes and mat_endpoint ---- 
-mat_enroll <- read_xlsx(paste0(path_to_tnt, "MAT_ENROLL" ,".xlsx" )) %>% select(SITE, MOMID, PREGID, ENROLL, PREG_START_DATE,EST_CONCEP_DATE_LMP, EST_CONCEP_DATE_US) %>% 
-  filter(ENROLL == 1)
 
-mat_end <- read_dta(paste0(path_to_tnt, "MAT_ENDPOINTS" ,".dta" )) %>% 
+##Import constructed datasets----
+if(UploadDate<="2026-05-01"){
+  
+  path_to_tnt <- paste0("Z:/Outcome Data/", UploadDate, "/")
+  
+  mat_enroll <- read_csv(paste0(path_to_tnt, "MAT_ENROLL.csv")) %>% 
+    select(SITE, MOMID, PREGID, ENROLL, PREG_START_DATE,EST_CONCEP_DATE_LMP, EST_CONCEP_DATE_US) %>%
+    filter(ENROLL == 1)
+  
+  mat_end <- read_dta(paste0(path_to_tnt, "MAT_ENDPOINTS.dta")) %>%
+    ## only want all pregnancy endpoints excluding moms who have died before delivery and induced abortions
+    ##PJW: Update to death before delivery, deaths not caused by delivery or at delivery (no labour occured)
+    ##PJW: PREG_LOSS_DEATH are "non-pregnancy related deaths" or deaths without any birth outcome
+    filter(PREG_END == 1 & PREG_LOSS_DEATH != 1 & PREG_LOSS_INDUCED == 0)
+  
+  mat_end_full <- read_dta(paste0(path_to_tnt, "MAT_ENDPOINTS" ,".dta"))
   ## only want all pregnancy endpoints excluding moms who have died before delivery and induced abortions
-  ##PJW: Update to death before delivery, deaths not caused by delivery or at delivery (no labour occured)
-  ##PJW: PREG_LOSS_DEATH are "non-pregnancy related deaths" or deaths without any birth outcome
-  filter(PREG_END == 1 & PREG_LOSS_DEATH != 1 & PREG_LOSS_INDUCED == 0)
+  
+  inf_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES" ,".csv" )) %>% 
+    select(SITE, MOMID, PREGID, DOB, LIVEBIRTH, FETAL_LOSS) %>% 
+    group_by(SITE, PREGID) %>% 
+    arrange(desc(DOB)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
+  
+} else {
+  
+  path_to_tnt <- paste0("Z:/Constructed Data/", UploadDate, "/")
+  
+  mat_studystatus <- read_dta(file=paste0(path_to_tnt, "MAT_STUDYSTATUS", ".dta")) #Casey's Edits: updated to use mat_studystatus in place of mat_enroll and mat_end
+  
+  anc <- c("ENROLL", "ANC20", "ANC28", "ANC32", "ANC36")
+  pnc <- paste0("PNC", c(0, 1, 4, 6, 26, 52))
+  
+  mat_enroll_vars <- c(
+    "SITE", "SCRNID", "MOMID", "PREGID", "ENROLL", "REMAPP_ENROLL",
+    "REMAPP_AIM3_ENROLL", "REMAPP_AIM3_TRI", "ENROLL_SCRN_DATE", "PREG_START_DATE",
+    "EST_CONCEP_DATE_US", "EST_CONCEP_DATE_LMP", "M01_US_OHOSTDAT", "EDD_BOE",
+    "GA_DIFF_DAYS", "BOE_METHOD", "BOE_GA_WKS_ENROLL", "BOE_GA_DAYS_ENROLL",
+    "US_GA_DAYS_ENROLL", "US_GA_WKS_ENROLL", "LMP_GA_DAYS_ENROLL", "LMP_GA_WKS_ENROLL",
+    outer(anc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
+  )
+  
+  mat_endpoints_vars <- c(
+    "SITE", "MOMID", "PREGID", "PREG_END", "PREG_END_GA", "PREG_END_DATE",
+    "PREG_LOSS", "PREG_LOSS_INDUCED", "PREG_LOSS_DEATH",
+    "PREG_END_SOURCE", "CLOSEOUT", "CLOSEOUT_DT", "CLOSEOUT_GA",
+    "CLOSEOUT_TYPE", "CLOSEOUT_DAYS_PP", "MAT_DEATH", "MAT_DEATH_DATE", "MAT_DEATH_GA",
+    "MAT_DEATH_MISSDATE", "MAT_DEATH_INFAGE","PREG_END_PP42_DT", "MAT_DEATH_42", "STOP_DATE",
+    outer(pnc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
+  )
+  
+  mat_enroll <- select(mat_studystatus, any_of(mat_enroll_vars))%>%
+                select(SITE, MOMID, PREGID, ENROLL, PREG_START_DATE,EST_CONCEP_DATE_LMP, EST_CONCEP_DATE_US) %>%
+                filter(ENROLL == 1)
+  
+  mat_end_full<-select(mat_studystatus, any_of(mat_endpoints_vars))
+  
+  mat_end <- mat_end_full%>%
+             filter(PREG_END == 1 & PREG_LOSS_DEATH != 1 & PREG_LOSS_INDUCED == 0)
+  
+  inf_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES" ,".csv" )) %>% 
+    select(SITE, MOMID, PREGID, DOB, LIVEBIRTH, FETAL_LOSS) %>% 
+    group_by(SITE, PREGID) %>% 
+    arrange(desc(DOB)) %>% 
+    slice(1) %>% 
+    mutate(n=n()) %>% 
+    ungroup() %>% 
+    select(-n) %>% 
+    ungroup()
+  
+}
 
-mat_end_full <- read_dta(paste0(path_to_tnt, "MAT_ENDPOINTS" ,".dta" )) 
-## only want all pregnancy endpoints excluding moms who have died before delivery and induced abortions
-
-inf_outcomes <- read.csv(paste0(path_to_tnt, "INF_OUTCOMES" ,".csv" )) %>% 
-  select(SITE, MOMID, PREGID, DOB, LIVEBIRTH, FETAL_LOSS) %>% 
-  group_by(SITE, PREGID) %>% 
-  arrange(desc(DOB)) %>% 
-  slice(1) %>% 
-  mutate(n=n()) %>% 
-  ungroup() %>% 
-  select(-n) %>% 
-  ungroup()
 
 ## Import stacked csv forms ---- 
-mnh19 <- read.csv(paste0("Z:/Stacked Data/", UploadDate,"/", "mnh19_merged.csv"))
-
+mnh19 <- read.csv(paste0("Z:/Stacked Data/", UploadDate,"/", "mnh19_merged.csv"), fileEncoding ="latin1")
+#Casey's Notes: parsing warning. Needed to add "fileEncoding =latin1"
 
 ## mnh04 ----
 mnh04 <- read.csv(paste0("Z:/Stacked Data/", UploadDate, "/", "mnh04_merged.csv"))
@@ -129,7 +184,7 @@ if (any(duplicated(mnh04[c("SITE", "MOMID", "PREGID",  "M04_TYPE_VISIT")]))) {
   
   print(paste0("n= ",dim(duplicates_ids_04)[1],  " Duplicates in mnh04 exist"))
   
-  # extract ids from main dataset
+  # extract ids from main dataset - keep one per pregnancy
   mnh04 <- mnh04 %>% group_by(SITE, MOMID, PREGID, M04_TYPE_VISIT) %>% 
     arrange(desc(M04_ANC_OBSSTDAT)) %>% 
     slice(1) %>% 
@@ -152,7 +207,7 @@ if (any(duplicated(mnh09[c("SITE", "MOMID", "PREGID", "M09_MAT_LD_OHOSTDAT")])))
   
   print(paste0("n= ",dim(duplicates_ids_09)[1],  " Duplicates in mnh09 exist"))
   
-  # extract ids from main dataset
+  # extract ids from main dataset - keep one row per pregnancy
   mnh09 <- mnh09 %>% group_by(SITE, MOMID, PREGID, M09_MAT_LD_OHOSTDAT) %>% 
     arrange(desc(M09_MAT_LD_OHOSTDAT)) %>% 
     slice(1) %>% 
@@ -176,7 +231,7 @@ if (any(duplicated(mnh12[c("SITE", "MOMID", "PREGID",  "M12_TYPE_VISIT", "M12_VI
   
   print(paste0("n= ",dim(duplicates_ids_12)[1],  " Duplicates in mnh12 exist"))
   
-  # extract ids from main dataset
+  # extract ids from main dataset - keep one row per pregnancy
   mnh12 <- mnh12 %>% group_by(SITE, MOMID, PREGID, M12_TYPE_VISIT) %>% 
     arrange(desc(M12_VISIT_OBSSTDAT)) %>% 
     slice(1) %>% 
@@ -197,7 +252,7 @@ if (any(duplicated(mnh12[c("SITE", "MOMID", "PREGID",  "M12_TYPE_VISIT", "M12_VI
 #PJW: Because its possible that sites have extracted the data for hospitalizations
 ## We are removing duplicates by date mother presented for care
 ## harmonizing the two dates instead of M19_OBSSTDAT
-mnh19 <- read.csv(paste0("Z:/Stacked Data/", UploadDate,"/", "mnh19_merged.csv"))
+mnh19 <- read.csv(paste0("Z:/Stacked Data/", UploadDate,"/", "mnh19_merged.csv"), fileEncoding = "latin1")
 
 # Create a harmonized hospitalization date
 mnh19 <- mnh19 %>%
@@ -253,7 +308,7 @@ hem_ld <- mnh09 %>%
   right_join(mat_end[c("SITE", "MOMID", "PREGID","PREG_END",
                        "PREG_END_DATE", "PREG_END_GA", "PREG_LOSS")],
              by = c("SITE", "MOMID", "PREGID")) %>%
-  select(SITE, MOMID, PREGID,M09_MAT_LD_OHOSTDAT, PREG_END_DATE,PREG_END, contains("M09")) %>% 
+  select(SITE, MOMID, PREGID,M09_MAT_LD_OHOSTDAT, PREG_END_DATE, PREG_END, contains("M09")) %>% 
   # rename_with(~paste0(., "_", 6), .cols = c(contains("M09")))  %>% 
   distinct(SITE, MOMID, PREGID, .keep_all = TRUE) %>% 
   left_join(inf_outcomes, by = c("SITE", "MOMID", "PREGID")) %>% 
@@ -360,7 +415,7 @@ hem <- mat_enroll %>%
               select(-PREG_START_DATE, -PREG_END_DATE), by = c("SITE", "MOMID", "PREGID", "VISIT_DATE")) %>%
   full_join(mat_end[c("SITE", "MOMID", "PREGID","PREG_END",
                       "PREG_END_DATE", "PREG_END_GA", "PREG_LOSS")],
-            by = c("SITE", "MOMID", "PREGID")) %>% 
+            by = c("SITE", "MOMID", "PREGID")) %>%
   full_join(hem_ld %>% select(SITE, MOMID, PREGID, DOB), by = c("SITE", "MOMID", "PREGID")) %>%
   
   # hemorrhage in MNH04
@@ -479,7 +534,7 @@ hem_export <- hem %>%
   #   if (any(HEM_DENOM == 1 & M09_MAT_HEM != 1 & M12_MAT_HEM != 1 & TIMING_HOSP_TEXT == "HOSPITAL HEM PNC", na.rm = TRUE)) "MNH19" else NULL
   # ) %>% paste(collapse = " & ")) %>%
   # mutate(HEM_PPH_SOURCE = ifelse(HEM_PPH_SOURCE == "", NA, HEM_PPH_SOURCE)) %>%
-  #PJW change: Fix this chunck of code due to errors with collapsing multi-form sources
+  #PJW change: Fix this chunk of code due to errors with collapsing multi-form sources
   mutate(
     HEM_PPH_SOURCE = {
       sources <- c(
@@ -565,7 +620,7 @@ hem_export <- hem %>%
                                                                 (M19_LD_COMPL_ML >=1000  & TIMING_HOSP == 2)) ~ 1, TRUE ~0)
   ) %>%
   group_by(SITE, MOMID, PREGID) %>%
-  #PJW change: Fix this chunck of code due to errors with collapsing multi-form sources
+  #PJW change: Fix this chunk of code due to errors with collapsing multi-form sources
   mutate(
     HEM_PPH_SEV_SOURCE = {
       sources <- c(
@@ -713,12 +768,22 @@ hem_export_wide <- hem_export %>%
     HEM_APH_MAX = max(HEM_APH, na.rm = TRUE),
     
     # 2. create var that pulls the date of event; if participant has multiple events, pull the earliest 
-    HEM_APH_DATE_MIDPOINT_MAX = if (any(HEM_APH == 1, na.rm = TRUE)) 
-      min(HEM_APH_DATE[HEM_APH == 1], na.rm = TRUE) else NA_Date_,
+    # Casey's notes: made adjustment to account for instances in which no APH_DATE is listed (all NAs)
+    HEM_APH_DATE_MIDPOINT_MAX = {
+      d <- HEM_APH_DATE[which(HEM_APH==1)]
+      if(all(is.na(d))) NA_Date_ else min(d, na.rm=TRUE)
+      # if (any(HEM_APH == 1, na.rm = TRUE)) 
+      # min(HEM_APH_DATE[HEM_APH == 1], na.rm = TRUE) else NA_Date_
+      },
     
-    HEM_APH_DATE_VISIT_MAX = if (any(HEM_APH == 1, na.rm = TRUE)) 
-      min(HEM_APH_DATE_VISIT[HEM_APH == 1], na.rm = TRUE) else NA_Date_,
-    
+    HEM_APH_DATE_VISIT_MAX = {
+      d <- HEM_APH_DATE_VISIT[which(HEM_APH==1)]
+      if(all(is.na(d))) NA_Date_ else min(d, na.rm=TRUE)
+      
+      # if (any(HEM_APH == 1, na.rm = TRUE)) 
+      # min(HEM_APH_DATE_VISIT[HEM_APH == 1], na.rm = TRUE) else NA_Date_,
+    },
+      
     # 3. create var that pulls the form source inclusion criteria pulled from 
     HEM_APH_FORM_SOURCE_MAX = HEM_APH_SOURCE %>%
       na.omit() %>%                         # remove NAs
@@ -730,6 +795,7 @@ hem_export_wide <- hem_export %>%
       ifelse(. == "", NA, .),               # return NA if empty
     .groups = "drop"
   ) %>%
+  #ungroup() %>% #Casey's Notes: Changed from .groups="drop" to ungroup()
   
   mutate(
     ## Postpartum hemorrhage (HEM_PPH)  ---- 
@@ -740,7 +806,7 @@ hem_export_wide <- hem_export %>%
     # 2. create var that pulls the date of event; if participant has multiple events, pull the earliest 
     HEM_PPH_DATE_MAX = {
       pos_dates <- HEM_PPH_DATE[HEM_PPH == 1 & !is.na(HEM_PPH_DATE)]
-      if (length(pos_dates) > 0) min(pos_dates, na.rm = TRUE) else as.Date(NA)
+      if (length(pos_dates) > 0) min(pos_dates, na.rm = TRUE) else NA_Date_
     },
     
     # 3. create var that pulls the form source inclusion criteria pulled from 
@@ -878,18 +944,27 @@ hem_export_wide_rsn <- hem_export_wide %>%
   rename_with(~ gsub("_MAX$", "", .x))
 
 # generate a smaller dataset that pulls the max case for each inclusion criteria; this will later be merged onto the full dataset
+# Casey's Note: Received error about max() returning -Inf values because all NAs
 hem_export_rsn_detail <- hem_export_wide %>%
   group_by(SITE, MOMID, PREGID) %>%
-  summarise(across(all_of(c(aph_rsn, pph_rsn, pph_sev_rsn)),~ replace(max(.x, na.rm = TRUE), is.infinite(max(.x, na.rm = TRUE)), 77),
+  summarise(across(all_of(c(aph_rsn, pph_rsn, pph_sev_rsn)),
+                   ~ replace(max(.x, na.rm = TRUE), is.infinite(max(.x, na.rm = TRUE)), 77),
                    .names = "{.col}"),.groups = "drop") %>% 
   ungroup() 
 
 ## we would expect the wide dataset to match the dimensions of the pregnancy endpoints dataset 
 dim(mat_end)
+
+#mat_enroll and mat_endpoints were combined. dim should match were PREG_END==1
+mat_studystatus%>%
+  filter(PREG_END==1)%>%
+  dim()
+
+#casey's note: they currently do not match
 dim(hem_export_wide_rsn)
 dim(hem_export_rsn_detail)
 
-names (hem_export_rsn_detail)
+names(hem_export_rsn_detail)
 names(hem_export_wide_rsn)
 
 
@@ -1028,6 +1103,7 @@ if(dim(query_pph_pnc_report)[1] >0) {
   hem_query_list[["pph reported in mnh12 only"]] <- query_pph_pnc_report
 }
 
+
 ## 6. look at cases where pph blood loss was reported in mnh12 ---- 
 query_pph_pnc_blood_loss <- hem_export_merged %>% 
   filter(HEM_PPH ==1 & str_detect(HEM_PPH_RSN_SOURCE, "RSN_EST_BLOOD_LOSS_PNC")) %>% 
@@ -1083,7 +1159,8 @@ query6_output <- query_pph_pnc_blood_loss %>%
   mutate(n_pct = round(n/total_pph*100, 1))
 
 
-ggplot(data = query_pph_pnc_blood_loss %>% filter(exclusion_rsn == "pph blood loss in mnh12 only (-7 MNH09)"), aes(x = HEM_PPH_AGE_PP_DAYS, fill = SITE)) + 
+ggplot(data = query_pph_pnc_blood_loss %>% 
+         filter(exclusion_rsn == "pph blood loss in mnh12 only (-7 MNH09)"), aes(x = HEM_PPH_AGE_PP_DAYS, fill = SITE)) + 
   geom_histogram(color = "grey") + 
   xlab("Days postpartum") + 
   scale_x_continuous(breaks = seq(0,20,2), limits = c(0, 20)) +
@@ -1172,18 +1249,19 @@ duplicates <- hem_export_merged %>% group_by(SITE, MOMID, PREGID) %>% mutate(n=n
 paste0(dim(duplicates)[1], " duplicates in final dataset")
 
 ## the only thing remaining is figuring out the form issue in mnh09 for aph
-aph_subset <- hem_export_merged %>% filter(HEM_APH == 1) %>%
-  select(SITE, MOMID, PREGID, PREG_START_DATE, PREG_END_DATE,
-         contains("HEM_APH"), aph_rsn)
+aph_subset <- hem_export_merged %>% 
+              filter(HEM_APH == 1) %>%
+              select(SITE, MOMID, PREGID, PREG_START_DATE, PREG_END_DATE,
+                     contains("HEM_APH"), all_of(aph_rsn))
 
 pph_subset <- hem_export_merged %>% filter(HEM_PPH == 1) %>%
   select(-contains("HEM_PPH_SEV")) %>%
   select(SITE, MOMID, PREGID, PREG_START_DATE, PREG_END_DATE,
-         contains("HEM_PPH"), pph_rsn)
+         contains("HEM_PPH"), all_of(pph_rsn))
 
 pph_sev_subset <- hem_export_merged %>% filter(HEM_PPH_SEV == 1) %>%
   select(SITE, MOMID, PREGID, PREG_START_DATE, PREG_END_DATE,
-         contains("HEM_PPH_SEV"), pph_sev_rsn)
+         contains("HEM_PPH_SEV"), all_of(pph_sev_rsn))
 
 ## run quick tab of each inclusion criteria 
 for (i in names(hem_export_merged)[-c(1:5)]) {
@@ -1191,12 +1269,12 @@ for (i in names(hem_export_merged)[-c(1:5)]) {
   print(table(hem_export_merged[[i]], useNA = "ifany"))
 }
 
-
+# --> EXPOERT MAT_HEMORRHAGE----
 write.csv(hem_export_merged, paste0(path_to_save, "/MAT_HEMORRHAGE" ,".csv"), na="",row.names=FALSE)
 write.xlsx(hem_export_merged, paste0(path_to_save, "/MAT_HEMORRHAGE" ,".xlsx"),na="", rowNames=FALSE)
 
-write.csv(hem_export_merged, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".csv"), na="",row.names=FALSE)
-write.xlsx(hem_export_merged, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".xlsx"),na="", rowNames=FALSE)
+# write.csv(hem_export_merged, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".csv"), na="",row.names=FALSE)
+# write.xlsx(hem_export_merged, paste0(path_to_tnt, "MAT_HEMORRHAGE" ,".xlsx"),na="", rowNames=FALSE)
 
 table(hem_export_merged$HEM_APH, hem_export_merged$SITE)
 table(hem_export_merged$HEM_PPH, hem_export_merged$SITE)
@@ -1275,10 +1353,10 @@ combined_queries <- hem_query_list %>%
   ### Remove specific India-CMC cases from specific queries only ----
   ## the site confirmed they do not have data to confirm this
   filter(
-    !(Site == "India-CMC" &
-        ((PregID == "IBM-0020-01" &
+    !(SITE == "India-CMC" &
+        ((PREGID == "IBM-0020-01" &
              exclusion_rsn == "pph in mnh09 then severe in mnh12") |
-            (PregID == "IBM-0474-01" &
+            (PREGID == "IBM-0474-01" &
                exclusion_rsn == "pph blood loss in mnh12 only (-7 MNH09)")))) %>%
 
   ### Remove previously reviewed and confirmed cases from specific queries only ----
