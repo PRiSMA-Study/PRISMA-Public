@@ -8,24 +8,6 @@ The program also constructs related placental complication variables, including 
 
 ---
 
-## Version History
-
-### Original Version
-
-**May 2024**  
-Savannah O'Malley (savannah.omalley@gwu.edu)
-
-### Current Version
-
-**October 2026**  
-Emma K. Cook (emmacook@gwu.edu)
-
-Updates:
-- Updated to use `MAT_STUDYSTATUS` and `MAT_PREGEND` constructed datasets.
-- Ongoing maintenance and review of placenta-related outcome definitions.
-
----
-
 ## Required Inputs
 
 Required datasets:
@@ -36,13 +18,11 @@ Required datasets:
 - MAT_STUDYSTATUS
 - MAT_PREGEND
 
-For data releases prior to September 18, 2026:
+**Notes:**
 
-- MAT_ENROLL (instead of MAT_STUDYSTATUS enrollment indicators)
-- MAT_ENDPOINTS (instead of MAT_STUDYSTATUS endpoint variables)
-- MAT_LABOR (instead of MAT_PREGEND)
+This program uses the user-written Stata command [`str2date`](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/blob/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files/str2date.ado) to convert string dates to Stata date format.
 
-This program also uses the user-written Stata command [`str2date`](https://github.com/PRiSMA-Study/PRISMA-Analysis-Savannah/blob/main/str2date.ado) to convert string dates to Stata date format.
+Stacked data (mnh00-01, mnh03-06) was processed using user-written Stata command `dataimport` and saved locally in AWS. See [Stata ado files](https://github.com/PRiSMA-Study/PRISMA-Analysis-Emma/tree/309903b70359f479043027c22cba189f7e113ec5/Stata%20ado%20files).
 
 ---
 
@@ -103,12 +83,20 @@ This program also uses the user-written Stata command [`str2date`](https://githu
 - PLACENTA_ACCRETE
 - PLACENTA_ABRUPTION
 
-### Supporting Variables
+---
 
-- SB_LB
+## Version History
 
-### Identifiers
+### Original Version
 
-- SITE
-- MOMID
-- PREGID
+**May 2024**  
+Savannah O'Malley (savannah.omalley@gwu.edu)
+
+### Current Version
+
+**October 2026**  
+Emma K. Cook (emmacook@gwu.edu)
+
+Updates:
+- Updated to use `MAT_STUDYSTATUS` and `MAT_PREGEND` constructed datasets.
+- Ongoing maintenance and review of placenta-related outcome definitions.
