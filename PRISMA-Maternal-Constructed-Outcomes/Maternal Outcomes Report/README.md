@@ -6,13 +6,13 @@ This repository contains the code used to generate the **PRISMA MNH Maternal Out
 
 ### Required packages
 
-This code requires version 3.2.1 of `tibble`. 
+**This code requires version 3.2.1 of `tibble`.**
 
-**Check package version:**
+*Check package version:*
 ```r 
 packageVersion("tibble")
 ```
-**Install correct version if needed:**
+*Install correct version if needed:*
 ```r 
 remotes::install_version("tibble", version = "3.2.1")
 ```
