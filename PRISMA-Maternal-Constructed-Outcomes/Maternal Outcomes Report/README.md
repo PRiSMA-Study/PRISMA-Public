@@ -6,7 +6,6 @@ This repository contains the code used to generate the **PRISMA MNH Maternal Out
 
 ### Inputs
 
-| | |
 |---|---|
 | `MAT_MORTALITY` | `MAT_THYR` |
 | `MAT_HEMORRHAGE` | `MAT_STUDYSTATUS` |
