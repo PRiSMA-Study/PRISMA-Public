@@ -24,6 +24,7 @@ library(readxl)
 library (haven)
 library(purrr)
 library(stringr)
+library(openxlsx)
 
 # *****************************************************************************
 # 3. Define Variables and Paths ----
