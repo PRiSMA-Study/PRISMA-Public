@@ -6,6 +6,10 @@ This repository contains the code used to generate the **PRISMA MNH Maternal Out
 
 ### Inputs
 
+<table>
+<tr>
+<td>
+
 - `MAT_MORTALITY`
 - `MAT_HEMORRHAGE`
 - `MAT_DEPR`
@@ -14,6 +18,10 @@ This repository contains the code used to generate the **PRISMA MNH Maternal Out
 - `MAT_GDM`
 - `MAT_INFECTION`
 - `MAT_NEAR_MISS`
+
+</td>
+<td>
+
 - `MAT_THYR`
 - `MAT_STUDYSTATUS`
 - `MAT_HDP`
@@ -21,6 +29,10 @@ This repository contains the code used to generate the **PRISMA MNH Maternal Out
 - `MAT_PLACENTA_PREVIA`
 - `MAT_HIGHHB`
 - `MAT_SEPSIS`
+
+</td>
+</tr>
+</table>
 
 ## Troubleshooting
 
