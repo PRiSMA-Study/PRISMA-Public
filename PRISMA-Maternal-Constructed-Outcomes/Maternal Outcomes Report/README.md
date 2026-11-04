@@ -4,6 +4,24 @@
 
 This repository contains the code used to generate the **PRISMA MNH Maternal Outcomes Report**.
 
+### Inputs
+
+- `MAT_MORTALITY`
+- `MAT_HEMORRHAGE`
+- `MAT_DEPR`
+- `MAT_ANEMIA`
+- `MAT_PREGEND`
+- `MAT_GDM`
+- `MAT_INFECTION`
+- `MAT_NEAR_MISS`
+- `MAT_THYR`
+- `MAT_STUDYSTATUS`
+- `MAT_HDP`
+- `MAT_POSTPARTUM_HIGHBP`
+- `MAT_PLACENTA_PREVIA`
+- `MAT_HIGHHB`
+- `MAT_SEPSIS`
+
 ## Troubleshooting
 
 ### `row_group_order()` Error
