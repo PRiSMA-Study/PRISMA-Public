@@ -4,11 +4,18 @@
 
 This repository contains the code used to generate the **PRISMA MNH Maternal Outcomes Report**.
 
-**NOTE:** This code requires version 3.2.1 of `tibble`. 
-- Check package version:
-  - ```r packageVersion("tibble") ```
-- Install correct version if needed:
-  - ```r remotes::install_version("tibble", version = "3.2.1") ```
+### Required packages
+
+This code requires version 3.2.1 of `tibble`. 
+
+**Check package version:**
+```r 
+packageVersion("tibble")
+```
+**Install correct version if needed:**
+```r 
+remotes::install_version("tibble", version = "3.2.1")
+```
 
 ### Inputs
 - `MAT_MORTALITY`
