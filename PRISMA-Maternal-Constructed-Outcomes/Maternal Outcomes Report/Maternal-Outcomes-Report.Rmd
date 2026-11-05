@@ -26,11 +26,19 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 #*****************************************************************************
 #* PRISMA Maternal Outcomes -- TABLES 
 #* Drafted: Stacie Loisate
-#* Last updated: May 2026, Emma Cook & Erin Oakley
+#*Updated May 2026 by Emma Cook & Erin Oakley
   #* updated to resolve error caused by gt package version change
-  #* this code was run for Q2 2026 readout using version 1.3.0 
-  #* 
   #* reduced out.width on tables 7e and 9b to get them to fit on page
+  #* this code was run for Q2 2026 readout using version 1.3.0 
+
+#*Updated November 2026 by Erin Oakley & Casey Kalman
+  #* sepsis added to table 1
+  #* table 19 intrapartum sepsis added
+  #* updates to unplanned surgery - chapter 17
+    #* Clarified definition of unplanned surgery (text update)
+    #* Added Table 17a - Cesarean deliveries by type
+    #* Added subheaders to Table 17b (Unplanned Surgery outcome table)
+  #* anemia sankey diagram code integrated into report code
 #*****************************************************************************
 
 library(knitr)
@@ -46,6 +54,10 @@ library(haven)
 library(dplyr)
 library("rmarkdown")
 library(readxl)
+# install.packages("remotes")
+# remotes::install_github("davidsjoberg/ggsankey")
+library(ggsankey)
+
 
 #* NOTE: This code requires version 3.2.1 of tibble
 #* Check package version
@@ -79,11 +91,10 @@ format(today, "%Y-%B-%d")
 
 
 # Emma's paths: 
-   path_to_data <- paste0("D:/Users/emmacook/Documents/Outcome data/", datadate, "/") 
-   path_to_save <- paste0("D:/Users/emmacook/Documents/Maternal_Outcomes_Report/output/", datadate, "/")
-  
-# path_to_data <- paste0("Z:/Constructed Data/", datadate, "/") 
-# path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
+   # path_to_data <- paste0("D:/Users/emmacook/Documents/Outcome data/", datadate, "/") 
+   # path_to_save <- paste0("D:/Users/emmacook/Documents/Maternal_Outcomes_Report/output/", datadate, "/")
+path_to_data <- paste0("Z:/Constructed Data/", datadate, "/")
+path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
 
 # Check if the path_to_save directory exists
 if (!dir.exists(path_to_save)) {
@@ -314,7 +325,6 @@ summary_tab1 <- mat_infection  %>%
       format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE)/sum(LEPT_IGM_PERF_EVER_PREG ==1 | LEPT_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
-    #Casey's Edit
       ")")
 
    ) %>%
@@ -356,7 +366,6 @@ summary_tab1 <- mat_infection  %>%
       format(sum(CHK_POSITIVE_EVER_PREG==1 & (CHK_IGM_PERF_EVER_PREG==1 | CHK_IGG_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2)),
         
     "Leptospirosis ever during pregnancy (IgM+ or incident IgG+)" = paste0(
-    #Casey's Edit    
       format(sum(LEPT_IGM_POSITIVE_EVER_PREG ==1 & (LEPT_IGG_PERF_EVER_PREG == 1 | LEPT_IGM_PERF_EVER_PREG==1), na.rm = TRUE), nsmall = 0, digits = 2))
   ) %>%
         t() %>%
@@ -923,12 +932,11 @@ summary_tab1 <- mat_infection  %>%
                       summary_tab5, summary_tab6,summary_tab7,summary_tab8,
                       summary_tab9,summary_tab9b)
  
-  #Postpartum outcomes
+  #Postpartum outcomes & intrapartum outcomes
   summary_tab_3 <- rbind(
-                      summary_tab10,summary_tab11,summary_tab12, summary_tab13)
-  
-  #intrapartum outcomes
-  summary_tab_4<-rbind(summary_tab14)
+                      summary_tab10,summary_tab11,summary_tab12, summary_tab13,
+                      summary_tab14)
+
 
 
 
@@ -955,8 +963,7 @@ summary_tab_output <- tb_theme1(summary_tab) %>%
     rows = 1:11,
     id   = "infection_ever"
     ) %>%
-  #Casey's Edit  
- 
+
  row_group_order(groups = c("infection_ever")) %>%
 
   tab_footnote(
@@ -986,10 +993,6 @@ tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Note that this outcome is not available for Ghana and India-CMC sites due to data collection differences.</span>")
  )  
 
-
-
-
-
 summary_tab_output3 <- tb_theme1(summary_tab_3) %>%
   tab_header(
     title = md("**Table I, continued part 2**")) %>%
@@ -999,29 +1002,22 @@ summary_tab_output3 <- tb_theme1(summary_tab_3) %>%
         rows = 1:5,
     id = "postpartum_outcomes"
   ) %>%
- row_group_order(groups = c("postpartum_outcomes")) %>%
+   tab_row_group(
+    label = html("<span style='font-size: 18px'>Intrapartum outcomes</span>"),
+        rows = 6:9,
+    id = "intrapartum_outcomes"
+  ) %>%
+  
+ row_group_order(groups = c("postpartum_outcomes",
+                            "intrapartum_outcomes")) %>%
 
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>Note </sup> See outcome-specific section for denominators.</span>")
  )
 
-summary_tab_output4 <- tb_theme1(summary_tab_4) %>%
-  tab_header(
-    title = md("**Table I, continued part 3**"))%>%
-  
-  tab_row_group(
-    label = html("<span style='font-size: 18px'>Intrapartum outcomes</span>"),
-        rows = 1:4,
-    id = "intrapartum_outcomes"
-  ) %>%
- row_group_order(groups = c("intrapartum_outcomes")) 
-   
-
-summary_tab_output4 
-
 ```
 
-```{r warning=TRUE, out.width='100%'}
+```{r warning=FALSE, out.width='100%'}
 
 gt::gtsave(summary_tab_output, file = "summary_tab_output.png", path = path_to_save, expand=10)
 knitr::include_graphics(paste0(path_to_save, "summary_tab_output.png"))
@@ -1041,12 +1037,6 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output3.png"))
 
 ```
 
-```{r, out.width = '100%'}
-
-gtsave(summary_tab_output4, file = "summary_tab_output4.png", path = path_to_save, expand = 10)
-knitr::include_graphics(paste0(path_to_save, "summary_tab_output4.png"))
-
-```
 
 \newpage
 
@@ -2007,10 +1997,6 @@ knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri3_output.png"))
 
 ```{r, out.width = '100%', fig.align='center'}
 
-#install.packages("remotes")
-#remotes::install_github("davidsjoberg/ggsankey")
-library(ggsankey)
-
   anemia<- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))
   pregend<-read_dta(paste0(path_to_data, "MAT_STUDYSTATUS.dta"))
   
@@ -2085,7 +2071,12 @@ anemia_fig<-  ggplot(sankey, aes(x = x,
   xlab("Timing")+
   theme(axis.title.x = element_text(size = 15),axis.text.x = element_text(size = 12))
 
-(anemia_fig)
+#(anemia_fig)
+ggsave(paste0("anemia_fig", ".pdf"), path = path_to_save,
+       width = 8, height = 6)
+
+knitr::include_graphics(paste0(path_to_save, "anemia_fig.pdf"))
+
 
 ```
 
@@ -3657,10 +3648,10 @@ dep_anc20 <- ggplot(depression, aes(x = DEPR_SCORE_ANC20, fill = ..x..)) +
                 scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"),
                                      values = c(0, 11/30, (11/30+1)/2, 1))
 
-ggsave(paste0("dep_anc20", ".pdf"), path = path_to_data,
+ggsave(paste0("dep_anc20", ".pdf"), path = path_to_save,
        width = 8, height = 6)
 
-knitr::include_graphics(paste0(path_to_data, "dep_anc20.pdf"))
+knitr::include_graphics(paste0(path_to_save, "dep_anc20.pdf"))
 
 ```
 
@@ -3697,10 +3688,10 @@ dep_anc32<- ggplot(depression, aes(x = DEPR_SCORE_ANC32, fill = ..x..)) +
               scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"),
                                    values = c(0, 11/30, (11/30+1)/2, 1))
 
-ggsave(paste0("dep_anc32", ".pdf"), path = path_to_data,
+ggsave(paste0("dep_anc32", ".pdf"), path = path_to_save,
        width = 8, height = 6)
 
-knitr::include_graphics(paste0(path_to_data, "dep_anc32.pdf"))
+knitr::include_graphics(paste0(path_to_save, "dep_anc32.pdf"))
 ```
 
 \newpage
@@ -3736,10 +3727,10 @@ dep_pnc6 <- ggplot(depression, aes(x = DEPR_SCORE_PNC6, fill = ..x..)) +
               scale_fill_gradientn(colours = c("green", "yellow", "blue3", "darkblue"),
                                    values = c(0, 11/30, (11/30+1)/2, 1))
 
-ggsave(paste0("dep_pnc6", ".pdf"), path = path_to_data,
+ggsave(paste0("dep_pnc6", ".pdf"), path = path_to_save,
        width = 8, height = 6)
 
-knitr::include_graphics(paste0(path_to_data, "dep_pnc6.pdf"))
+knitr::include_graphics(paste0(path_to_save, "dep_pnc6.pdf"))
 ```
 
 
@@ -4083,7 +4074,7 @@ hemorrhage_figs <- hemorrhage %>%
 # Define the order of legend labels
 hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL)",
                                                                     "Severe Hemorrhage(>=1000mL)"))
-ggplot() +
+hemorrhage_plot <- ggplot() +
                     geom_histogram(data = hemorrhage_figs, aes(x = RSN_EST_BLOOD_LOSS_IPC, fill = CUTOFF),  color = "gray", binwidth = 50) +
                     scale_fill_manual(values = c("darkgreen", "darkorange","darkred"), name = "") +
                     facet_grid(rows = vars(SITE), scales = "free_y") +
@@ -4098,6 +4089,18 @@ ggplot() +
                           legend.position="bottom",
                           legend.title = element_blank(),
                           panel.grid.minor = element_blank())
+
+
+ggsave(
+  filename = "hemorrhage_fig.pdf",
+  plot = hemorrhage_plot,
+  path = path_to_save,
+  width = 8,
+  height = 6
+)
+
+knitr::include_graphics(paste0(path_to_save, "hemorrhage_fig.pdf"))
+
 
 ```
 
@@ -5806,13 +5809,25 @@ GDM_1 <- gdm_vd %>% filter(DIAB_GEST_1HR==1) %>%
 GDM_2 <- gdm_vd %>% filter(DIAB_GEST_2HR==1) %>%
   select(PREGID) %>% unlist()
 # Package ggvenn
-ggvenn(data = list(`Fasting glucose` = GDM_pre,
+gdm_venn <- ggvenn(data = list(`Fasting glucose` = GDM_pre,
                    `1-hr OGTT` = GDM_1,
                    `2-hr OGTT` = GDM_2),
        fill_color = wesanderson::wes_palette("FantasticFox1", n=3),
        text_size = 3.5,
        stroke_size = 0.5,set_name_size = 5)
 
+
+ggsave(
+  filename = "gdm_venn.pdf",
+  plot = gdm_venn,
+  path = path_to_save,
+  width = 8,
+  height = 6
+)
+
+knitr::include_graphics(
+  paste0(path_to_save, "gdm_venn.pdf")
+)
 
 ```
 
@@ -8645,9 +8660,7 @@ knitr::include_graphics(paste0(path_to_save, "highhb_output.png"))
 ```
 
 
-
-
-
+\newpage
 
 ## 19. Intrapartum sepsis 
 
@@ -8722,14 +8735,10 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
         - Those missing a delivery date
         - Those with incomplete delivery appointments according to MNH09
 
-```{r}
-
-```
-
 \newpage 
 
-### Table 1 - Missingness
-```{r cars}
+### Table 19a. Sepsis data completeness
+```{r}
 
 sepsis_taba<-sepsis_all%>%
   rowwise()%>%
@@ -8825,9 +8834,9 @@ rownames(sepsis_taba) <- c(
 
 ```{r}
 
-summary_tab_output <- tb_theme1(sepsis_taba)%>%
+sepsis_taba_output <- tb_theme1(sepsis_taba)%>%
                       tab_header(
-                        title=md("Table 1"))%>%
+                        title=md("Table 19a"))%>%
                       tab_row_group(
                         label=html("<span>Missingness summary</span>"),
                         rows = 1:5,
@@ -8842,12 +8851,12 @@ summary_tab_output <- tb_theme1(sepsis_taba)%>%
                         )
                       )
 
-gt::gtsave(summary_tab_output, file = "summary_tab_output.png", path = path_to_save, expand=10)
-knitr::include_graphics(paste0(path_to_save, "summary_tab_output.png"))
+gt::gtsave(sepsis_taba_output, file = "sepsis_taba_output.png", path = path_to_save, expand=10)
+knitr::include_graphics(paste0(path_to_save, "sepsis_taba_output.png"))
 
 ```
 
-### Table 2 - Sepsis Outcome
+### Table 19b. Sepsis outcome
 ```{r}
 
 sepsis_tabb<-sepsis%>%
@@ -8962,7 +8971,7 @@ rownames(sepsis_tabb) <- c(
 ```{r}
 summary_tab_outputb <- tb_theme1(sepsis_tabb)%>%
                       tab_header(
-                        title=md("Table 2"))%>%
+                        title=md("Table 19b"))%>%
                       tab_row_group(
                         label=html("<span>Sepsis Outcomes</span>"),
                         rows = 1:5,
@@ -8985,7 +8994,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_outputb.png"))
 
 \newpage 
 
-### Table 3 - Infection by Type
+### Table 19c. Infection by type
 ```{r}
 
 sepsis_tabc<-sepsis%>%
@@ -9347,7 +9356,7 @@ rownames(sepsis_tabc) <- c(
 ```{r}
 summary_tab_outputc <- tb_theme1(sepsis_tabc)%>%
                       tab_header(
-                        title=md("Table 3"))%>%
+                        title=md("Table 19c"))%>%
                       tab_row_group(
                         label=html("<span>Any Infection</span>"),
                         rows = 1:3,
@@ -9622,7 +9631,7 @@ rownames(sepsis_tabc_2) <- c(
 ```{r}
 summary_tab_outputc_2 <- tb_theme1(sepsis_tabc_2)%>%
                       tab_header(
-                        title=md("Table 3 Continued"))%>%
+                        title=md("Table 19c Continued"))%>%
                       tab_row_group(
                         label=html("<span>Diagnosed Infection by Type Cont.</span>"),
                         rows = 1:13,
@@ -9650,7 +9659,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_outputc_2.png"))
 
 \newpage
 
-### Table 4 - Organ Failure by Type
+### Table 19d. Organ failure by type
 ```{r}
 
 sepsis_tabd<-sepsis%>%
@@ -9976,7 +9985,7 @@ rownames(sepsis_tabd) <- c(
 ```{r}
 summary_tab_outputd <- tb_theme1(sepsis_tabd)%>%
                       tab_header(
-                        title=md("Table 4"))%>%
+                        title=md("Table 19d"))%>%
                       tab_row_group(
                         label=html("<span>Any Indication of Organ Failure or Injury</span>"),
                         rows = 1:3,
@@ -10010,7 +10019,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_outputd.png"))
 
 \newpage
 
-### Table 5 - Suspected Infection
+### Table 19e. Suspected infection
 ```{r}
 
 sepsis_tabf<-sepsis%>%
@@ -10338,7 +10347,7 @@ rownames(sepsis_tabf) <- c(
 
 summary_tab_outputf <- tb_theme1(sepsis_tabf)%>%
                       tab_header(
-                        title=md("Table 5"))%>%
+                        title=md("Table 19e"))%>%
                       tab_row_group(
                         label=html("<span>Suspected Infection</span>"),
                         rows = 1:3,
