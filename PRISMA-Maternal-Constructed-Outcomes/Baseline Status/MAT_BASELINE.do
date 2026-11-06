@@ -777,7 +777,8 @@ merge 1:1 SITE MOMID PREGID using `mnh06', keep(master match) nogen
 	replace num_miscarriage = 0 if num_miscarriage==. & ///
 		M04_PH_OTH_RPORRES > 1 & M04_PH_OTH_RPORRES!=. & ///
 		M04_PH_OTH_RPORRES == M04_STILLBIRTH_CT_RPORRES
-	replace num_miscarriage = 0 if num_miscarriage==. & miscarriage==0
+	replace num_miscarriage = . if num_miscarriage==. & ///
+    M04_PH_PREV_RPORRES == 0 
 	
 *Previous pregnancy complications 
 		*PH_PREV_RPORRES - ever pregnant
@@ -1024,8 +1025,8 @@ foreach x in AGE_GROUP MARRIED_18 EDUCATED SCHOOL_MORE10 SCHOOL_MORE12 GPARITY /
 	PARITY_CAT WEALTH_QUINT {
 		order `x'_*, after(`x')
 	}
-	  
 
+ 
 *------------------------------------------------------------------------------
 * QC
 *------------------------------------------------------------------------------
