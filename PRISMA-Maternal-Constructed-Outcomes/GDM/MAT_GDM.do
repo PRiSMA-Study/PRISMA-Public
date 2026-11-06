@@ -1545,7 +1545,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	label var DIAB_GEST_FASTING_MISS "Reason missing - Fasting glucose/pretest"
 	label var DIAB_GEST_1HR_MISS "Reason missing - 1-hr OGTT"
 	label var DIAB_GEST_2HR_MISS "Reason missing - 2-hr OGTT"
-	
+	 
 	*for test-specific variables:
 	foreach var of varlist DIAB_GEST_FASTING DIAB_GEST_1HR DIAB_GEST_2HR {
 	replace `var' = 55 if `var' == . & DIAB_GEST_ANY_MISS == 2 
@@ -1684,7 +1684,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	assert !inlist(DIAB_GEST_ANY,0,1) if DIAB_OVERT_ANY == 1
 		*check that if DIAB_OVERT_ANY ==1, NO result for DIAB_GEST_ANY
 
-	
+	 
 *------------------------------------------------------------------------------
 * Save
 *------------------------------------------------------------------------------
