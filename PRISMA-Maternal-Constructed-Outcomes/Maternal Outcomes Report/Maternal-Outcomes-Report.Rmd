@@ -152,6 +152,15 @@ sepsis_all<-read_csv(paste0(path_to_data, "MAT_SEPSIS.csv"))
 sepsis<-sepsis_all%>%
           filter(PREG_END_DELIV==1 & FLAG_DATE_M09 & FLAG_APPSTATUS_M09)
 
+#new mortality dataset (09-18-2026) only includes mat deaths
+mortality1 <- end %>%
+  select(SITE, MOMID, PREGID, PREG_END) %>%
+  left_join(
+    mortality %>% select(-any_of("PREG_END")),
+    by = c("SITE", "MOMID", "PREGID")
+  )
+
+
 tb_theme1 <- function(matrix){
   tb <- matrix %>%
     gt(
@@ -247,6 +256,7 @@ g_legend <- function(p) {
 anemia1<-left_join(anemia,end)
 preterm_indication1<-left_join(preterm_indication,end)
 rupture1<-left_join(rupture,end)
+
 
 
 # Infection Outcomes:
@@ -810,7 +820,7 @@ summary_tab1 <- mat_infection  %>%
       `colnames<-`(c(.[1,])) %>% unlist()
         )
 
- summary_tab13 <- mortality %>%
+ summary_tab13 <- mortality1 %>%
   rowwise() %>%
   group_by(SITE) %>%
   summarise(
@@ -828,7 +838,7 @@ summary_tab1 <- mat_infection  %>%
   slice(-1) %>%
         add_column(
       .before = 1,
-    "Total" = mortality %>%
+    "Total" = mortality1 %>%
         plyr::summarise(
 
           
@@ -851,28 +861,28 @@ summary_tab1 <- mat_infection  %>%
   summarise(
 
   #Casey's Edit
-    "Sepsis Diagnosis" = paste0(
+    "Sepsis diagnosis" = paste0(
      format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
-    "Infection Related Severe Maternal Outcome" = paste0(
+    "Infection related severe maternal outcome" = paste0(
       format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
-    "Infection with Complications" = paste0(
+    "Infection with complications" = paste0(
       format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
-    "Less Severe Infection" = paste0(
+    "Less severe infection" = paste0(
       format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -889,28 +899,28 @@ summary_tab1 <- mat_infection  %>%
       "Total" = sepsis %>%
         plyr::summarise(
    
-    "Sepsis Diagnosis" = paste0(
+    "Sepsis diagnosis" = paste0(
      format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
-    "Infection Related Severe Maternal Outcome" = paste0(
+    "Infection related severe maternal outcome" = paste0(
       format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
-    "Infection with Complications" = paste0(
+    "Infection with complications" = paste0(
       format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
-    "Less Severe Infection" = paste0(
+    "Less severe infection" = paste0(
       format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -974,7 +984,7 @@ summary_tab_output <- tb_theme1(summary_tab) %>%
 
 summary_tab_output2 <- tb_theme1(summary_tab_2) %>%
   tab_header(
-    title = md("**Table I, continued**")) %>%
+    title = md("**Table I continued**")) %>%
    tab_row_group(
     label = html("<span style='font-size: 18px'>Mid-pregnancy outcomes</span>"),
         rows = 1:13,
@@ -995,7 +1005,7 @@ tab_footnote(
 
 summary_tab_output3 <- tb_theme1(summary_tab_3) %>%
   tab_header(
-    title = md("**Table I, continued part 2**")) %>%
+    title = md("**Table I continued part 2**")) %>%
   
   tab_row_group(
     label = html("<span style='font-size: 18px'>Postpartum outcomes</span>"),
@@ -1079,7 +1089,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output3.png"))
 ### Table 1. Maternal mortality
 ```{r}
 
- mortality_tab <- mortality %>%
+ mortality_tab <- mortality1 %>%
    rowwise() %>%
    group_by(SITE) %>%
    summarise(
@@ -1182,7 +1192,7 @@ slice(-1) %>%
 
    add_column(
       .before = 1,
-    "Total" = mortality %>%
+    "Total" = mortality1 %>%
       summarise(
 
 
@@ -2575,7 +2585,7 @@ a.  type of membrane rupture (varname [form]: `MEMBRANE_RUPT_MHTERM` [MNH09]);
 
 b.  date and time of membrane rupture (if occurred) (varnames [form]: `MEMBRANE_RUPT_MHSTDAT` [MH09], `MEMBRANE_RUPT_MHSTTIM` [MH09])
 
-**6.** Delivery mode for all fetuses/infants (varname: `DELIV_PRROUTE_INF1-4`, MNH09])
+**6.** Delivery mode for all fetuses/infants (varname: `DELIV_PRROUTE_INF1-4`, [MNH09])
 
 
 ### Table 3a. Preterm delivery & preterm classification
@@ -4067,13 +4077,13 @@ knitr::include_graphics(paste0(path_to_save, "hemorrhage_output2.png"))
 hemorrhage_figs <- hemorrhage %>%
   select(SITE, MOMID, PREGID, RSN_EST_BLOOD_LOSS_IPC,HEM_PPH, HEM_PPH_SEV) %>%
   filter(RSN_EST_BLOOD_LOSS_IPC > 0) %>%
-  mutate(CUTOFF = case_when(RSN_EST_BLOOD_LOSS_IPC >= 1000~ "Severe Hemorrhage(>=1000mL)",
+  mutate(CUTOFF = case_when(RSN_EST_BLOOD_LOSS_IPC >= 1000~ "Severe hemorrhage(>=1000mL)",
                             RSN_EST_BLOOD_LOSS_IPC >= 500 & RSN_EST_BLOOD_LOSS_IPC < 1000~ "Hemorrhage (>=500mL)",
                             TRUE ~ "No hemorrhage (<500mL)"))
 
 # Define the order of legend labels
 hemorrhage_figs$CUTOFF <- factor(hemorrhage_figs$CUTOFF, levels = c("No hemorrhage (<500mL)","Hemorrhage (>=500mL)",
-                                                                    "Severe Hemorrhage(>=1000mL)"))
+                                                                    "Severe hemorrhage(>=1000mL)"))
 hemorrhage_plot <- ggplot() +
                     geom_histogram(data = hemorrhage_figs, aes(x = RSN_EST_BLOOD_LOSS_IPC, fill = CUTOFF),  color = "gray", binwidth = 50) +
                     scale_fill_manual(values = c("darkgreen", "darkorange","darkred"), name = "") +
@@ -4362,7 +4372,7 @@ mal_table <- mat_infection %>%
   group_by(SITE) %>% 
   summarise(
     
-    "N with Malaria RDT at enrollment" = paste0(
+    "N with malaria RDT at enrollment" = paste0(
       format(sum(MAL_RDT_PERF_ENROLL ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
     
     "Malaria positive at enrollment ^a^" = paste0(
@@ -4371,16 +4381,16 @@ mal_table <- mat_infection %>%
       format(round(sum(MAL_POSITIVE_ENROLL == 1 & MAL_RDT_PERF_ENROLL == 1, na.rm = TRUE)/sum(ENROLL ==1 & MAL_RDT_PERF_ENROLL == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "N with Malaria RDT ever during pregnancy" = paste0(
+    "N with malaria RDT ever during pregnancy" = paste0(
       format(sum(MAL_RDT_PERF_EVER_PREG ==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
-    "Incident Malaria during pregnancy ^b^" = paste0(
+    "Incident malaria during pregnancy ^b^" = paste0(
       format(sum(MAL_POSITIVE_INCIDENT == 1 & MAL_RDT_PERF_EVER_PREG==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAL_POSITIVE_INCIDENT == 1 & MAL_RDT_PERF_EVER_PREG==1, na.rm = TRUE)/sum(MAL_RDT_PERF_EVER_PREG==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Re-infection with Malaria during pregnancy ^c^" = paste0(
+    "Re-infection with malaria during pregnancy ^c^" = paste0(
       format(sum(MAL_POSITIVE_REINFECT == 1 & MAL_POSITIVE_EVER_PREG==1,na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAL_POSITIVE_REINFECT == 1 & MAL_POSITIVE_EVER_PREG==1, na.rm = TRUE)/sum(MAL_POSITIVE_EVER_PREG==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4425,12 +4435,12 @@ tab_style(
   style = list(cell_text(weight = "bold")),
   locations = list(
     cells_body(rows = c(
-      "N with Malaria RDT at enrollment",
-      "N with Malaria RDT ever during pregnancy"
+      "N with malaria RDT at enrollment",
+      "N with malaria RDT ever during pregnancy"
     )),
     cells_stub(rows = c(
-      "N with Malaria RDT at enrollment",
-      "N with Malaria RDT ever during pregnancy"
+      "N with malaria RDT at enrollment",
+      "N with malaria RDT ever during pregnancy"
     ))
   )
 ) %>%
@@ -5642,7 +5652,7 @@ tab_row_group(
   id = "data_complete"
 ) %>%
 tab_row_group(
-  label = html("<span style='font-size: 18px'>Gestational Diabetes by 2-hr OGTT</span>"),
+  label = html("<span style='font-size: 18px'>Gestational diabetes by 2-hr OGTT</span>"),
   rows = 5:7,
   id = "gdm_2hr_ogtt"
 ) %>%
@@ -8714,7 +8724,7 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
         a. Systolic Blood Pressure < 85 mmHg or
         b. Decrease in Systolic Blood Pressure > 40 mmHg or 
         c. MAP < 65 mmHg or 
-        d. Low blood pressure indicated via free text text
+        d. Low blood pressure indicated via free text
     2. Hypoxia
         a. Oxygen saturation < 92% 
         b. Mechanical ventilation administered
@@ -8724,7 +8734,7 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
     5. Jaundice
         a. Provider diagnosed jaundice
         b. Elevated bilirubin (> 2 mg/dL)
-    6. Elevated creatinine (1.2 ≥ mg/dL)
+    6. Elevated creatinine (>= 1.2 mg/dL)
     7. Platelet count < 100,000
     8. Pulmonary edema
         
@@ -8870,28 +8880,28 @@ sepsis_tabb<-sepsis%>%
     #  ")"
     # ),
 
-    "Sepsis Diagnosis" = paste0(
+    "Sepsis diagnosis" = paste0(
      format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
-    "Infection Related Severe Maternal Outcome" = paste0(
+    "Infection related severe maternal outcome" = paste0(
       format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
-    "Infection with Complications" = paste0(
+    "Infection with complications" = paste0(
       format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
-    "Less Severe Infection" = paste0(
+    "Less severe infection" = paste0(
       format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -8918,28 +8928,28 @@ sepsis_tabb<-sepsis%>%
      # ")"
      #      ),
 
-        "Sepsis Diagnosis" = paste0(
+        "Sepsis diagnosis" = paste0(
           format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
           " (",
      format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
           ),
 
-        "Infection Related Severe Maternal Outcome" = paste0(
+        "Infection related severe maternal outcome" = paste0(
           format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
           " (", 
           format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
 
-       "Infection with Complications" = paste0(
+       "Infection with complications" = paste0(
          format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
          " (",
            format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
        
-       "Less Severe Infection" = paste0(
+       "Less severe infection" = paste0(
          format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
          " (",
            format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -8956,10 +8966,10 @@ sepsis_tabb<-sepsis%>%
 
 rownames(sepsis_tabb) <- c(
  # "Suspected or Diagnosed Infection",
-  "Sepsis Diagnosis",
-  "Infection Related Severe Maternal Outcome",
-  "Infection with Complications",
-  "Less Severe Infection", 
+  "Sepsis diagnosis",
+  "Infection related severe maternal outcome",
+  "Infection with complications",
+  "Less severe infection", 
   "Denominator"
 )
 
