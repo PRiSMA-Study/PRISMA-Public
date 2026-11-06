@@ -130,7 +130,7 @@ tb_theme1 <- function(matrix){
 df_demo_a <- df_demo %>% 
   select(SITE, HH_HEAD_FEMALE, HH_SIZE, WATER_IMPROVED, TOILET_IMPROVED, TOILET_SHARED,
         PHONE_ACCESS, HH_SMOKE) %>%
-  mutate(across(everything(), ~ ifelse(. < 0, NA, .)))
+  mutate(across(everything(), ~ ifelse(. < 0 | . == 55, NA, .)))
 
 matrix_demo_a <- df_demo_a %>% 
   group_by(SITE) %>% 
@@ -368,7 +368,7 @@ df_demo_b <- df_demo %>%
   select(SITE, MAT_AGE, MAT_AGE_UNDER18,  BMI_LEVEL_ENROLL, HEIGHT_GROUP, 
          MARRIED, MARRY_AGE, EDUCATED, SCHOOL_YRS, PRIMIGRAVIDA, NULLIPAROUS,
          PAID_WORK) %>%
-  mutate(across(everything(), ~ ifelse(. < 0, NA, .)))
+  mutate(across(everything(), ~ ifelse(. < 0 | . == 55, NA, .)))
 
 matrix_demo_b <- df_demo_b %>%
   group_by(SITE) %>%
@@ -737,7 +737,7 @@ pdf(paste0(path_to_save, "test.pdf"), onefile = TRUE)
 df_demo_c <- df_demo %>%
   select(SITE, SMOKE, CHEW_TOBACCO, CHEW_BETELNUT, DRINK, FOLIC_SUPPL_ENROLL, SLEEP_UNDER_NET,
          BIRTH_FACILITY) %>%
-  mutate(across(everything(), ~ ifelse(. < 0, NA, .)))
+  mutate(across(everything(), ~ ifelse(. < 0 | . == 55, NA, .)))
 
 matrix_demo_c <- df_demo_c %>%
   group_by(SITE) %>%
@@ -934,7 +934,7 @@ knitr::include_graphics(paste0(path_to_save, "demo_c.png"))
 ```{r}
 df_demo_d <- df_demo %>%
   select(SITE, GA_WKS_ENROLL, NUM_FETUS, MISCARRIAGE, NUM_MISCARRIAGE, MUAC_ENROLL) %>%
-  mutate(across(everything(), ~ ifelse(. < 0, NA, .)))
+  mutate(across(everything(), ~ ifelse(. < 0 | . == 55, NA, .)))
 
 matrix_demo_d <- df_demo_d %>%
   group_by(SITE) %>%
