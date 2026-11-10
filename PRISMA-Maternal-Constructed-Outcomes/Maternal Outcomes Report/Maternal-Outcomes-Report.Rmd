@@ -12,7 +12,7 @@ include-in-header:
 knit: (function(inputFile, encoding) { 
       rmarkdown::render(inputFile,
                     encoding=encoding, 
-                    output_file= paste('Z:/Emma_working_files/Reports_working files/maternal outcomes/2026-09-18/', Sys.Date(),'-Maternal-Outcomes-Report', '.pdf', sep='')) })
+                    output_file= paste('D:/Users/emoakley/Documents/Maternal Outcome Report/output', Sys.Date(),'-Maternal-Outcomes-Report', '.pdf', sep='')) })
 
                     
 editor_options: 
@@ -78,8 +78,8 @@ format(today, "%Y-%B-%d")
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
-# path_to_data <- "Z:/Constructed Data/2026-09-18/"
-# path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+ path_to_data <- "Z:/Constructed Data/2026-09-18/"
+ path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 #Savannah's paths
 # path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
@@ -94,8 +94,8 @@ format(today, "%Y-%B-%d")
 # Emma's paths: 
    # path_to_data <- paste0("D:/Users/emmacook/Documents/Outcome data/", datadate, "/") 
    # path_to_save <- paste0("D:/Users/emmacook/Documents/Maternal_Outcomes_Report/output/", datadate, "/")
-path_to_data <- paste0("Z:/Constructed Data/", datadate, "/")
-path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
+#path_to_data <- paste0("Z:/Constructed Data/", datadate, "/")
+#path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
 
 # Check if the path_to_save directory exists
 if (!dir.exists(path_to_save)) {
@@ -149,7 +149,7 @@ placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename
   #filter(PREGID %in% remind.moms$PREGID)
 highhb<- read_dta(paste0(path_to_data, "MAT_HIGHHB.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
-sepsis_all<-read_csv(paste0(path_to_data, "MAT_SEPSIS.csv"))
+sepsis_all<-read_excel(paste0(path_to_data, "MAT_SEPSIS.xlsx"))
 sepsis<-sepsis_all%>%
           filter(PREG_END_DELIV==1 & FLAG_DATE_M09 & FLAG_APPSTATUS_M09)
 
@@ -1126,7 +1126,7 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_output3.png"))
       ),
 
     
-     "Non-obstetric, n" = paste0(
+     "Non-obstetric, n^d^" = paste0(
       format(sum(MAT_MORTALITY == 2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAT_MORTALITY == 2 , na.rm = TRUE)/sum(MAT_MORTALITY_D==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -2008,12 +2008,12 @@ knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri3_output.png"))
 
 ```{r, out.width = '100%', fig.align='center'}
 
-  anemia<- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))
-  pregend<-read_dta(paste0(path_to_data, "MAT_STUDYSTATUS.dta"))
+  anemia_sankey<- read_dta(paste0(path_to_data, "MAT_ANEMIA.dta"))
+  pregend_sankey<-read_dta(paste0(path_to_data, "MAT_STUDYSTATUS.dta"))
   
-  anemia<-left_join(anemia,pregend)
+  anemia_sankey<-left_join(anemia_sankey,pregend_sankey)
   
-  anemia <- anemia %>%
+  anemia_sankey <- anemia_sankey %>%
     filter(PREG_END == 1 & ANEMIA_T1_DENOM==1 & ANEMIA_T3_DENOM_NOT != 6 ) 
   
   sankey <- anemia 
@@ -2077,7 +2077,7 @@ anemia_fig<-  ggplot(sankey, aes(x = x,
                              "Pregnancy ended"="sienna"))+
   geom_sankey(flow.alpha = 0.5, node.color = .6, node.width=0.5) +
   theme_sankey(base_size = 8) +  
-  geom_sankey_label(size = 4, color = "black", fill=NA,label.size=NA) +
+  geom_sankey_label(size = 4, color = "black", fill=NA,label.size=NA, linewidth=0) +
   theme(legend.position="none")+
   xlab("Timing")+
   theme(axis.title.x = element_text(size = 15),axis.text.x = element_text(size = 12))
@@ -2112,6 +2112,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_fig.pdf"))
 
 #### Table 2c. Maternal anemia prevalence postpartum
 ```{r}
+
 
 anemia_pph6_tab <- anemia %>%
   rowwise() %>%
@@ -2588,6 +2589,8 @@ b.  date and time of membrane rupture (if occurred) (varnames [form]: `MEMBRANE_
 
 **6.** Delivery mode for all fetuses/infants (varname: `DELIV_PRROUTE_INF1-4`, [MNH09])
 
+***Note:** Indications for provider-initiated preterm delivery are drawn from the variables INDUCED_PRINDC_1-15, 88, 99 and CES_PRINDC_INFX_1-24, 88, 99 in the MNH09 form. These indications represent the standard of care (SOC)-determined indications as reported by each study site, and may not necessarily align with PRISMA outcome definitions.*
+
 
 ### Table 3a. Preterm delivery & preterm classification
 ```{r}
@@ -2918,7 +2921,7 @@ tab_style(
   )
 ) %>%
 tab_source_note(
-  source_note = html("<span style='font-size: 18px'>* Outcomes indicated with an asterisk (*) are inconsistent with provider-initiated delivery and require further review.</span>")
+  source_note = html("<span style='font-size: 18px'>* Outcomes indicated with an asterisk (*) are inconsistent with provider-initiated preterm delivery and require further review.</span>")
 )
 
 
@@ -2944,7 +2947,7 @@ row_group_order(
   groups = c("elective", "other", "missing_info")
 ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> The indications presented in this table are drawn from form MNH09, from the variable `INDUCED_PRINDC` for provider-initiated deliveries where labor was induced OR from the variable `CES_PRINDC_INF1` for pregnancies where cesarean delivery occurred without prior labor or rupture of membranes.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>Note:</sup> The indications presented in this table are drawn from form MNH09, from the variable `INDUCED_PRINDC` for provider-initiated deliveries where labor was induced OR from the variable `CES_PRINDC_INF1` for pregnancies where cesarean delivery occurred without prior labor or rupture of membranes. These indications for provider-initiated preterm delivery represent the standard of care (SOC)-determined indications as reported by each study site, and may not necessarily align with PRISMA outcome definitions. </span>")
  )
 
 ```
@@ -7791,7 +7794,7 @@ knitr::include_graphics(paste0(path_to_save, "highbp6_tab_output.png"))
 \newpage
 
 
-### Table 14b. Postpartum high blood pressure at 6 months (29-39 weeks)
+### Table 14b. Postpartum high blood pressure at 6 months (26-39 weeks)
 ```{r}
 
 highbp26_tab <- highbp %>%
