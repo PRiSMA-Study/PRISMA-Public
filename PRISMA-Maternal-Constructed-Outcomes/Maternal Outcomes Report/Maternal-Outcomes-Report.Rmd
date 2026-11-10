@@ -8736,7 +8736,7 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
         a. Provider diagnosed jaundice
         b. Elevated bilirubin (> 2 mg/dL)
     6. Elevated creatinine (>= 1.2 mg/dL)
-    7. Platelet count < 100,000
+    7. Platelet count < 100,000 platelets/mm^3
     8. Pulmonary edema
         
 - Denominator for maternal sepsis: 
