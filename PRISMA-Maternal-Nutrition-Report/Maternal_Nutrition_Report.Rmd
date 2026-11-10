@@ -198,7 +198,7 @@ g_legend <- function(p) {
       ")"),
 
 # row 3
-    "Iron deficient (ferritin), n (%)^c^" = paste0(
+    "Iron deficient (ferritin), n (%)" = paste0(
       format(sum(FERRITIN_ADJ_15_T1==2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(FERRITIN_ADJ_15_T1==2, na.rm = TRUE)/sum(FERRITIN_ADJ_15_T1_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -315,10 +315,7 @@ g_legend <- function(p) {
      ) %>% 
      tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>b</sup>Observed: at least one quansys measurement in T1 (excluding HRP2).</span>")
-     ) %>% 
-   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>c</sup>In the presence of inflammation (elevated CRP and/or AGP), low ferritin < 70 ug/L. When inflammation not present, low ferritin < 15 ug/L.</span>")
-     ) 
+     )
    
 
 ```
@@ -348,7 +345,7 @@ knitr::include_graphics(paste0(wrk_files, "quansysa_output.png"))
       ")"),
 
 # row 3
-    "Iron deficient (ferritin), n (%)^c^" = paste0(
+    "Iron deficient (ferritin), n (%)" = paste0(
       format(sum(FERRITIN_ADJ_15_T2==2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(FERRITIN_ADJ_15_T2==2, na.rm = TRUE)/sum(FERRITIN_ADJ_15_T2_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -463,11 +460,7 @@ knitr::include_graphics(paste0(wrk_files, "quansysa_output.png"))
      ) %>% 
      tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>b</sup>Observed: at least one quansys measurement in T2 (excluding HRP2).</span>")
-     ) %>% 
-  
-  tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>c</sup>In the presence of inflammation (elevated CRP and/or AGP), low ferritin < 70 ug/L. When inflammation not present, low ferritin < 15 ug/L.</span>")
-     )
+     ) 
    
 
 ```
@@ -496,7 +489,7 @@ knitr::include_graphics(paste0(wrk_files, "quansysb_output.png"))
       ")"),
 
 # row 3
-    "Iron deficient (ferritin), n (%)^c^" = paste0(
+    "Iron deficient (ferritin), n (%)" = paste0(
       format(sum(FERRITIN_ADJ_15_T3==2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(FERRITIN_ADJ_15_T3==2, na.rm = TRUE)/sum(FERRITIN_ADJ_15_T3_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -611,11 +604,7 @@ row_group_order(groups = c("denominators",
      ) %>% 
      tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>b</sup>Observed: at least one quansys measurement in T3 (excluding HRP2).</span>")
-     ) %>% 
-  
-  tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>c</sup>In the presence of inflammation (elevated CRP and/or AGP), low ferritin < 70 ug/L. When inflammation not present, low ferritin < 15 ug/L.</span>")
-     )
+     ) 
    
 
 ```
@@ -645,7 +634,7 @@ knitr::include_graphics(paste0(wrk_files, "quansysc_output.png"))
       ")"),
     
     # row 3
-    "Iron deficient (ferritin), n (%)^c^" = paste0(
+    "Iron deficient (ferritin), n (%)" = paste0(
       format(sum(FERRITIN_ADJ_15_PNC6==2, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(FERRITIN_ADJ_15_PNC6==2, na.rm = TRUE)/sum(FERRITIN_ADJ_15_PNC6_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -754,10 +743,6 @@ knitr::include_graphics(paste0(wrk_files, "quansysc_output.png"))
      tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>b</sup>Observed: at least one quansys measurement (excluding HRP2).</span>")
      ) %>% 
-  tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>c</sup>In the presence of inflammation (elevated CRP and/or AGP), low ferritin < 70 ug/L. When inflammation not present, low ferritin < 15 ug/L.</span>")
-     ) %>%
-    
    tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>NOTE:</sup> RBP4 and thyroglobulin not adjusted for inflammation.</span>")
    )
@@ -813,9 +798,9 @@ knitr::include_graphics(paste0(wrk_files, "RBP4.png"))
 **Serum Folate:**
 
 -   Deficient: < 6.8 nmol/L
--   Possible deficient: 6.8-13.4 nmol/L
--   Normal: 13.5-45.3 nmol/L
--   Elevated: > 45.2 nmol/L
+-   Possible deficient: $\geq$ 6.8 and < 13.5 nmol/L
+-   Normal: $\geq$ 13.5 and $\leq$ 45.3 nmol/L
+-   Elevated: > 45.3 nmol/L
 
 *Citation: [WHO 2012. "Serum and red blood cell folate concentrations for assessing folate status in populations"](https://iris.who.int/server/api/core/bitstreams/9c1cedb0-802b-473f-9d31-d74c0b31518b/content) *
 
@@ -1393,7 +1378,7 @@ knitr::include_graphics(paste0(wrk_files, "bvitd_output.png"))
   ) %>%
    
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using ferritin values that were not BRINDA-adjusted for inflammation, the threshhold for low iron is <70 ug/L in the presence of inflammation or <15 ug/L among participants without inflammation. </span>")
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using the BRINDA-adjusted ferritin values, the threshhold for low iron is <15 ug/L. </span>")
   ) %>%
      tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>c</sup>Macrocytic participants with a total cobalamin value.</span>")
@@ -1521,7 +1506,7 @@ knitr::include_graphics(paste0(wrk_files, "mcva_output.png"))
      footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: participant has passed trimester 2 without closing out/without pregnancy ending, OR participant has data.</span>")
   ) %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using ferritin values that were not BRINDA-adjusted for inflammation, the threshhold for low iron is <70 ug/L in the presence of inflammation or <15 ug/L among participants without inflammation.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using the BRINDA-adjusted ferritin values, the threshhold for low iron is <15 ug/L.</span>")
   ) %>%
      tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>c</sup>Macrocytic participants with a total cobalamin value.</span>")
@@ -1649,7 +1634,7 @@ knitr::include_graphics(paste0(wrk_files, "mcvb_output.png"))
      footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: participant has passed 34w6d without closing out/without pregnancy ending, OR participant has data.</span>")
   ) %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using ferritin values that were not BRINDA-adjusted for inflammation, the threshhold for low iron is <70 ug/L in the presence of inflammation or <15 ug/L among participants without inflammation.</span>")
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using the BRINDA-adjusted ferritin values, the threshhold for low iron is <15 ug/L.</span>")
   ) %>%
      tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>c</sup>Macrocytic participants with a total cobalamin value.</span>")
@@ -1779,7 +1764,7 @@ knitr::include_graphics(paste0(wrk_files, "mcvc_output.png"))
      footnote = html("<span style='font-size: 18px'><sup>a</sup>Expected: participant has passed the visit window without closing out/without pregnancy ending, or participant has data.</span>")
   ) %>%
   tab_footnote(
-     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using ferritin values that were not BRINDA-adjusted for inflammation, the threshhold for low iron is <70 ug/L in the presence of inflammation or <15 ug/L among participants without inflammation. </span>")
+     footnote = html("<span style='font-size: 18px'><sup>b</sup>Microcytic participants with a ferritin value. Using the BRINDA-adjusted ferritin values, the threshhold for low iron is <15 ug/L. </span>")
   ) %>%
      tab_footnote(
      footnote = html("<span style='font-size: 18px'><sup>c</sup>Macrocytic participants with a total cobalamin value.</span>")
