@@ -7794,7 +7794,7 @@ knitr::include_graphics(paste0(path_to_save, "highbp6_tab_output.png"))
 \newpage
 
 
-### Table 14b. Postpartum high blood pressure at 6 months (29-39 weeks)
+### Table 14b. Postpartum high blood pressure at 6 months (26-39 weeks)
 ```{r}
 
 highbp26_tab <- highbp %>%
