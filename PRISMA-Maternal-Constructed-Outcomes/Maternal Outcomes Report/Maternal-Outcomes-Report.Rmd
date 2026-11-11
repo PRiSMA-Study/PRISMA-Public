@@ -8705,6 +8705,7 @@ Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a
 - Suspected infection: Showed at least one primary and one secondary sign of infection
     1. A woman who showed any primary sign of infection:
         * Cloudy or purulent amniotic fluid
+        * Pain, redness, swelling, heat, purulent drainage or discharge from the cesarean incision, perineal injury or breast
         * Severe uterine pain more than 3 days after delivery
         * Vaginal odor and/or purulent discharge
         * White blood cells in urine
@@ -9180,9 +9181,9 @@ sepsis_tabc<-sepsis%>%
     ),
 
         "Sepsis" = paste0(
-          format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
+          format(sum(INF_SEPSIS==1, na.rm=TRUE), nsmall=0),
           " (",
-     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
           ),
 
@@ -9369,15 +9370,17 @@ summary_tab_outputc <- tb_theme1(sepsis_tabc)%>%
                       #   id="Denominator"
                       # )%>%
                       row_group_order(groups=c("infection","infection_type"))%>%
-                      tab_footnote(
-                        footnote = html("<span style='font-size: 18px'><sup>a </sup> 'Pyelonephritis or kidney' infection is a check box option in MNH09, MNH10, MNH12 and MNH19. No additional information is required in these forms.  </span>")
+  tab_footnote(
+                        footnote = html("<span style='font-size: 18px'><sup>a </sup> 'Treatment of asymptomatic bacteriuria' as antibiotic indication in MNH12. This number does not take into account UA results showing bacteria or WBC in urine. </span>")
                      )%>%
-                      tab_footnote(
+  tab_footnote(
                         footnote = html("<span style='font-size: 18px'><sup>b </sup> HIV diagnosis indicated at MNH09, MNH10, MNH12, or MNH19 up to 3 days before delivery or up to 14 days after delivery</span>")
                      )%>%
                       tab_footnote(
-                        footnote = html("<span style='font-size: 18px'><sup>c </sup> 'Treatment of asymptomatic bacteriuria' as antibiotic indication in MNH12. This number does not take into account UA results showing bacteria or WBC in urine. </span>")
-                     )
+                        footnote = html("<span style='font-size: 18px'><sup>c </sup> 'Pyelonephritis or kidney' infection is a check box option in MNH09, MNH10, MNH12 and MNH19. No additional information is required in these forms.  </span>")
+                     )%>%
+                      
+                      
   
 
 #summary_tab_outputc
@@ -9801,7 +9804,7 @@ sepsis_tabd<-sepsis%>%
     "Pulmonary Edema" = paste0(
       format(sum(PULM_EDEMA_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(PULM_EDEMA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUEE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(PULM_EDEMA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
@@ -10396,7 +10399,7 @@ summary_tab_outputf <- tb_theme1(sepsis_tabf)%>%
                       )%>%
                       tab_row_group(
                         label=html("<span>Secondary Signs of Infection</span>"),
-                        rows = 13:21,
+                        rows = 13:20,
                         id="secondary_sign"
                       )%>%
                       # tab_row_group(
