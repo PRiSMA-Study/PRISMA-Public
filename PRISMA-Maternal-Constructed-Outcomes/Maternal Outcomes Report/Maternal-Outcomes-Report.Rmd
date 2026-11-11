@@ -12,8 +12,7 @@ include-in-header:
 knit: (function(inputFile, encoding) { 
       rmarkdown::render(inputFile,
                     encoding=encoding, 
-                    output_file= paste('D:/Users/emoakley/Documents/Maternal Outcome Report/output', Sys.Date(),'-Maternal-Outcomes-Report', '.pdf', sep='')) })
-
+                    output_file= paste('Z:/Emma_working_files/Reports_working files/maternal outcomes/2026-09-18/', Sys.Date(),'-Maternal-Outcomes-Report', '.pdf', sep='')) })
                     
 editor_options: 
   markdown: 
@@ -78,8 +77,8 @@ format(today, "%Y-%B-%d")
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
- path_to_data <- "Z:/Constructed Data/2026-09-18/"
- path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+ # path_to_data <- "Z:/Constructed Data/2026-09-18/"
+ # path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 #Savannah's paths
 # path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
@@ -94,8 +93,8 @@ format(today, "%Y-%B-%d")
 # Emma's paths: 
    # path_to_data <- paste0("D:/Users/emmacook/Documents/Outcome data/", datadate, "/") 
    # path_to_save <- paste0("D:/Users/emmacook/Documents/Maternal_Outcomes_Report/output/", datadate, "/")
-#path_to_data <- paste0("Z:/Constructed Data/", datadate, "/")
-#path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
+path_to_data <- paste0("Z:/Constructed Data/", datadate, "/")
+path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
 
 # Check if the path_to_save directory exists
 if (!dir.exists(path_to_save)) {
@@ -3348,7 +3347,6 @@ knitr::include_graphics(paste0(path_to_save, "depression_complete_output.png"))
 \newpage
 #### Table 5b. Suspected maternal depression, using standard cutoff score
 ```{r 5b-setup}
-## to update denominators as needed!!
 
 depression_standard_tab <- depression %>%
   rowwise() %>%
@@ -3499,7 +3497,7 @@ depression_site_tab <- depression %>%
   group_by(SITE) %>%
   summarise(
 
-
+  ##Ever
     "Denominator, n" = paste0(
       format(sum(DEPR_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
@@ -3509,6 +3507,7 @@ depression_site_tab <- depression %>%
       format(round(sum(DEPR_SITE_EVER_NUM==1, na.rm = TRUE)/sum(DEPR_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
+  ##Ever ANC
     "Denominator, n " = paste0(
       format(sum(DEPR_ANC_EVER_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
@@ -3518,24 +3517,24 @@ depression_site_tab <- depression %>%
       format(round(sum(DEPR_SITE_ANC_EVER_NUM==1 , na.rm = TRUE)/sum(DEPR_ANC_EVER_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-
+  #Trimester 1-2 (EKC updated vars to match Table 5c on 11/11/26)
     "Denominator, n  " = paste0(
-      format(sum(DEPR_ANC20_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DEPR_TRI_12_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Depressive symptoms, Trimester 1-2, n (%)^c^" = paste0(
-      format(sum(DEPR_SITE_ANC20_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DEPR_SITE_TRI_12==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_SITE_ANC20_NUM==1, na.rm = TRUE)/sum(DEPR_ANC20_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_SITE_TRI_12==1, na.rm = TRUE)/sum(DEPR_TRI_12_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
- #ANC32
+ #Trimester 3
      "Denominator, n   " = paste0(
-      format(sum(DEPR_ANC32_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
+      format(sum(DEPR_TRI_3_DENOM==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Depressive symptoms, Trimester 3, n (%)" = paste0(
-      format(sum(DEPR_SITE_ANC32_NUM==1, na.rm = TRUE), nsmall = 0, digits = 2),
+      format(sum(DEPR_SITE_TRI_3==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
-      format(round(sum(DEPR_SITE_ANC32_NUM==1, na.rm = TRUE)/sum(DEPR_ANC32_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
+      format(round(sum(DEPR_SITE_TRI_3==1, na.rm = TRUE)/sum(DEPR_TRI_3_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
 
