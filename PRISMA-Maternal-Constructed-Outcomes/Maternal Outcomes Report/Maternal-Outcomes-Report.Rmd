@@ -2016,7 +2016,7 @@ knitr::include_graphics(paste0(path_to_save, "anemia_tab_tri3_output.png"))
   anemia_sankey <- anemia_sankey %>%
     filter(PREG_END == 1 & ANEMIA_T1_DENOM==1 & ANEMIA_T3_DENOM_NOT != 6 ) 
   
-  sankey <- anemia 
+  sankey <- anemia_sankey 
   
 		sankey$ANEMIA_T1<- ifelse(is.na(sankey$ANEMIA_T1) & sankey$ANEMIA_T1_DENOM == 0 & 
 		                          sankey$ANEMIA_T3_DENOM_NOT >= 1 & sankey$ANEMIA_T3_DENOM_NOT <= 5,
@@ -2587,7 +2587,7 @@ a.  type of membrane rupture (varname [form]: `MEMBRANE_RUPT_MHTERM` [MNH09]);
 
 b.  date and time of membrane rupture (if occurred) (varnames [form]: `MEMBRANE_RUPT_MHSTDAT` [MH09], `MEMBRANE_RUPT_MHSTTIM` [MH09])
 
-**6.** Delivery mode for all fetuses/infants (varname: `DELIV_PRROUTE_INF1-4`, [MNH09])
+**6.** Delivery mode for all fetuses/infants (varname: `DELIV_PRROUTE_INF1-4`,  [MNH09])
 
 ***Note:** Indications for provider-initiated preterm delivery are drawn from the variables INDUCED_PRINDC_1-15, 88, 99 and CES_PRINDC_INFX_1-24, 88, 99 in the MNH09 form. These indications represent the standard of care (SOC)-determined indications as reported by each study site, and may not necessarily align with PRISMA outcome definitions.*
 
@@ -2896,7 +2896,7 @@ prov_preterm_tab_output1 <- tb_theme1(prov_preterm_tab1) %>%
   tab_header(
     title = md("**Table 3b**")) %>%
  tab_row_group(
-  label = html("<span style='font-size: 18px'>Provider-initiated preterm</span>"),
+  label = html("<span style='font-size: 18px'>Provider-initiated preterm delivery</span>"),
   rows = 1,
   id = "provider_preterm"
 ) %>%
@@ -2976,7 +2976,7 @@ spon_preterm_tab <- preterm_indication %>%
   group_by(SITE) %>%
   summarise(
 
-   "Denominator (spontaneous preterm)" = paste0(
+   "Denominator (spontaneous preterm delivery)" = paste0(
       format(sum(MAT_PRETERM_SPON==1, na.rm = TRUE), nsmall = 0, digits = 2)),
 
     "Preterm labor" = paste0(
@@ -3020,10 +3020,10 @@ tab_style(
   ),
   locations = list(
     cells_body(
-      rows = "Denominator (spontaneous preterm)"
+      rows = "Denominator (spontaneous preterm delivery)"
     ),
     cells_stub(
-      rows = "Denominator (spontaneous preterm)"
+      rows = "Denominator (spontaneous preterm delivery)"
     )
   )
 )
@@ -5856,7 +5856,7 @@ knitr::include_graphics(
 
 1.   A woman who is pregnant, in labor, or within 42 days of the pregnancy end, *AND*
 
-2.   Experienced the PRISMA-near-miss criteria: **organ dysfunction** [M09_ORG_FAIL_MHOCCUR_1-7,88; M12_ORG_FAIL_MHOCCUR_1-4,88; M19_ORGAN_FAIL_MHTERM_1-7, 88]; **hysterectomy** [M09_PPH_FAORRES_5; M12_BIRTH_COMPL_MHTERM_8; M19_TX_PROCCUR_5]; **blood transfusion of any volume** [M19_TX_PROCCUR_1; or transfusion to treat PPH] **and** women experienced antepartum hemorrhage, severe postpartum hemorrhage, severe anemia, or placental abruption; **preeclampsia with severe features/eclampsia** [see tables 13a-b of this report], **uterine rupture**  [constructed outcome, see table 10 of this report], **sepsis**  [to be constructed], **laparotomy other than C-section** [M19_TX_PROCCUR_2-3,5 or hysterectomy], and/or **admission to ICU** [M10_TRANSFER_OHOLOC==1; M10_TRANSFER_OHOLOC==2] *AND*
+2.   Experienced the PRISMA-near-miss criteria: **organ dysfunction** [M09_ORG_FAIL_MHOCCUR_1-7,88; M12_ORG_FAIL_MHOCCUR_1-4,88; M19_ORGAN_FAIL_MHTERM_1-7, 88]; **hysterectomy** [M09_PPH_FAORRES_5; M12_BIRTH_COMPL_MHTERM_8; M19_TX_PROCCUR_5]; **blood transfusion of any volume** [M19_TX_PROCCUR_1; or transfusion to treat PPH] **and** women experienced antepartum hemorrhage, severe postpartum hemorrhage, severe anemia, or placental abruption; **preeclampsia with severe features/eclampsia** [see tables 13a-b of this report], **uterine rupture**  [constructed outcome, see table 10 of this report], **sepsis**  [to be constructed], **laparotomy other than cesarean delivery** [M19_TX_PROCCUR_2-3,5 or hysterectomy], and/or **admission to ICU** [M10_TRANSFER_OHOLOC==1; M10_TRANSFER_OHOLOC==2] *AND*
 
 3.   Survives the experience.
 
@@ -6015,7 +6015,7 @@ knitr::include_graphics(paste0(path_to_save, "near_miss_taba.png"))
 
 -   **blood transfusion of any volume** [mother *needed* transfusion: M09_PPH_TRNSFSN_PROCCUR; mother *received* transfusion: M19_TX_PROCCUR_1]
 
--   **laparotomy other than C-section** [M19_TX_PROCCUR_2-3,5 or hysterectomy]
+-   **laparotomy other than cesarean delivery** [M19_TX_PROCCUR_2-3,5 or hysterectomy]
 
 -   **abortion complications** [M19_EARLY_LOSS_MHTERM==6]
 
@@ -6156,7 +6156,7 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(MAT_ICU==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Laparotomy other than C-section (M19)" = paste0(
+    "Laparotomy other than cesarean delivery (M19)" = paste0(
       format(sum(LAPAROTOMY==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LAPAROTOMY==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -6305,7 +6305,7 @@ near_miss_tabb <- near_miss %>%
       format(round(sum(MAT_ICU==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Laparotomy other than C-section (M19)" = paste0(
+    "Laparotomy other than cesarean delivery (M19)" = paste0(
       format(sum(LAPAROTOMY==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LAPAROTOMY==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -6403,7 +6403,7 @@ near_miss_tabc <- near_miss %>%
       format(round(sum(HYSTERECTOMY == 1 & NEARMISS_DENOM ==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-      "Laparotomy other than C-section (M19)" = paste0(
+      "Laparotomy other than cesarean delivery (M19)" = paste0(
       format(sum(LAPAROTOMY==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LAPAROTOMY==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -6489,7 +6489,7 @@ near_miss_tabc <- near_miss %>%
       format(round(sum(HYSTERECTOMY == 1 & NEARMISS_DENOM ==1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-      "Laparotomy other than C-section (M19)" = paste0(
+      "Laparotomy other than cesarean delivery (M19)" = paste0(
       format(sum(LAPAROTOMY==1 & NEARMISS_DENOM == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(LAPAROTOMY==1 & NEARMISS_DENOM == 1, na.rm = TRUE)/sum(NEARMISS_DENOM == 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -7431,7 +7431,7 @@ hdp_tab <- hdp %>%
 
      "Expected denominator (total completed pregnancies)" = paste0(
       format(sum(HDP_DENOM== 1, na.rm = TRUE), nsmall = 0, digits = 2)),
-     "Excluded: pregnancy ended prior to 20 weeks" = paste0(
+     "Excluded: pregnancy ended prior to 20 weeks ^b^" = paste0(
       format(sum(HDP_DENOM== 1 & HDP_GROUP_MISS==3, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HDP_DENOM== 1 & HDP_GROUP_MISS==3, na.rm = TRUE)/sum(HDP_DENOM== 1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -7552,7 +7552,10 @@ tab_style(
   )
 ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>")) %>%
+
+  tab_footnote(
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Note that this row only presents pregnancy losses for participants WITHOUT underlying chronic hypertension; participants with underlying chronic hypertension are included in the HDP outcome, regardless of the length of the pregnancy. </span>"))
 
 ```
 
@@ -7980,11 +7983,11 @@ knitr::include_graphics(paste0(path_to_save, "highbp52_tab_output.png"))
 
 ## 15. Placental Disorders
 
-**Placenta previa:** Placenta partially or fully covers the cervix. Placenta previa is a risk factor for maternal hemorrhage. Identified by ultrasound [`M01_PREVIA_PERES_FTS#`==3] and at labor and delivery [as an indication for C-section, `M09_CES_PRINDC_INF#_18` == 1; as a contributor to antepartum hemorrhage, `M09_APH_FAORRES_2` == 1]. Most placenta previa cases are recorded during ultrasounds, of which nearly 25% are identified in the first ultrasound.
+**Placenta previa:** Placenta partially or fully covers the cervix. Placenta previa is a risk factor for maternal hemorrhage. Identified by ultrasound [`M01_PREVIA_PERES_FTS#`==3] and at labor and delivery [as an indication for cesarean delivery, `M09_CES_PRINDC_INF#_18` == 1; as a contributor to antepartum hemorrhage, `M09_APH_FAORRES_2` == 1]. Most placenta previa cases are recorded during ultrasounds, of which nearly 25% are identified in the first ultrasound.
 
-**Placental abruption:** Placenta separates from the wall of the uterus before delivery. Placental abruption can cause maternal hemorrhage and disrupt supply of nutrients and oxygen to the baby. Identified at labor and delivery [as an indication for C-section, `M09_CES_PRINDC_INF#_17` == 1; as a contributor to antepartum hemorrhage, `M09_APH_FAORRES_1`==1].
+**Placental abruption:** Placenta separates from the wall of the uterus before delivery. Placental abruption can cause maternal hemorrhage and disrupt supply of nutrients and oxygen to the baby. Identified at labor and delivery [as an indication for cesarean delivery, `M09_CES_PRINDC_INF#_6` == 1; as a contributor to antepartum hemorrhage, `M09_APH_FAORRES_1`==1].
 
-**Placenta accreta:** Placenta grows too deeply into the wall of the uterus. Placenta accreta can cause the placenta from not detaching completely after delivery, and often causes maternal hemorrhage. Identified at labor and delivery [as an indication for C-section, `M09_CES_PRINDC_INF1_17`]
+**Placenta accreta:** Placenta grows too deeply into the wall of the uterus. Placenta accreta can cause the placenta from not detaching completely after delivery, and often causes maternal hemorrhage. Identified at labor and delivery [as an indication for cesarean delivery, `M09_CES_PRINDC_INF1_17`]
 
 ### Table 15. Placental disorders
 ```{r}
@@ -8018,7 +8021,7 @@ placenta_tab <- placenta1 %>%
 # "Women who delivered by Cesarean" = paste0(
 #      format(sum(MAT_CES_ANY == 1, na.rm = TRUE), nsmall = 0, digits = 2)),
    
-  "Suspected placenta accreta indicated as reason for C-section^b^" = paste0(
+  "Suspected placenta accreta indicated as reason for cesarean delivery^b^" = paste0(
       format(sum(PLACENTA_ACCRETE == 1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(PLACENTA_ACCRETE == 1, na.rm = TRUE)/sum(PREG_END == 1 & PREG_END_GA>=140, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -8076,7 +8079,7 @@ knitr::include_graphics(paste0(path_to_save, "placenta_tab_output.png"))
 
 **Definition:** Induced labor, including induction by artificial rupture of membranes, oxytocin, misoprostol, foley, and/or another method (as reported in MNH09 form).
 
-**Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA), excluding pregnancies that ended in a c-section prior to labor.
+**Denominator:** Pregnancies ending in a livebirth or stillbirth (>=20 weeks GA), excluding pregnancies that ended in a cesarean delivery prior to labor.
 
 **Note:** Labor augmentation is defined as methods used to strengthen contractions that are already in progress. These include the same methods that can be used for labor induction. In India-SAS site, "induced labor" includes both induced and augmented labor. In Kenya and Zambia sites, "induced labor" may include both induced or augmented labor for some cases.
 
@@ -8185,7 +8188,7 @@ tab_style(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> The expected denominator for this outcome is all completed pregnancies; this includes all pregnancies where an endpoint has been recorded in MNH09 (labor and delivery) OR MNH04 (pregnancy loss reported during ANC visit) OR MNH19 (pregnancy loss reported during hospitalization) OR if a maternal death is reported prior to delivery. </span>"))  %>%
 
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> This denominator is restricted to pregnancies ending in a delivery at/after 20 weeks gestation AND included labor or attempted labor induction. Pregnancies ending in a c-section prior to labor initiation and without any attempted induction are excluded. </span>"))
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> This denominator is restricted to pregnancies ending in a delivery at/after 20 weeks gestation AND included labor or attempted labor induction. Pregnancies ending in a cesarean delivery prior to labor initiation and without any attempted induction are excluded. </span>"))
 
 ```
 
