@@ -8708,15 +8708,15 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
         * Bacteria in urine
         * Retained placenta
     2. A woman who also showed a secondary sign of infection: 
-        * Fever
-        * Hypothermia
-        * Elevated heart rate
-        * Elevated respiratory rate
+        * Fever (Oral temperature >=38C, puerperal fever indicated or antipyretics prescribed for fever)
+        * Hypothermia (Oral temperature < 36C)
+        * Elevated heart rate (>110 bpm)
+        * Elevated respiratory rate (>24 bpm recorded or respiratory distress indicated)
         * Mechanical ventilation
-        * Abnormal WBC count
+        * Abnormal WBC count (>15,000/mm^3 or <4,000/mm^3)
         * Excessive sweating in the absence of heat
         * Severe nausea or vomiting
-        * Fetal tachycardia
+        * Fetal tachycardia (Abnormal fetal heart rate recorded in MNH09 or fetal heart rate >160 in MNH19)
         
 - Diagnosed infection: Provider diagnosed infection either through infection check box, antibiotic indication, lab result or free text response [mnh08, mnh09, mnh10, mnh12, mnh19]
     
@@ -8736,7 +8736,7 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
         a. Provider diagnosed jaundice
         b. Elevated bilirubin (> 2 mg/dL)
     6. Elevated creatinine (>= 1.2 mg/dL)
-    7. Platelet count < 100,000
+    7. Platelet count < 100,000 platelets/mm^3
     8. Pulmonary edema
         
 - Denominator for maternal sepsis: 
@@ -8744,7 +8744,6 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
     * Intrapartum sepsis denominator: all deliveries minus
         - Those who did not have an MNH09 form
         - Those missing a delivery date
-        - Those with incomplete delivery appointments according to MNH09
 
 \newpage 
 
@@ -9039,7 +9038,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
 
-    "Bacteriuria" = paste0(
+    "Bacteriuria^a" = paste0(
       format(sum(INF_BACTERIURIA==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_BACTERIURIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9130,7 +9129,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
     
-    "Kidney" = paste0(
+    "Kidney/Pyelonephritis^b" = paste0(
       format(sum(INF_KIDNEY==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9201,7 +9200,7 @@ sepsis_tabc<-sepsis%>%
      ")"
           ),
 
-        "Bacteriuria" = paste0(
+        "Bacteriuria^a" = paste0(
           format(sum(INF_BACTERIURIA==1, na.rm=TRUE), nsmall=0),
           " (", 
           format(round(sum(INF_BACTERIURIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9293,7 +9292,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
      
-     "Kidney" = paste0(
+     "Kidney/Pyelonephritis^b" = paste0(
          format(sum(INF_KIDNEY==1, na.rm=TRUE), nsmall=0),
          " (",
            format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9351,7 +9350,7 @@ rownames(sepsis_tabc) <- c(
   "HIV",
   "Helminths",
   "Hepatitis E",
-  "Kidney",
+  "Kidney/Pyelonephritis^b",
   "Leptospirosis",
   "Malaria",
   "Mastitis",
@@ -9383,7 +9382,14 @@ summary_tab_outputc <- tb_theme1(sepsis_tabc)%>%
                       #   rows = 29:29,
                       #   id="Denominator"
                       # )%>%
-                      row_group_order(groups=c("infection","infection_type"))
+                      row_group_order(groups=c("infection","infection_type"))%>%
+                      tab_footnote(
+                        footnote = html("<span style='font-size: 18px'><sup>a </sup> 'Pyelonephritis or kidney' infection is a check box option in MNH09, MNH10, MNH12 and MNH19. No additional information is required in these forms.  </span>")
+                     )%>%
+                      tab_footnote(
+                        footnote = html("<span style='font-size: 18px'><sup>b </sup> 'Treatment of asymptomatic bacteriuria' as antibiotic indication in MNH12. This number does not take into account UA results showing bacteria or WBC in urine  </span>")
+                     )
+  
 
 #summary_tab_outputc
 
@@ -10143,7 +10149,7 @@ sepsis_tabf<-sepsis%>%
      ")"
     ),
 
-    "Respiratory Distress" = paste0(
+    "Respiratory Distress or Elevated Heart Rate (>24)" = paste0(
       format(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
