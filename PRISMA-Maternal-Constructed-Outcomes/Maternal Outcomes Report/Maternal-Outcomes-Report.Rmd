@@ -149,9 +149,8 @@ placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename
   #filter(PREGID %in% remind.moms$PREGID)
 highhb<- read_dta(paste0(path_to_data, "MAT_HIGHHB.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
-sepsis_all<-read_csv(paste0(path_to_data, "MAT_SEPSIS.csv"))
-sepsis<-sepsis_all%>%
-          filter(PREG_END_DELIV==1 & FLAG_DATE_M09)
+sepsis<-read_csv(paste0(path_to_data, "MAT_SEPSIS.csv"))
+
 
 #new mortality dataset (09-18-2026) only includes mat deaths
 mortality1 <- end %>%
@@ -865,28 +864,28 @@ summary_tab1 <- mat_infection  %>%
     "Sepsis diagnosis" = paste0(
      format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Infection related severe maternal outcome" = paste0(
       format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Infection with complications" = paste0(
       format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Less severe infection" = paste0(
       format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     )
 
@@ -903,28 +902,28 @@ summary_tab1 <- mat_infection  %>%
     "Sepsis diagnosis" = paste0(
      format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Infection related severe maternal outcome" = paste0(
       format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Infection with complications" = paste0(
       format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Less severe infection" = paste0(
       format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     )
 
@@ -8757,22 +8756,22 @@ sepsis_taba<-sepsis_all%>%
       format(sum(PREG_END_DELIV==1, na.rm=TRUE), nsmall = 0)
     ),
 
-    "Incomplete L&D Appointment" = paste0(
-     format(sum(sepsis_denom=="app status missing", na.rm=TRUE), nsmall=0),
-     " (",
-     format(round(sum(sepsis_denom=="app status missing", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    ),
+    # "Incomplete L&D Appointment" = paste0(
+    #  format(sum(sepsis_denom=="app status missing", na.rm=TRUE), nsmall=0),
+    #  " (",
+    #  format(round(sum(sepsis_denom=="app status missing", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+    #  ")"
+    # ),
 
     "Delivery Date Missing" = paste0(
-      format(sum(sepsis_denom=="date missing", na.rm=TRUE), nsmall=0),
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==FALSE, na.rm=TRUE), nsmall=0),
       " (",
-     format(round(sum(sepsis_denom=="date missing", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==FALSE, na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Denominator, n" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS, na.rm=TRUE), nsmall = 0)
     )
   )%>%
   t()%>%
@@ -8789,23 +8788,23 @@ sepsis_taba<-sepsis_all%>%
         "Expected denominator,  n^^a" = paste0 (
           format(sum(PREG_END_DELIV==1, na.rm=TRUE), nsmall=0, digits=2)),
 
-        "Incomplete L&D Appointment" = paste0(
-          format(sum(sepsis_denom=="app status missing", na.rm=TRUE), nsmall=0),
-          " (",
-           format(round(sum(sepsis_denom=="app status missing", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-           ")"
-          ),
+        # "Incomplete L&D Appointment" = paste0(
+        #   format(sum(sepsis_denom=="app status missing", na.rm=TRUE), nsmall=0),
+        #   " (",
+        #    format(round(sum(sepsis_denom=="app status missing", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+        #    ")"
+        #   ),
         
 
         "Missing Delivery Date" = paste0(
-          format(sum(sepsis_denom=="date missing", na.rm=TRUE), nsmall=0),
+          format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==FALSE, na.rm=TRUE), nsmall=0),
           " (",
-             format(round(sum(sepsis_denom=="date missing", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+             format(round(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==FALSE, na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
              ")"
           ),
         
         "Denominator, n" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS, na.rm=TRUE), nsmall = 0)
        )
       )%>%
       t() %>%
@@ -8815,7 +8814,7 @@ sepsis_taba<-sepsis_all%>%
 
 rownames(sepsis_taba) <- c(
   "Expected Denominator",
-  "Incomplete L&D Appointment",
+  #"Incomplete L&D Appointment",
   "Delivery Date Missing",
   "Denominator"
 )
@@ -8832,7 +8831,7 @@ sepsis_taba_output <- tb_theme1(sepsis_taba)%>%
                         title=md("Table 19a"))%>%
                       tab_row_group(
                         label=html("<span>Missingness summary</span>"),
-                        rows = 1:4,
+                        rows = 1:3,
                         id="sepsis_missingness"
                       )%>%
                       row_group_order(groups=c("sepsis_missingness"))%>%
@@ -8859,39 +8858,39 @@ sepsis_tabb<-sepsis%>%
     # "Suspected or Diagnosed Infection" = paste0(
     #   format(sum(INFECTION==1, na.rm=TRUE), nsmall = 0),
     #  " (",
-    #  format(round(sum(INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+    #  format(round(sum(INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
     #  ")"
     # ),
 
     "Sepsis diagnosis" = paste0(
      format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Infection related severe maternal outcome" = paste0(
       format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Infection with complications" = paste0(
       format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Less severe infection" = paste0(
       format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ), 
     "Denominator" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE), nsmall = 0)
     )
   )%>%
   t()%>%
@@ -8907,39 +8906,39 @@ sepsis_tabb<-sepsis%>%
      #    "Suspected or Diagnosed Infection" = paste0 (
      #      format(sum(INFECTION==1, na.rm=TRUE), nsmall=0, digits=2),
      #      " (",
-     # format(round(sum(INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     # format(round(sum(INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      # ")"
      #      ),
 
         "Sepsis diagnosis" = paste0(
           format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
           " (",
-     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
           ),
 
         "Infection related severe maternal outcome" = paste0(
           format(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE), nsmall=0),
           " (", 
-          format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+          format(round(sum(INF_SEV_MAT_OUTCOME==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
 
        "Infection with complications" = paste0(
          format(sum(INF_WITH_COMP==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_WITH_COMP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
        
        "Less severe infection" = paste0(
          format(sum(LESS_SEV_INF==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(LESS_SEV_INF==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ), 
      "Denominator" = paste0(
-        format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+        format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE), nsmall = 0)
          )
       )%>%
       t()%>%
@@ -8997,110 +8996,110 @@ sepsis_tabc<-sepsis%>%
     "Suspected or Diagnosed Infection" = paste0(
       format(sum(INFECTION==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     "Diagnosed Infection" = paste0(
       format(sum(INF_ANY==1, na.rm=TRUE), nsmall = 0),
       " (",
-     format(round(sum(INF_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Suspected Infection" = paste0(
       format(sum(SUSP_INFECTION==1, na.rm=TRUE), nsmall = 0),
       " (",
-     format(round(sum(SUSP_INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SUSP_INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Sepsis" = paste0(
      format(sum(INF_SEPSIS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Bacteriuria^a" = paste0(
       format(sum(INF_BACTERIURIA==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_BACTERIURIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_BACTERIURIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Bloodstream" = paste0(
       format(sum(INF_BLOODSTREAM==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_BLOODSTREAM==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_BLOODSTREAM==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "CNS" = paste0(
       format(sum(INF_CNS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_CNS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_CNS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "COVID" = paste0(
       format(sum(INF_COVID==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_COVID==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_COVID==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     "Chikungunya" = paste0(
          format(sum(INF_CHIKUNGUNYA==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_CHIKUNGUNYA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_CHIKUNGUNYA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
     "Chorioamnionitis" = paste0(
       format(sum(INF_CHORIO==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_CHORIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_CHORIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Cesarian Wound" = paste0(
       format(sum(INF_CESAREANWOUND==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_CESAREANWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_CESAREANWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Dengue" = paste0(
          format(sum(INF_DENGUE==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_DENGUE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_DENGUE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
     "Endometritis" = paste0(
       format(sum(INF_ENDOMETRITIS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_ENDOMETRITIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_ENDOMETRITIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Gastrointestinal" = paste0(
       format(sum(INF_GI==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_GI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_GI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "HIV^b" = paste0(
       format(sum(INF_HIV==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_HIV==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_HIV==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Helminths" = paste0(
       format(sum(INF_HELM==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_HELM==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_HELM==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
@@ -9108,42 +9107,42 @@ sepsis_tabc<-sepsis%>%
     "Hepatitis E" = paste0(
       format(sum(INF_HEPE==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_HEPE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_HEPE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Kidney/Pyelonephritis^c" = paste0(
       format(sum(INF_KIDNEY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Leptospirosis" = paste0(
       format(sum(INF_LEPTO==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_LEPTO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_LEPTO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Malaria" = paste0(
       format(sum(INF_MALARIA==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_MALARIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_MALARIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Mastitis" = paste0(
       format(sum(INF_MASTITIS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_MASTITIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_MASTITIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Septic Pelvic Thrombophlebitis" = paste0(
       format(sum(INF_PELVIC==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_PELVIC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_PELVIC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     )
   )%>%
@@ -9158,77 +9157,77 @@ sepsis_tabc<-sepsis%>%
         "Suspected or Diagnosed Infection" = paste0(
       format(sum(INFECTION==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
         
         "Diagnosed Infection" = paste0 (
           format(sum(INF_ANY==1, na.rm=TRUE), nsmall=0, digits=2),
           " (",
-     format(round(sum(INF_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
           ),
     
         "Suspected Infection" = paste0(
       format(sum(SUSP_INFECTION==1, na.rm=TRUE), nsmall = 0),
       " (",
-     format(round(sum(SUSP_INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SUSP_INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
         "Sepsis" = paste0(
           format(sum(SEPSIS==1, na.rm=TRUE), nsmall=0),
           " (",
-     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SEPSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
           ),
 
         "Bacteriuria^a" = paste0(
           format(sum(INF_BACTERIURIA==1, na.rm=TRUE), nsmall=0),
           " (", 
-          format(round(sum(INF_BACTERIURIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+          format(round(sum(INF_BACTERIURIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
 
        "Bloodstream" = paste0(
          format(sum(INF_BLOODSTREAM==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_BLOODSTREAM==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_BLOODSTREAM==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
        
        "CNS" = paste0(
          format(sum(INF_CNS==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_CNS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_CNS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "COVID" = paste0(
          format(sum(INF_COVID==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_COVID==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_COVID==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
     "Chikungunya" = paste0(
          format(sum(INF_CHIKUNGUNYA==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_CHIKUNGUNYA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_CHIKUNGUNYA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Chorioamnionitis" = paste0(
          format(sum(INF_CHORIO==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_CHORIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_CHORIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Cesarean Wound" = paste0(
          format(sum(INF_CESAREANWOUND==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_CESAREANWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_CESAREANWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
@@ -9236,77 +9235,77 @@ sepsis_tabc<-sepsis%>%
     "Dengue" = paste0(
          format(sum(INF_DENGUE==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_DENGUE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_DENGUE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Endometritis" = paste0(
          format(sum(INF_ENDOMETRITIS==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_ENDOMETRITIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_ENDOMETRITIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Gastrointestinal" = paste0(
          format(sum(INF_GI==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_GI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_GI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
     "HIV^b" = paste0(
          format(sum(INF_HIV==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_HIV==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_HIV==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
     "Helminths" = paste0(
       format(sum(INF_HELM==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_HELM==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_HELM==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Hepatitis E" = paste0(
       format(sum(INF_HEPE==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_HEPE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_HEPE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
      
      "Kidney/Pyelonephritis^c" = paste0(
          format(sum(INF_KIDNEY==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
     "Leptospirosis" = paste0(
       format(sum(INF_LEPTO==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_LEPTO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_LEPTO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
      
      "Malaria" = paste0(
          format(sum(INF_MALARIA==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_MALARIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_MALARIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Mastitis" = paste0(
          format(sum(INF_MASTITIS==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_MASTITIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_MASTITIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Septic Pelvic Thrombophlebitis" = paste0(
          format(sum(INF_PELVIC==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_PELVIC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_PELVIC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           )
       )%>%
@@ -9394,103 +9393,103 @@ sepsis_tabc_2<-sepsis%>%
     "PID" = paste0(
       format(sum(INF_PID==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_PID==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_PID==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Perineal Wound" = paste0(
       format(sum(INF_PERINEALWOUND==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_PERINEALWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_PERINEALWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUEE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Respiratory" = paste0(
       format(sum(INF_RESP==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_RESP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_RESP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Schistosomiasis" = paste0(
       format(sum(INF_SCHISTO==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_SCHISTO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_SCHISTO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Strep B" = paste0(
       format(sum(INF_STREPB==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_STREPB==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_STREPB==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "STI" = paste0(
       format(sum(INF_STI==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_STI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_STI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "TB" = paste0(
       format(sum(INF_TB==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_TB==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_TB==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Tissue" = paste0(
       format(sum(INF_TISSUE==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_TISSUE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_TISSUE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Uterine" = paste0(
       format(sum(INF_UTERINE==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_UTERINE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_UTERINE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "UTI" = paste0(
       format(sum(INF_UTI==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_UTI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_UTI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     # "Yeast" = paste0(
     #   format(sum(INF_YEAST==1, na.rm=TRUE), nsmall=0),
     #  " (",
-    #  format(round(sum(INF_YEAST==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+    #  format(round(sum(INF_YEAST==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
     #  ")"
     # ),
     # 
     # "Vaginosis" = paste0(
     #   format(sum(INF_VAGINOSIS==1, na.rm=TRUE), nsmall=0),
     #  " (",
-    #  format(round(sum(INF_VAGINOSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+    #  format(round(sum(INF_VAGINOSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
     #  ")"
     # ),
     
     "Zika" = paste0(
          format(sum(INF_ZIKA==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_ZIKA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_ZIKA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
     "Other" = paste0(
       format(sum(INF_OTHER==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_OTHER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_OTHER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Denominator" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE), nsmall = 0)
     )
   )%>%
   t()%>%
@@ -9505,103 +9504,103 @@ sepsis_tabc_2<-sepsis%>%
      "PID" = paste0(
          format(sum(INF_PID==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_PID==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_PID==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Perineal Wound" = paste0(
          format(sum(INF_PERINEALWOUND==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_PERINEALWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_PERINEALWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Respiratory" = paste0(
          format(sum(INF_RESP==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_RESP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_RESP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
     "Schistosomiasis" = paste0(
       format(sum(INF_SCHISTO==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_SCHISTO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_SCHISTO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
      
      "Strep B" = paste0(
          format(sum(INF_STREPB==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_STREPB==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_STREPB==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "STI" = paste0(
          format(sum(INF_STI==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_STI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_STI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "TB" = paste0(
          format(sum(INF_TB==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_TB==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_TB==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Tissue" = paste0(
          format(sum(INF_TISSUE==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_TISSUE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_TISSUE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Uterine" = paste0(
          format(sum(INF_UTERINE==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_UTERINE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_UTERINE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "UTI" = paste0(
          format(sum(INF_UTI==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_UTI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_UTI==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      # "Yeast" = paste0(
      #     format(sum(INF_YEAST==1, na.rm=TRUE), nsmall=0),
      #     " (",
-     #       format(round(sum(INF_YEAST==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     #       format(round(sum(INF_YEAST==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      #       ")"
      #      ),
      # 
      # "Vaginosis" = paste0(
      #     format(sum(INF_VAGINOSIS==1, na.rm=TRUE), nsmall=0),
      #     " (",
-     #       format(round(sum(INF_VAGINOSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     #       format(round(sum(INF_VAGINOSIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      #       ")"
      #      ),
     
     "Zika" = paste0(
          format(sum(INF_ZIKA==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_ZIKA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_ZIKA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Other" = paste0(
          format(sum(INF_OTHER==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(INF_OTHER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(INF_OTHER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
         
         "Denominator" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE), nsmall = 0)
        )
       )%>%
       t()%>%
@@ -9672,138 +9671,138 @@ sepsis_tabd<-sepsis%>%
     "Any Sign of Organ Failure or Injury" = paste0(
       format(sum(EOI_ANY==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(EOI_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(EOI_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Any Organ Failure" = paste0(
       format(sum(ORG_FAIL_ANY==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(ORG_FAIL_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Any Sign of End Organ Injury" = paste0(
       format(sum(SIGN_EOI_ANY==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(SIGN_EOI_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_EOI_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Cardiovascular" = paste0(
      format(sum(ORG_FAIL_CARDIO==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ORG_FAIL_CARDIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_CARDIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Respiratory" = paste0(
       format(sum(ORG_FAIL_RESP==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ORG_FAIL_RESP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_RESP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Kidney" = paste0(
       format(sum(ORG_FAIL_KIDNEY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ORG_FAIL_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Liver" = paste0(
       format(sum(ORG_FAIL_LIVER==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ORG_FAIL_LIVER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_LIVER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Neurological" = paste0(
       format(sum(ORG_FAIL_NEURO==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ORG_FAIL_NEURO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_NEURO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Uterine" = paste0(
       format(sum(ORG_FAIL_UTERINE==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ORG_FAIL_UTERINE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_UTERINE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Hematologic" = paste0(
       format(sum(ORG_FAIL_HEMA==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ORG_FAIL_HEMA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_HEMA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Other" = paste0(
       format(sum(ORG_FAIL_OTHER==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ORG_FAIL_OTHER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_OTHER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
      "Low Blood Pressure" = paste0(
      format(sum(LOW_BP_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(LOW_BP_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(LOW_BP_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Hypoxia" = paste0(
       format(sum(HYPOXIA_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(HYPOXIA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(HYPOXIA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Oliguria" = paste0(
       format(sum(URINE_REDUCED_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(URINE_REDUCED_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(URINE_REDUCED_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Confusion" = paste0(
       format(sum(CONFUSION_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(CONFUSION_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(CONFUSION_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Jaundice" = paste0(
       format(sum(JAUNDICE_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(JAUNDICE_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(JAUNDICE_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Elevated Creatinine" = paste0(
       format(sum(EL_CREAT_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(EL_CREAT_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(EL_CREAT_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Abnormal Platelet Count" = paste0(
       format(sum(ABNL_PLATE_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ABNL_PLATE_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ABNL_PLATE_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Pulmonary Edema" = paste0(
       format(sum(PULM_EDEMA_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(PULM_EDEMA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(PULM_EDEMA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUEE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Denominator" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE), nsmall = 0)
     )
   )%>%
   t()%>%
@@ -9818,138 +9817,138 @@ sepsis_tabd<-sepsis%>%
         "Any Sign of Organ Failure or Injury" = paste0(
       format(sum(EOI_ANY==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(EOI_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(EOI_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
         
         "Any Organ Failure" = paste0 (
           format(sum(ORG_FAIL_ANY==1, na.rm=TRUE), nsmall=0, digits=2),
           " (",
-     format(round(sum(ORG_FAIL_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
           ),
      
      "Any Sign of End Organ Injury" = paste0(
       format(sum(SIGN_EOI_ANY==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(SIGN_EOI_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_EOI_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
         "Cardiovascular" = paste0(
           format(sum(ORG_FAIL_CARDIO==1, na.rm=TRUE), nsmall=0),
           " (",
-     format(round(sum(ORG_FAIL_CARDIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ORG_FAIL_CARDIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
           ),
 
         "Respiratory" = paste0(
           format(sum(ORG_FAIL_RESP==1, na.rm=TRUE), nsmall=0),
           " (", 
-          format(round(sum(ORG_FAIL_RESP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+          format(round(sum(ORG_FAIL_RESP==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
 
        "Kidney" = paste0(
          format(sum(ORG_FAIL_KIDNEY==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(ORG_FAIL_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(ORG_FAIL_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
        
        "Liver" = paste0(
          format(sum(ORG_FAIL_LIVER==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(ORG_FAIL_LIVER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(ORG_FAIL_LIVER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Neurological" = paste0(
          format(sum(ORG_FAIL_NEURO==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(ORG_FAIL_NEURO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(ORG_FAIL_NEURO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Uterine" = paste0(
          format(sum(ORG_FAIL_UTERINE==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(ORG_FAIL_UTERINE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(ORG_FAIL_UTERINE==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Hematologic" = paste0(
          format(sum(ORG_FAIL_HEMA==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(ORG_FAIL_HEMA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(ORG_FAIL_HEMA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Other" = paste0(
          format(sum(ORG_FAIL_OTHER==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(ORG_FAIL_OTHER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(ORG_FAIL_OTHER==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
     
      "Low Blood Pressure" = paste0(
      format(sum(LOW_BP_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(LOW_BP_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(LOW_BP_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Hypoxia" = paste0(
       format(sum(HYPOXIA_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(HYPOXIA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(HYPOXIA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Oliguria" = paste0(
       format(sum(URINE_REDUCED_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(URINE_REDUCED_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(URINE_REDUCED_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Confusion" = paste0(
       format(sum(CONFUSION_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(CONFUSION_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(CONFUSION_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Jaundice" = paste0(
       format(sum(JAUNDICE_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(JAUNDICE_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(JAUNDICE_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Elevated Creatinine" = paste0(
       format(sum(EL_CREAT_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(EL_CREAT_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(EL_CREAT_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Abnormal Platelet Count" = paste0(
       format(sum(ABNL_PLATE_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ABNL_PLATE_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ABNL_PLATE_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Pulmonary Edema" = paste0(
       format(sum(PULM_EDEMA_ANY==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(PULM_EDEMA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(PULM_EDEMA_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
         
         "Denominator" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE), nsmall = 0)
        )
       )%>%
       t()%>%
@@ -10033,152 +10032,152 @@ sepsis_tabf<-sepsis%>%
     "Suspected Infection" = paste0(
       format(sum(SUSP_INFECTION==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(SUSP_INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SUSP_INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Any Primary Signs of Infection" = paste0(
       format(sum(SIGN_ANY==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(SIGN_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Any Secondary Signs of Infection" = paste0(
       format(sum(SEV_SIGNS==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(SEV_SIGNS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SEV_SIGNS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Cloudy or purulent amniotic fluid" = paste0(
      format(sum(SIGN_AMNIO==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_AMNIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_AMNIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Pain, redness, swelling, heat or purulent drainage around cesarean incision" = paste0(
       format(sum(SIGN_CESARIAN_PAIN==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_CESARIAN_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_CESARIAN_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Pain, redness, swelling, heat or purulent drainage around perineal laceration" = paste0(
       format(sum(SIGN_PERINEAL_PAIN==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_PERINEAL_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_PERINEAL_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Pain, redness, swelling, heat or purulent drainage from breast" = paste0(
       format(sum(SIGN_BREAST_PAIN==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_BREAST_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_BREAST_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Uterine pain experienced >3 after delivery" = paste0(
       format(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Foul-smelling or purulent vaginal or uterine discharge" = paste0(
       format(sum(SIGN_VAG_ODOR_DIS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_VAG_ODOR_DIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_VAG_ODOR_DIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "WBC in urine" = paste0(
       format(sum(SIGN_UA_WBC==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_UA_WBC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_UA_WBC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Bacteria in urine" = paste0(
       format(sum(SIGN_UA_BAC==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_UA_BAC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_UA_BAC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     # "Acute Respiratory Distress" = paste0(
     #   format(sum(SIGN_ARDS==1, na.rm=TRUE), nsmall=0),
     #  " (",
-    #  format(round(sum(SIGN_ARDS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+    #  format(round(sum(SIGN_ARDS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
     #  ")"
     # ),
     
     "Retained Placenta" = paste0(
       format(sum(SIGN_RET_PLACENTA==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SIGN_RET_PLACENTA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_RET_PLACENTA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
      ),
 
     "Fever" = paste0(
      format(sum(FEVER>=1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(FEVER>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(FEVER>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Hypothermia" = paste0(
       format(sum(HYPOTHERMIA>=1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(HYPOTHERMIA>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(HYPOTHERMIA>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Elevated Heart Rate (>110 bpm)" = paste0(
       format(sum(ELEVATED_HR>=1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ELEVATED_HR>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ELEVATED_HR>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Respiratory Distress or Elevated Respiratory Rate (>24 bpm)" = paste0(
       format(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Abnormal WBC Count" = paste0(
       format(sum(ABNORMAL_WBC==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ABNORMAL_WBC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ABNORMAL_WBC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Vomiting" = paste0(
       format(sum(VOMITING==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(VOMITING==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(VOMITING==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Excessive sweating" = paste0(
       format(sum(SWEATING==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SWEATING==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SWEATING==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Fetal Tachycardia" = paste0(
       format(sum(FETAL_TACHYCARDIA==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(FETAL_TACHYCARDIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(FETAL_TACHYCARDIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Denominator" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE), nsmall = 0)
     )
   )%>%
   t()%>%
@@ -10193,152 +10192,152 @@ sepsis_tabf<-sepsis%>%
     "Suspected Infection" = paste0(
       format(sum(SUSP_INFECTION==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(SUSP_INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SUSP_INFECTION==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Any Primary Signs of Infection" = paste0(
       format(sum(SIGN_ANY==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(SIGN_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_ANY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Any Secondary Signs of Infection" = paste0(
       format(sum(SEV_SIGNS==1, na.rm=TRUE), nsmall = 0),
      " (",
-     format(round(sum(SEV_SIGNS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SEV_SIGNS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
         "Cloudy or purulent amniotic fluid" = paste0(
           format(sum(SIGN_AMNIO==1, na.rm=TRUE), nsmall=0),
           " (",
-     format(round(sum(SIGN_AMNIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SIGN_AMNIO==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
           ),
 
         "Pain, redness, swelling, heat or purulent drainage around cesarean incision" = paste0(
           format(sum(SIGN_CESARIAN_PAIN==1, na.rm=TRUE), nsmall=0),
           " (", 
-          format(round(sum(SIGN_CESARIAN_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+          format(round(sum(SIGN_CESARIAN_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
 
        "Pain, redness, swelling, heat or purulent drainage around perineal laceration" = paste0(
          format(sum(SIGN_PERINEAL_PAIN==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(SIGN_PERINEAL_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(SIGN_PERINEAL_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
        
        "Pain, redness, swelling, heat or purulent drainage from breast" = paste0(
          format(sum(SIGN_BREAST_PAIN==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(SIGN_BREAST_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(SIGN_BREAST_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Uterine pain experienced >3 after delivery" = paste0(
          format(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Foul-smelling or purulent vaginal or uterine discharge" = paste0(
          format(sum(SIGN_VAG_ODOR_DIS==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(SIGN_VAG_ODOR_DIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(SIGN_VAG_ODOR_DIS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "WBC in urine" = paste0(
          format(sum(SIGN_UA_WBC==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(SIGN_UA_WBC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(SIGN_UA_WBC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      
      "Bacteria in urine" = paste0(
          format(sum(SIGN_UA_BAC==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(SIGN_UA_BAC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(SIGN_UA_BAC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
      # 
      # "Acute Respiratory Distress Syndrome" = paste0(
      #     format(sum(SIGN_ARDS==1, na.rm=TRUE), nsmall=0),
      #     " (",
-     #       format(round(sum(SIGN_ARDS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     #       format(round(sum(SIGN_ARDS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      #       ")"
      #      ),
      
      "Retained Placenta" = paste0(
          format(sum(SIGN_RET_PLACENTA==1, na.rm=TRUE), nsmall=0),
          " (",
-           format(round(sum(SIGN_RET_PLACENTA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+           format(round(sum(SIGN_RET_PLACENTA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
            ")"
           ),
 
     "Fever" = paste0(
      format(sum(FEVER>=1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(FEVER>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(FEVER>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
 
     "Hypothermia" = paste0(
       format(sum(HYPOTHERMIA>=1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(HYPOTHERMIA>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(HYPOTHERMIA>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
   "Elevated Heart Rate (>110 bpm)" = paste0(
     format(sum(ELEVATED_HR>=1, na.rm=TRUE), nsmall=0),
    " (",
-   format(round(sum(ELEVATED_HR>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+   format(round(sum(ELEVATED_HR>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
    ")"
   ),
 
     "Respiratory Distress or Elevated Respiratory Rate (>24 bpm)" = paste0(
       format(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
   
   "Abnormal WBC Count" = paste0(
       format(sum(ABNORMAL_WBC==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(ABNORMAL_WBC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(ABNORMAL_WBC==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Vomiting" = paste0(
       format(sum(VOMITING==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(VOMITING==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(VOMITING==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Excessive sweating" = paste0(
       format(sum(SWEATING==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(SWEATING==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(SWEATING==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
     "Fetal Tachycardia" = paste0(
       format(sum(FETAL_TACHYCARDIA==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(FETAL_TACHYCARDIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(FETAL_TACHYCARDIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
         
         "Denominator" = paste0(
-      format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
+      format(sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE), nsmall = 0)
        )
       )%>%
       t()%>%
