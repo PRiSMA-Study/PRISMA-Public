@@ -9020,7 +9020,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
 
-    "Bacteriuria^a" = paste0(
+    "Bacteriuria^a^" = paste0(
       format(sum(INF_BACTERIURIA==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_BACTERIURIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9089,7 +9089,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
     
-    "HIV^b" = paste0(
+    "HIV^b^" = paste0(
       format(sum(INF_HIV==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_HIV==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9111,7 +9111,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
     
-    "Kidney/Pyelonephritis^c" = paste0(
+    "Kidney/Pyelonephritis^c^" = paste0(
       format(sum(INF_KIDNEY==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9182,7 +9182,7 @@ sepsis_tabc<-sepsis%>%
      ")"
           ),
 
-        "Bacteriuria^a" = paste0(
+        "Bacteriuria^a^" = paste0(
           format(sum(INF_BACTERIURIA==1, na.rm=TRUE), nsmall=0),
           " (", 
           format(round(sum(INF_BACTERIURIA==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9253,7 +9253,7 @@ sepsis_tabc<-sepsis%>%
            ")"
           ),
     
-    "HIV^b" = paste0(
+    "HIV^b^" = paste0(
          format(sum(INF_HIV==1, na.rm=TRUE), nsmall=0),
          " (",
            format(round(sum(INF_HIV==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9274,7 +9274,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
      
-     "Kidney/Pyelonephritis^c" = paste0(
+     "Kidney/Pyelonephritis^c^" = paste0(
          format(sum(INF_KIDNEY==1, na.rm=TRUE), nsmall=0),
          " (",
            format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9319,7 +9319,7 @@ rownames(sepsis_tabc) <- c(
   "Diagnosed Infection",
   "Suspected Infection",
   "Sepsis",
-  "Bacteriuria^^a",
+  "Bacteriuria^a^",
   "Bloodstream",
   "CNS",
   "COVID",
@@ -9329,10 +9329,9 @@ rownames(sepsis_tabc) <- c(
   "Dengue",
   "Endometritis",
   "Gastrointestinal",
-  "HIV^b",
   "Helminths",
   "Hepatitis E",
-  "Kidney/Pyelonephritis^c",
+  "Kidney/Pyelonephritis^c^",
   "Leptospirosis",
   "Malaria",
   "Mastitis",
