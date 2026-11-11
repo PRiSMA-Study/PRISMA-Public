@@ -8771,13 +8771,6 @@ sepsis_taba<-sepsis_all%>%
      format(round(sum(sepsis_denom=="date missing", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
-
-    "Missing Delivery status" = paste0(
-      format(sum(sepsis_denom=="no preg_end_deliv", na.rm=TRUE), nsmall=0),
-      " (",
-     format(round(sum(sepsis_denom=="no preg_end_deliv", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-     ")"
-    ),
     
     "Denominator, n" = paste0(
       format(sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE), nsmall = 0)
@@ -8810,14 +8803,6 @@ sepsis_taba<-sepsis_all%>%
           " (",
              format(round(sum(sepsis_denom=="date missing", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
              ")"
-          ),
-
-       "Missing Delivery Status" = paste0(
-         format(sum(sepsis_denom=="no preg_end_deliv", na.rm=TRUE), nsmall=0),
-         " (",
-             format(round(sum(sepsis_denom=="no preg_end_deliv", na.rm=TRUE)/sum(PREG_END_DELIV==1, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
-             ")"
-         
           ),
         
         "Denominator, n" = paste0(
