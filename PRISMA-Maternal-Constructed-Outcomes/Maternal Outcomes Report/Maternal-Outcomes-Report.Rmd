@@ -8818,7 +8818,6 @@ rownames(sepsis_taba) <- c(
   "Expected Denominator",
   "Incomplete L&D Appointment",
   "Delivery Date Missing",
-  "Missing Delivery status",
   "Denominator"
 )
   
