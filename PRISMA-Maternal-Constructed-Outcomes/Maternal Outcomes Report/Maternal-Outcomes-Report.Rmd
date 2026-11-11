@@ -8677,7 +8677,7 @@ knitr::include_graphics(paste0(path_to_save, "highhb_output.png"))
 
 **Definitions:**
 
-Denominator: A woman who experienced delivery at ≥20 weeks gestation with a complete mnh09 form with a valid date.
+Denominator: A woman who experienced delivery at $\leq$20 weeks gestation with a complete mnh09 form with a valid date.
 
 - Intrapartum sepsis: 
     A woman diagnosed with sepsis or was prescribed antibiotics with an indication of sepsis in the intrapartum period (3 days before delivery up to 14 days post-delivery)
@@ -8708,11 +8708,10 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
         * Bacteria in urine
         * Retained placenta
     2. A woman who also showed a secondary sign of infection: 
-        * Fever (Oral temperature >=38C, puerperal fever indicated or antipyretics prescribed for fever)
+        * Fever (Oral temperature $\leq$38C, puerperal fever indicated or antipyretics prescribed for fever)
         * Hypothermia (Oral temperature < 36C)
         * Elevated heart rate (>110 bpm)
-        * Elevated respiratory rate (>24 bpm recorded or respiratory distress indicated)
-        * Mechanical ventilation
+        * Respiratory Distress (>24 bpm recorded or respiratory distress indicated)
         * Abnormal WBC count (>15,000/mm^3 or <4,000/mm^3)
         * Excessive sweating in the absence of heat
         * Severe nausea or vomiting
@@ -8735,7 +8734,7 @@ Denominator: A woman who experienced delivery at ≥20 weeks gestation with a co
     5. Jaundice
         a. Provider diagnosed jaundice
         b. Elevated bilirubin (> 2 mg/dL)
-    6. Elevated creatinine (>= 1.2 mg/dL)
+    6. Elevated creatinine ($\leq$ 1.2 mg/dL)
     7. Platelet count < 100,000 platelets/mm^3
     8. Pulmonary edema
         
