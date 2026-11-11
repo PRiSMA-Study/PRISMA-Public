@@ -8832,7 +8832,7 @@ sepsis_taba_output <- tb_theme1(sepsis_taba)%>%
                         title=md("Table 19a"))%>%
                       tab_row_group(
                         label=html("<span>Missingness summary</span>"),
-                        rows = 1:5,
+                        rows = 1:4,
                         id="sepsis_missingness"
                       )%>%
                       row_group_order(groups=c("sepsis_missingness"))%>%
@@ -10134,8 +10134,15 @@ sepsis_tabf<-sepsis%>%
      format(round(sum(HYPOTHERMIA>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
+    
+    "Elevated Heart Rate (>110 bpm)" = paste0(
+      format(sum(ELEVATED_HR>=1, na.rm=TRUE), nsmall=0),
+     " (",
+     format(round(sum(ELEVATED_HR>=1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     ")"
+    ),
 
-    "Respiratory Distress or Elevated Heart Rate (>24)" = paste0(
+    "Respiratory Distress or Elevated Respiratory Rate (>24 bpm)" = paste0(
       format(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(RESPIRATORY_DISTRESS==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
