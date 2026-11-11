@@ -12,7 +12,7 @@ include-in-header:
 knit: (function(inputFile, encoding) { 
       rmarkdown::render(inputFile,
                     encoding=encoding, 
-                    output_file= paste('Z:/Emma_working_files/Reports_working files/maternal outcomes/2026-09-18/', Sys.Date(),'-Maternal-Outcomes-Report', '.pdf', sep='')) })
+                    output_file= paste('D:/Users/emoakley/Documents/Maternal Outcome Report/', Sys.Date(),'-Maternal-Outcomes-Report', '.pdf', sep='')) })
                     
 editor_options: 
   markdown: 
@@ -77,8 +77,8 @@ format(today, "%Y-%B-%d")
 # path_to_save <- "D:/Users/stacie.loisate/Documents/PRISMA-Analysis-Stacie/Maternal-Outcomes/output/"
 
 # Erin's path: 
- # path_to_data <- "Z:/Constructed Data/2026-09-18/"
- # path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
+  path_to_data <- "Z:/Constructed Data/2026-09-18/"
+  path_to_save <- "D:/Users/emoakley/Documents/Maternal Outcome Report/output/"
 
 #Savannah's paths
 # path_to_data <- paste0("D:/Users/savannah.omalley/Documents/Maternal Outcomes/Maternal Outcomes Report/data/", datadate, "/" )
@@ -93,8 +93,8 @@ format(today, "%Y-%B-%d")
 # Emma's paths: 
    # path_to_data <- paste0("D:/Users/emmacook/Documents/Outcome data/", datadate, "/") 
    # path_to_save <- paste0("D:/Users/emmacook/Documents/Maternal_Outcomes_Report/output/", datadate, "/")
-path_to_data <- paste0("Z:/Constructed Data/", datadate, "/")
-path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
+#path_to_data <- paste0("Z:/Constructed Data/", datadate, "/")
+#path_to_save <- paste0("Z:/Emma_working_files/Reports_working files/maternal outcomes/", datadate ,"/")
 
 # Check if the path_to_save directory exists
 if (!dir.exists(path_to_save)) {
@@ -148,8 +148,8 @@ placenta<- read_dta(paste0(path_to_data, "MAT_PLACENTA_PREVIA.dta"))  %>% rename
   #filter(PREGID %in% remind.moms$PREGID)
 highhb<- read_dta(paste0(path_to_data, "MAT_HIGHHB.dta"))  %>% rename_all(toupper) %>% filter(SITE != "")
   #filter(PREGID %in% remind.moms$PREGID)
-sepsis<-read_csv(paste0(path_to_data, "MAT_SEPSIS.csv"))
-
+#sepsis<-read_csv(paste0(path_to_data, "MAT_SEPSIS.csv"))
+sepsis<-read_excel(paste0(path_to_data, "MAT_SEPSIS.xlsx"))
 
 #new mortality dataset (09-18-2026) only includes mat deaths
 mortality1 <- end %>%
