@@ -4180,7 +4180,7 @@ sti_enroll_tab <- mat_infection %>%
       format(round(sum(SYPH_POSITIVE_INCIDENT == 1 & SYPH_RDT_PERF_ENROLL==1, na.rm = TRUE)/sum(SYPH_RDT_PERF_ENROLL ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-      "Syphilis during pregancy with unknown baseline status ^b^" = paste0( ## kenya Dx is NOT included here 
+      "Syphilis during pregnancy with unknown baseline status ^b^" = paste0( ## kenya Dx is NOT included here 
       format(sum(SYPH_POSITIVE_UNKNOWN_BASELINE == 1 & SYPH_RDT_PERF_EVER_PREG ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(SYPH_POSITIVE_UNKNOWN_BASELINE == 1 & SYPH_RDT_PERF_EVER_PREG ==1, na.rm = TRUE)/sum(SYPH_RDT_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4224,13 +4224,13 @@ sti_enroll_tab <- mat_infection %>%
       format(round(sum(NG_TEST_POSITIVE_INCIDENT == 1 & NG_TEST_PERF_EVER_PREG ==1, na.rm = TRUE)/sum(NG_TEST_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Chlamydia during pregancy with unknown baseline status ^b^" = paste0( 
+    "Chlamydia during pregnancy with unknown baseline status ^b^" = paste0( 
       format(sum(CT_TEST_POSITIVE_UNKNOWN_BASELINE == 1 & CT_TEST_PERF_EVER_PREG ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(CT_TEST_POSITIVE_UNKNOWN_BASELINE == 1 & CT_TEST_PERF_EVER_PREG ==1, na.rm = TRUE)/sum(CT_TEST_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Gonorrhea during pregancy with unknown baseline status ^b^" = paste0( 
+    "Gonorrhea during pregnancy with unknown baseline status ^b^" = paste0( 
       format(sum(NG_TEST_POSITIVE_UNKNOWN_BASELINE == 1 & NG_TEST_PERF_EVER_PREG ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(NG_TEST_POSITIVE_UNKNOWN_BASELINE == 1 & NG_TEST_PERF_EVER_PREG ==1, na.rm = TRUE)/sum(NG_TEST_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4307,7 +4307,7 @@ tab_style(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants enrolled.</span>")
  ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with at test performed ever during pregnancy.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a test performed ever during pregnancy.</span>")
  ) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>c</sup> Syphilis indicated RDT+ only or RDT+ and Dx+. Syphilis reported only by Dx+ indicated for Kenya at enrollment.</span>") 
@@ -4341,7 +4341,7 @@ tab_style(
   )
 ) %>%
 tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with at test performed ever during pregnancy.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a test performed ever during pregnancy.</span>")
  ) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>d</sup> Denominator is total participants with a test performed at enrollment.</span>")
@@ -4398,7 +4398,7 @@ mal_table <- mat_infection %>%
       format(round(sum(MAL_POSITIVE_REINFECT == 1 & MAL_POSITIVE_EVER_PREG==1, na.rm = TRUE)/sum(MAL_POSITIVE_EVER_PREG==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
 
-    "Malaria during pregancy with unknown baseline status ^b^" = paste0( ## kenya Dx is NOT included here 
+    "Malaria during pregnancy with unknown baseline status ^b^" = paste0( ## kenya Dx is NOT included here 
       format(sum(MAL_POSITIVE_UNKNOWN_BASELINE == 1 & MAL_RDT_PERF_EVER_PREG ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(MAL_POSITIVE_UNKNOWN_BASELINE == 1 & MAL_RDT_PERF_EVER_PREG ==1, na.rm = TRUE)/sum(MAL_RDT_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4556,7 +4556,7 @@ hepatitis_tab <- mat_infection %>%
       format(round(sum(HEV_IGG_INCIDENT==1 & HEV_IGG_PERF_EVER_PREG==1, na.rm = TRUE)/sum(HEV_IGG_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
   
-    "Hep E IgM+ during pregancy with unknown baseline status ^b^" = paste0( 
+    "Hep E IgM+ during pregnancy with unknown baseline status ^b^" = paste0( 
       format(sum(HEV_IGM_UNKNOWN_BASELINE==1 & HEV_IGM_PERF_EVER_PREG==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(HEV_IGM_UNKNOWN_BASELINE==1 & HEV_IGM_PERF_EVER_PREG==1, na.rm = TRUE)/sum(HEV_IGM_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4624,7 +4624,7 @@ tab_style(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a test performed at enrollment.</span>")
  ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total particpants with a test performed ever during pregnancy.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a test performed ever during pregnancy.</span>")
  ) 
 
 hepatitis_tab_output2 <- tb_theme1(hepatitis_tab2) %>%
@@ -4655,7 +4655,7 @@ tab_style(
     footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants with a test performed at enrollment.</span>")
  ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total particpants with a test performed ever during pregnancy.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a test performed ever during pregnancy.</span>")
  ) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>c</sup> Ever during pregnancy defined as: IgM+ at enrollment OR Incident IgM+ OR Incident IgG+ OR IgM+ during pregnancy with unknown enrollment status.</span>")
@@ -4721,7 +4721,7 @@ tb_tab <- mat_infection %>%
       format(round(sum(TB_CULT_POSITIVE_INCIDENT == 1 & TB_CULT_PERF_EVER_PREG == 1, na.rm = TRUE)/sum(TB_CULT_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    # "TB GeneXpert+ during pregancy with unknown baseline status ^c^" = paste0( 
+    # "TB GeneXpert+ during pregnancy with unknown baseline status ^c^" = paste0( 
     #   format(sum(TB_CULT_UNKNOWN_BASELINE == 1 & TB_CULT_PERF_EVER_PREG ==1, na.rm = TRUE), nsmall = 0, digits = 2),
     #   " (",
     #   format(round(sum(TB_CULT_UNKNOWN_BASELINE == 1 & TB_CULT_PERF_EVER_PREG ==1, na.rm = TRUE)/sum(TB_CULT_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -4772,7 +4772,7 @@ tab_style(
   )
 ) %>%
   tab_footnote(
-    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total particpants enrolled.</span>")
+    footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is total participants enrolled.</span>")
  ) %>%
     tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Denominator is total participants with a GeneXpert performed at enrollment.</span>")
@@ -4825,7 +4825,7 @@ zcd_tab <- mat_infection %>%
       format(round(sum(ZIK_IGM_INCIDENT == 1 & ZIK_IGM_PERF_EVER_PREG ==1, na.rm = TRUE)/sum(ZIK_IGM_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
       ")"),
     
-    "Zika IgM+ during pregancy with unknown baseline status ^b^" = paste0(
+    "Zika IgM+ during pregnancy with unknown baseline status ^b^" = paste0(
       format(sum(ZIK_IGM_UNKNOWN_BASELINE == 1 & ZIK_IGM_PERF_EVER_PREG ==1, na.rm = TRUE), nsmall = 0, digits = 2),
       " (",
       format(round(sum(ZIK_IGM_UNKNOWN_BASELINE == 1 & ZIK_IGM_PERF_EVER_PREG ==1, na.rm = TRUE)/sum(ZIK_IGM_PERF_EVER_PREG ==1, na.rm=TRUE)*100, 2), nsmall = 0, digits = 2),
@@ -7698,7 +7698,7 @@ knitr::include_graphics(paste0(path_to_save, "hdp_tab2_output.png"))
 
 ## 14. Postpartum high blood pressure
 
-**Definition:** New onset high blood pressure (diasolic >90 and/or systolic >140 mmHg) among postpartum participants. This outcome identifies all participants with at least one high blood pressure measure in the postpartum window of interest. This outcome excludes participants within preexisting chronic hypertension at enrollment.
+**Definition:** New onset high blood pressure (diastolic >90 and/or systolic >140 mmHg) among postpartum participants. This outcome identifies all participants with at least one high blood pressure measure in the postpartum window of interest. This outcome excludes participants within preexisting chronic hypertension at enrollment.
 
 **Denominator:** All participants who have finished the postpartum window of interest (PNC 6: 6-14 weeks; PNC26: 26-39 weeks; and PNC52: 52-64 weeks) and/or who have at least one blood pressure measure recorded in the window.
 
