@@ -8989,7 +8989,7 @@ gt::gtsave(summary_tab_outputb, file = "summary_tab_outputb.png", path = path_to
 knitr::include_graphics(paste0(path_to_save, "summary_tab_outputb.png"))
 ```
 
-\newpage 
+
 
 ### Table 19c. Infection by type
 ```{r}
@@ -9378,7 +9378,7 @@ summary_tab_outputc <- tb_theme1(sepsis_tabc)%>%
                      )%>%
                       tab_footnote(
                         footnote = html("<span style='font-size: 18px'><sup>c </sup> 'Pyelonephritis or kidney' infection is a check box option in MNH09, MNH10, MNH12 and MNH19. No additional information is required in these forms.  </span>")
-                     )%>%
+                     )
                       
                       
   
@@ -10026,7 +10026,6 @@ knitr::include_graphics(paste0(path_to_save, "summary_tab_outputd.png"))
 
 ```
 
-\newpage
 
 ### Table 19e. Suspected infection
 ```{r}
