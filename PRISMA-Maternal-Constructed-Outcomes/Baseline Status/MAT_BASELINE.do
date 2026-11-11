@@ -411,7 +411,7 @@ merge 1:1 SITE MOMID PREGID using `mnh06', keep(master match) nogen
 	
 	replace water_improved = 88 if water_improved==. & M03_H2O_FCORRES==88
 	replace water_improved = 55 if water_improved==.
-	
+	 
 *Polluted cooking fuel
 **# REVISIT DEFINITION
 /*
