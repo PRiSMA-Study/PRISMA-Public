@@ -151,7 +151,7 @@ highhb<- read_dta(paste0(path_to_data, "MAT_HIGHHB.dta"))  %>% rename_all(touppe
   #filter(PREGID %in% remind.moms$PREGID)
 sepsis_all<-read_csv(paste0(path_to_data, "MAT_SEPSIS.csv"))
 sepsis<-sepsis_all%>%
-          filter(PREG_END_DELIV==1 & FLAG_DATE_M09 & FLAG_APPSTATUS_M09)
+          filter(PREG_END_DELIV==1 & FLAG_DATE_M09)
 
 #new mortality dataset (09-18-2026) only includes mat deaths
 mortality1 <- end %>%
