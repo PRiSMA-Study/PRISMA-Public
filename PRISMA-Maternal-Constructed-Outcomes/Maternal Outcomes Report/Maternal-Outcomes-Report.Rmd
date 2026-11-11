@@ -8753,7 +8753,7 @@ Denominator: A woman who experienced delivery at $\leq$20 weeks gestation with a
 ### Table 19a. Sepsis data completeness
 ```{r}
 
-sepsis_taba<-sepsis_all%>%
+sepsis_taba<-sepsis%>%
   rowwise()%>%
   group_by(SITE)%>%
   summarise(
@@ -8787,7 +8787,7 @@ sepsis_taba<-sepsis_all%>%
   #rename(Category = 1)%>%
   add_column(
     .before=1,
-    "Total" = sepsis_all %>%
+    "Total" = sepsis %>%
       summarise(
         
         "Expected denominator,  n^^a" = paste0 (
