@@ -9090,7 +9090,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
     
-    "HIV" = paste0(
+    "HIV^b" = paste0(
       format(sum(INF_HIV==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_HIV==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9112,7 +9112,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
     
-    "Kidney/Pyelonephritis^b" = paste0(
+    "Kidney/Pyelonephritis^c" = paste0(
       format(sum(INF_KIDNEY==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
