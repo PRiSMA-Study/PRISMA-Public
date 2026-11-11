@@ -174,7 +174,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	merge m:1 MOMID PREGID using "$out/MAT_STUDYSTATUS", keepusing(PREG_START_DATE)
 	drop if _merge == 2 
 	drop _merge 
-	
+	 
 	*Create visit type variables: 
 	*visit type:  
 	gen TYPE_VISIT_08 = M08_TYPE_VISIT  
@@ -290,6 +290,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 		HBA1C_GA ENTRY_NUM ENTRY_TOTAL HBA1C_PRCNT DIAB_OVERT 
 	
 	save "$wrk/dm_mnh08", replace 
+	 
 	
 	
 	rename * *_
@@ -391,7 +392,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	tab HBA1C_COUNT SITE, m 
 		
 	save "$wrk/dm_mnh08_wide", replace 
-	
+	 
 	/////////////////////////////////////
 	* Overt Diabetes by DX
 	////////////////////////////////////
@@ -441,9 +442,9 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 
 	tab DIAB_OVERT_DX, m 
 	label var DIAB_OVERT_DX "Participant reports diagnosed with pre-existing diabetes"
-	
+	 
 	save "$wrk/dm_dx", replace  
-	
+	 
 	///////////////////////////////////////////////////////////////////////////
 	*Gestational Diabetes 
 	///////////////////////////////////////////////////////////////////////////
@@ -482,7 +483,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	label var LBS_GA "GA at lab date"
 	
 	sum LBS_GA
-	
+	 
 	///////////////////////////////////////////////////////
 	*Review variables for blood glucose tests: 
 	
@@ -508,7 +509,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 		}
 		
 	tab TYPE_VISIT_08 BGLUC_RESULT , m 
-	
+	 
 	/* OLD STRATEGY: 
 	*restrict to visit type 3 OR participant reports blood-glucose results at  
 	*another ANC visit: 
@@ -518,7 +519,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	*update on May 6, 2026: PRISMA protocol now calls for repeat OGTT testing for 
 	*those with GDM at PNC follow-up visits (PNC-6, PNC-26, PNC-52). Updating 
 	*the code below to ONLY keep those results recorded during ANC: 
-	
+	 
 	merge m:1 MOMID PREGID using "$out/MAT_STUDYSTATUS", keepusing(PREG_END PREG_END_DATE)
 	
 	drop if _merge == 2
@@ -723,7 +724,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 		*_DIPSI 
 	
 	save "$wrk/gdm_mnh08", replace 
-	
+	 
 	* UPDATE INCORPORATED ON MAY 13 2025: 
 	
 	* First, drop any postnatal OGTTs: 
@@ -760,14 +761,29 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	
 	*create an indicator for entry number for each person by date: 
 	sort MOMID PREGID LBSTDAT TYPE_VISIT
-	by MOMID PREGID: gen ENTRY_NUM = _n	
-	tab ENTRY_NUM, m 
-	tab ENTRY_NUM SITE, m
+
+		*OLD CODE: 
+		*quietly by MOMID PREGID :  gen ENTRY_NUM = cond(_N==1,0,_n)
+		*replace ENTRY_NUM = 1 if ENTRY_NUM == 0 
+		 
+		*EKC UPDATE (results are identical):
+		sort MOMID PREGID LBSTDAT TYPE_VISIT
+		by MOMID PREGID: gen ENTRY_NUM = _n	
+		label var ENTRY_NUM "MNH08 Entry Number"
+		tab ENTRY_NUM, m 
+		tab SITE ENTRY_NUM, m
 	
 	*create an indicator of total entries per person: 
-	by MOMID PREGID: gen ENTRY_TOTAL = _N
-	tab ENTRY_TOTAL, m 
-	label var ENTRY_TOTAL "MNH08 Total number of entries"
+		*OLD CODE: 
+		*duplicates tag MOMID PREGID, gen(ENTRY_TOTAL)
+		*replace ENTRY_TOTAL = ENTRY_TOTAL + 1 
+		 
+		*EKC UPDATE (results are identical):
+		by MOMID PREGID: gen ENTRY_TOTAL = _N
+		
+		tab ENTRY_TOTAL, m 
+		tab SITE ENTRY_TOTAL, m 
+		label var ENTRY_TOTAL "MNH08 Total number of entries"
 	
 	*create an indicator for multiple VALID tests: 
 	**=1 if valid test
@@ -776,13 +792,17 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 		((BGLUC_PRETEST_MMOLL_LBORRES>0 & BGLUC_PRETEST_MMOLL_LBORRES!=.) | ///
 		(BGLUC_ORAL_2HR_MMOLL_LBORRES>0 & BGLUC_ORAL_2HR_MMOLL_LBORRES!=.) | ///
 		(BGLUC_ORAL_1HR_MMOLL_LBORRES>0 & BGLUC_ORAL_1HR_MMOLL_LBORRES!=.))
-**# Do they need all 3 to be a valid test? should be & not |?
 	
 	sort MOMID PREGID OGTT_TRUE 
 	
 	** number of valid tests
-	by MOMID PREGID: egen OGTT_TRUE_COUNT = total(OGTT_TRUE)
-	replace OGTT_TRUE_COUNT = 0 if OGTT_TRUE==0
+		*OLD CODE: 
+		*duplicates tag MOMID PREGID OGTT_TRUE, gen(OGTT_TRUE_COUNT)
+		*replace OGTT_TRUE_COUNT = OGTT_TRUE_COUNT + 1 if OGTT_TRUE==1
+		
+		*EKC UPDATE (results are identical):
+		by MOMID PREGID: egen OGTT_TRUE_COUNT = total(OGTT_TRUE)
+		replace OGTT_TRUE_COUNT = 0 if OGTT_TRUE==0
 		
 	tab OGTT_TRUE_COUNT, m 
 	tab OGTT_TRUE_COUNT ENTRY_TOTAL, m 
@@ -813,16 +833,17 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	
 	////////////////////////////
 	*SELECTION DECISION: 1-3: 
-	
-	*Drop if more than 1 entry and first entry isn't valid
-	drop if ENTRY_TOTAL>1 & ENTRY_NUM==1 & OGTT_TRUE==0
-	
-	*then recreate numbering
-	drop ENTRY_TOTAL ENTRY_NUM
-	sort MOMID PREGID LBSTDAT TYPE_VISIT
-	by MOMID PREGID: gen ENTRY_NUM = _n
-	by MOMID PREGID: gen ENTRY_TOTAL = _N
-	
+		/*
+		*EKC UPDATE:
+		*Drop if more than 1 entry and first entry isn't valid
+		drop if ENTRY_TOTAL>1 & ENTRY_NUM==1 & OGTT_TRUE==0
+		
+		*then recreate numbering
+		drop ENTRY_TOTAL ENTRY_NUM
+		sort MOMID PREGID LBSTDAT TYPE_VISIT
+		by MOMID PREGID: gen ENTRY_NUM = _n
+		by MOMID PREGID: gen ENTRY_TOTAL = _N
+		*/
 	*1. IF there is a multiple entry with at least one true OGTT, keep the 
 	* true entry only: 
 	drop if ENTRY_TOTAL == 2 & OGTT_TRUE_COUNT == 1 & OGTT_TRUE == 1
@@ -844,6 +865,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	duplicates tag MOMID PREGID, gen(ENTRY_TOTAL)
 	
 	tab ENTRY_TOTAL, m 
+	 
 	count if ENTRY_TOTAL>0
 	if r(N)>0 {
 		di as error "Duplicates found - review and resolve"
@@ -854,7 +876,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	}
 	 drop  ENTRY_NUM 
 	*No duplicates: okay to proceed.
-	
+	 
 	replace ENTRY_TOTAL = ENTRY_TOTAL + 1 
 	gen ENTRY_NUM = ENTRY_TOTAL
 	 
@@ -1152,7 +1174,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 		DIAB_GEST_2HR*ACOG DIAB_GEST_FASTING*DIPSI DIAB_GEST_1HR*DIPSI 
 		
 	
-	
+	 
 	save "$wrk/gdm_mnh08_wide", replace 	
 	clear 
 	
@@ -1461,7 +1483,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	
 	*create indicator for completed ANC-28 late window (> 30 weeks GA = 210 days)
 	gen COMPLETE_ANC28 = 0
-	replace COMPLETE_ANC28 = 1 if (date("$dadate", "YMD") >= PREG_START_DATE + 216 & ///
+	replace COMPLETE_ANC28 = 1 if (date("$datadate", "YMD") >= PREG_START_DATE + 216 & ///
 		PREG_END_28 == 0 & CLOSEOUT_28 == 0) | ///
 		(DIAB_GEST_ANY == 1 | DIAB_GEST_ANY == 0) 
 	label var COMPLETE_ANC28 "Denominator - completed ANC-28 visit window w/ continued preg OR has OGTT measures"
@@ -1471,7 +1493,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	tab COMPLETE_ANC28 PREG_END_28, m 
 	
 	rename COMPLETE_ANC28 DIAB_GEST_DENOM 
-
+ 
 	
 		*COMPARE TO STACIE'S WINDOW VARS: 
 	tab ANC28_PASS_ONTIME DIAB_GEST_DENOM if PREG_END_28==0, m 
@@ -1562,7 +1584,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	tab DIAB_GEST_1HR DIAB_GEST_DX, m 
 	tab DIAB_GEST_2HR DIAB_GEST_DX, m 
 	tab DIAB_GEST_ANY DIAB_GEST_DX, m 
-	 
+	  
 	*restrict to variables for output:
 	keep MOMID PREGID SITE ENROLL DIAB_OVERT_ANY DIAB_OVERT DIAB_OVERT_20 ///
 		DIAB_OVERT_MISS HBA1C_PRCNT HBA1C_GA HBA1C_COUNT OGTT_DT OGTT_GA /// 
@@ -1672,9 +1694,6 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 
 		}
 		
-**# CHECK WITH ERIN
-*browse if DIAB_GEST_FASTING==0 & DIAB_GEST_DENOM==0
-
 	*check a few conditions:
 		*assert will "crash" the do file if these conditions not met
 	
@@ -1683,8 +1702,7 @@ global date = subinstr(strltrim("`today'"), " ", "-", .)
 	
 	assert !inlist(DIAB_GEST_ANY,0,1) if DIAB_OVERT_ANY == 1
 		*check that if DIAB_OVERT_ANY ==1, NO result for DIAB_GEST_ANY
-
-	 
+ 
 *------------------------------------------------------------------------------
 * Save
 *------------------------------------------------------------------------------
