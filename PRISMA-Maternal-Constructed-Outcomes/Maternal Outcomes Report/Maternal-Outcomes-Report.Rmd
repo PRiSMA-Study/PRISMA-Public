@@ -9254,7 +9254,7 @@ sepsis_tabc<-sepsis%>%
            ")"
           ),
     
-    "HIV" = paste0(
+    "HIV^b" = paste0(
          format(sum(INF_HIV==1, na.rm=TRUE), nsmall=0),
          " (",
            format(round(sum(INF_HIV==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9275,7 +9275,7 @@ sepsis_tabc<-sepsis%>%
      ")"
     ),
      
-     "Kidney/Pyelonephritis^b" = paste0(
+     "Kidney/Pyelonephritis^c" = paste0(
          format(sum(INF_KIDNEY==1, na.rm=TRUE), nsmall=0),
          " (",
            format(round(sum(INF_KIDNEY==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_M09==TRUE & FLAG_APPSTATUS_M09==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -9320,7 +9320,7 @@ rownames(sepsis_tabc) <- c(
   "Diagnosed Infection",
   "Suspected Infection",
   "Sepsis",
-  "Bacteriuria",
+  "Bacteriuria^^a",
   "Bloodstream",
   "CNS",
   "COVID",
@@ -9330,10 +9330,10 @@ rownames(sepsis_tabc) <- c(
   "Dengue",
   "Endometritis",
   "Gastrointestinal",
-  "HIV",
+  "HIV^b",
   "Helminths",
   "Hepatitis E",
-  "Kidney/Pyelonephritis^b",
+  "Kidney/Pyelonephritis^c",
   "Leptospirosis",
   "Malaria",
   "Mastitis",
@@ -9370,7 +9370,10 @@ summary_tab_outputc <- tb_theme1(sepsis_tabc)%>%
                         footnote = html("<span style='font-size: 18px'><sup>a </sup> 'Pyelonephritis or kidney' infection is a check box option in MNH09, MNH10, MNH12 and MNH19. No additional information is required in these forms.  </span>")
                      )%>%
                       tab_footnote(
-                        footnote = html("<span style='font-size: 18px'><sup>b </sup> 'Treatment of asymptomatic bacteriuria' as antibiotic indication in MNH12. This number does not take into account UA results showing bacteria or WBC in urine  </span>")
+                        footnote = html("<span style='font-size: 18px'><sup>b </sup> HIV diagnosis indicated at MNH09, MNH10, MNH12, or MNH19 up to 3 days before delivery or up to 14 days after delivery</span>")
+                     )%>%
+                      tab_footnote(
+                        footnote = html("<span style='font-size: 18px'><sup>c </sup> 'Treatment of asymptomatic bacteriuria' as antibiotic indication in MNH12. This number does not take into account UA results showing bacteria or WBC in urine. </span>")
                      )
   
 
