@@ -8687,7 +8687,7 @@ Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a
     A woman diagnosed with sepsis or was prescribed antibiotics with an indication of sepsis in the intrapartum period (3 days before delivery up to 14 days post-delivery)
 
 - Infection with severe maternal outcome: 
-    1. Experienced an infection indicated by diagnosis of infection or antibiotic indication of infection or showed signs of potential infection (as defined below) in the intrapartum period (3 days before delivery andup to 14 days post-delivery) AND
+    1. Experienced an infection indicated by diagnosis of infection or antibiotic indication of infection or showed signs of potential infection (as defined below) in the intrapartum period (3 days before delivery and up to 14 days post-delivery) AND
     2. Showed clinical signs of organ dysfunction or was diagnosed with organ failure or any maternal death AND
     3. Was not diagnosed with preeclampsia and did not experience post-partum hemorrhage within 3 days of delivery
  
@@ -8704,8 +8704,6 @@ Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a
     
 - Suspected infection: Showed at least one primary and one secondary sign of infection
     1. A woman who showed any primary sign of infection:
-        * Cloudy of purulent amniotic fluid
-        * Pain redness, swelling, heat, purulent drainage or discharge from the cesarean incision, perineal injury or breast
         * Cloudy or purulent amniotic fluid
         * Severe uterine pain more than 3 days after delivery
         * Vaginal odor and/or purulent discharge
@@ -8713,7 +8711,7 @@ Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a
         * Bacteria in urine
         * Retained placenta
     2. A woman who also showed a secondary sign of infection: 
-        * Fever (Oral temperature $\leq$38C, puerperal fever indicated or antipyretics prescribed for fever)
+        * Fever (Oral temperature $\geq$38C, puerperal fever indicated or antipyretics prescribed for fever)
         * Hypothermia (Oral temperature < 36C)
         * Elevated heart rate (>110 bpm)
         * Respiratory Distress (>24 bpm recorded or respiratory distress indicated)
@@ -8739,7 +8737,7 @@ Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a
     5. Jaundice
         a. Provider diagnosed jaundice
         b. Elevated bilirubin (> 2 mg/dL)
-    6. Elevated creatinine ($\leq$ 1.2 mg/dL)
+    6. Elevated creatinine ($\geq$ 1.2 mg/dL)
     7. Platelet count < 100,000 platelets/mm^3
     8. Pulmonary edema
         
@@ -8754,7 +8752,7 @@ Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a
 ### Table 19a. Sepsis data completeness
 ```{r}
 
-sepsis_taba<-sepsis_all%>%
+sepsis_taba<-sepsis%>%
   rowwise()%>%
   group_by(SITE)%>%
   summarise(
@@ -8788,10 +8786,10 @@ sepsis_taba<-sepsis_all%>%
   #rename(Category = 1)%>%
   add_column(
     .before=1,
-    "Total" = sepsis_all %>%
+    "Total" = sepsis %>%
       summarise(
         
-        "Expected denominator,  n^^a" = paste0 (
+        "Expected denominator" = paste0 (
           format(sum(PREG_END_DELIV==1, na.rm=TRUE), nsmall=0, digits=2)),
 
         # "Incomplete L&D Appointment" = paste0(
@@ -9335,6 +9333,7 @@ rownames(sepsis_tabc) <- c(
   "Dengue",
   "Endometritis",
   "Gastrointestinal",
+  "HIV^b^",
   "Helminths",
   "Hepatitis E",
   "Kidney/Pyelonephritis^c^",
@@ -9405,7 +9404,7 @@ sepsis_tabc_2<-sepsis%>%
     "Perineal Wound" = paste0(
       format(sum(INF_PERINEALWOUND==1, na.rm=TRUE), nsmall=0),
      " (",
-     format(round(sum(INF_PERINEALWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUEE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
+     format(round(sum(INF_PERINEALWOUND==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
      ")"
     ),
     
@@ -10083,7 +10082,7 @@ sepsis_tabf<-sepsis%>%
      ")"
     ),
     
-    "Uterine pain experienced >3 after delivery" = paste0(
+    "Uterine pain experienced >3 days after delivery" = paste0(
       format(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE), nsmall=0),
      " (",
      format(round(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -10243,7 +10242,7 @@ sepsis_tabf<-sepsis%>%
            ")"
           ),
      
-     "Uterine pain experienced >3 after delivery" = paste0(
+     "Uterine pain experienced >3 days after delivery" = paste0(
          format(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE), nsmall=0),
          " (",
            format(round(sum(SIGN_UTERINE_PAIN==1, na.rm=TRUE)/sum(PREG_END_DELIV==1 & FLAG_DATE_ENDPOINTS==TRUE, na.rm=TRUE)*100, 2), nsmall=0, digits=2),
@@ -10358,7 +10357,7 @@ rownames(sepsis_tabf) <- c(
   "Pain, redness, swelling, heat or purulent drainage around cesarean incision",
   "Pain, redness, swelling, heat or purulent drainage around perineal laceration",
   "Pain, redness, swelling, heat or purulent drainage from breast",
-  "Uterine pain experienced >3 after delivery",
+  "Uterine pain experienced >3 days after delivery",
   "Foul-smelling or purulent vaginal or uterine discharge",
   "WBC in urine",
   "Bacteria in urine",
@@ -10397,7 +10396,7 @@ summary_tab_outputf <- tb_theme1(sepsis_tabf)%>%
                       )%>%
                       tab_row_group(
                         label=html("<span>Secondary Signs of Infection</span>"),
-                        rows = 13:18,
+                        rows = 13:21,
                         id="secondary_sign"
                       )%>%
                       # tab_row_group(
