@@ -4021,8 +4021,8 @@ tab_style(
     cells_stub(rows = c("Denominator", "Denominator "))
   )
 ) %>%
-tab_source_note(
-  source_note = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with a reported birth outcome.</span>")
+tab_footnote(
+  footnote = html("<span style='font-size: 18px'><sup>a</sup> Denominator is all participants with a reported birth outcome.</span>")
 ) %>%
   tab_footnote(
     footnote = html("<span style='font-size: 18px'><sup>b</sup> Estimate blood loss >=500Ml or procedure/blood transfusion will not add up to equal the total number of PPH cases. Participants who report PPH via checkbox at L&D or following delivery are also included, but are not pulled out in a separate row in the table).</span>")
@@ -8681,7 +8681,7 @@ knitr::include_graphics(paste0(path_to_save, "highhb_output.png"))
 
 **Definitions:**
 
-Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a complete mnh09 form with a valid date.
+Denominator: A woman who experienced delivery at $\geq$ 20 weeks gestation with a complete MNH09 form with a valid date.
 
 - Intrapartum sepsis: 
     A woman diagnosed with sepsis or was prescribed antibiotics with an indication of sepsis in the intrapartum period (3 days before delivery up to 14 days post-delivery)
@@ -8712,16 +8712,16 @@ Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a
         * Bacteria in urine
         * Retained placenta
     2. A woman who also showed a secondary sign of infection: 
-        * Fever (Oral temperature $\geq$38C, puerperal fever indicated or antipyretics prescribed for fever)
+        * Fever (Oral temperature $\geq$ 38C, puerperal fever indicated or antipyretics prescribed for fever)
         * Hypothermia (Oral temperature < 36C)
         * Elevated heart rate (>110 bpm)
         * Respiratory Distress (>24 bpm recorded or respiratory distress indicated)
-        * Abnormal WBC count (>15,000/mm^3 or <4,000/mm^3)
+        * Abnormal WBC count (>15,000/mm^3^ or <4,000/mm^3^)
         * Excessive sweating in the absence of heat
         * Severe nausea or vomiting
         * Fetal tachycardia (Abnormal fetal heart rate recorded in MNH09 or fetal heart rate >160 in MNH19)
         
-- Diagnosed infection: Provider diagnosed infection either through infection check box, antibiotic indication, lab result or free text response [mnh08, mnh09, mnh10, mnh12, mnh19]
+- Diagnosed infection: Provider diagnosed infection either through infection check box, antibiotic indication, lab result or free text response [MNH08, MNH09, MNH10, MNH12, MNH19]
     
 - Organ Dysfunction: Clinical evidence demonstration one of the following:
     1. Low blood pressure
@@ -8739,7 +8739,7 @@ Denominator: A woman who experienced delivery at $\geq$20 weeks gestation with a
         a. Provider diagnosed jaundice
         b. Elevated bilirubin (> 2 mg/dL)
     6. Elevated creatinine ($\geq$ 1.2 mg/dL)
-    7. Platelet count < 100,000 platelets/mm^3
+    7. Platelet count < 100,000 platelets/mm^3^
     8. Pulmonary edema
         
 - Denominator for maternal sepsis: 
