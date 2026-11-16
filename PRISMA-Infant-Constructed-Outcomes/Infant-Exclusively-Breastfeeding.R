@@ -34,7 +34,7 @@ library(openxlsx)
 UploadDate <- "2026-09-18"
 #Prevdate <- "2025-11-28"
 # Define main directory and file paths
-path_to_data <- paste0("~/Analysis/Merged_data/", UploadDate)
+path_to_data <- paste0("data/raw/", UploadDate)
 # Create the directory if it doesn't exist
 if (!file.exists(path_to_data)) {
   dir.create(path_to_data, recursive = TRUE)
@@ -44,20 +44,25 @@ path_to_stacked <- paste0("Z:/Stacked Data/", UploadDate)
 path_to_tnt <- paste0("Z:/Constructed Data/", UploadDate)
 
 # Define the path
-path_to_save <- paste0("~/Analysis/Infant-Constructed-Variables/data/", UploadDate, "/")
-path_to_queries <- paste0("~/Analysis/Infant-Constructed-Variables/queries/", UploadDate, "/")
+# path_to_save <- paste0("~/data/raw/", UploadDate, "/")
+path_to_queries <- paste0("queries/", UploadDate)
+
+# Create the directory if it doesn't exist
+if (!file.exists(path_to_queries)) {
+  dir.create(path_to_queries, recursive = TRUE)
+}
 
 # Expand the path (in case of ~)
-path_to_save <- path.expand(path_to_save)
-# Create the directory if it doesn't exist
-if (!file.exists(path_to_save)) {
-  dir.create(path_to_save, recursive = TRUE)
-}
+# path_to_save <- path.expand(path_to_save)
+# # Create the directory if it doesn't exist
+# if (!file.exists(path_to_save)) {
+#   dir.create(path_to_save, recursive = TRUE)
+# }
 
 # Conditional loads (prefer .rda, else read raw + save .rda)
 #INF_OUTCOMES
 if (file.exists(file.path(path_to_data, "INF_OUTCOMES.rda"))) {
-  load(file.path(path_to_data, "INF_OUTCOMES.rda"))   # loads: mat_endpoints
+  load(file.path(path_to_data, "INF_OUTCOMES.rda"))   # loads: mat_outcomes
 } else {
   inf_outcomes <- read.csv(file.path(path_to_tnt, "INF_OUTCOMES.csv"))
   save(inf_outcomes, file = file.path(path_to_data, "INF_OUTCOMES.rda"))

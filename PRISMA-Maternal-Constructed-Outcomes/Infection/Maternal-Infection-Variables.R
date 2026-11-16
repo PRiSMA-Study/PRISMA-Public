@@ -3025,8 +3025,9 @@ colnames(mat_infection_long)
 #Export long----
 #*****************************************************************************
 
-write.csv(mat_infection_long, paste0(path_to_save, "data_out/MAT_INFECTION_LONG" ,".csv"))
-writexl::write_xlsx(long,"~/OutcomeDatasets/Analysis/Infection/2026-09-18/data_out/MAT_INFECTION_LONG.xlsx")
+write_csv(mat_infection_long, paste0(path_to_save, "data_out/MAT_INFECTION_LONG" ,".csv"), row.names=FALSE)
+writexl::write_xlsx(mat_infection_long,"~/OutcomeDatasets/Analysis/Infection/2026-09-18/data_out/MAT_INFECTION_LONG.xlsx")
+write_rds(mat_infection_long,"~/OutcomeDatasets/Analysis/Infection/2026-09-18/data_out/MAT_INFECTION_LONG.dta")
 
 #*****************************************************************************
 # MERGING FOR WIDE  ----

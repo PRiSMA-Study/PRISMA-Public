@@ -126,9 +126,9 @@ check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NUL
   out <- do.call(rbind, flags)
   n_flag <- sum(out$status == "FLAG")
   
-  # still print to the console
-  print(out, row.names = FALSE, right = FALSE)
-  cat("\n", n_flag, "flag(s) out of", nrow(out), "checks\n")
+  # Print to the console
+  # print(out, row.names = FALSE, right = FALSE)
+  # cat("\n", n_flag, "flag(s) out of", nrow(out), "checks\n")
   
   # draw the table in the Plots window
   if (plot) {
@@ -149,25 +149,38 @@ check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NUL
     )
     
     tbl   <- tableGrob(show, rows = NULL, theme = tt)
-    title <- textGrob(paste0("Model checks: ", n_flag, " flag(s) out of ", nrow(out)),
+    title <- textGrob(paste0(unique(df$SITE),
+                             "\nModel: ", paste(deparse(formula(fit)), collapse=""),
+                             "\nChecks: ", n_flag, " flag(s) out of ", nrow(out)),
+                      x=0.5,
+                      hjust=0.5,
                       gp = gpar(fontsize = 13, fontface = "bold"))
     
     grid.newpage()
-    grid.draw(arrangeGrob(title, tbl,
-                          heights = unit.c(unit(1.5, "lines"), unit(1, "npc") - unit(1.5, "lines"))))
+    grid.draw(arrangeGrob(nullGrob(),
+                          title, 
+                          tbl, 
+                          heights = unit.c(
+                            unit(3,"mm"),
+                            grobHeight(title) + unit(3, "mm"),
+                            unit(1,"null")
+                          )
+                          ))
   }
   
   invisible(out)
 }
+# zambia<-imputed_bmi%>%
+#           filter(SITE=="Zambia")%>%
+#           rename(mweight = WEIGHT_PERES)
 
-zambia<-imputed_bmi%>%filter(SITE=="Zambia")
+weight_imputation<-function(data, filter){
 
-weight_imputation<-function(data){
-
-  #data <- zambia
+ # data <- zambia
   
   # 1. Percentiles of ga_week < 28 
-  df <- data %>% filter(GA_WKS < 28)
+  df <- data %>% filter(GA_WKS < filter)
+  #df <- data
   
   # The 25/50/75th percentiles are the knots for the model
   kn <- quantile(df$GA_WKS, probs = c(.25, .50, .75), type = 2, na.rm = TRUE)
@@ -216,6 +229,23 @@ weight_imputation<-function(data){
     
   }
   
+  if(is.null(fit)){
+    message(paste("Trying simpler random-effects structure: ~1 for", unique(df$SITE)))
+    
+    fit <- tryCatch(
+      lme(
+        fixed = mweight ~ spl1 + spl2,
+        random = ~ 1  | PREGID,
+        data = df,
+        method = "REML",
+        na.action = na.omit,
+        control = lmeControl(opt = "optim", maxIter = 200, msMaxIter = 200)
+      ),
+      error = function(e) NULL
+    )
+    
+  }
+  
   # If everything failed
   if (is.null(fit)) {
     message("All model specifications failed for site: ", unique(df$SITE))
@@ -242,16 +272,16 @@ weight_imputation<-function(data){
   check_lme_fit(fit, df, kn, ga_impute = 9, imputed = NULL, plot=TRUE)
   
   #print knots
-  print(paste0("Knots: ", kn))
+  #print(paste0("Knots: ", kn))
   
   #print model details
   print(summary(fit))
   
   #final df
-  print(head(imputation))
+  #print(head(imputation))
   
   #return final dataframe to global environment
-  imputation
+  return(imputation)
   
 }
 
@@ -345,14 +375,14 @@ load(paste0("data_in/input_dataframes_imputedbmi_",UploadDate,".rda"))
 #*******************************************
 
 # Get a list of all CSV files in the folder
-# csv_files <- list.files(path = path_to_stacked, pattern = "\\.csv$", full.names = TRUE)
-# csv_files
-# 
-# crfs_needed<-c("mnh05", "mnh23")
-# 
-# #NOTE: Don't need to read the files in over and over again now that I've created an RDA file.
-# #Loop through each CSV file
-# #Casey's Notes: Changed this so it only reads in the files we need
+csv_files <- list.files(path = path_to_stacked, pattern = "\\.csv$", full.names = TRUE)
+csv_files
+
+crfs_needed<-c("mnh05", "mnh23")
+
+# # #NOTE: Don't need to read the files in over and over again now that I've created an RDA file.
+# # #Loop through each CSV file
+# # #Casey's Notes: Changed this so it only reads in the files we need
 # for (file in csv_files) {
 #   # Extract the base name of the file (without the path)
 #   base_name <- basename(file)
@@ -360,14 +390,14 @@ load(paste0("data_in/input_dataframes_imputedbmi_",UploadDate,".rda"))
 #   # Extract the part of the name before the underscore
 #   name_prefix <- str_split(base_name, "_")[[1]][1]
 #   name_prefix
-#   
+# 
 #   name_abbrev <- gsub("nh","",name_prefix)%>%toupper()
 #   name_abbrev
-#   
+# 
 #   # Read the CSV file into a data frame
 #   if(name_prefix %in% c(crfs_needed)){
 # 
-#     data_frame <- read.csv(file) %>% 
+#     data_frame <- read.csv(file) %>%
 #                   rename_with(toupper)%>%
 #                   rename_variables(.,name_abbrev)
 # 
@@ -380,30 +410,30 @@ load(paste0("data_in/input_dataframes_imputedbmi_",UploadDate,".rda"))
 # Optional: List all variables in the environment to verify
 # ls()
 # 
- # save(
- #  list = crfs_needed,
- #  file = (paste0("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Maternal Weight Gain/data_in/mnh_dataframes_imputedbmi_",UploadDate,".rda")))
+# save(
+#  list = crfs_needed,
+#  file = (paste0("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Maternal Weight Gain/data_in/mnh_dataframes_imputedbmi_",UploadDate,".rda")))
 
 ### Pull in constructed datasets----
 #*******************************************
-# 
+
 # if(UploadDate<'2026-09-18'){
-#   
+# 
 #   mat_enroll <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENROLL.dta"))%>%rename_with(toupper)
 #   mat_endpoints <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENDPOINTS.dta"))%>%rename_with(toupper)
 #   mat_demographic <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_DEMOGRAPHIC.dta"))%>%rename_with(toupper)
 #   mat_flowchart <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_FLOWCHART.dta"))%>%rename_with(toupper)
-#   
+# 
 # } else {
-#   
+# 
 #   mat_studystatus<-read_dta(paste0("Z:/Constructed Data/",UploadDate,"/MAT_STUDYSTATUS.dta"))%>%rename_with(toupper)
 #   mat_demographic <- read_dta(paste0("Z:/Constructed Data/",UploadDate,"/MAT_BASELINE.dta"))%>%rename_with(toupper)
 #   mat_flowchart <- read.csv(paste0("Z:/Constructed Data/",UploadDate,"/MAT_FLOWCHART.csv"))%>%rename_with(toupper)
-#   
-#   
+# 
+# 
 #   anc <- c("ENROLL", "ANC20", "ANC28", "ANC32", "ANC36")
 #   pnc <- paste0("PNC", c(0, 1, 4, 6, 26, 52))
-#   
+# 
 #   mat_enroll_vars <- c(
 #     "SITE", "SCRNID", "MOMID", "PREGID", "ENROLL", "REMAPP_ENROLL",
 #     "REMAPP_AIM3_ENROLL", "REMAPP_AIM3_TRI", "ENROLL_SCRN_DATE", "PREG_START_DATE",
@@ -412,7 +442,7 @@ load(paste0("data_in/input_dataframes_imputedbmi_",UploadDate,".rda"))
 #     "US_GA_DAYS_ENROLL", "US_GA_WKS_ENROLL", "LMP_GA_DAYS_ENROLL", "LMP_GA_WKS_ENROLL",
 #     outer(anc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
 #   )
-#   
+# 
 #   mat_endpoints_vars <- c(
 #     "SITE", "MOMID", "PREGID", "PREG_END", "PREG_END_GA", "PREG_END_DATE",
 #     "PREG_LOSS", "PREG_LOSS_INDUCED", "PREG_LOSS_DEATH",
@@ -421,11 +451,11 @@ load(paste0("data_in/input_dataframes_imputedbmi_",UploadDate,".rda"))
 #     "MAT_DEATH_MISSDATE", "MAT_DEATH_INFAGE","PREG_END_PP42_DT", "MAT_DEATH_42", "STOP_DATE",
 #     outer(pnc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
 #   )
-#   
+# 
 #   mat_enroll <- select(mat_studystatus, any_of(mat_enroll_vars))
 #   mat_endpoints <- select(mat_studystatus, any_of(mat_endpoints_vars))
 # }
-
+# 
 # save(
 #   mnh05,
 #   mnh23,
@@ -490,7 +520,7 @@ mnh05_filtered <- mnh05 %>%
   filter(PREGID %in% PREGID_vector) %>% #only include those wtih a pregid
   #relocate(SITE, MOMID, PREGID, TYPE_VISIT) %>%
   #rename(TYPE_VISIT = TYPE_VISIT) %>%
-  select(MOMID, PREGID, SITE, TYPE_VISIT, ANT_PEDAT, WEIGHT_PERES, WEIGHT_PEPERF, HEIGHT_PEPERF, HEIGHT_PERES)
+  select(MOMID, PREGID, SITE, TYPE_VISIT, ANT_PEDAT, WEIGHT_PERES, WEIGHT_PEPERF, HEIGHT_PEPERF, HEIGHT_PERES)##diff 1
 
 #join mnh05 to enrollment data
 mnh_enroll_05 <- full_join(mat_enroll, mnh05_filtered,
@@ -522,7 +552,7 @@ merged_df <- mnh_enroll_05_nomissing %>%
 # Then we fill it with the updated type visit for that window
 
 merged_df2 <- merged_df %>%
-  filter(TYPE_VISIT %in% c(1,2,3,4,5,13))%>%
+  filter(TYPE_VISIT %in% c(1,2,3,4,5,13)) ##Diff 2
   #DATE OF VISIT - CONCEPTION DATE = GA AT VISIT. 
   mutate(GA_AT_VISIT = as.integer(floor(as.numeric(as.Date(ANT_PEDAT) - as.Date(PREG_START_DATE)))/7))
 
@@ -531,6 +561,7 @@ weight_df <- merged_df2 %>%
   group_by(MOMID, PREGID, SITE) %>%
   #arrange by date
   arrange(MOMID, PREGID, SITE, as.Date(ANT_PEDAT), TYPE_VISIT) %>% 
+  ##Diff 3 
   #create columns for QC
   group_by(PREGID)%>%
   mutate(
@@ -604,12 +635,12 @@ imputed_bmi <- weight_df %>%
 
 ### Option 1: Export dataset for imputation in SAS ----
 #### a. write to file ----
-write.csv(imputed_bmi, paste0("data_out/",'GWG_IMPUTE_LONG_', UploadDate, ".csv"))
+#write.csv(imputed_bmi, paste0("data_out/",'GWG_IMPUTE_LONG_', UploadDate, ".csv"))
 
 #### b. run sas code ----
 
 #### c. Read in imputation from SAS ----
-#imputed_df <- read.csv("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Maternal Weight Gain/data_out/GWG_ImputeObs_wk9_wk14.csv")
+#imputed_df <- read.csv("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Gestational Weight Gain/data_out/GWG_ImputeObs_wk9_wk14.csv")
 
 #skip to "Merge singleton to weight_df
 
@@ -632,10 +663,11 @@ imputed_bmi%>%
 #### c. Perform imputation by region----
 
 imputed_df <- imputed_bmi %>%
+  #filter(SITE!="Zambia")%>%
   rename(mweight = WEIGHT_PERES) %>%
   split(.$SITE) %>% #convert df to list of dfs by SITE
   imap(
-    ~ weight_imputation(.x) #run the imputation function
+    ~ weight_imputation(.x, filter=28) #run the imputation function
     %>% mutate(SITE = .y)
     ) %>%
   list_rbind()
@@ -687,7 +719,7 @@ imputed_df%>%
 colnames(imputed_df)
 
 imputed_df <- imputed_df %>% 
-                rename_with(toupper)%>%
+                rename_with(toupper)%>% #diff 4
                 select(SITE,PREGID,WEIGHT_IMPUTED_9
                        #, WEIGHT_IMPUTED_14
                        )
@@ -780,7 +812,7 @@ weight_df2 <- weight_df2 %>%
       NA_real_
     ),
     GWG_TOTAL = coalesce(GWG_TOTAL, last(GWG_TOTAL)) #fills in all other rows will the same PREGID with the GWG_TOTAL calculated above
-    #GWG_TOTAL = if_else(GWG_TOTAL < 0, NA_real_, GWG_TOTAL) #sets negative weight gain to 0
+    #GWG_TOTAL = if_else(GWG_TOTAL < 0, NA_real_, GWG_TOTAL) #sets negative weight gain to 0 #diff 5
   ) %>%
   ungroup()%>%
 
