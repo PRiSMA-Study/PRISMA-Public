@@ -149,26 +149,38 @@ check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NUL
     )
     
     tbl   <- tableGrob(show, rows = NULL, theme = tt)
-    title <- textGrob(paste0(unique(df$SITE),"\nModel checks: ", n_flag, " flag(s) out of ", nrow(out)),
+    title <- textGrob(paste0(unique(df$SITE),
+                             "\nModel: ", paste(deparse(formula(fit)), collapse=""),
+                             "\nChecks: ", n_flag, " flag(s) out of ", nrow(out)),
+                      x=0.5,
+                      hjust=0.5,
                       gp = gpar(fontsize = 13, fontface = "bold"))
     
     grid.newpage()
-    grid.draw(arrangeGrob(title, tbl, heights = c(0.03, 0.97)))
+    grid.draw(arrangeGrob(nullGrob(),
+                          title, 
+                          tbl, 
+                          heights = unit.c(
+                            unit(3,"mm"),
+                            grobHeight(title) + unit(3, "mm"),
+                            unit(1,"null")
+                          )
+                          ))
   }
   
   invisible(out)
 }
-
 # zambia<-imputed_bmi%>%
 #           filter(SITE=="Zambia")%>%
 #           rename(mweight = WEIGHT_PERES)
 
-weight_imputation<-function(data){
+weight_imputation<-function(data, filter){
 
- #data <- zambia
+ # data <- zambia
   
   # 1. Percentiles of ga_week < 28 
-  df <- data %>% filter(GA_WKS < 28)
+  df <- data %>% filter(GA_WKS < filter)
+  #df <- data
   
   # The 25/50/75th percentiles are the knots for the model
   kn <- quantile(df$GA_WKS, probs = c(.25, .50, .75), type = 2, na.rm = TRUE)
@@ -263,7 +275,7 @@ weight_imputation<-function(data){
   #print(paste0("Knots: ", kn))
   
   #print model details
-  #print(summary(fit))
+  print(summary(fit))
   
   #final df
   #print(head(imputation))
@@ -363,11 +375,11 @@ load(paste0("data_in/input_dataframes_imputedbmi_",UploadDate,".rda"))
 #*******************************************
 
 # Get a list of all CSV files in the folder
-# csv_files <- list.files(path = path_to_stacked, pattern = "\\.csv$", full.names = TRUE)
-# csv_files
-# 
-# crfs_needed<-c("mnh05", "mnh23")
-# 
+csv_files <- list.files(path = path_to_stacked, pattern = "\\.csv$", full.names = TRUE)
+csv_files
+
+crfs_needed<-c("mnh05", "mnh23")
+
 # # #NOTE: Don't need to read the files in over and over again now that I've created an RDA file.
 # # #Loop through each CSV file
 # # #Casey's Notes: Changed this so it only reads in the files we need
@@ -622,12 +634,12 @@ imputed_bmi <- weight_df %>%
 
 ### Option 1: Export dataset for imputation in SAS ----
 #### a. write to file ----
-write.csv(imputed_bmi, paste0("data_out/",'GWG_IMPUTE_LONG_', UploadDate, ".csv"))
+#write.csv(imputed_bmi, paste0("data_out/",'GWG_IMPUTE_LONG_', UploadDate, ".csv"))
 
 #### b. run sas code ----
 
 #### c. Read in imputation from SAS ----
-#imputed_df <- read.csv("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Maternal Weight Gain/data_out/GWG_ImputeObs_wk9_wk14.csv")
+#imputed_df <- read.csv("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Gestational Weight Gain/data_out/GWG_ImputeObs_wk9_wk14.csv")
 
 #skip to "Merge singleton to weight_df
 
@@ -650,10 +662,11 @@ imputed_bmi%>%
 #### c. Perform imputation by region----
 
 imputed_df <- imputed_bmi %>%
+  #filter(SITE!="Zambia")%>%
   rename(mweight = WEIGHT_PERES) %>%
   split(.$SITE) %>% #convert df to list of dfs by SITE
   imap(
-    ~ weight_imputation(.x) #run the imputation function
+    ~ weight_imputation(.x, filter=28) #run the imputation function
     %>% mutate(SITE = .y)
     ) %>%
   list_rbind()
