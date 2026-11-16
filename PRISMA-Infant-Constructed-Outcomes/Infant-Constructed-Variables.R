@@ -1650,800 +1650,640 @@ birth_asphyxia <- inf_baseline %>%
 # Replaces TYPE_VISIT-based assignment for TCB/hyperbilirubinemia and PSBI.
 # Keeps every observed visit/result in long data and derives scheduled PNC windows
 # from infant age at the visit.
-
 library(dplyr)
 library(tidyr)
 library(lubridate)
 library(purrr)
 library(stringr)
 
+# Hyperbilirubinemia constructed outcomes ----
 
-# TCB / HYPERBILIRUBINEMIA 
-# Helper functions 
-## Date cleaning function (from Flowchart workflow) 
-clean_date <- function(x,
-                       invalid_dates = as_date(c("1907-07-07", "2007-07-07",
-                                                 "1905-05-05", "1909-07-09",
-                                                 "1906-06-06", "1909-09-09")),
-                       min_date = NULL,
-                       max_date = NULL) {
-  if (is.null(max_date)) max_date <- today()
-  parsed <- parse_date_time(
-    trimws(as.character(x)),
-    orders = c("d/m/Y", "d-m-Y", "Y-m-d",
-               "d-b-y", "d-m-y",
-               "m/d/y", "m-d-y"),
-    exact = FALSE
-  ) %>% as_date()
-  invalid_mask <- is.na(parsed) | parsed %in% invalid_dates
-  if (!is.null(min_date)) invalid_mask <- invalid_mask | parsed < min_date
-  if (!is.null(max_date)) invalid_mask <- invalid_mask | parsed > max_date
-  parsed[invalid_mask] <- NA
-  return(parsed)
+## Relevant vectors ----
+keys <- c("SITE", "MOMID", "PREGID", "INFANTID")
+threshold_file <- "~/PRISMA-Public/PRISMA-Infant-Constructed-Outcomes/TCB_threshold_lookup_v2_exact_age.csv"
+
+# Keep threshold outcomes in the old age range: birth to before day 14.
+max_tcb_age_hours <- 14 * 24
+
+invalid_dates <- as.Date(c("1907-07-07", "2007-07-07", "1905-05-05", "1909-07-09", "1906-06-06", "1909-09-09", "2028-08-12", "2084-10-25", "2924-03-22", "8024-04-08"))
+
+## Helper functions ----
+clean_date <- function(x) {
+  out <- suppressWarnings(as.Date(parse_date_time(trimws(as.character(x)),
+                                                  orders = c("Y-m-d", "d/m/Y", "d-m-Y", "d-b-y", "d-m-y", "m/d/y", "m-d-y"), exact = FALSE)))
+  out[out %in% invalid_dates | out > Sys.Date()] <- as.Date(NA)
+  out
+}
+
+clean_time <- function(x) {
+  x <- trimws(as.character(x))
+  x[x %in% c("", "NA", "77:77", "99:99", "55:55:00")] <- NA_character_
+  x <- sub("^([0-9]{1,2}):([0-9]{1,2}):00$", "\\1:\\2", x)
+  parts <- str_match(x, "^([0-9]{1,2}):([0-9]{1,2})$")
+  h <- suppressWarnings(as.integer(parts[, 2]))
+  m <- suppressWarnings(as.integer(parts[, 3]))
+  valid <- !is.na(h) & !is.na(m) & h >= 0 & h <= 23 & m >= 0 & m <= 59
+  out <- rep(NA_character_, length(x))
+  out[valid] <- sprintf("%02d:%02d", h[valid], m[valid])
+  out
+}
+
+parse_datetime <- function(x) {
+  # Preserve timestamps when already POSIXct; parse known character formats otherwise.
+  if (inherits(x, "POSIXt")) return(as.POSIXct(x))
+  suppressWarnings(as.POSIXct(parse_date_time(as.character(x),
+                                              orders = c("Y-m-d H:M:S", "Y-m-d H:M", "m/d/Y H:M:S", "m/d/Y H:M", "d/m/Y H:M"), exact = FALSE)))
+}
+
+combine_datetime <- function(date, time) {
+  parse_datetime(ifelse(!is.na(date) & !is.na(time), paste(date, time), NA_character_))
 }
 
 assign_pnc_window <- function(age_days) {
   case_when(
-    age_days >= 3   & age_days <= 5   ~ "PNC0",
-    age_days >= 7   & age_days <= 14  ~ "PNC1",
-    age_days >= 28  & age_days <= 35  ~ "PNC4",
-    age_days >= 42  & age_days <= 104 ~ "PNC6",
+    age_days >= 3 & age_days <= 5 ~ "PNC0",
+    age_days >= 7 & age_days <= 14 ~ "PNC1",
+    age_days >= 28 & age_days <= 35 ~ "PNC4",
+    age_days >= 42 & age_days <= 104 ~ "PNC6",
     age_days >= 182 & age_days <= 279 ~ "PNC26",
     age_days >= 364 & age_days <= 454 ~ "PNC52",
-    !is.na(age_days)                  ~ "INBETWEEN",
-    TRUE                              ~ NA_character_
+    !is.na(age_days) ~ "INBETWEEN",
+    TRUE ~ NA_character_
   )
 }
 
-collapse_list <- function(x) {
-  x <- x[!is.na(x)]
-  if (length(x) == 0) return(NA_character_)
-  paste(x, collapse = " | ")
-}
-
-## Construct ALL TCB observations in long format 
-
-## IPC TCB observations (MNH11)
-tcb_ipc_long <- inf_baseline %>%
-  select(SITE, MOMID, PREGID, INFANTID, LIVEBIRTH, BIRTH_OUTCOME,
-         DOB, DELIVERY_DATETIME, GESTAGEBIRTH_ANY, GESTAGEBIRTH_ANY_DAYS) %>%
-  left_join(mnh11_constructed, by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>%
-  mutate(
-    DOB = clean_date(DOB),
-    M11_VISIT_OBSSTDAT = clean_date(M11_VISIT_OBSSTDAT),
-    M11_VISIT_OBSSTTIM = replace(M11_VISIT_OBSSTTIM,
-                                 M11_VISIT_OBSSTTIM %in% c("77:77", "99:99", "55:55:00"), NA),
-    
-    # --- Normalize time: pad "H:MM" / "HH:M" to "HH:MM"; keep NA for now ---
-    M11_TIME_CLEAN = {
-      t <- trimws(as.character(M11_VISIT_OBSSTTIM))
-      t <- ifelse(grepl("^\\d{1,2}:\\d{1,2}$", t),
-                  sprintf("%02d:%02d",
-                          as.integer(sub(":.*", "", t)),
-                          as.integer(sub(".*:", "", t))),
-                  NA_character_)
-      t
-    },
-    
-    DELIVERY_DATETIME = as.POSIXct(DELIVERY_DATETIME, format = "%Y-%m-%d %H:%M"),
-    
-    # --- Impute 12:00 (midpoint of day) ONLY when the time is missing AND
-    #     the visit date differs from DOB. Same-day visits keep NA time so
-    #     hour-of-life is not fabricated on day 0. ---
-    M11_TIME_USE = case_when(
-      !is.na(M11_TIME_CLEAN)                    ~ M11_TIME_CLEAN,
-      is.na(M11_VISIT_OBSSTDAT) | is.na(DOB)    ~ NA_character_,
-      M11_VISIT_OBSSTDAT != DOB                 ~ "12:00",
-      TRUE                                      ~ NA_character_
-    ),
-    
-    VISIT_DATETIME = as.POSIXct(paste(M11_VISIT_OBSSTDAT, M11_TIME_USE),
-                                format = "%Y-%m-%d %H:%M"),
-    VISIT_DATE = M11_VISIT_OBSSTDAT,
-    
-    VISIT_TIME_IMPUTED = as.integer(
-      is.na(M11_TIME_CLEAN) &
-        !is.na(M11_VISIT_OBSSTDAT) & !is.na(DOB) &
-        M11_VISIT_OBSSTDAT != DOB
-    ),
-    
-    # --- Age from datetime when possible ---
-    AGE_AT_VISIT_HOURS_FROM_DT = floor(
-      as.numeric(difftime(VISIT_DATETIME, DELIVERY_DATETIME, units = "hours"))
-    ),
-    
-    # --- Age from dates only as fallback (covers same-day visits with no time) ---
-    AGE_AT_VISIT_DAYS_FROM_DATE = if_else(
-      !is.na(VISIT_DATE) & !is.na(DOB) & VISIT_DATE >= DOB,
-      as.numeric(VISIT_DATE - DOB),
-      NA_real_
-    ),
-    
-    # --- Resolve: prefer datetime, fall back to date-only ---
-    AGE_AT_VISIT_HOURS_TOTAL = case_when(
-      !is.na(AGE_AT_VISIT_HOURS_FROM_DT) & AGE_AT_VISIT_HOURS_FROM_DT >= 0 ~ AGE_AT_VISIT_HOURS_FROM_DT,
-      !is.na(AGE_AT_VISIT_DAYS_FROM_DATE)                                   ~ AGE_AT_VISIT_DAYS_FROM_DATE * 24,
-      TRUE                                                                  ~ NA_real_
-    ),
-    AGE_AT_VISIT_DAYS = as.numeric(AGE_AT_VISIT_HOURS_TOTAL) %/% 24,
-    AGE_AT_VISIT_HRS  = as.numeric(AGE_AT_VISIT_HOURS_TOTAL) %% 24,
-    
-    VISIT_SOURCE = "IPC",
-    VISIT_WINDOW = "IPC",
-    TCB_ASSESSED = M11_BILIRUBIN_LBPERF,
-    TCB_VALUE_RAW = suppressWarnings(as.numeric(M11_TBILIRUBIN_UMOLL_LBORRES)),
-    TCB_VALUE = if_else(!is.na(TCB_VALUE_RAW) & TCB_VALUE_RAW >= 0, TCB_VALUE_RAW, NA_real_),
-    JAUND_CEOCCUR = M11_JAUND_CEOCCUR,
-    YELLOW_CEOCCUR = M11_YELLOW_CEOCCUR,
-    JAUND_ONSET = suppressWarnings(as.numeric(M11_JAUND_CESTDAT))
-  ) %>%
-  select(SITE, MOMID, PREGID, INFANTID, LIVEBIRTH, BIRTH_OUTCOME, DOB,
-         DELIVERY_DATETIME, GESTAGEBIRTH_ANY, GESTAGEBIRTH_ANY_DAYS,
-         VISIT_SOURCE, VISIT_WINDOW, VISIT_DATE, VISIT_DATETIME,
-         VISIT_TIME_IMPUTED,
-         AGE_AT_VISIT_DAYS, AGE_AT_VISIT_HRS, AGE_AT_VISIT_HOURS_TOTAL,
-         TCB_ASSESSED, TCB_VALUE_RAW, TCB_VALUE,
-         JAUND_CEOCCUR, YELLOW_CEOCCUR, JAUND_ONSET)
-
-## PNC clinical observations (MNH13)
-pnc_clinical_long <- inf_baseline %>%
-  select(SITE, MOMID, PREGID, INFANTID, DOB) %>%
-  right_join(mnh13, by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>%
-  mutate(
-    DOB = clean_date(DOB),
-    VISIT_DATE = clean_date(
-      M13_VISIT_OBSSTDAT,
-      invalid_dates = as_date(c("1907-07-07", "2007-07-07", "1905-05-05",
-                                "1909-07-09", "1906-06-06", "1909-09-09",
-                                "2028-08-12", "2084-10-25", "2924-03-22",
-                                "8024-04-08"))
-    ),
-    AGE_AT_VISIT_DAYS = case_when(
-      !is.na(VISIT_DATE) & !is.na(DOB) & VISIT_DATE >= DOB ~ as.numeric(VISIT_DATE - DOB),
-      TRUE ~ NA_real_
-    ),
-    VISIT_WINDOW = assign_pnc_window(AGE_AT_VISIT_DAYS)
-  ) %>%
-  select(SITE, MOMID, PREGID, INFANTID, VISIT_DATE, AGE_AT_VISIT_DAYS,
-         VISIT_WINDOW, M13_JAUND_CEOCCUR, M13_JAUND_CESTTIM, M13_YELL_CEOCCUR)
-
-## PNC TCB observations (MNH14)
-tcb_pnc_long <- inf_baseline %>%
-  select(SITE, MOMID, PREGID, INFANTID, LIVEBIRTH, BIRTH_OUTCOME,
-         DOB, DELIVERY_DATETIME, GESTAGEBIRTH_ANY, GESTAGEBIRTH_ANY_DAYS) %>%
-  right_join(mnh14, by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>%
-  mutate(
-    DOB = clean_date(DOB),
-    VISIT_DATE = clean_date(M14_VISIT_OBSSTDAT),
-    M14_TCB_OBSSTTIM = replace(M14_TCB_OBSSTTIM,
-                               M14_TCB_OBSSTTIM %in% c("77:77", "99:99", "55:55:00"), NA),
-    
-    # --- Normalize time: pad "H:MM" / "HH:M" to "HH:MM"; keep NA for now ---
-    M14_TIME_CLEAN = {
-      t <- trimws(as.character(M14_TCB_OBSSTTIM))
-      t <- ifelse(grepl("^\\d{1,2}:\\d{1,2}$", t),
-                  sprintf("%02d:%02d",
-                          as.integer(sub(":.*", "", t)),
-                          as.integer(sub(".*:", "", t))),
-                  NA_character_)
-      t
-    },
-    
-    DELIVERY_DATETIME = as.POSIXct(DELIVERY_DATETIME, format = "%Y-%m-%d %H:%M"),
-    
-    # --- Impute 12:00 (midpoint of day) ONLY when the time is missing AND
-    #     the visit date differs from DOB. Same-day visits keep NA time. ---
-    M14_TIME_USE = case_when(
-      !is.na(M14_TIME_CLEAN)                 ~ M14_TIME_CLEAN,
-      is.na(VISIT_DATE) | is.na(DOB)         ~ NA_character_,
-      VISIT_DATE != DOB                      ~ "12:00",
-      TRUE                                   ~ NA_character_
-    ),
-    
-    VISIT_DATETIME = as.POSIXct(paste(VISIT_DATE, M14_TIME_USE),
-                                format = "%Y-%m-%d %H:%M"),
-    
-    VISIT_TIME_IMPUTED = as.integer(
-      is.na(M14_TIME_CLEAN) &
-        !is.na(VISIT_DATE) & !is.na(DOB) &
-        VISIT_DATE != DOB
-    ),
-    
-    # --- Age from datetime when possible ---
-    AGE_AT_VISIT_HOURS_FROM_DT = floor(
-      as.numeric(difftime(VISIT_DATETIME, DELIVERY_DATETIME, units = "hours"))
-    ),
-    
-    # --- Age from dates only as fallback ---
-    AGE_AT_VISIT_DAYS_FROM_DATE = if_else(
-      !is.na(VISIT_DATE) & !is.na(DOB) & VISIT_DATE >= DOB,
-      as.numeric(VISIT_DATE - DOB),
-      NA_real_
-    ),
-    
-    # --- Resolve: prefer datetime, fall back to date-only ---
-    AGE_AT_VISIT_HOURS_TOTAL = case_when(
-      !is.na(AGE_AT_VISIT_HOURS_FROM_DT) & AGE_AT_VISIT_HOURS_FROM_DT >= 0 ~ AGE_AT_VISIT_HOURS_FROM_DT,
-      !is.na(AGE_AT_VISIT_DAYS_FROM_DATE)                                   ~ AGE_AT_VISIT_DAYS_FROM_DATE * 24,
-      TRUE                                                                  ~ NA_real_
-    ),
-    AGE_AT_VISIT_DAYS = as.numeric(AGE_AT_VISIT_HOURS_TOTAL) %/% 24,
-    AGE_AT_VISIT_HRS  = as.numeric(AGE_AT_VISIT_HOURS_TOTAL) %% 24,
-    
-    VISIT_SOURCE = "PNC",
-    VISIT_WINDOW = assign_pnc_window(AGE_AT_VISIT_DAYS),
-    TCB_ASSESSED = M14_TCB_VSSTAT,
-    TCB_VALUE_RAW = suppressWarnings(as.numeric(M14_TCB_UMOLL_LBORRES)),
-    TCB_VALUE = if_else(!is.na(TCB_VALUE_RAW) & TCB_VALUE_RAW >= 0, TCB_VALUE_RAW, NA_real_)
-  ) %>%
-  left_join(
-    pnc_clinical_long %>%
-      select(SITE, MOMID, PREGID, INFANTID, VISIT_DATE,
-             M13_JAUND_CEOCCUR, M13_JAUND_CESTTIM, M13_YELL_CEOCCUR),
-    by = c("SITE", "MOMID", "PREGID", "INFANTID", "VISIT_DATE")
-  ) %>%
-  mutate(
-    JAUND_CEOCCUR = M13_JAUND_CEOCCUR,
-    YELLOW_CEOCCUR = M13_YELL_CEOCCUR,
-    JAUND_ONSET = NA_real_
-  )
-
-## Determine site-level TCB units and convert all actual measurements 
-
-## MNH14
-tcb_pnc_long <- tcb_pnc_long %>%
-  group_by(SITE) %>%
-  mutate(
-    m14_mean = mean(TCB_VALUE, na.rm = TRUE),
-    unit = case_when(
-      is.nan(m14_mean) ~ NA_character_,
-      m14_mean >= 25 ~ "umol/L",
-      m14_mean < 25 ~ "mg/dL",
-      TRUE ~ NA_character_
-    ),
-    TCB_VALUE = case_when(
-      unit == "umol/L" ~ TCB_VALUE / 17.1,
-      TRUE ~ TCB_VALUE
-    )
-  ) %>%
-  ungroup()
-
-m14_subset <- tcb_pnc_long %>% distinct(SITE, unit)
-for (i in m14_subset$SITE) {
-  out <- m14_subset %>% filter(SITE == i)
-  cat(i, "reporting in", out$unit, "in MNH14", "\n")
-}
-
-## MNH11
-tcb_ipc_long <- tcb_ipc_long %>%
-  group_by(SITE) %>%
-  mutate(
-    m11_mean = mean(TCB_VALUE, na.rm = TRUE),
-    unit = case_when(
-      is.nan(m11_mean) ~ NA_character_,
-      m11_mean >= 25 ~ "umol/L",
-      m11_mean < 25 ~ "mg/dL",
-      TRUE ~ NA_character_
-    ),
-    TCB_VALUE = case_when(
-      unit == "umol/L" ~ TCB_VALUE / 17.1,
-      TRUE ~ TCB_VALUE
-    )
-  ) %>%
-  ungroup()
-
-m11_subset <- tcb_ipc_long %>% distinct(SITE, unit)
-for (i in m11_subset$SITE) {
-  out <- m11_subset %>% filter(SITE == i)
-  cat(i, "reporting in", out$unit, "in MNH11", "\n")
-}
-
-## Add clinical PNC visits without a corresponding MNH14 TCB record 
-pnc_clinical_only <- inf_baseline %>%
-  select(SITE, MOMID, PREGID, INFANTID, LIVEBIRTH, BIRTH_OUTCOME,
-         DOB, DELIVERY_DATETIME, GESTAGEBIRTH_ANY, GESTAGEBIRTH_ANY_DAYS) %>%
-  right_join(pnc_clinical_long, by = c("SITE", "MOMID", "PREGID", "INFANTID")) %>%
-  anti_join(
-    tcb_pnc_long %>% distinct(SITE, MOMID, PREGID, INFANTID, VISIT_DATE),
-    by = c("SITE", "MOMID", "PREGID", "INFANTID", "VISIT_DATE")
-  ) %>%
-  filter(
-    (!is.na(M13_JAUND_CEOCCUR) & !M13_JAUND_CEOCCUR %in% c(-5, -7, 77, 99)) |
-      (!is.na(M13_YELL_CEOCCUR) & !M13_YELL_CEOCCUR %in% c(-5, -7, 77, 99))
-  ) %>%
-  mutate(
-    VISIT_SOURCE = "PNC",
-    VISIT_DATETIME = as.POSIXct(NA),
-    DELIVERY_DATETIME = as.POSIXct(DELIVERY_DATETIME, format = "%Y-%m-%d %H:%M"),
-    AGE_AT_VISIT_HRS = NA_real_,
-    AGE_AT_VISIT_HOURS_TOTAL = NA_real_,
-    TCB_ASSESSED = NA,
-    TCB_VALUE_RAW = NA_real_,
-    TCB_VALUE = NA_real_,
-    JAUND_CEOCCUR = M13_JAUND_CEOCCUR,
-    YELLOW_CEOCCUR = M13_YELL_CEOCCUR,
-    JAUND_ONSET = NA_real_
-  )
-
-## Combine ALL TCB + jaundice observations 
-tcb_long <- bind_rows(
-  tcb_ipc_long %>% select(any_of(c(
-    "SITE","MOMID","PREGID","INFANTID","LIVEBIRTH","BIRTH_OUTCOME","DOB",
-    "DELIVERY_DATETIME","GESTAGEBIRTH_ANY","GESTAGEBIRTH_ANY_DAYS",
-    "VISIT_SOURCE","VISIT_WINDOW","VISIT_DATE","VISIT_DATETIME",
-    "AGE_AT_VISIT_DAYS","AGE_AT_VISIT_HRS","AGE_AT_VISIT_HOURS_TOTAL",
-    "TCB_ASSESSED","TCB_VALUE_RAW","TCB_VALUE",
-    "JAUND_CEOCCUR","YELLOW_CEOCCUR","JAUND_ONSET","unit"))),
-  
-  tcb_pnc_long %>% select(any_of(c(
-    "SITE","MOMID","PREGID","INFANTID","LIVEBIRTH","BIRTH_OUTCOME","DOB",
-    "DELIVERY_DATETIME","GESTAGEBIRTH_ANY","GESTAGEBIRTH_ANY_DAYS",
-    "VISIT_SOURCE","VISIT_WINDOW","VISIT_DATE","VISIT_DATETIME",
-    "AGE_AT_VISIT_DAYS","AGE_AT_VISIT_HRS","AGE_AT_VISIT_HOURS_TOTAL",
-    "TCB_ASSESSED","TCB_VALUE_RAW","TCB_VALUE",
-    "JAUND_CEOCCUR","YELLOW_CEOCCUR","JAUND_ONSET","unit"))),
-  
-  pnc_clinical_only %>% select(any_of(c(
-    "SITE","MOMID","PREGID","INFANTID","LIVEBIRTH","BIRTH_OUTCOME","DOB",
-    "DELIVERY_DATETIME","GESTAGEBIRTH_ANY","GESTAGEBIRTH_ANY_DAYS",
-    "VISIT_SOURCE","VISIT_WINDOW","VISIT_DATE","VISIT_DATETIME",
-    "AGE_AT_VISIT_DAYS","AGE_AT_VISIT_HRS","AGE_AT_VISIT_HOURS_TOTAL",
-    "TCB_ASSESSED","TCB_VALUE_RAW","TCB_VALUE",
-    "JAUND_CEOCCUR","YELLOW_CEOCCUR","JAUND_ONSET")))
-) %>%
-  mutate(
-    AGE_AT_VISIT_HOURS_USE = case_when(
-      !is.na(AGE_AT_VISIT_HOURS_TOTAL) & AGE_AT_VISIT_HOURS_TOTAL >= 0 ~ AGE_AT_VISIT_HOURS_TOTAL,
-      !is.na(AGE_AT_VISIT_DAYS) & AGE_AT_VISIT_DAYS >= 0 ~ AGE_AT_VISIT_DAYS * 24,
-      TRUE ~ NA_real_
-    ),
-    AGE_SOURCE = case_when(
-      !is.na(AGE_AT_VISIT_HOURS_TOTAL) & AGE_AT_VISIT_HOURS_TOTAL >= 0 ~ "DATETIME",
-      !is.na(AGE_AT_VISIT_DAYS) & AGE_AT_VISIT_DAYS >= 0 ~ "DATE_ONLY",
-      TRUE ~ "MISSING"
-    ),
-    TCB_REPORTED = as.integer(!is.na(TCB_VALUE)),
-    TCB_AGE_WINDOW = case_when(
-      TCB_REPORTED == 1 & AGE_AT_VISIT_HOURS_USE >= 0 & AGE_AT_VISIT_HOURS_USE < 24 ~ "24HR",
-      TCB_REPORTED == 1 & AGE_AT_VISIT_HOURS_USE >= 24 & AGE_AT_VISIT_HOURS_USE < 5*24 ~ "5DAY",
-      TCB_REPORTED == 1 & AGE_AT_VISIT_HOURS_USE >= 5*24 & AGE_AT_VISIT_HOURS_USE < 14*24 ~ "14DAY",
-      TCB_REPORTED == 1 & AGE_AT_VISIT_HOURS_USE >= 14*24 ~ ">=14DAY",
-      TCB_REPORTED == 1 & is.na(AGE_AT_VISIT_HOURS_USE) ~ "AGE_MISSING",
-      TRUE ~ NA_character_
-    )
-  ) %>%
-  arrange(SITE, MOMID, PREGID, INFANTID, VISIT_DATE, VISIT_DATETIME) %>%
-  group_by(SITE, MOMID, PREGID, INFANTID) %>%
-  mutate(VISIT_SEQ = row_number()) %>%
-  ungroup()
-
-## Audit 
-cat("\nTCB AVAILABILITY CHECK\n")
-cat("Actual usable TCB measurements:", sum(!is.na(tcb_long$TCB_VALUE)), "\n")
-cat("Negative raw TCB values converted to missing:",
-    sum(tcb_long$TCB_VALUE_RAW < 0, na.rm = TRUE), "\n")
-cat("Negative TCB values remaining after cleaning:",
-    sum(tcb_long$TCB_VALUE < 0, na.rm = TRUE), "\n")
-cat("Actual TCBs with exact datetime age:",
-    sum(!is.na(tcb_long$TCB_VALUE) & tcb_long$AGE_SOURCE == "DATETIME"), "\n")
-cat("Actual TCBs with date-only age:",
-    sum(!is.na(tcb_long$TCB_VALUE) & tcb_long$AGE_SOURCE == "DATE_ONLY"), "\n")
-cat("Actual TCBs with missing age:",
-    sum(!is.na(tcb_long$TCB_VALUE) & tcb_long$AGE_SOURCE == "MISSING"), "\n")
-
-tcb_reported_check <- tcb_long %>%
-  filter(TCB_REPORTED == 1) %>%
-  count(VISIT_SOURCE, AGE_SOURCE, TCB_AGE_WINDOW, name = "N_TCB") %>%
-  arrange(VISIT_SOURCE, AGE_SOURCE, TCB_AGE_WINDOW)
-print(tcb_reported_check)
-
-## Per-observation TCB criteria 
-tcb_long <- tcb_long %>%
-  mutate(
-    INF_HYPERBILI_TCB15 = case_when(
-      TCB_REPORTED == 1 & TCB_VALUE > 15 ~ 1L,
-      TCB_REPORTED == 1 ~ 0L,
-      TRUE ~ NA_integer_
-    ),
-    TCB_DAYS = floor(AGE_AT_VISIT_HOURS_USE / 24),
-    TCB_HRS = floor(AGE_AT_VISIT_HOURS_USE %% 24)
-  )
-
-## AAP and NICE threshold lookup 
-threshold_file <- "~/PRISMA-Public/PRISMA-Infant-Constructed-Outcomes/TCB_threshold_lookup.csv"
-
-if (file.exists(threshold_file)) {
-  tcb_thresholds <- read.csv(threshold_file) %>%
-    mutate(
-      GESTAGEBIRTH_ANY = as.numeric(GESTAGEBIRTH_ANY),
-      TCB_DAYS = as.numeric(TCB_DAYS),
-      TCB_HRS = as.numeric(TCB_HRS)
-    )
-} else {
-  tcb_thresholds <- tibble(
-    GESTAGEBIRTH_ANY = numeric(),
-    TCB_DAYS = numeric(),
-    TCB_HRS = numeric(),
-    TCB_AAP_THRESH = numeric(),
-    TCB_NICE_THRESH = numeric()
+assign_tcb_window <- function(age_hours) {
+  case_when(
+    !is.na(age_hours) & age_hours >= 0 & age_hours < 24 ~ "24HR",
+    !is.na(age_hours) & age_hours >= 24 & age_hours < 120 ~ "5DAY",
+    !is.na(age_hours) & age_hours >= 120 & age_hours < 336 ~ "14DAY",
+    !is.na(age_hours) & age_hours >= 336 ~ ">=14DAY",
+    TRUE ~ NA_character_
   )
 }
 
-thresholds_needed <- tcb_long %>%
-  filter(TCB_REPORTED == 1, !is.na(GESTAGEBIRTH_ANY),
-         !is.na(TCB_DAYS), !is.na(TCB_HRS), TCB_DAYS >= 0) %>%
-  distinct(GESTAGEBIRTH_ANY, TCB_DAYS, TCB_HRS)
-
-new_thresholds <- thresholds_needed %>%
-  anti_join(tcb_thresholds,
-            by = c("GESTAGEBIRTH_ANY", "TCB_DAYS", "TCB_HRS"))
-
-if (nrow(new_thresholds) > 0) {
-  cat("Calculating", nrow(new_thresholds), "new TCB threshold combinations\n")
-  new_thresholds <- new_thresholds %>%
-    rowwise() %>%
-    mutate(
-      # AAP: only valid for GA >= 35 weeks; NA otherwise.
-      TCB_AAP_THRESH = ifelse(
-        !is.na(GESTAGEBIRTH_ANY) & GESTAGEBIRTH_ANY >= 35,
-        tryCatch(
-          TSB("P0", paste0(GESTAGEBIRTH_ANY, " weeks"),
-              days = TCB_DAYS, hours = TCB_HRS) - 3,
-          error = function(e) NA_real_
-        ),
-        NA_real_
+# Convert measured TCB values to mg/dL ----
+convert_tcb_units <- function(data) {
+  unit_summary <- data %>%
+    group_by(SITE) %>%
+    summarise(
+      MEDIAN_RAW = median(
+        TCB_VALUE_RAW[TCB_VALUE_RAW >= 0],
+        na.rm = TRUE
       ),
-      # NICE: valid for all GA; floor GA at 23 weeks.
-      TCB_NICE_THRESH = tryCatch(
-        TSB_NICE("P0", paste0(max(GESTAGEBIRTH_ANY, 23), " weeks"),
-                 days = TCB_DAYS, hours = TCB_HRS) - 3,
-        error = function(e) NA_real_
-      )
+      .groups = "drop"
     ) %>%
-    ungroup()
-  
-  tcb_thresholds <- bind_rows(tcb_thresholds, new_thresholds) %>%
-    distinct(GESTAGEBIRTH_ANY, TCB_DAYS, TCB_HRS, .keep_all = TRUE)
-  write.csv(tcb_thresholds, threshold_file, row.names = FALSE)
-} else {
-  cat("All TCB thresholds already available in lookup\n")
-}
-
-# Join thresholds and classify. NOTE: 77L = ineligible (GA < 35 for AAP),
-# so it's distinguishable from NA (no data / no threshold).
-tcb_long <- tcb_long %>%
-  left_join(tcb_thresholds,
-            by = c("GESTAGEBIRTH_ANY", "TCB_DAYS", "TCB_HRS")) %>%
-  mutate(
-    # AAP:
-    #   77 = GA < 35 weeks or GA missing (ineligible by design)
-    #    1 = TCB >= AAP threshold
-    #    0 = TCB < AAP threshold
-    #    0 = threshold is NA after TSB() ran (package couldn't produce a value)
-    #   NA = no TCB result at all
-    INF_HYPERBILI_AAP = case_when(
-      TCB_REPORTED == 1 & (is.na(GESTAGEBIRTH_ANY) | GESTAGEBIRTH_ANY < 35) ~ 77L,
-      TCB_REPORTED == 1 & is.na(TCB_AAP_THRESH) ~ 0L,   # <- threshold NA after TSB() -> 0
-      TCB_REPORTED == 1 & TCB_VALUE >= TCB_AAP_THRESH ~ 1L,
-      TCB_REPORTED == 1 ~ 0L,
-      TRUE ~ NA_integer_
-    ),
-    # NICE: same pattern, no GA restriction.
-    INF_HYPERBILI_NICE = case_when(
-      TCB_REPORTED == 1 & is.na(TCB_NICE_THRESH) ~ 0L,  # <- same rule for NICE
-      TCB_REPORTED == 1 & TCB_VALUE >= TCB_NICE_THRESH ~ 1L,
-      TCB_REPORTED == 1 ~ 0L,
-      TRUE ~ NA_integer_
-    ),
-    # Age window tags per visit — this is what makes the multi-visit case work
-    TCB_WINDOW = case_when(
-      !is.na(TCB_VALUE) & !is.na(AGE_AT_VISIT_HOURS_USE) &
-        AGE_AT_VISIT_HOURS_USE >= 0     & AGE_AT_VISIT_HOURS_USE < 24    ~ "24HR",
-      !is.na(TCB_VALUE) & !is.na(AGE_AT_VISIT_HOURS_USE) &
-        AGE_AT_VISIT_HOURS_USE >= 24    & AGE_AT_VISIT_HOURS_USE < 5*24  ~ "5DAY",
-      !is.na(TCB_VALUE) & !is.na(AGE_AT_VISIT_HOURS_USE) &
-        AGE_AT_VISIT_HOURS_USE >= 5*24  & AGE_AT_VISIT_HOURS_USE <= 14*24 ~ "14DAY",
-      !is.na(TCB_VALUE) & !is.na(AGE_AT_VISIT_HOURS_USE) &
-        AGE_AT_VISIT_HOURS_USE > 14*24 ~ ">14DAY",
-      TRUE ~ NA_character_
+    mutate(
+      unit = case_when(
+        is.na(MEDIAN_RAW) ~ NA_character_,
+        MEDIAN_RAW >= 25 ~ "umol/L",
+        TRUE ~ "mg/dL"
+      )
     )
-  )
-
-## Infant-level TCB outcomes 
-first_positive_age <- function(flag, age) {
-  z <- age[flag == 1 & !is.na(flag) & !is.na(age)]
-  if (length(z) == 0) NA_real_ else min(z)
+  
+  data %>%
+    select(-any_of(c("unit", "TCB_VALUE"))) %>%
+    left_join(unit_summary, by = "SITE") %>%
+    mutate(
+      TCB_VALUE = case_when(
+        is.na(TCB_VALUE_RAW) | TCB_VALUE_RAW < 0 ~ NA_real_,
+        unit == "umol/L" ~ TCB_VALUE_RAW / 17.1,
+        unit == "mg/dL" ~ TCB_VALUE_RAW,
+        TRUE ~ NA_real_
+      )
+    )
 }
 
-# Helper: collapse a vector of flags to 1 / 0 / 77 / NA
-#   1 if any 1
-#   0 if no 1 but at least one non-missing 0
-#   77 if no 1 and no 0 but at least one 77  (only used for AAP)
-#   NA otherwise (all missing)
 collapse_flag <- function(x, allow_77 = FALSE) {
   x <- x[!is.na(x)]
-  if (length(x) == 0) return(NA_integer_)
-  if (any(x == 1L))  return(1L)
-  if (any(x == 0L))  return(0L)
+  if (any(x == 1L)) return(1L)
+  if (any(x == 0L)) return(0L)
   if (allow_77 && any(x == 77L)) return(77L)
   NA_integer_
 }
 
-### TCB >15 mg/dL ----
-hyperbili_crit1 <- tcb_long %>%
-  group_by(SITE, MOMID, PREGID, INFANTID) %>%
-  summarise(
-    INF_HYPERBILI_TCB15_AGE_DAYS = first_positive_age(INF_HYPERBILI_TCB15, AGE_AT_VISIT_DAYS),
-    INF_HYPERBILI_TCB15_AGE_HRS = {
-      a <- first_positive_age(INF_HYPERBILI_TCB15, AGE_AT_VISIT_HOURS_USE)
-      if (is.na(a)) NA_real_ else a %% 24
-    },
-    INF_HYPERBILI_TCB15_ANY   = collapse_flag(INF_HYPERBILI_TCB15[TCB_WINDOW %in% c("24HR","5DAY","14DAY")]),
-    INF_HYPERBILI_TCB15_24HR  = collapse_flag(INF_HYPERBILI_TCB15[TCB_WINDOW == "24HR"]),
-    INF_HYPERBILI_TCB15_5DAY  = collapse_flag(INF_HYPERBILI_TCB15[TCB_WINDOW == "5DAY"]),
-    INF_HYPERBILI_TCB15_14DAY = collapse_flag(INF_HYPERBILI_TCB15[TCB_WINDOW == "14DAY"]),
-    .groups = "drop"
-  )
+first_date <- function(flag, dates) {
+  d <- as.Date(dates[!is.na(flag) & flag == 1 & !is.na(dates)])
+  if (length(d)) min(d) else as.Date(NA)
+}
+first_age <- function(flag, age) {
+  z <- age[!is.na(flag) & flag == 1 & !is.na(age)]
+  if (length(z)) min(z) else NA_real_
+}
 
+## Prepare infant baseline ----
+inf_baseline_one <- inf_baseline %>% distinct(across(all_of(keys)), .keep_all = TRUE)
+if (nrow(inf_baseline_one) != nrow(inf_baseline)) {
+  warning("Duplicate infant IDs in inf_baseline: verify prior to analysis; first record retained")
+}
+base_tcb <- inf_baseline_one %>%
+  select(all_of(keys), LIVEBIRTH, BIRTH_OUTCOME, DOB, DELIVERY_DATETIME, GESTAGEBIRTH_ANY, GESTAGEBIRTH_ANY_DAYS) %>%
+  mutate(DOB = clean_date(DOB), DELIVERY_DATETIME = parse_datetime(DELIVERY_DATETIME),
+         GESTAGEBIRTH_ANY = suppressWarnings(as.numeric(GESTAGEBIRTH_ANY)))
 
-### TCB >= AAP threshold ---- 
-hyperbili_crit2 <- tcb_long %>%
-  group_by(SITE, MOMID, PREGID, INFANTID) %>%
-  summarise(
-    GESTAGEBIRTH_ANY = first(na.omit(GESTAGEBIRTH_ANY), default = NA_real_),
-    INF_HYPERBILI_AAP_AGE_DAYS = first_positive_age(INF_HYPERBILI_AAP, AGE_AT_VISIT_DAYS),
-    INF_HYPERBILI_AAP_AGE_HRS = {
-      a <- first_positive_age(INF_HYPERBILI_AAP, AGE_AT_VISIT_HOURS_USE)
-      if (is.na(a)) NA_real_ else a %% 24
-    },
-    INF_HYPERBILI_AAP_ANY   = collapse_flag(INF_HYPERBILI_AAP[TCB_WINDOW %in% c("24HR","5DAY","14DAY")], allow_77 = TRUE),
-    INF_HYPERBILI_AAP_24HR  = collapse_flag(INF_HYPERBILI_AAP[TCB_WINDOW == "24HR"], allow_77 = TRUE),
-    INF_HYPERBILI_AAP_5DAY  = collapse_flag(INF_HYPERBILI_AAP[TCB_WINDOW == "5DAY"], allow_77 = TRUE),
-    INF_HYPERBILI_AAP_14DAY = collapse_flag(INF_HYPERBILI_AAP[TCB_WINDOW == "14DAY"], allow_77 = TRUE),
-    .groups = "drop"
-  )
-
-
-### TCB >= NICE threshold ----
-hyperbili_crit4 <- tcb_long %>%
-  group_by(SITE, MOMID, PREGID, INFANTID) %>%
-  summarise(
-    INF_HYPERBILI_NICE_AGE_DAYS = first_positive_age(INF_HYPERBILI_NICE, AGE_AT_VISIT_DAYS),
-    INF_HYPERBILI_NICE_AGE_HRS = {
-      a <- first_positive_age(INF_HYPERBILI_NICE, AGE_AT_VISIT_HOURS_USE)
-      if (is.na(a)) NA_real_ else a %% 24
-    },
-    INF_HYPERBILI_NICE_ANY   = collapse_flag(INF_HYPERBILI_NICE[TCB_WINDOW %in% c("24HR","5DAY","14DAY")]),
-    INF_HYPERBILI_NICE_24HR  = collapse_flag(INF_HYPERBILI_NICE[TCB_WINDOW == "24HR"]),
-    INF_HYPERBILI_NICE_5DAY  = collapse_flag(INF_HYPERBILI_NICE[TCB_WINDOW == "5DAY"]),
-    INF_HYPERBILI_NICE_14DAY = collapse_flag(INF_HYPERBILI_NICE[TCB_WINDOW == "14DAY"]),
-    .groups = "drop"
-  )
-
-### Clinical jaundice ---- 
-jaundice_long <- tcb_long %>%
-  filter(!is.na(AGE_AT_VISIT_DAYS), AGE_AT_VISIT_DAYS <= 35) %>%
+## Prepare MNH11 IPC observations ----
+# TCB collection time is M11_TBILIRUBIN_OBSSTTIM, NOT M11_VISIT_OBSSTTIM.
+tcb_ipc_long <- base_tcb %>%
+  left_join(mnh11_constructed, by = keys, relationship = "one-to-many") %>%
   mutate(
-    INF_JAUN = case_when(
-      JAUND_CEOCCUR == 1 | YELLOW_CEOCCUR == 1 ~ 1L,
-      JAUND_CEOCCUR %in% c(0,1) | YELLOW_CEOCCUR %in% c(0,1) ~ 0L,
+    VISIT_DATE = clean_date(M11_VISIT_OBSSTDAT),
+    TCB_TIME_CLEAN = clean_time(M11_TBILIRUBIN_OBSSTTIM),
+    VISIT_TIME_CLEAN = clean_time(M11_VISIT_OBSSTTIM),
+    VISIT_DATETIME = combine_datetime(VISIT_DATE, TCB_TIME_CLEAN),
+    CLINICAL_DATETIME = combine_datetime(VISIT_DATE, VISIT_TIME_CLEAN),
+    VISIT_TIME_IMPUTED = 0L,
+    AGE_AT_VISIT_HOURS_TOTAL = as.numeric(difftime(VISIT_DATETIME, DELIVERY_DATETIME, units = "hours")),
+    AGE_AT_VISIT_HOURS_TOTAL = if_else(!is.na(AGE_AT_VISIT_HOURS_TOTAL) & AGE_AT_VISIT_HOURS_TOTAL >= 0,
+                                       floor(AGE_AT_VISIT_HOURS_TOTAL), NA_real_),
+    AGE_AT_VISIT_DAYS = if_else(!is.na(AGE_AT_VISIT_HOURS_TOTAL), floor(AGE_AT_VISIT_HOURS_TOTAL / 24),
+                                if_else(!is.na(VISIT_DATE) & !is.na(DOB) & VISIT_DATE >= DOB,
+                                        as.numeric(VISIT_DATE - DOB), NA_real_)),
+    AGE_AT_VISIT_HRS = AGE_AT_VISIT_HOURS_TOTAL %% 24,
+    VISIT_SOURCE = "IPC",
+    VISIT_WINDOW = "IPC",
+    TCB_ASSESSED = M11_BILIRUBIN_LBPERF,
+    TCB_VALUE_RAW = suppressWarnings(as.numeric(M11_TBILIRUBIN_UMOLL_LBORRES)),
+    JAUND_CEOCCUR = suppressWarnings(as.numeric(M11_JAUND_CEOCCUR)),
+    YELLOW_CEOCCUR = suppressWarnings(as.numeric(M11_YELLOW_CEOCCUR)),
+    JAUND_ONSET_RAW = M11_JAUND_CESTDAT,
+    JAUND_ONSET = NA_real_
+  ) %>%
+  convert_tcb_units() %>%
+  mutate(
+    # Flag IPC bilirubin assessments more than 72 hours after birth.
+    IPC_TCB_AFTER_72HR = !is.na(AGE_AT_VISIT_HOURS_TOTAL) &
+      AGE_AT_VISIT_HOURS_TOTAL > 72,
+    
+    # Exclude late IPC measurements from TCB-based outcomes.
+    TCB_VALUE = if_else(
+      IPC_TCB_AFTER_72HR,
+      NA_real_,
+      TCB_VALUE
+    )
+  )
+
+tcb_ipc_long %>%
+  summarise(
+    N_RECORDS = n(),
+    N_RAW_TCB = sum(!is.na(TCB_VALUE_RAW)),
+    N_VALID_TCB = sum(!is.na(TCB_VALUE)),
+    N_ABOVE_15 = sum(TCB_VALUE > 15, na.rm = TRUE),
+    N_AFTER_72HR = sum(IPC_TCB_AFTER_72HR, na.rm = TRUE),
+    N_MISSING_AGE = sum(is.na(AGE_AT_VISIT_HOURS_TOTAL))
+  )
+
+## Prepare MNH13 clinical PNC observations ----
+pnc_clinical_long <- mnh13 %>%
+  inner_join(base_tcb %>% select(all_of(keys), DOB), by = keys, relationship = "many-to-one") %>%
+  mutate(
+    VISIT_DATE = clean_date(M13_VISIT_OBSSTDAT),
+    AGE_AT_VISIT_DAYS = if_else(!is.na(VISIT_DATE) & !is.na(DOB) & VISIT_DATE >= DOB,
+                                as.numeric(VISIT_DATE - DOB), NA_real_),
+    VISIT_WINDOW = assign_pnc_window(AGE_AT_VISIT_DAYS),
+    JAUND_CEOCCUR = suppressWarnings(as.numeric(M13_JAUND_CEOCCUR)),
+    YELLOW_CEOCCUR = suppressWarnings(as.numeric(M13_YELL_CEOCCUR))
+  ) %>%
+  select(all_of(keys), VISIT_DATE, AGE_AT_VISIT_DAYS, VISIT_WINDOW,
+         JAUND_CEOCCUR, YELLOW_CEOCCUR, M13_JAUND_CESTTIM)
+
+## Prepare MNH14 PNC TCB observations ----
+tcb_pnc_long <- mnh14 %>%
+  inner_join(base_tcb, by = keys, relationship = "many-to-one") %>%
+  mutate(
+    VISIT_DATE = clean_date(M14_VISIT_OBSSTDAT),
+    TCB_TIME_CLEAN = clean_time(M14_TCB_OBSSTTIM),
+    VISIT_DATETIME = combine_datetime(VISIT_DATE, TCB_TIME_CLEAN),
+    CLINICAL_DATETIME = as.POSIXct(NA),
+    VISIT_TIME_IMPUTED = 0L,
+    AGE_AT_VISIT_HOURS_TOTAL = as.numeric(difftime(VISIT_DATETIME, DELIVERY_DATETIME, units = "hours")),
+    AGE_AT_VISIT_HOURS_TOTAL = if_else(!is.na(AGE_AT_VISIT_HOURS_TOTAL) & AGE_AT_VISIT_HOURS_TOTAL >= 0,
+                                       floor(AGE_AT_VISIT_HOURS_TOTAL), NA_real_),
+    AGE_AT_VISIT_DAYS = if_else(!is.na(AGE_AT_VISIT_HOURS_TOTAL), floor(AGE_AT_VISIT_HOURS_TOTAL / 24),
+                                if_else(!is.na(VISIT_DATE) & !is.na(DOB) & VISIT_DATE >= DOB,
+                                        as.numeric(VISIT_DATE - DOB), NA_real_)),
+    AGE_AT_VISIT_HRS = AGE_AT_VISIT_HOURS_TOTAL %% 24,
+    VISIT_SOURCE = "PNC", VISIT_WINDOW = assign_pnc_window(AGE_AT_VISIT_DAYS),
+    TCB_ASSESSED = M14_TCB_VSSTAT,
+    TCB_VALUE_RAW = suppressWarnings(as.numeric(M14_TCB_UMOLL_LBORRES)),
+    JAUND_ONSET_RAW = NA_character_, JAUND_ONSET = NA_real_
+  ) %>%
+  convert_tcb_units()
+
+# Preserve clinical MNH13 separately to avoid multiplying MNH14 records on date-only joins.
+# Match at most one MNH13 clinical record per infant/date; report duplicate dates for review.
+clinical_duplicates <- pnc_clinical_long %>% count(across(all_of(c(keys, "VISIT_DATE")))) %>% filter(n > 1)
+if (nrow(clinical_duplicates)) warning(nrow(clinical_duplicates), " infant/date combinations have multiple MNH13 clinical forms")
+pnc_clinical_by_date <- pnc_clinical_long %>%
+  group_by(across(all_of(c(keys, "VISIT_DATE")))) %>%
+  summarise(
+    JAUND_CEOCCUR = case_when(any(JAUND_CEOCCUR == 1, na.rm = TRUE) ~ 1,
+                              any(JAUND_CEOCCUR == 0, na.rm = TRUE) ~ 0, TRUE ~ NA_real_),
+    YELLOW_CEOCCUR = case_when(any(YELLOW_CEOCCUR == 1, na.rm = TRUE) ~ 1,
+                               any(YELLOW_CEOCCUR == 0, na.rm = TRUE) ~ 0, TRUE ~ NA_real_),
+    .groups = "drop"
+  )
+
+tcb_pnc_long <- tcb_pnc_long %>%
+  left_join(pnc_clinical_by_date,
+            by = c(setNames(c(keys, "VISIT_DATE"), c(keys, "VISIT_DATE"))), relationship = "many-to-one")
+
+# Keep MNH13-only records when no MNH14 record exists on the same date.
+pnc_clinical_only <- pnc_clinical_by_date %>%
+  anti_join(tcb_pnc_long %>% distinct(across(all_of(c(keys, "VISIT_DATE")))), by = c(keys, "VISIT_DATE")) %>%
+  inner_join(base_tcb, by = keys, relationship = "many-to-one") %>%
+  filter(JAUND_CEOCCUR %in% c(0, 1) | YELLOW_CEOCCUR %in% c(0, 1)) %>%
+  mutate(
+    VISIT_SOURCE = "PNC_CLINICAL", VISIT_WINDOW = assign_pnc_window(as.numeric(VISIT_DATE - DOB)),
+    VISIT_DATETIME = as.POSIXct(NA), CLINICAL_DATETIME = as.POSIXct(NA),
+    AGE_AT_VISIT_DAYS = if_else(!is.na(VISIT_DATE) & !is.na(DOB) & VISIT_DATE >= DOB,
+                                as.numeric(VISIT_DATE - DOB), NA_real_),
+    AGE_AT_VISIT_HOURS_TOTAL = NA_real_, AGE_AT_VISIT_HRS = NA_real_,
+    TCB_ASSESSED = NA_real_, TCB_VALUE_RAW = NA_real_, TCB_VALUE = NA_real_,
+    unit = NA_character_, VISIT_TIME_IMPUTED = 0L,
+    JAUND_ONSET_RAW = NA_character_, JAUND_ONSET = NA_real_
+  )
+
+## Combine PNC and IPC observations ----
+
+## Standardize jaundice onset variable 
+standardize_jaund_onset <- function(data) {
+  if (!"JAUND_ONSET_RAW" %in% names(data)) {
+    data$JAUND_ONSET_RAW <- NA_character_
+  }
+  
+  data %>%
+    mutate(JAUND_ONSET_RAW = as.character(JAUND_ONSET_RAW))
+}
+
+tcb_ipc_long <- standardize_jaund_onset(tcb_ipc_long)
+tcb_pnc_long <- standardize_jaund_onset(tcb_pnc_long)
+pnc_clinical_only <- standardize_jaund_onset(pnc_clinical_only)
+
+common_cols <- c(keys, "LIVEBIRTH", "BIRTH_OUTCOME", "DOB", "DELIVERY_DATETIME",
+                 "GESTAGEBIRTH_ANY", "GESTAGEBIRTH_ANY_DAYS", "VISIT_SOURCE", "VISIT_WINDOW", "VISIT_DATE",
+                 "VISIT_DATETIME", "CLINICAL_DATETIME", "VISIT_TIME_IMPUTED", "AGE_AT_VISIT_DAYS",
+                 "AGE_AT_VISIT_HRS", "AGE_AT_VISIT_HOURS_TOTAL", "TCB_ASSESSED", "TCB_VALUE_RAW",
+                 "TCB_VALUE", "JAUND_CEOCCUR", "YELLOW_CEOCCUR", "JAUND_ONSET_RAW", "JAUND_ONSET", "unit")
+
+
+tcb_long <- bind_rows(
+  tcb_ipc_long %>% select(any_of(common_cols)),
+  tcb_pnc_long %>% select(any_of(common_cols)),
+  pnc_clinical_only %>% select(any_of(common_cols))
+) %>%
+  mutate(
+    AGE_AT_VISIT_HOURS_USE = AGE_AT_VISIT_HOURS_TOTAL,
+    AGE_SOURCE = case_when(!is.na(AGE_AT_VISIT_HOURS_USE) ~ "DATETIME",
+                           !is.na(AGE_AT_VISIT_DAYS) ~ "DATE_ONLY", TRUE ~ "MISSING"),
+    TCB_REPORTED = as.integer(!is.na(TCB_VALUE)),
+    TCB_WINDOW = assign_tcb_window(AGE_AT_VISIT_HOURS_USE),
+    TCB_AGE_WINDOW = if_else(TCB_REPORTED == 1, TCB_WINDOW, NA_character_),
+    INF_HYPERBILI_TCB15 = case_when(
+      TCB_REPORTED == 1 & TCB_VALUE > 15 ~ 1L,
+      TCB_REPORTED == 1 ~ 0L, TRUE ~ NA_integer_),
+    TCB_DAYS = floor(AGE_AT_VISIT_HOURS_USE / 24),
+    TCB_HRS = AGE_AT_VISIT_HOURS_USE %% 24
+  ) %>%
+  arrange(SITE, MOMID, PREGID, INFANTID, VISIT_DATE, VISIT_DATETIME) %>%
+  group_by(across(all_of(keys))) %>% mutate(VISIT_SEQ = row_number()) %>% ungroup()
+
+## Calculate and reuse unique thresholds ----
+# Only measured, exactly timed observations in the first 14 days are evaluated.
+
+# Identify combinations requiring thresholds.
+thresholds_needed <- tcb_long %>%
+  filter(
+    TCB_REPORTED == 1,
+    !is.na(GESTAGEBIRTH_ANY), GESTAGEBIRTH_ANY > 0,
+    !is.na(TCB_DAYS), !is.na(TCB_HRS),
+    TCB_DAYS >= 0,
+    AGE_AT_VISIT_HOURS_USE >= 0,
+    AGE_AT_VISIT_HOURS_USE < max_tcb_age_hours
+  ) %>%
+  distinct(GESTAGEBIRTH_ANY, TCB_DAYS, TCB_HRS)
+
+threshold_path <- path.expand(threshold_file)
+
+# Read existing AAP lookup.
+if (file.exists(threshold_path)) {
+  
+  tcb_thresholds <- read.csv(threshold_path) %>%
+    transmute(
+      GESTAGEBIRTH_ANY = as.numeric(GESTAGEBIRTH_ANY),
+      TCB_DAYS = as.numeric(TCB_DAYS),
+      TCB_HRS = as.numeric(TCB_HRS),
+      TCB_AAP_THRESH = as.numeric(TCB_AAP_THRESH)
+    )
+  
+} else {
+  
+  tcb_thresholds <- tibble(
+    GESTAGEBIRTH_ANY = numeric(),
+    TCB_DAYS = numeric(),
+    TCB_HRS = numeric(),
+    TCB_AAP_THRESH = numeric()
+  )
+}
+
+# Check for duplicate combinations.
+cache_duplicate_keys <- tcb_thresholds %>%
+  count(GESTAGEBIRTH_ANY, TCB_DAYS, TCB_HRS) %>%
+  filter(n > 1)
+
+if (nrow(cache_duplicate_keys) > 0) {
+  stop("AAP threshold cache has duplicate keys")
+}
+
+# Identify new combinations requiring AAP thresholds.
+new_thresholds <- thresholds_needed %>%
+  anti_join(
+    tcb_thresholds,
+    by = c("GESTAGEBIRTH_ANY", "TCB_DAYS", "TCB_HRS")
+  )
+
+cat("New AAP threshold combinations:", nrow(new_thresholds), "\n")
+
+if (nrow(new_thresholds) > 0) {
+  
+  new_thresholds <- new_thresholds %>%
+    rowwise() %>%
+    mutate(
+      TCB_AAP_THRESH = if (GESTAGEBIRTH_ANY >= 35) {
+        tryCatch(
+          as.numeric(
+            TSB(
+              "P0",
+              paste0(GESTAGEBIRTH_ANY, " weeks"),
+              days = TCB_DAYS,
+              hours = TCB_HRS
+            )
+          ) - 3,
+          error = function(e) NA_real_
+        )
+      } else {
+        NA_real_
+      }
+    ) %>%
+    ungroup()
+  
+  tcb_thresholds <- bind_rows(
+    tcb_thresholds,
+    new_thresholds
+  )
+  
+  # Save AAP thresholds only.
+  dir.create(
+    dirname(threshold_path),
+    recursive = TRUE,
+    showWarnings = FALSE
+  )
+  
+  write.csv(
+    tcb_thresholds,
+    threshold_path,
+    row.names = FALSE
+  )
+}
+
+## Calculate NICE thresholds for each unique age combo ----
+nice_thresholds <- thresholds_needed %>%
+  mutate(
+    NICE_GA = case_when(
+      GESTAGEBIRTH_ANY <= 23 ~ "23 weeks",
+      GESTAGEBIRTH_ANY < 38 ~ paste0(GESTAGEBIRTH_ANY, " weeks"),
+      TRUE ~ ">= 38 weeks"
+    )
+  ) %>%
+  rowwise() %>%
+  mutate(
+    TCB_NICE_THRESH = tryCatch(
+      as.numeric(
+        TSB_NICE(
+          threshold = "P0",
+          GA = NICE_GA,
+          days = TCB_DAYS,
+          hours = TCB_HRS
+        )
+      ) - 3,
+      error = function(e) NA_real_
+    )
+  ) %>%
+  ungroup() %>%
+  select(
+    GESTAGEBIRTH_ANY,
+    TCB_DAYS,
+    TCB_HRS,
+    TCB_NICE_THRESH
+  )
+
+cat("NICE threshold combinations calculated:", nrow(nice_thresholds), "\n")
+
+## Calculate per-observation outcomes ----
+
+tcb_long <- tcb_long %>%
+  select(-any_of(c(
+    "TCB_AAP_THRESH", "TCB_NICE_THRESH",
+    "THRESHOLD_ELIGIBLE",
+    "INF_HYPERBILI_AAP", "INF_HYPERBILI_NICE"
+  ))) %>%
+  left_join(
+    tcb_thresholds,
+    by = c("GESTAGEBIRTH_ANY", "TCB_DAYS", "TCB_HRS")
+  ) %>%
+  left_join(
+    nice_thresholds,
+    by = c("GESTAGEBIRTH_ANY", "TCB_DAYS", "TCB_HRS")
+  ) %>%
+  mutate(
+    THRESHOLD_ELIGIBLE = TCB_REPORTED == 1 &
+      !is.na(AGE_AT_VISIT_HOURS_USE) &
+      AGE_AT_VISIT_HOURS_USE >= 0 &
+      AGE_AT_VISIT_HOURS_USE < max_tcb_age_hours,
+    
+    INF_HYPERBILI_AAP = case_when(
+      !THRESHOLD_ELIGIBLE ~ NA_integer_,
+      is.na(GESTAGEBIRTH_ANY) | GESTAGEBIRTH_ANY < 35 ~ 77L,
+      !is.na(TCB_AAP_THRESH) &
+        TCB_VALUE >= TCB_AAP_THRESH ~ 1L,
+      !is.na(TCB_AAP_THRESH) ~ 0L,
       TRUE ~ NA_integer_
     ),
+    
+    INF_HYPERBILI_NICE = case_when(
+      !THRESHOLD_ELIGIBLE ~ NA_integer_,
+      AGE_AT_VISIT_HOURS_USE < 24 ~ 77,
+      is.na(TCB_NICE_THRESH) ~ NA_integer_,
+      TCB_VALUE >= TCB_NICE_THRESH ~ 1L,
+      TRUE ~ 0L
+    )
+  )
+
+# Collapse first positive diagnosis to infant level ----
+# First positive by actual hour, so only one age window can equal 1 for each outcome.
+# ANY uses observed measurements in the first 14 days, preserving the new first-14-day definition.
+collapse_first_diagnosis <- function(data, flag_col, prefix, allow_77 = FALSE) {
+  x <- data %>%
+    group_by(across(all_of(keys))) %>%
+    summarise(
+      ANY_FLAG = collapse_flag(.data[[flag_col]][TCB_WINDOW %in% c("24HR", "5DAY", "14DAY")], allow_77),
+      FIRST_POSITIVE_HOURS = first_age(.data[[flag_col]],
+                                       if_else(TCB_WINDOW %in% c("24HR", "5DAY", "14DAY"), AGE_AT_VISIT_HOURS_USE, NA_real_)),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      AGE_DAYS = floor(FIRST_POSITIVE_HOURS / 24),
+      AGE_HRS = FIRST_POSITIVE_HOURS %% 24,
+      `24HR` = case_when(!is.na(FIRST_POSITIVE_HOURS) ~ as.integer(FIRST_POSITIVE_HOURS >= 0 & FIRST_POSITIVE_HOURS < 24),
+                         ANY_FLAG == 77 ~ 77L, ANY_FLAG == 0 ~ 0L, TRUE ~ NA_integer_),
+      `5DAY` = case_when(!is.na(FIRST_POSITIVE_HOURS) ~ as.integer(FIRST_POSITIVE_HOURS >= 24 & FIRST_POSITIVE_HOURS < 120),
+                         ANY_FLAG == 77 ~ 77L, ANY_FLAG == 0 ~ 0L, TRUE ~ NA_integer_),
+      `14DAY` = case_when(!is.na(FIRST_POSITIVE_HOURS) ~ as.integer(FIRST_POSITIVE_HOURS >= 120 & FIRST_POSITIVE_HOURS < 336),
+                          ANY_FLAG == 77 ~ 77L, ANY_FLAG == 0 ~ 0L, TRUE ~ NA_integer_)
+    ) %>%
+    select(all_of(keys), AGE_DAYS, AGE_HRS, ANY_FLAG, `24HR`, `5DAY`, `14DAY`)
+  names(x)[-(seq_along(keys))] <- paste0(prefix, c("_AGE_DAYS", "_AGE_HRS", "_ANY", "_24HR", "_5DAY", "_14DAY"))
+  x
+}
+hyperbili_crit1 <- collapse_first_diagnosis(tcb_long, "INF_HYPERBILI_TCB15", "INF_HYPERBILI_TCB15")
+hyperbili_crit2 <- collapse_first_diagnosis(tcb_long, "INF_HYPERBILI_AAP", "INF_HYPERBILI_AAP", TRUE) %>%
+  left_join(inf_baseline_one %>% select(all_of(keys), GESTAGEBIRTH_ANY), by = keys, relationship = "one-to-one")
+hyperbili_crit4 <- collapse_first_diagnosis(tcb_long, "INF_HYPERBILI_NICE", "INF_HYPERBILI_NICE")
+
+# Construct clinical jaundice outcomes ----
+# Use actual clinical timestamps for IPC onset before 24 hours, not bilirubin collection times.
+# M11_JAUND_CESTDAT is an onset DATE, not a 1/2 indicator: do not treat it as one.
+jaundice_long <- tcb_long %>%
+  filter(!is.na(AGE_AT_VISIT_DAYS), AGE_AT_VISIT_DAYS >= 0, AGE_AT_VISIT_DAYS <= 35) %>%
+  mutate(
+    INF_JAUN = case_when(JAUND_CEOCCUR == 1 | YELLOW_CEOCCUR == 1 ~ 1L,
+                         JAUND_CEOCCUR %in% c(0, 1) | YELLOW_CEOCCUR %in% c(0, 1) ~ 0L,
+                         TRUE ~ NA_integer_),
     INF_JAUN_DATE = if_else(INF_JAUN == 1, VISIT_DATE, as.Date(NA)),
     INF_JAUN_AGE_DAYS = if_else(INF_JAUN == 1, AGE_AT_VISIT_DAYS, NA_real_),
-    INF_JAUN_AGE_HOURS_IPC = if_else(INF_JAUN == 1 & VISIT_SOURCE == "IPC",
-                                     AGE_AT_VISIT_HRS, NA_real_),
-    INF_JAUN_SEV = case_when(
-      INF_JAUN == 1 & (YELLOW_CEOCCUR == 1 | JAUND_ONSET == 1) ~ 1L,
-      INF_JAUN == 1 ~ 0L,
-      TRUE ~ 0L
-    ),
-    INF_JAUN_NON_SEV = case_when(
-      INF_JAUN == 1 & INF_JAUN_SEV == 0 ~ 1L,
-      TRUE ~ 0L
-    ),
-    DENOM_JAUN = as.integer(
-      (JAUND_CEOCCUR %in% c(0,1) | YELLOW_CEOCCUR %in% c(0,1)) &
-        AGE_AT_VISIT_DAYS <= 14 #14days!
-    )
+    CLINICAL_AGE_HOURS = as.numeric(difftime(CLINICAL_DATETIME, DELIVERY_DATETIME, units = "hours")),
+    CLINICAL_AGE_HOURS = if_else(!is.na(CLINICAL_AGE_HOURS) & CLINICAL_AGE_HOURS >= 0,
+                                 CLINICAL_AGE_HOURS, NA_real_),
+    INF_JAUN_AGE_HOURS_IPC = if_else(INF_JAUN == 1 & VISIT_SOURCE == "IPC", CLINICAL_AGE_HOURS %% 24, NA_real_),
+    INF_JAUN_SEV = case_when(INF_JAUN == 1 & (YELLOW_CEOCCUR == 1 |
+                                                (VISIT_SOURCE == "IPC" & !is.na(CLINICAL_AGE_HOURS) & CLINICAL_AGE_HOURS < 24)) ~ 1L,
+                             INF_JAUN == 1 ~ 0L, TRUE ~ NA_integer_),
+    INF_JAUN_NON_SEV = case_when(INF_JAUN == 1 & INF_JAUN_SEV == 0 ~ 1L,
+                                 INF_JAUN == 1 ~ 0L, TRUE ~ NA_integer_),
+    DENOM_JAUN = as.integer((JAUND_CEOCCUR %in% c(0, 1) | YELLOW_CEOCCUR %in% c(0, 1)) &
+                              AGE_AT_VISIT_DAYS < 14)
   )
 
-
-first_positive_date_j <- function(flag, date) {
-  # coerce to Date no matter what comes in
-  date <- suppressWarnings(as.Date(date))
-  z <- date[!is.na(flag) & flag == 1 & !is.na(date)]
-  if (length(z) == 0) return(as.Date(NA))
-  suppressWarnings(min(z, na.rm = TRUE))
-}
-
-first_positive_age_j <- function(flag, age) {
-  age <- suppressWarnings(as.numeric(age))
-  z <- age[!is.na(flag) & flag == 1 & !is.na(age)]
-  if (length(z) == 0) return(NA_real_)
-  min(z)
-}
-
-first_positive_hours_j <- function(flag, hours) {
-  hours <- suppressWarnings(as.numeric(hours))
-  z <- hours[!is.na(flag) & flag == 1 & !is.na(hours)]
-  if (length(z) == 0) return(NA_real_)
-  min(z)
-}
-## per-infant (wide) — group_by + summarise collapses visits
 hyperbili_crit3 <- jaundice_long %>%
-  group_by(SITE, MOMID, PREGID, INFANTID) %>%
+  group_by(across(all_of(keys))) %>%
   summarise(
-    
-    ##  Overall jaundice 
-    INF_JAUN          = as.integer(any(INF_JAUN == 1, na.rm = TRUE)),
-    INF_JAUN_DATE     = first_positive_date_j(INF_JAUN, INF_JAUN_DATE),
-    INF_JAUN_AGE_DAYS = first_positive_age_j(INF_JAUN, INF_JAUN_AGE_DAYS),
-    INF_JAUN_AGE_HRS  = first_positive_hours_j(INF_JAUN, INF_JAUN_AGE_HOURS_IPC),
-    
-    ##  Non-severe jaundice 
-    INF_JAUN_NON_SEV_ANY      = as.integer(any(INF_JAUN_NON_SEV == 1, na.rm = TRUE)),
-    INF_JAUN_NON_SEV_DATE     = first_positive_date_j(INF_JAUN_NON_SEV, INF_JAUN_DATE),
-    INF_JAUN_NON_SEV_AGE_DAYS = first_positive_age_j(INF_JAUN_NON_SEV, INF_JAUN_AGE_DAYS),
-    INF_JAUN_NON_SEV_AGE_HRS  = first_positive_hours_j(INF_JAUN_NON_SEV, INF_JAUN_AGE_HOURS_IPC),
-    
-    ##  Severe jaundice 
-    INF_JAUN_SEV           = as.integer(any(INF_JAUN_SEV == 1, na.rm = TRUE)),
-    INF_JAUN_SEV_DATE      = first_positive_date_j(INF_JAUN_SEV, INF_JAUN_DATE),
-    INF_JAUN_SEV_AGE_DAYS  = first_positive_age_j(INF_JAUN_SEV, INF_JAUN_AGE_DAYS),
-    INF_JAUN_SEV_AGE_HRS   = first_positive_hours_j(INF_JAUN_SEV, INF_JAUN_AGE_HOURS_IPC),
-    
-    ##  Severe within 24hr of onset 
-    INF_JAUN_SEV_24HR = as.integer(any(
+    INF_JAUN_ANY_TMP = collapse_flag(INF_JAUN),
+    INF_JAUN_DATE_TMP = first_date(INF_JAUN, INF_JAUN_DATE),
+    INF_JAUN_AGE_DAYS_TMP = first_age(INF_JAUN, INF_JAUN_AGE_DAYS),
+    INF_JAUN_AGE_HRS_TMP = first_age(INF_JAUN, INF_JAUN_AGE_HOURS_IPC),
+    INF_JAUN_NON_SEV_ANY_TMP = collapse_flag(INF_JAUN_NON_SEV),
+    INF_JAUN_NON_SEV_DATE_TMP = first_date(INF_JAUN_NON_SEV, INF_JAUN_DATE),
+    INF_JAUN_NON_SEV_AGE_DAYS_TMP = first_age(INF_JAUN_NON_SEV, INF_JAUN_AGE_DAYS),
+    INF_JAUN_NON_SEV_AGE_HRS_TMP = first_age(INF_JAUN_NON_SEV, INF_JAUN_AGE_HOURS_IPC),
+    INF_JAUN_SEV_ANY_TMP = collapse_flag(INF_JAUN_SEV),
+    INF_JAUN_SEV_DATE_TMP = first_date(INF_JAUN_SEV, INF_JAUN_DATE),
+    INF_JAUN_SEV_AGE_DAYS_TMP = first_age(INF_JAUN_SEV, INF_JAUN_AGE_DAYS),
+    INF_JAUN_SEV_AGE_HRS_TMP = first_age(INF_JAUN_SEV, INF_JAUN_AGE_HOURS_IPC),
+    INF_JAUN_SEV_24HR_TMP = as.integer(any(
       INF_JAUN_SEV == 1 &
-        (JAUND_ONSET == 1 |
-           (!is.na(AGE_AT_VISIT_HOURS_USE) &
-              AGE_AT_VISIT_HOURS_USE >= 0 &
-              AGE_AT_VISIT_HOURS_USE < 24)),
+        VISIT_SOURCE == "IPC" &
+        !is.na(CLINICAL_AGE_HOURS) &
+        CLINICAL_AGE_HOURS < 24,
       na.rm = TRUE
     )),
     
-    ##  Severe >24hr after onset 
-    INF_JAUN_SEV_GREATER_24HR = as.integer(any(
+    INF_JAUN_SEV_GREATER_24HR_TMP = as.integer(any(
       INF_JAUN_SEV == 1 &
-        (JAUND_ONSET == 2 |
-           (is.na(JAUND_ONSET) &
-              !is.na(AGE_AT_VISIT_HOURS_USE) &
-              AGE_AT_VISIT_HOURS_USE >= 24)),
+        !is.na(CLINICAL_AGE_HOURS) &
+        CLINICAL_AGE_HOURS >= 24,
       na.rm = TRUE
     )),
-    
-    ##  Denominator 
-    DENOM_JAUN = as.integer(any(DENOM_JAUN == 1, na.rm = TRUE)),
-    
+    DENOM_JAUN_TMP = as.integer(any(DENOM_JAUN == 1, na.rm = TRUE)),
     .groups = "drop"
-  )
+  ) %>% rename_with(~ sub("_TMP$", "", .x), ends_with("_TMP")) %>%
+  rename(INF_JAUN = INF_JAUN_ANY, INF_JAUN_SEV = INF_JAUN_SEV_ANY)
 
-## 10. TCB denominators 
-# Built off the same TCB_WINDOW tag used in hyperbili_crit1/2/4,
-# so the denominator and the outcome cannot disagree on window boundaries.
+# Construct infant-level denominators ----
 hyperbili_denom <- tcb_long %>%
-  mutate(
-    TCB_WINDOW = toupper(trimws(as.character(TCB_WINDOW))),
-    TCB_VALUE  = suppressWarnings(as.numeric(as.character(TCB_VALUE)))
-  ) %>%
-  group_by(SITE, MOMID, PREGID, INFANTID) %>%
+  group_by(across(all_of(keys))) %>%
   summarise(
-    DENOM_HYPERBILI_24HR = as.integer(
-      any(TCB_WINDOW == "24HR" & !is.na(TCB_VALUE))
-    ),
-    
-    DENOM_HYPERBILI_5DAY = as.integer(
-      any(TCB_WINDOW == "5DAY" & !is.na(TCB_VALUE))
-    ),
-    
-    DENOM_HYPERBILI_14DAY = as.integer(
-      any(TCB_WINDOW == "14DAY" & !is.na(TCB_VALUE))
-    ),
-    
-    DENOM_HYPERBILI_ANY = as.integer(
-      any(TCB_WINDOW %in% c("24HR", "5DAY", "14DAY") & !is.na(TCB_VALUE))
-    ),
-    
+    DENOM_HYPERBILI_24HR = as.integer(any(TCB_REPORTED == 1 & TCB_WINDOW == "24HR", na.rm = TRUE)),
+    DENOM_HYPERBILI_5DAY = as.integer(any(TCB_REPORTED == 1 & TCB_WINDOW == "5DAY", na.rm = TRUE)),
+    DENOM_HYPERBILI_14DAY = as.integer(any(TCB_REPORTED == 1 & TCB_WINDOW == "14DAY", na.rm = TRUE)),
+    DENOM_HYPERBILI_ANY = as.integer(any(TCB_REPORTED == 1 & TCB_WINDOW %in% c("24HR", "5DAY", "14DAY"), na.rm = TRUE)),
     .groups = "drop"
   )
 
-## 11. Denominator audit 
-cat("\nRAW TCB DENOMINATOR CHECK\n")
-cat("ANY:", sum(hyperbili_denom$DENOM_HYPERBILI_ANY == 1), "\n")
-cat("\n[3] Denominator totals (n = 1)\n")
-cat(sprintf("    ANY   : %d\n", sum(hyperbili_denom$DENOM_HYPERBILI_ANY   == 1, na.rm = TRUE)))
-cat(sprintf("    24HR  : %d\n", sum(hyperbili_denom$DENOM_HYPERBILI_24HR  == 1, na.rm = TRUE)))
-cat(sprintf("    5DAY  : %d\n", sum(hyperbili_denom$DENOM_HYPERBILI_5DAY  == 1, na.rm = TRUE)))
-cat(sprintf("    14DAY : %d\n", sum(hyperbili_denom$DENOM_HYPERBILI_14DAY == 1, na.rm = TRUE)))
+# Assemble constructed infant outcomes ----
+hyperbili_all_crit <- inf_baseline_one %>%
+  select(all_of(keys), DELIVERY_DATETIME, GESTAGEBIRTH_ANY, ADJUD_NEEDED, LIVEBIRTH) %>%
+  left_join(hyperbili_crit1, by = keys, relationship = "one-to-one") %>%
+  left_join(hyperbili_crit2 %>% select(-GESTAGEBIRTH_ANY), by = keys, relationship = "one-to-one") %>%
+  left_join(hyperbili_crit3, by = keys, relationship = "one-to-one") %>%
+  left_join(hyperbili_crit4, by = keys, relationship = "one-to-one") %>%
+  left_join(hyperbili_denom, by = keys, relationship = "one-to-one") %>%
+  mutate(across(starts_with("DENOM_"), ~ replace_na(as.integer(.x), 0L)))
 
+adjud_cols <- c(
+  "INF_HYPERBILI_TCB15_24HR", "INF_HYPERBILI_TCB15_5DAY", "INF_HYPERBILI_TCB15_14DAY",
+  "INF_HYPERBILI_AAP_24HR", "INF_HYPERBILI_AAP_5DAY", "INF_HYPERBILI_AAP_14DAY",
+  "INF_HYPERBILI_NICE_24HR", "INF_HYPERBILI_NICE_5DAY", "INF_HYPERBILI_NICE_14DAY",
+  "INF_JAUN_NON_SEV_ANY", "INF_JAUN_SEV_24HR", "INF_JAUN_SEV_GREATER_24HR",
+  "DENOM_HYPERBILI_ANY", "DENOM_HYPERBILI_24HR", "DENOM_HYPERBILI_5DAY", "DENOM_HYPERBILI_14DAY", "DENOM_JAUN")
 
-tcb_age_summary <- tcb_long %>%
-  filter(TCB_REPORTED == 1) %>%
-  count(TCB_AGE_WINDOW, name = "N_TCB") %>%
-  mutate(PERCENT = round(100 * N_TCB / sum(N_TCB), 1))
-
-cat("\nWHERE ALL ACTUAL TCB MEASUREMENTS FALL BY AGE\n")
-for (i in seq_len(nrow(tcb_age_summary))) {
-  cat(tcb_age_summary$TCB_AGE_WINDOW[i], ":",
-      tcb_age_summary$N_TCB[i], "TCBs (",
-      tcb_age_summary$PERCENT[i], "%)\n", sep = " ")
-}
-
-## 12. Final infant-level dataset 
-hyperbili_all_crit <- inf_baseline %>%
-  select(SITE, MOMID, PREGID, INFANTID, DELIVERY_DATETIME,
-         GESTAGEBIRTH_ANY, ADJUD_NEEDED, LIVEBIRTH) %>%
-  left_join(hyperbili_crit1, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
-  left_join(hyperbili_crit2 %>% select(-GESTAGEBIRTH_ANY),
-            by = c("SITE","MOMID","PREGID","INFANTID")) %>%
-  left_join(hyperbili_crit3, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
-  left_join(hyperbili_crit4, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
-  left_join(hyperbili_denom, by = c("SITE","MOMID","PREGID","INFANTID")) %>%
-  mutate(across(
-    c(DENOM_HYPERBILI_ANY, DENOM_HYPERBILI_24HR,
-      DENOM_HYPERBILI_5DAY, DENOM_HYPERBILI_14DAY),
-    ~ replace_na(.x, 0L)
-  )) %>%
-  mutate(across(c(
-    INF_HYPERBILI_TCB15_24HR, INF_HYPERBILI_TCB15_5DAY, INF_HYPERBILI_TCB15_14DAY,
-    INF_HYPERBILI_AAP_24HR, INF_HYPERBILI_AAP_5DAY, INF_HYPERBILI_AAP_14DAY,
-    INF_HYPERBILI_NICE_24HR, INF_HYPERBILI_NICE_5DAY, INF_HYPERBILI_NICE_14DAY,
-    INF_JAUN_NON_SEV_ANY, INF_JAUN_SEV_24HR, INF_JAUN_SEV_GREATER_24HR,
-    DENOM_HYPERBILI_ANY, DENOM_HYPERBILI_24HR, DENOM_HYPERBILI_5DAY,
-    DENOM_HYPERBILI_14DAY, DENOM_JAUN),
-    ~ case_when(
-      ADJUD_NEEDED == 1 ~ 55L,
-      TRUE ~ as.integer(.x)
-    )
-  )) %>%
-  select(-ADJUD_NEEDED) %>%
+hyperbili_all_crit <- hyperbili_all_crit %>%
+  mutate(across(all_of(adjud_cols), ~ if_else(ADJUD_NEEDED == 1, 55L, as.integer(.x)))) %>%
   mutate(
-    across(
-      c(INF_HYPERBILI_TCB15_ANY, INF_HYPERBILI_TCB15_24HR,
-        INF_HYPERBILI_TCB15_5DAY, INF_HYPERBILI_TCB15_14DAY),
-      ~ case_when(
-        is.na(.x) & LIVEBIRTH != 1 ~ 77L,
-        is.na(.x) & LIVEBIRTH == 1 ~ 55L,
-        TRUE ~ as.integer(.x))
-    ),
-    across(
-      c(INF_HYPERBILI_AAP_ANY, INF_HYPERBILI_AAP_24HR,
-        INF_HYPERBILI_AAP_5DAY, INF_HYPERBILI_AAP_14DAY),
-      ~ case_when(
-        is.na(.x) & LIVEBIRTH != 1 ~ 77L,
-        is.na(.x) & LIVEBIRTH == 1 & !is.na(GESTAGEBIRTH_ANY) & GESTAGEBIRTH_ANY < 35 ~ 77L,
-        is.na(.x) & LIVEBIRTH == 1 ~ 55L,
-        TRUE ~ as.integer(.x))
-    ),
-    across(
-      c(INF_HYPERBILI_NICE_ANY, INF_HYPERBILI_NICE_24HR,
-        INF_HYPERBILI_NICE_5DAY, INF_HYPERBILI_NICE_14DAY),
-      ~ case_when(
-        is.na(.x) & LIVEBIRTH != 1 ~ 77L,
-        is.na(.x) & LIVEBIRTH == 1 ~ 55L,
-        TRUE ~ as.integer(.x))
-    )
+    across(all_of(paste0("INF_HYPERBILI_TCB15_", c("ANY", "24HR", "5DAY", "14DAY"))), ~ case_when(
+      is.na(.x) & LIVEBIRTH != 1 ~ 77L, is.na(.x) & LIVEBIRTH == 1 ~ 55L,
+      TRUE ~ as.integer(.x))),
+    across(all_of(paste0("INF_HYPERBILI_AAP_", c("ANY", "24HR", "5DAY", "14DAY"))), ~ case_when(
+      is.na(.x) & LIVEBIRTH != 1 ~ 77L,
+      is.na(.x) & LIVEBIRTH == 1 & !is.na(GESTAGEBIRTH_ANY) & GESTAGEBIRTH_ANY < 35 ~ 77L,
+      is.na(.x) & LIVEBIRTH == 1 ~ 55L, TRUE ~ as.integer(.x))),
+    across(all_of(paste0("INF_HYPERBILI_NICE_", c("ANY", "24HR", "5DAY", "14DAY"))), ~ case_when(
+      is.na(.x) & LIVEBIRTH != 1 ~ 77L, is.na(.x) & LIVEBIRTH == 1 ~ 55L,
+      TRUE ~ as.integer(.x)))
+  ) %>% select(-ADJUD_NEEDED)
+
+# Audit outcomes and timing ----
+tcb_audit <- tcb_long %>%
+  group_by(SITE, VISIT_SOURCE, unit) %>%
+  summarise(
+    N_RECORDS = n(), N_REPORTED = sum(TCB_REPORTED == 1, na.rm = TRUE),
+    N_EXACT_AGE = sum(TCB_REPORTED == 1 & !is.na(AGE_AT_VISIT_HOURS_USE)),
+    N_DATE_ONLY = sum(TCB_REPORTED == 1 & AGE_SOURCE == "DATE_ONLY"),
+    N_OVER_25_MGDL = sum(TCB_VALUE > 25, na.rm = TRUE),
+    N_TCB15_POSITIVE = sum(INF_HYPERBILI_TCB15 == 1, na.rm = TRUE),
+    N_NICE_POSITIVE = sum(INF_HYPERBILI_NICE == 1, na.rm = TRUE),
+    N_AAP_POSITIVE = sum(INF_HYPERBILI_AAP == 1, na.rm = TRUE),
+    .groups = "drop"
   )
+tcb_outcome_audit <- hyperbili_all_crit %>%
+  group_by(SITE) %>%
+  summarise(
+    TCB15_ANY = sum(INF_HYPERBILI_TCB15_ANY == 1, na.rm = TRUE),
+    AAP_ANY = sum(INF_HYPERBILI_AAP_ANY == 1, na.rm = TRUE),
+    NICE_ANY = sum(INF_HYPERBILI_NICE_ANY == 1, na.rm = TRUE),
+    .groups = "drop"
+  )
+print(tcb_audit, n = Inf)
+print(tcb_outcome_audit, n = Inf)
+cat("Threshold combinations in cache:", nrow(tcb_thresholds), "\n")
+cat("Records with missing NICE threshold despite eligible measurement:",
+    sum(tcb_long$THRESHOLD_ELIGIBLE & !is.na(tcb_long$GESTAGEBIRTH_ANY) &
+          is.na(tcb_long$TCB_NICE_THRESH), na.rm = TRUE), "\n")
 
-## 13. Final checks 
-cat("\nFINAL TCB WORKFLOW CHECK\n")
-cat("Actual TCB measurements:", sum(tcb_long$TCB_REPORTED == 1, na.rm = TRUE), "\n")
-cat("Negative cleaned TCB values:", sum(tcb_long$TCB_VALUE < 0, na.rm = TRUE), "\n")
-cat("TCBs with exact datetime age:",
-    sum(tcb_long$TCB_REPORTED == 1 & tcb_long$AGE_SOURCE == "DATETIME", na.rm = TRUE), "\n")
-cat("TCBs with date-only age:",
-    sum(tcb_long$TCB_REPORTED == 1 & tcb_long$AGE_SOURCE == "DATE_ONLY", na.rm = TRUE), "\n")
-cat("TCBs with missing age:",
-    sum(tcb_long$TCB_REPORTED == 1 & tcb_long$AGE_SOURCE == "MISSING", na.rm = TRUE), "\n")
+cat("Records with missing APP threshold despite eligible measurement:",
+    sum(tcb_long$THRESHOLD_ELIGIBLE & !is.na(tcb_long$GESTAGEBIRTH_ANY) &
+          (tcb_long$GESTAGEBIRTH_ANY > 35) &
+          is.na(tcb_long$TCB_AAP_THRESH), na.rm = TRUE), "\n")
 
-# Distribution of the per-observation flags — this is the key diagnostic
-cat("\nPER-OBSERVATION FLAG DISTRIBUTIONS\n")
-cat("INF_HYPERBILI_TCB15:\n"); print(table(tcb_long$INF_HYPERBILI_TCB15, useNA = "always"))
-cat("INF_HYPERBILI_AAP:\n");   print(table(tcb_long$INF_HYPERBILI_AAP,   useNA = "always"))
-cat("INF_HYPERBILI_NICE:\n");  print(table(tcb_long$INF_HYPERBILI_NICE,  useNA = "always"))
-
-tcb_long_export <- tcb_long %>% filter (!is.na(TCB_VALUE) & TCB_REPORTED == 1)
+tcb_long_export <- tcb_long %>% filter(TCB_REPORTED == 1)
 
 ## Export 
 # Long datasets: every available visit/result.
