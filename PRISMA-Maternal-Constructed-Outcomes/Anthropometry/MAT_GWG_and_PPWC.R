@@ -24,7 +24,7 @@ pacman::p_load(
 
 #functions----
 
-check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NULL) {
+check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NULL, filter=filter) {
   
   flags <- list()
   add <- function(check, ok, detail) {
@@ -150,8 +150,10 @@ check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NUL
     
     tbl   <- tableGrob(show, rows = NULL, theme = tt)
     title <- textGrob(paste0(unique(df$SITE),
-                             "\nModel: ", paste(deparse(formula(fit)), collapse=""),
-                             "\nChecks: ", n_flag, " flag(s) out of ", nrow(out)),
+                             "\nModel: ", paste(deparse(fit$call$random), collapse=""),
+                             "\nChecks: ", n_flag, " flag(s) out of ", nrow(out),
+                             "\nFilter: ", paste("<", filter ,"weeks"),
+                             "\nAIC: ", AIC(fit)),
                       x=0.5,
                       hjust=0.5,
                       gp = gpar(fontsize = 13, fontface = "bold"))
@@ -179,8 +181,12 @@ weight_imputation<-function(data, filter){
  # data <- zambia
   
   # 1. Percentiles of ga_week < 28 
-  df <- data %>% filter(GA_WKS < filter)
-  #df <- data
+  df <- data %>% 
+    filter(GA_WKS < filter)%>%
+    filter(mweight<600)
+  #df <-data
+  
+  print(max(df$GA_WKS))
   
   # The 25/50/75th percentiles are the knots for the model
   kn <- quantile(df$GA_WKS, probs = c(.25, .50, .75), type = 2, na.rm = TRUE)
@@ -269,7 +275,7 @@ weight_imputation<-function(data, filter){
   )
   
   #run checks on the model
-  check_lme_fit(fit, df, kn, ga_impute = 9, imputed = NULL, plot=TRUE)
+  check_lme_fit(fit, df, kn, ga_impute = 9, imputed = NULL, plot=TRUE, filter=filter)
   
   #print knots
   #print(paste0("Knots: ", kn))
