@@ -814,8 +814,6 @@ birth.
 
 **Denominator:** All livebirths.
 
- 
-
 **To be included as "non-missing" for this outcome, a participant must
 have:**
 
@@ -2930,7 +2928,6 @@ first week of life (delivery to 7 days of age).
 **Denominator:** All liveborn infants with a measurement taken within
 the testing window.
 
- 
 
 ### Table 9. Hyperbilirubinemia
 
@@ -3147,8 +3144,6 @@ the WHO IMCI criteria, which are consistent with possible severe
 bacterial infection from delivery to 59 days.
 
 **Denominator:** All livebirths aged 0-59 days.
-
- 
 
 ### Table 10. PSBI
 
@@ -5677,25 +5672,15 @@ tb_ebf_food_pnc6 <- tb_theme1(tb_food_theme_pnc6) %>%
 
 ```
 
-### 13a. Infant exclusive breastfeeding status at 6weeks
+### 13a. Infant exclusive breastfeeding status at 6 weeks
 
-Infant exclusive breastfeeding (EBF) status was assessed at the 6-week
-postnatal care visit to describe feeding practices during early infancy.
-The following tables summarize the completeness of EBF data, the
-prevalence of exclusive breastfeeding overall and across infant
-size-for-gestational-age and gestational-age (SVN) categories, and
-caregiver-reported feeding behaviors among infants who were not
-exclusively breastfed.
+Infant exclusive breastfeeding (EBF) status was assessed at the PRISMA MNH 6-week postnatal care visit (42–104 days after birth) to describe feeding practices during early infancy. The following tables summarize the completeness of EBF data, the prevalence of exclusive breastfeeding overall and across infant size-for-gestational-age and gestational-age (SVN) categories, and caregiver-reported feeding behaviors among infants who were not exclusively breastfed. 
 
-For infants not exclusively breastfed at 6 weeks, additional summaries
-characterize reported reasons for non-exclusive breastfeeding and the
-types of non-breastmilk foods or liquids introduced. These
-caregiver-reported measures allow multiple responses; therefore,
-percentages may sum to more than 100 percent.
+Infants were classified as having **invalid EBF** status when no EBF assessment was available at the time of the visit to ascertain their exclusively breastfed status.
 
-Together, these analyses provide an integrated overview of early infant
-feeding practices and contextual factors influencing exclusive
-breastfeeding at the 6-week postnatal timepoint.
+For infants not exclusively breastfed at 6 weeks, additional summaries characterize reported reasons for non-exclusive breastfeeding and the types of non-breastmilk foods or liquids introduced. These caregiver-reported measures allow multiple responses; therefore, percentages may sum to more than 100 percent.
+
+Together, these analyses provide an integrated overview of early infant feeding practices and contextual factors influencing exclusive breastfeeding at the 6-week postnatal timepoint.
 
 #### Table 13a (i). Infant exclusive breastfeeding completion status at 6weeks
 
@@ -6213,23 +6198,14 @@ tb_ebf_food_pnc26 <- tb_theme1(tb_food_theme_pnc26) %>%
 
 ### 13b. Infant exclusive breastfeeding status at 26weeks
 
-Infant exclusive breastfeeding (EBF) status was assessed at the 6-week
-postnatal care visit to describe feeding practices during early infancy.
-The following tables summarize the completeness of EBF data, the
-prevalence of exclusive breastfeeding overall and across infant
-size-for-gestational-age and gestational-age (SVN) categories, and
-caregiver-reported feeding behaviors among infants who were not
-exclusively breastfed.
+Infant exclusive breastfeeding (EBF) status was assessed at the PRISMA MNH 26-week postnatal care visit (182–279 days after birth) to describe feeding practices during infancy. The following tables summarize the completeness of EBF data, the prevalence of exclusive breastfeeding overall and across infant size-for-gestational-age and gestational-age (SVN) categories, and caregiver-reported feeding behaviors among infants who were not exclusively breastfed. 
 
-For infants not exclusively breastfed at 6 weeks, additional summaries
-characterize reported reasons for non-exclusive breastfeeding and the
-types of non-breastmilk foods or liquids introduced. These
-caregiver-reported measures allow multiple responses; therefore,
-percentages may sum to more than 100 percent.
+Infants were classified as having **invalid EBF** status when no EBF assessment was available at the time of the visit to determine ascertain exclusively breastfeeding status.
 
-Together, these analyses provide an integrated overview of early infant
-feeding practices and contextual factors influencing exclusive
-breastfeeding at the 6-week postnatal timepoint.
+For infants not exclusively breastfed at 26 weeks, additional summaries characterize reported reasons for non-exclusive breastfeeding and the types of non-breastmilk foods or liquids introduced. These caregiver-reported measures allow multiple responses; therefore, **percentages may sum to more than 100 percent**.
+
+Together, these analyses provide an integrated overview of infant feeding practices and contextual factors influencing exclusive breastfeeding at the 26-week postnatal timepoint.
+
 
 #### Table 13b (i). Infant exclusive breastfeeding completion status at 26weeks
 

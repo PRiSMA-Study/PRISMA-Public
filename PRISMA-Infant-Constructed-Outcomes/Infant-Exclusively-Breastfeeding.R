@@ -146,7 +146,7 @@ inf_mnh13 <- mnh13 %>%
       AGE_VISIT >= 3 & AGE_VISIT <= 5 ~ 7,
       AGE_VISIT >= 7 & AGE_VISIT <= 14 ~ 8,
       AGE_VISIT >= 28 & AGE_VISIT <= 35 ~ 9,
-      AGE_VISIT >= 42 & AGE_VISIT <= 104 ~ 10,
+      AGE_VISIT >= 42 & AGE_VISIT <= 90 ~ 10,
       AGE_VISIT >= 182 & AGE_VISIT <= 279 ~ 11,
       AGE_VISIT >= 279 & AGE_VISIT <= 454 ~ 12,
       
@@ -154,7 +154,7 @@ inf_mnh13 <- mnh13 %>%
       AGE_VISIT > 5 & AGE_VISIT < 7 ~ 7.5,
       AGE_VISIT > 14 & AGE_VISIT < 28 ~ 8.5,
       AGE_VISIT > 35 & AGE_VISIT < 42 ~ 9.5,
-      AGE_VISIT > 104 & AGE_VISIT < 182 ~ 10.5,
+      AGE_VISIT > 90 & AGE_VISIT < 182 ~ 10.5,
       
       TRUE ~ 14), # Default case
     TV_EQ = ifelse(TYPE_VISIT == TYPE_VISIT_UPDATE, 1, 0)) %>%
