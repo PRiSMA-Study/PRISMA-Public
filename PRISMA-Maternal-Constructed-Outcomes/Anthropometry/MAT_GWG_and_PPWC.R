@@ -178,7 +178,8 @@ check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NUL
 
 weight_imputation<-function(data, filter){
 
- # data <- zambia
+  # data <- zambia
+  # filter <- 28
   
   # 1. Percentiles of ga_week < 28 
   df <- data %>% 
@@ -389,29 +390,29 @@ crfs_needed<-c("mnh05", "mnh23")
 # # #NOTE: Don't need to read the files in over and over again now that I've created an RDA file.
 # # #Loop through each CSV file
 # # #Casey's Notes: Changed this so it only reads in the files we need
-# for (file in csv_files) {
-#   # Extract the base name of the file (without the path)
-#   base_name <- basename(file)
-#   base_name
-#   # Extract the part of the name before the underscore
-#   name_prefix <- str_split(base_name, "_")[[1]][1]
-#   name_prefix
-# 
-#   name_abbrev <- gsub("nh","",name_prefix)%>%toupper()
-#   name_abbrev
-# 
-#   # Read the CSV file into a data frame
-#   if(name_prefix %in% c(crfs_needed)){
-# 
-#     data_frame <- read.csv(file) %>%
-#                   rename_with(toupper)%>%
-#                   rename_variables(.,name_abbrev)
-# 
-#     # Assign the data frame to a variable with the extracted name
-#     assign(name_prefix, data_frame)
-# 
-#   }
-# }
+for (file in csv_files) {
+  # Extract the base name of the file (without the path)
+  base_name <- basename(file)
+  base_name
+  # Extract the part of the name before the underscore
+  name_prefix <- str_split(base_name, "_")[[1]][1]
+  name_prefix
+
+  name_abbrev <- gsub("nh","",name_prefix)%>%toupper()
+  name_abbrev
+
+  # Read the CSV file into a data frame
+  if(name_prefix %in% c(crfs_needed)){
+
+    data_frame <- read.csv(file) %>%
+                  rename_with(toupper)%>%
+                  rename_variables(.,name_abbrev)
+
+    # Assign the data frame to a variable with the extracted name
+    assign(name_prefix, data_frame)
+
+  }
+}
 
 # Optional: List all variables in the environment to verify
 # ls()
@@ -423,53 +424,53 @@ crfs_needed<-c("mnh05", "mnh23")
 ### Pull in constructed datasets----
 #*******************************************
 
-# if(UploadDate<'2026-09-18'){
-# 
-#   mat_enroll <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENROLL.dta"))%>%rename_with(toupper)
-#   mat_endpoints <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENDPOINTS.dta"))%>%rename_with(toupper)
-#   mat_demographic <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_DEMOGRAPHIC.dta"))%>%rename_with(toupper)
-#   mat_flowchart <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_FLOWCHART.dta"))%>%rename_with(toupper)
-# 
-# } else {
-# 
-#   mat_studystatus<-read_dta(paste0("Z:/Constructed Data/",UploadDate,"/MAT_STUDYSTATUS.dta"))%>%rename_with(toupper)
-#   mat_demographic <- read_dta(paste0("Z:/Constructed Data/",UploadDate,"/MAT_BASELINE.dta"))%>%rename_with(toupper)
-#   mat_flowchart <- read.csv(paste0("Z:/Constructed Data/",UploadDate,"/MAT_FLOWCHART.csv"))%>%rename_with(toupper)
-# 
-# 
-#   anc <- c("ENROLL", "ANC20", "ANC28", "ANC32", "ANC36")
-#   pnc <- paste0("PNC", c(0, 1, 4, 6, 26, 52))
-# 
-#   mat_enroll_vars <- c(
-#     "SITE", "SCRNID", "MOMID", "PREGID", "ENROLL", "REMAPP_ENROLL",
-#     "REMAPP_AIM3_ENROLL", "REMAPP_AIM3_TRI", "ENROLL_SCRN_DATE", "PREG_START_DATE",
-#     "EST_CONCEP_DATE_US", "EST_CONCEP_DATE_LMP", "M01_US_OHOSTDAT", "EDD_BOE",
-#     "GA_DIFF_DAYS", "BOE_METHOD", "BOE_GA_WKS_ENROLL", "BOE_GA_DAYS_ENROLL",
-#     "US_GA_DAYS_ENROLL", "US_GA_WKS_ENROLL", "LMP_GA_DAYS_ENROLL", "LMP_GA_WKS_ENROLL",
-#     outer(anc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
-#   )
-# 
-#   mat_endpoints_vars <- c(
-#     "SITE", "MOMID", "PREGID", "PREG_END", "PREG_END_GA", "PREG_END_DATE",
-#     "PREG_LOSS", "PREG_LOSS_INDUCED", "PREG_LOSS_DEATH",
-#     "PREG_END_SOURCE", "CLOSEOUT", "CLOSEOUT_DT", "CLOSEOUT_GA",
-#     "CLOSEOUT_TYPE", "CLOSEOUT_DAYS_PP", "MAT_DEATH", "MAT_DEATH_DATE", "MAT_DEATH_GA",
-#     "MAT_DEATH_MISSDATE", "MAT_DEATH_INFAGE","PREG_END_PP42_DT", "MAT_DEATH_42", "STOP_DATE",
-#     outer(pnc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
-#   )
-# 
-#   mat_enroll <- select(mat_studystatus, any_of(mat_enroll_vars))
-#   mat_endpoints <- select(mat_studystatus, any_of(mat_endpoints_vars))
-# }
-# 
-# save(
-#   mnh05,
-#   mnh23,
-#   mat_enroll,
-#   mat_endpoints,
-#   mat_demographic,
-#   mat_flowchart,
-#   file = (paste0("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Maternal Weight Gain/data_in/input_dataframes_imputedbmi_",UploadDate,".rda")))
+if(UploadDate<'2026-09-18'){
+
+  mat_enroll <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENROLL.dta"))%>%rename_with(toupper)
+  mat_endpoints <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_ENDPOINTS.dta"))%>%rename_with(toupper)
+  mat_demographic <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_DEMOGRAPHIC.dta"))%>%rename_with(toupper)
+  mat_flowchart <- read_dta(paste0("Z:/Outcome Data/",UploadDate,"/MAT_FLOWCHART.dta"))%>%rename_with(toupper)
+
+} else {
+
+  mat_studystatus<-read_dta(paste0("Z:/Constructed Data/",UploadDate,"/MAT_STUDYSTATUS.dta"))%>%rename_with(toupper)
+  mat_demographic <- read_dta(paste0("Z:/Constructed Data/",UploadDate,"/MAT_BASELINE.dta"))%>%rename_with(toupper)
+  mat_flowchart <- read.csv(paste0("Z:/Constructed Data/",UploadDate,"/MAT_FLOWCHART.csv"))%>%rename_with(toupper)
+
+
+  anc <- c("ENROLL", "ANC20", "ANC28", "ANC32", "ANC36")
+  pnc <- paste0("PNC", c(0, 1, 4, 6, 26, 52))
+
+  mat_enroll_vars <- c(
+    "SITE", "SCRNID", "MOMID", "PREGID", "ENROLL", "REMAPP_ENROLL",
+    "REMAPP_AIM3_ENROLL", "REMAPP_AIM3_TRI", "ENROLL_SCRN_DATE", "PREG_START_DATE",
+    "EST_CONCEP_DATE_US", "EST_CONCEP_DATE_LMP", "M01_US_OHOSTDAT", "EDD_BOE",
+    "GA_DIFF_DAYS", "BOE_METHOD", "BOE_GA_WKS_ENROLL", "BOE_GA_DAYS_ENROLL",
+    "US_GA_DAYS_ENROLL", "US_GA_WKS_ENROLL", "LMP_GA_DAYS_ENROLL", "LMP_GA_WKS_ENROLL",
+    outer(anc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
+  )
+
+  mat_endpoints_vars <- c(
+    "SITE", "MOMID", "PREGID", "PREG_END", "PREG_END_GA", "PREG_END_DATE",
+    "PREG_LOSS", "PREG_LOSS_INDUCED", "PREG_LOSS_DEATH",
+    "PREG_END_SOURCE", "CLOSEOUT", "CLOSEOUT_DT", "CLOSEOUT_GA",
+    "CLOSEOUT_TYPE", "CLOSEOUT_DAYS_PP", "MAT_DEATH", "MAT_DEATH_DATE", "MAT_DEATH_GA",
+    "MAT_DEATH_MISSDATE", "MAT_DEATH_INFAGE","PREG_END_PP42_DT", "MAT_DEATH_42", "STOP_DATE",
+    outer(pnc, c("_ONTIME_WINDOW", "_LATE_WINDOW", "_PASS_ONTIME", "_PASS_LATE"), paste0)
+  )
+
+  mat_enroll <- select(mat_studystatus, any_of(mat_enroll_vars))
+  mat_endpoints <- select(mat_studystatus, any_of(mat_endpoints_vars))
+}
+
+save(
+  mnh05,
+  mnh23,
+  mat_enroll,
+  mat_endpoints,
+  mat_demographic,
+  mat_flowchart,
+  file = (paste0("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Maternal Weight Gain/data_in/input_dataframes_imputedbmi_",UploadDate,".rda")))
 
 
 #****************************************************************************
@@ -558,7 +559,7 @@ merged_df <- mnh_enroll_05_nomissing %>%
 # Then we fill it with the updated type visit for that window
 
 merged_df2 <- merged_df %>%
-  filter(TYPE_VISIT %in% c(1,2,3,4,5,13)) ##Diff 2
+  filter(TYPE_VISIT %in% c(1,2,3,4,5,13)) %>%##Diff 2
   #DATE OF VISIT - CONCEPTION DATE = GA AT VISIT. 
   mutate(GA_AT_VISIT = as.integer(floor(as.numeric(as.Date(ANT_PEDAT) - as.Date(PREG_START_DATE)))/7))
 
@@ -654,7 +655,7 @@ imputed_bmi <- weight_df %>%
 #### a. check number of data points per pregnancy----
 ##if > 70% of women only have 1 or 2 observations, there will likely be an error
 imputed_bmi%>%
-  filter(GA_WKS<28)%>%
+  filter(GA_WKS<29)%>%
   select(SITE, PREGID)%>%
   summarise(count=n(), .by=c(SITE, PREGID))%>%
   tabyl(count, SITE)%>%
@@ -673,7 +674,7 @@ imputed_df <- imputed_bmi %>%
   rename(mweight = WEIGHT_PERES) %>%
   split(.$SITE) %>% #convert df to list of dfs by SITE
   imap(
-    ~ weight_imputation(.x, filter=28) #run the imputation function
+    ~ weight_imputation(.x, filter=29) #run the imputation function
     %>% mutate(SITE = .y)
     ) %>%
   list_rbind()
@@ -939,14 +940,6 @@ gwg_data%>%
 gwg_outcome <- weight_df3 %>%
   select(SITE, SCRNID, MOMID, PREGID, TYPE_VISIT_UPDATED,	ANT_PEDAT,HEIGHT_ENROLL,WEIGHT_PERES,WEIGHT_ENROLL,BMI,BMI_EARLYPREG,BMI4CAT,WEIGHT_IMPUTED_FLAG, IOM_ADEQUACY, PREG_END)
 
-old_old_result<-read.csv("Z:/Constructed Data/2026-09-18/GWG_OUTCOME_LONG_ALL.csv")
-old_result<-read.csv(paste0("data_out/",'GWG_OUTCOME_LONG_ALL_', UploadDate, ".csv"))
-new_result<-gwg_outcome
-
-old_old_result%>%tabyl(BMI4CAT, SITE)
-old_result%>%tabyl(BMI4CAT, SITE)
-new_result%>%tabyl(BMI4CAT,SITE)
-
 write.csv(gwg_outcome, paste0("data_out/",'GWG_OUTCOME_LONG_ALL_', UploadDate, ".csv"))
 
 ## For MAT_GWG
@@ -957,6 +950,48 @@ mat_gwg_subset <- gwg_data %>%
 write_dta(mat_gwg_subset, paste0("data_out/","MAT_GWG_",UploadDate,".dta"))
 
 colnames(mat_gwg_subset)
+
+olddataset<-read.csv("Z:/Constructed Data/2026-09-18/MAT_WEIGHT_CHANGE.csv")
+
+full_join(olddataset,mat_gwg_subset, by=c("SITE", "MOMID", "PREGID"))%>%
+  filter(WEIGHT_IMPUTED_IND==1)%>%
+  ggplot()+
+  geom_point(aes(x=BMI.x, y=BMI.y), stat="identity")+
+  facet_wrap(~SITE, scales="free")+
+  labs(
+    x="Q3 Data Lock Imputation Results", 
+    y="New Imputation Results"
+  )+
+  ggtitle("BMI Result Comparison - Imputed Values Only")+
+  theme(plot.title=element_text(hjust=0.5))
+
+old<-full_join(olddataset,mat_gwg_subset, by=c("SITE", "MOMID", "PREGID"))%>%
+  select(SITE, BMI4CAT.x)%>%
+  tabyl(BMI4CAT.x, SITE)%>%
+  adorn_totals(where="both")%>%
+  mutate(dataset="Q3 Imputation")%>%
+  rename(BMI4CAT=BMI4CAT.x)
+
+new<-full_join(olddataset,mat_gwg_subset, by=c("SITE", "MOMID", "PREGID"))%>%
+  select(SITE, BMI4CAT.y)%>%
+  tabyl(BMI4CAT.y, SITE)%>%
+  adorn_totals(where="both")%>%
+  mutate(dataset="New Imputation")%>%
+  rename(BMI4CAT=BMI4CAT.y)
+
+set_flextable_defaults(
+  na_str = "NA",
+  nan_str = "—"
+)
+
+rbind(old,new)%>%
+  relocate(dataset)%>%
+  flextable::qflextable()%>%
+  flextable::merge_v(j=1)%>%
+  flextable::hline(i=6)
+  
+
+
 
 #*** end GWG----
 #_____----
