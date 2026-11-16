@@ -172,9 +172,11 @@ check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NUL
   
   invisible(out)
 }
-# zambia<-imputed_bmi%>%
-#           filter(SITE=="Zambia")%>%
-#           rename(mweight = WEIGHT_PERES)
+
+zambia<-imputed_bmi%>%
+          filter(SITE=="Zambia")%>%
+          rename(mweight = WEIGHT_PERES)
+
 
 weight_imputation<-function(data, filter){
 
