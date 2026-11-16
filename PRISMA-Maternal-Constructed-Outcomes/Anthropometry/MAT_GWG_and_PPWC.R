@@ -520,7 +520,7 @@ mnh05_filtered <- mnh05 %>%
   filter(PREGID %in% PREGID_vector) %>% #only include those wtih a pregid
   #relocate(SITE, MOMID, PREGID, TYPE_VISIT) %>%
   #rename(TYPE_VISIT = TYPE_VISIT) %>%
-  select(MOMID, PREGID, SITE, TYPE_VISIT, ANT_PEDAT, WEIGHT_PERES, WEIGHT_PEPERF, HEIGHT_PEPERF, HEIGHT_PERES)
+  select(MOMID, PREGID, SITE, TYPE_VISIT, ANT_PEDAT, WEIGHT_PERES, WEIGHT_PEPERF, HEIGHT_PEPERF, HEIGHT_PERES)##diff 1
 
 #join mnh05 to enrollment data
 mnh_enroll_05 <- full_join(mat_enroll, mnh05_filtered,
@@ -552,7 +552,7 @@ merged_df <- mnh_enroll_05_nomissing %>%
 # Then we fill it with the updated type visit for that window
 
 merged_df2 <- merged_df %>%
-  filter(TYPE_VISIT %in% c(1,2,3,4,5,13))%>%
+  filter(TYPE_VISIT %in% c(1,2,3,4,5,13)) ##Diff 2
   #DATE OF VISIT - CONCEPTION DATE = GA AT VISIT. 
   mutate(GA_AT_VISIT = as.integer(floor(as.numeric(as.Date(ANT_PEDAT) - as.Date(PREG_START_DATE)))/7))
 
@@ -561,6 +561,7 @@ weight_df <- merged_df2 %>%
   group_by(MOMID, PREGID, SITE) %>%
   #arrange by date
   arrange(MOMID, PREGID, SITE, as.Date(ANT_PEDAT), TYPE_VISIT) %>% 
+  ##Diff 3 
   #create columns for QC
   group_by(PREGID)%>%
   mutate(
