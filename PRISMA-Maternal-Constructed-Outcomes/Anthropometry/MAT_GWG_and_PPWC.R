@@ -812,7 +812,7 @@ weight_df2 <- weight_df2 %>%
       NA_real_
     ),
     GWG_TOTAL = coalesce(GWG_TOTAL, last(GWG_TOTAL)) #fills in all other rows will the same PREGID with the GWG_TOTAL calculated above
-    #GWG_TOTAL = if_else(GWG_TOTAL < 0, NA_real_, GWG_TOTAL) #sets negative weight gain to 0
+    #GWG_TOTAL = if_else(GWG_TOTAL < 0, NA_real_, GWG_TOTAL) #sets negative weight gain to 0 #diff 5
   ) %>%
   ungroup()%>%
 
