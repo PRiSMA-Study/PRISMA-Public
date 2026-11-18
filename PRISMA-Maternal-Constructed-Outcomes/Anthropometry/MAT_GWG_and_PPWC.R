@@ -21,6 +21,12 @@ pacman::p_load(
   flextable
 )
 
+#universal variables----
+UploadDate = "2026-09-18"
+
+df_names <- ls(pattern = "^mnh", envir = .GlobalEnv)
+
+
 
 #functions----
 
@@ -173,20 +179,21 @@ check_lme_fit <- function(fit, df, kn, ga_impute = 9, imputed = NULL, plot = NUL
   invisible(out)
 }
 
-zambia<-imputed_bmi%>%
-          filter(SITE=="Zambia")%>%
-          rename(mweight = WEIGHT_PERES)
+# zambia<-imputed_bmi%>%
+#           filter(SITE=="Zambia")%>%
+#           rename(mweight = WEIGHT_PERES)
 
 
 weight_imputation<-function(data, filter){
 
-  # data <- zambia
-  # filter <- 28
+   # data <- zambia
+   # filter <- 28
   
   # 1. Percentiles of ga_week < 28 
   df <- data %>% 
     filter(GA_WKS < filter)%>%
-    filter(mweight<600)
+    filter(mweight<600) #remove improbable values
+  
   #df <-data
   
   print(max(df$GA_WKS))
@@ -355,11 +362,6 @@ clean_date <- function(x,
 
 #working directory----
 setwd("D:/Users/ckalman/Documents/OutcomeDatasets/Analysis/Maternal Weight Gain")
-
-#universal variables----
-
-df_names <- ls(pattern = "^mnh", envir = .GlobalEnv)
-UploadDate = "2026-09-18"
 
 #file paths----
 path_to_stacked <- paste0("Z:/Stacked Data/", UploadDate)
@@ -655,7 +657,7 @@ imputed_bmi <- weight_df %>%
 
 ### Option 2: Imputation in R----
 #### a. check number of data points per pregnancy----
-##if > 70% of women only have 1 or 2 observations, there will likely be an error
+##if > 70% of women only have 1 or 2 observations, there can be errors
 imputed_bmi%>%
   filter(GA_WKS<29)%>%
   select(SITE, PREGID)%>%
@@ -666,13 +668,20 @@ imputed_bmi%>%
   adorn_pct_formatting(digits=0, affix_sign=T)%>%
   adorn_ns(position="front")
 
+
+##check for extreme values
+imputed_bmi%>%
+  filter(GA_WKS<29)%>%
+  select(WEIGHT_PERES)%>%
+  pull()%>%
+  summary()
+
 #sites where there are a large number of pregnancies in which they have only one observation could lead to errors in the model 
 #run the imputation and look for warning messages about "singularity"
 
 #### c. Perform imputation by region----
 
 imputed_df <- imputed_bmi %>%
-  #filter(SITE!="Zambia")%>%
   rename(mweight = WEIGHT_PERES) %>%
   split(.$SITE) %>% #convert df to list of dfs by SITE
   imap(
@@ -695,10 +704,10 @@ imputed_df <- imputed_bmi %>%
 #            mutate(SITE="Kenya")
 # 
 # zambia  <- imputed_bmi%>%
-#            filter(SITE=="Zambia")%>%
-#            rename(mweight=WEIGHT_PERES)%>%
-#            weight_imputation(.)%>%
-#            mutate(SITE="Zambia")
+#                filter(SITE=="Zambia")%>%
+#                rename(mweight=WEIGHT_PERES)%>%
+#                weight_imputation(., filter=28)%>%
+#                mutate(SITE="Zambia")
 # 
 # pakistan <- imputed_bmi%>%
 #             filter(SITE=="Pakistan")%>%
@@ -951,48 +960,8 @@ mat_gwg_subset <- gwg_data %>%
 
 write_dta(mat_gwg_subset, paste0("data_out/","MAT_GWG_",UploadDate,".dta"))
 
-colnames(mat_gwg_subset)
 
 olddataset<-read.csv("Z:/Constructed Data/2026-09-18/MAT_WEIGHT_CHANGE.csv")
-
-full_join(olddataset,mat_gwg_subset, by=c("SITE", "MOMID", "PREGID"))%>%
-  filter(WEIGHT_IMPUTED_IND==1)%>%
-  ggplot()+
-  geom_point(aes(x=BMI.x, y=BMI.y), stat="identity")+
-  facet_wrap(~SITE, scales="free")+
-  labs(
-    x="Q3 Data Lock Imputation Results", 
-    y="New Imputation Results"
-  )+
-  ggtitle("BMI Result Comparison - Imputed Values Only")+
-  theme(plot.title=element_text(hjust=0.5))
-
-old<-full_join(olddataset,mat_gwg_subset, by=c("SITE", "MOMID", "PREGID"))%>%
-  select(SITE, BMI4CAT.x)%>%
-  tabyl(BMI4CAT.x, SITE)%>%
-  adorn_totals(where="both")%>%
-  mutate(dataset="Q3 Imputation")%>%
-  rename(BMI4CAT=BMI4CAT.x)
-
-new<-full_join(olddataset,mat_gwg_subset, by=c("SITE", "MOMID", "PREGID"))%>%
-  select(SITE, BMI4CAT.y)%>%
-  tabyl(BMI4CAT.y, SITE)%>%
-  adorn_totals(where="both")%>%
-  mutate(dataset="New Imputation")%>%
-  rename(BMI4CAT=BMI4CAT.y)
-
-set_flextable_defaults(
-  na_str = "NA",
-  nan_str = "—"
-)
-
-rbind(old,new)%>%
-  relocate(dataset)%>%
-  flextable::qflextable()%>%
-  flextable::merge_v(j=1)%>%
-  flextable::hline(i=6)
-  
-
 
 
 #*** end GWG----
@@ -1567,6 +1536,8 @@ previous_result%>%
 new_result%>%
   tabyl(BMI4CAT, SITE)
 
+
+##write to file
 write.csv(final_export, paste0(path_to_save,"/MAT_WEIGHT_CHANGE",".csv"))
 write_dta(final_export, paste0(path_to_save,"/MAT_WEIGHT_CHANGE",".dta"))
 
